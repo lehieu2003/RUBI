@@ -6,9 +6,9 @@
 
 ## Summary
 
-This is a greenfield Next.js 16 App Router project for ice factory order management with a hard constraint: 30-second order entry. The speed-first requirement drives every technical decision. The stack is Next.js + TypeScript + Drizzle ORM + SQLite (ideal for solo dev deployment) + Zustand for client state. The 3-in-1 search bar and Order Matrix are the two UI centerpiece patterns that require careful keyboard-navigation implementation.
+This is a greenfield Next.js 16 App Router project for ice factory order management with a hard constraint: 30-second order entry. The speed-first requirement drives every technical decision. The stack is Next.js + TypeScript + Prisma ORM + Supabase (PostgreSQL) + TanStack Query + Zustand for client state + Zod for validation. The 3-in-1 search bar and Order Matrix are the two UI centerpiece patterns that require careful keyboard-navigation implementation.
 
-**Primary recommendation:** Next.js App Router (Server Components + Server Actions) + Drizzle + SQLite + Zustand + Tailwind CSS. Use CSS Grid for the Order Matrix and a custom slide-out drawer with focus-trap and keyboard support.
+**Primary recommendation:** Next.js App Router (Server Components + Server Actions) + Prisma + Supabase PostgreSQL + TanStack Query + Zustand + Tailwind CSS + Zod. Use CSS Grid for the Order Matrix and a custom slide-out drawer with focus-trap and keyboard support.
 
 ## User Constraints (from CONTEXT.md)
 
@@ -20,8 +20,7 @@ This is a greenfield Next.js 16 App Router project for ice factory order managem
 - 6 fixed SKUs: Đá Bi 5/10/20kg, Đá Viên 5/10/20kg (D-15)
 
 ### Claude's Discretion
-- ORM and database choice (not specified by user)
-- State management library
+- State management library (TanStack Query vs Zustand — both used for different purposes)
 - Project directory structure
 - How to implement keyboard navigation in the order matrix
 - Print template implementation approach
@@ -51,28 +50,30 @@ This is a greenfield Next.js 16 App Router project for ice factory order managem
 
 | Library | Version | Purpose | Why Standard |
 |---------|---------|---------|--------------|
-| Next.js | 16.2.3 | Full-stack framework | App Router, Server Actions, RSC |
+| Next.js | 16.x | Full-stack framework | App Router, Server Actions, RSC |
 | TypeScript | 5.x | Type safety | Catches errors at build time |
-| Tailwind CSS | 4.2.2 | Styling | Rapid UI development, consistent design tokens |
-| Drizzle ORM | 0.45.2 | Database ORM | Type-safe, lightweight, SQLite-first |
-| better-sqlite3 | 12.9.0 | SQLite driver | Synchronous, fast, single-file DB |
-| Zustand | 5.0.12 | Client state management | Minimal boilerplate, no re-render issues |
-| Zod | 4.3.6 | Schema validation | Runtime type safety for forms |
-| Lucide React | 1.8.0 | Icons | Consistent, tree-shakeable SVG icons |
+| Tailwind CSS | 4.x | Styling | Rapid UI development, consistent design tokens |
+| Prisma ORM | 6.x | Database ORM | Type-safe, auto-generated types, Supabase PostgreSQL compatible |
+| Supabase | PostgreSQL | Hosted database | Managed PostgreSQL, connection pooling, real-time ready |
+| TanStack Query | 5.x | Server state management | Data fetching, caching, background refetch |
+| Zustand | 5.x | Client state management | Minimal boilerplate, fast for hot paths (order entry) |
+| Zod | 4.x | Schema validation | Runtime type safety for forms and API |
+| Lucide React | latest | Icons | Consistent, tree-shakeable SVG icons |
 
 ### Supporting
 
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| Fuse.js | 7.3.0 | Fuzzy search | Client-side fuzzy matching for search bar |
-| cmdk | 1.1.1 | Command menu | Keyboard-navigable dropdown for search results |
-| react-to-print | ~3.x | Print integration | Thermal/A5 slip printing |
-| @tailwindcss/forms | ~0.5.x | Form styling | Consistent form input styles |
+| Fuse.js | 7.x | Fuzzy search | Client-side fuzzy matching for search bar |
+| React Hook Form | 7.x | Form handling | Fast form state management |
+| @hookform/resolvers | latest | Zod + RHF integration | Connect Zod schemas to React Hook Form |
 
 **Installation:**
 ```bash
-npm install next@latest react@latest react-dom@latest typescript @types/node @types/react @types/react-dom tailwindcss@latest postcss autoprefixer drizzle-orm better-sqlite3 @types/better-sqlite3 zustand zod lucide-react fuse.js cmdk react-to-print @tailwindcss/forms
-npm install -D drizzle-kit @types/better-sqlite3
+npm install next react react-dom typescript @types/node @types/react @types/react-dom tailwindcss postcss autoprefixer
+npm install @prisma/client
+npm install -D prisma
+npm install zustand @tanstack/react-query zod react-hook-form @hookform/resolvers fuse.js lucide-react
 ```
 
 **Version verification:** All versions verified via `npm view [package] version` on 2026-04-14.
@@ -580,8 +581,8 @@ export function OrderSlip({ order }: { order: Order }) {
 | Problem | Don't Build | Use Instead | Why |
 |---------|-------------|-------------|-----|
 | Search fuzzy matching | Custom string similarity algorithm | Fuse.js | Battle-tested, handles Vietnamese transliteration acceptably |
-| State management for order form | React Context + useReducer | Zustand | Zustand has no provider boilerplate, direct hook access, minimal re-renders |
-| Database ORM | Raw SQL strings | Drizzle ORM | Type-safe schema, migrations, SQLite-first, zero overhead |
+| State management for order form | React Context + useReducer | Zustand (order entry hot path) + TanStack Query (server state) | Zustand has no provider boilerplate, direct hook access, minimal re-renders. TanStack Query handles caching/invalidation |
+| Database ORM | Raw SQL strings | Prisma ORM | Type-safe schema, migrations, auto-generated types, Supabase PostgreSQL compatible |
 | Keyboard navigation in grid | Custom tab-order logic | Native tabIndex + onKeyDown | Browser handles tab order natively, minimal code |
 | Price inheritance logic | Manual if/else price lookups | Computed function in pricing utility | Single source of truth, easy to test |
 
