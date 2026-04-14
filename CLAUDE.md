@@ -25,7 +25,26 @@ Web-based order and inventory management system for ice factories. Replaces pen-
 <!-- GSD:stack-start source:STACK.md -->
 ## Technology Stack
 
-Technology stack not yet documented. Will populate after codebase mapping or first phase.
+**Frontend:**
+- Next.js 15+ (App Router, Server Actions, RSC)
+- TanStack Query (data fetching, caching)
+- Zustand (lightweight client state — order entry hot path)
+- React Hook Form + Zod (form validation)
+- Tailwind CSS + shadcn/ui components
+
+**Backend:**
+- Next.js API Routes / Server Actions
+- Supabase (PostgreSQL hosted database)
+- Prisma ORM (type-safe database access)
+
+**Key Libraries:**
+- Fuse.js (fuzzy search for customer lookup)
+- @tanstack/react-table (future data tables)
+- Zod (runtime validation, input schemas)
+
+**Infrastructure:**
+- Supabase Auth (future phases)
+- Vercel (target deployment)
 <!-- GSD:stack-end -->
 
 <!-- GSD:conventions-start source:CONVENTIONS.md -->
