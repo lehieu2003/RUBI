@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { Search, Printer, FileText, Clock, Truck, CheckCircle2 } from 'lucide-react';
-import Link from 'next/link';
 import { OrderEntryDrawer } from '@/components/order/order-entry-drawer';
+import { Drawer } from '@/components/ui/drawer';
+import { PrintSlip } from '@/components/order/print-slip';
 import type { Customer, Product } from '@prisma/client';
 
 // Types for API response
@@ -56,6 +57,8 @@ export default function OrdersPage() {
   const [selectedDriver, setSelectedDriver] = useState('Tất cả');
   const [selectedStatus, setSelectedStatus] = useState('Tất cả');
   const [filterDate, setFilterDate] = useState('');
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [showPrintSlip, setShowPrintSlip] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -114,6 +117,48 @@ export default function OrdersPage() {
     confirmed: mappedOrders.filter((o) => o.status === 'CONFIRMED').length,
     printed: mappedOrders.filter((o) => o.status === 'PRINTED').length,
     delivered: mappedOrders.filter((o) => o.status === 'DELIVERED').length,
+  };
+
+  // Find the selected order from API data
+  const selectedOrder = selectedOrderId
+    ? orders.find((o) => o.id === selectedOrderId)
+    : null;
+
+  // Convert to PrintSlip format
+  const slipOrder = selectedOrder
+    ? {
+        id: selectedOrder.id,
+        code: selectedOrder.code || `DH-${selectedOrder.id.slice(-6).toUpperCase()}`,
+        customer: selectedOrder.customer,
+        orderItems: selectedOrder.orderItems.map((item) => ({
+          product: { name: item.product.name, sizeKg: item.product.sizeKg },
+          quantity: item.quantity,
+          unitPrice: Number(item.unitPrice),
+          lineTotal: Number(item.lineTotal),
+        })),
+        total: typeof selectedOrder.total === 'number' ? selectedOrder.total : Number(selectedOrder.total) || 0,
+        createdAt: selectedOrder.createdAt,
+      }
+    : null;
+
+  // Print effect - runs after PrintSlip is rendered to DOM
+  useEffect(() => {
+    if (showPrintSlip && slipOrder) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.print();
+          setShowPrintSlip(false);
+        });
+      });
+    }
+  }, [showPrintSlip, slipOrder]);
+
+  const handleCloseDrawer = () => {
+    setSelectedOrderId(null);
+  };
+
+  const handlePrintFromDrawer = () => {
+    setShowPrintSlip(true);
   };
 
   if (loading) {
@@ -290,13 +335,13 @@ export default function OrdersPage() {
                         </span>
                       </td>
                       <td className="py-4 px-4 text-right">
-                        <Link
-                          href={`/orders/${order.id}`}
+                        <button
+                          onClick={() => setSelectedOrderId(order.id)}
                           className="inline-flex items-center gap-1.5 rounded-lg bg-slate-700/50 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-600 hover:text-white transition-all"
                         >
                           <Printer className="h-3.5 w-3.5" />
                           Xem
-                        </Link>
+                        </button>
                       </td>
                     </tr>
                   );
@@ -312,6 +357,111 @@ export default function OrdersPage() {
           </div>
         </div>
       </main>
+
+      {/* Order Detail Drawer - overlay for quick view */}
+      {selectedOrder && (
+        <Drawer
+          isOpen={selectedOrderId !== null}
+          onClose={handleCloseDrawer}
+          title={`Chi tiết đơn hàng #${slipOrder?.code}`}
+        >
+          <div className="space-y-4">
+            {/* Status badge */}
+            <div className="flex items-center gap-2">
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${statusConfig[selectedOrder.status as keyof typeof statusConfig]?.color || statusConfig.DRAFT.color}`}>
+                {statusConfig[selectedOrder.status as keyof typeof statusConfig]?.label || 'Chờ xử lý'}
+              </span>
+            </div>
+
+            {/* Customer info */}
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <h3 className="text-sm font-semibold text-slate-400 uppercase mb-3">Thông tin khách hàng</h3>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-xs text-slate-500">Tên khách hàng</p>
+                  <p className="font-medium text-white">{selectedOrder.customer.name}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500">Mã khách hàng</p>
+                  <p className="font-mono text-blue-400">{selectedOrder.customer.code}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500">Địa chỉ</p>
+                  <p className="text-white">{selectedOrder.customer.address}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500">Điện thoại</p>
+                  <p className="text-white">{selectedOrder.customer.phone}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Order items */}
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <h3 className="text-sm font-semibold text-slate-400 uppercase mb-3">Sản phẩm</h3>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-slate-500 border-b border-white/10">
+                    <th className="pb-2">Sản phẩm</th>
+                    <th className="pb-2 text-center">SL</th>
+                    <th className="pb-2 text-right">Đơn giá</th>
+                    <th className="pb-2 text-right">Thành tiền</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedOrder.orderItems.map((item) => (
+                    <tr key={item.id} className="border-b border-white/5">
+                      <td className="py-2 text-white">
+                        {item.product.name} {item.product.sizeKg}kg
+                      </td>
+                      <td className="py-2 text-center text-slate-300">{item.quantity}</td>
+                      <td className="py-2 text-right text-slate-300">
+                        {Number(item.unitPrice).toLocaleString('vi-VN')}đ
+                      </td>
+                      <td className="py-2 text-right font-medium text-white">
+                        {Number(item.lineTotal).toLocaleString('vi-VN')}đ
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Total */}
+            <div className="flex justify-between items-center">
+              <span className="text-lg font-medium text-slate-300">Tổng cộng</span>
+              <span className="text-2xl font-bold text-emerald-400">
+                {Number(selectedOrder.total).toLocaleString('vi-VN')}đ
+              </span>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-2">
+              <a
+                href={`/orders/${selectedOrder.id}`}
+                className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-slate-700/50 px-4 py-2.5 text-sm font-medium text-slate-300 hover:bg-slate-600 hover:text-white transition-all"
+              >
+                <FileText className="h-4 w-4" />
+                Xem chi tiết
+              </a>
+              <button
+                onClick={handlePrintFromDrawer}
+                className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors shadow-lg"
+              >
+                <Printer className="h-4 w-4" />
+                In phiếu giao hàng
+              </button>
+            </div>
+          </div>
+        </Drawer>
+      )}
+
+      {/* Print-only content: PrintSlip hidden on screen, visible in print */}
+      {showPrintSlip && slipOrder && (
+        <div className="hidden print:block">
+          <PrintSlip order={slipOrder} />
+        </div>
+      )}
     </div>
   );
 }
