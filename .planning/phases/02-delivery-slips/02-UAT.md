@@ -3,12 +3,12 @@ status: partial
 phase: "02-delivery-slips"
 source: [02-01-SUMMARY.md, 02-02-SUMMARY.md]
 started: "2026-04-15T08:35:00.000Z"
-updated: "2026-04-15T09:40:00.000Z"
+updated: "2026-04-15T12:15:00.000Z"
 ---
 
 ## Current Test
 
-[testing paused — 2 items outstanding]
+[testing complete]
 
 ## Tests
 
@@ -26,19 +26,24 @@ severity: major
 
 ### 3. Print delivery slip button works
 expected: On the order detail page (/orders/[id]), click the "In phiếu giao hàng" button. The browser print dialog should open. In the print preview, you should see the A5-formatted delivery slip with: company header "CÔNG TY TNHH ĐÁ LẠNH ICEFLOW", title "PHIẾU GIAO HÀNG", customer name, address, phone, product table, total, and signature line "Chữ ký khách hàng: _____________".
-result: pending
+result: issue
+reported: "khi ấn vào in phiếu giao hàng nó không hiển thị gì cả"
+severity: major
 
 ### 4. Order status update via API
 expected: Use a tool like Postman or curl to send PATCH /api/orders/[id]/status with {"status": "CONFIRMED"} — the order's status should update in the database and subsequent GET requests should reflect the new status.
-result: pending
+result: blocked
+blocked_by: not-implemented
+reason: "UI chưa có update status order — API có thể có nhưng UI chưa build"
 
 ## Summary
 
 total: 4
 passed: 0
-issues: 2
-pending: 2
+issues: 3
+pending: 0
 skipped: 0
+blocked: 1
 
 ## Gaps
 
@@ -74,3 +79,13 @@ skipped: 0
     - "Use requestAnimationFrame or useEffect to delay print until after render"
     - "Fix CSS selector to match nested .print-slip elements"
   debug_session: "diagnose-session-print-slip"
+
+- truth: "Print button opens A5 delivery slip in browser print dialog"
+  status: failed
+  reason: "User reported: khi ấn vào in phiếu giao hàng nó không hiển thị gì cả"
+  severity: major
+  test: 3
+  root_cause: ""     # Filled by diagnosis
+  artifacts: []      # Filled by diagnosis
+  missing: []        # Filled by diagnosis
+  debug_session: ""  # Filled by diagnosis
