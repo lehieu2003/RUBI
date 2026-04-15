@@ -111,10 +111,10 @@ export function SearchBar({ customers, onSelect, recentCustomerIds }: SearchBarP
           onFocus={handleFocus}
           onBlur={handleBlur}
           placeholder="Tìm khách hàng (tên, mã, SĐT)..."
-          className="w-full rounded-md border border-gray-300 px-4 py-2 pr-10 text-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full rounded-md border border-white/10 bg-white/5 px-4 py-2 pr-10 text-sm text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
         />
         {/* Search icon */}
-        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               strokeLinecap="round"
@@ -128,26 +128,26 @@ export function SearchBar({ customers, onSelect, recentCustomerIds }: SearchBarP
 
       {/* Single result hint */}
       {singleResultHint && (
-        <div className="mt-1 text-xs text-blue-600">{singleResultHint}</div>
+        <div className="mt-1 text-xs text-blue-400">{singleResultHint}</div>
       )}
 
       {/* Dropdown results */}
       {isOpen && (results.length > 0 || !query.trim()) && (
         <ul
           ref={listRef}
-          className="absolute z-10 mt-1 max-h-64 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg"
+          className="absolute z-10 mt-1 max-h-64 w-full overflow-auto rounded-md border border-white/10 bg-slate-800 py-1 shadow-lg"
           role="listbox"
         >
           {!query.trim() && recentCustomers.length > 0 && (
-            <li className="px-3 py-1 text-xs font-medium text-gray-500">
+            <li className="px-3 py-1 text-xs font-medium text-slate-400">
               Khách hàng gần đây
             </li>
           )}
           {results.map((customer, idx) => (
             <li
               key={customer.id}
-              className={`cursor-pointer px-3 py-2 hover:bg-blue-50 ${
-                idx === selectedIndex ? 'bg-blue-50' : ''
+              className={`cursor-pointer px-3 py-2 hover:bg-white/10 ${
+                idx === selectedIndex ? 'bg-white/10' : ''
               }`}
               onClick={() => handleSelect(customer)}
               onMouseEnter={() => setSelectedIndex(idx)}
@@ -156,12 +156,12 @@ export function SearchBar({ customers, onSelect, recentCustomerIds }: SearchBarP
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="font-medium">{customer.name}</span>
-                  <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs text-gray-600">
+                  <span className="font-medium text-white">{customer.name}</span>
+                  <span className="ml-2 rounded bg-slate-700 px-1.5 py-0.5 font-mono text-xs text-slate-300">
                     {customer.code}
                   </span>
                 </div>
-                <div className="flex items-center gap-1 text-sm text-gray-500">
+                <div className="flex items-center gap-1 text-sm text-slate-400">
                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
                       strokeLinecap="round"
@@ -176,7 +176,7 @@ export function SearchBar({ customers, onSelect, recentCustomerIds }: SearchBarP
             </li>
           ))}
           {results.length === 0 && query.trim() && (
-            <li className="px-3 py-2 text-sm text-gray-500">Không tìm thấy khách hàng</li>
+            <li className="px-3 py-2 text-sm text-slate-500">Không tìm thấy khách hàng</li>
           )}
         </ul>
       )}

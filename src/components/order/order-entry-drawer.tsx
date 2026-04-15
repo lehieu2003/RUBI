@@ -99,7 +99,7 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
         <div className="flex flex-col gap-4">
           {/* Customer search */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-slate-300">
               Khách hàng
             </label>
             <SearchBar
@@ -111,9 +111,9 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
 
           {/* Selected customer display */}
           {customer && (
-            <div className="rounded-md bg-blue-50 p-3 text-sm">
-              <div className="font-medium text-blue-900">{customer.name}</div>
-              <div className="text-blue-700">
+            <div className="rounded-md bg-blue-500/20 border border-blue-500/30 p-3 text-sm">
+              <div className="font-medium text-blue-300">{customer.name}</div>
+              <div className="text-blue-400/70">
                 {customer.code} • {customer.phone}
               </div>
             </div>
@@ -123,7 +123,7 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
           {customer && (
             <>
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
+                <label className="mb-1 block text-sm font-medium text-slate-300">
                   Số lượng (kg)
                 </label>
                 <OrderMatrix
@@ -137,16 +137,16 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
               </div>
 
               {/* Total */}
-              <div className="flex items-center justify-between rounded-md bg-gray-100 px-4 py-3">
-                <span className="font-medium text-gray-700">Tổng cộng</span>
-                <span className="text-xl font-bold text-gray-900">
+              <div className="flex items-center justify-between rounded-md bg-slate-800 px-4 py-3">
+                <span className="font-medium text-slate-300">Tổng cộng</span>
+                <span className="text-xl font-bold text-emerald-400">
                   {total.toLocaleString()}đ
                 </span>
               </div>
 
               {/* Error message */}
               {saveError && (
-                <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+                <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">
                   {saveError}
                 </div>
               )}
@@ -155,7 +155,7 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
               <button
                 onClick={handleConfirm}
                 disabled={isSaving || values.size === 0}
-                className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-400"
               >
                 {isSaving ? 'Đang lưu...' : 'Lưu đơn hàng'}
               </button>

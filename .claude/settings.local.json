@@ -18,7 +18,9 @@
       "WebFetch(domain:minimax-algeng-chat-tts-us.oss-us-east-1.aliyuncs.com)",
       "Bash(npm run *)",
       "Bash(npx eslint *)",
-      "Bash(npm list *)"
+      "Bash(npm list *)",
+      "Skill(gsd:discuss-phase)",
+      "Skill(gsd:discuss-phase:*)"
     ]
   }
 }

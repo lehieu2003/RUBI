@@ -66,23 +66,23 @@ export function OrderMatrix({
       <table className="w-full text-sm">
         <thead>
           <tr>
-            <th className="px-2 py-1 text-left font-medium text-gray-500"></th>
-            <th className="px-2 py-1 text-center font-medium text-gray-500">5kg</th>
-            <th className="px-2 py-1 text-center font-medium text-gray-500">10kg</th>
-            <th className="px-2 py-1 text-center font-medium text-gray-500">20kg</th>
+            <th className="px-2 py-1 text-left font-medium text-slate-400"></th>
+            <th className="px-2 py-1 text-center font-medium text-slate-400">5kg</th>
+            <th className="px-2 py-1 text-center font-medium text-slate-400">10kg</th>
+            <th className="px-2 py-1 text-center font-medium text-slate-400">20kg</th>
           </tr>
         </thead>
         <tbody>
           {grid.map((row, rowIdx) => (
             <tr key={row.label}>
-              <td className="whitespace-nowrap px-2 py-1 font-medium text-gray-700">
+              <td className="whitespace-nowrap px-2 py-1 font-medium text-slate-300">
                 {row.label}
               </td>
               {row.cells.map((cell, colIdx) => {
                 if (!cell) {
                   return (
                     <td key={colIdx} className="px-2 py-1">
-                      <span className="text-gray-300">-</span>
+                      <span className="text-slate-600">-</span>
                     </td>
                   );
                 }
@@ -95,7 +95,7 @@ export function OrderMatrix({
                 return (
                   <td key={product.id} className="px-2 py-1">
                     <div className="flex flex-col items-center gap-0.5">
-                      <span className="text-xs text-gray-500">{product.name}</span>
+                      <span className="text-xs text-slate-400">{product.name}</span>
                       <input
                         ref={isFirst ? firstInputRef : undefined}
                         type="number"
@@ -109,13 +109,13 @@ export function OrderMatrix({
                         onKeyDown={handleKeyDown}
                         disabled={disabled}
                         tabIndex={0}
-                        className="w-16 rounded border border-gray-300 px-2 py-1 text-center text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+                        className="w-16 rounded border border-white/10 bg-white/5 px-2 py-1 text-center text-sm text-white focus:border-blue-500/50 focus:outline-none focus:ring-1 focus:ring-blue-500/50 disabled:bg-slate-800"
                       />
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-slate-500">
                         {price > 0 ? `${price.toLocaleString()}đ` : '-'}
                       </span>
                       {lineTotal > 0 && (
-                        <span className="text-xs font-medium text-blue-600">
+                        <span className="text-xs font-medium text-emerald-400">
                           {lineTotal.toLocaleString()}đ
                         </span>
                       )}
