@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/dashboard/sidebar';
-import { Search, Printer, FileText, Clock, Truck, CheckCircle2 } from 'lucide-react';
+import { Search, Printer, FileText, Clock, Truck, CheckCircle2, Package, XCircle } from 'lucide-react';
 import { OrderEntryDrawer } from '@/components/order/order-entry-drawer';
 import { Drawer } from '@/components/ui/drawer';
 import { PrintSlip } from '@/components/order/print-slip';
@@ -41,10 +41,11 @@ const PLACEHOLDER_DRIVER = 'Anh Vinh';
 const DRIVERS = ['Tất cả', 'Anh Vinh', 'Anh Hùng'];
 
 const statusConfig = {
-  DRAFT: { label: 'Chờ xử lý', icon: Clock, color: 'text-slate-400 bg-slate-500/20' },
-  CONFIRMED: { label: 'Đã xác nhận', icon: CheckCircle2, color: 'text-blue-400 bg-blue-500/20' },
-  PRINTED: { label: 'Đã in', icon: FileText, color: 'text-amber-400 bg-amber-500/20' },
-  DELIVERED: { label: 'Đã giao', icon: Truck, color: 'text-emerald-400 bg-emerald-500/20' },
+  PENDING: { label: 'Chờ giao', icon: Clock, color: 'text-slate-400 bg-slate-500/20' },
+  SHIPPING: { label: 'Đang giao', icon: Truck, color: 'text-amber-400 bg-amber-500/20' },
+  DELIVERED: { label: 'Đã giao', icon: Package, color: 'text-blue-400 bg-blue-500/20' },
+  COMPLETED: { label: 'Hoàn thành', icon: CheckCircle2, color: 'text-emerald-400 bg-emerald-500/20' },
+  CANCELLED: { label: 'Đã hủy', icon: XCircle, color: 'text-red-400 bg-red-500/20' },
 };
 
 export default function OrdersPage() {
@@ -113,10 +114,11 @@ export default function OrdersPage() {
 
   const counts = {
     all: mappedOrders.length,
-    draft: mappedOrders.filter((o) => o.status === 'DRAFT').length,
-    confirmed: mappedOrders.filter((o) => o.status === 'CONFIRMED').length,
-    printed: mappedOrders.filter((o) => o.status === 'PRINTED').length,
+    pending: mappedOrders.filter((o) => o.status === 'PENDING').length,
+    shipping: mappedOrders.filter((o) => o.status === 'SHIPPING').length,
     delivered: mappedOrders.filter((o) => o.status === 'DELIVERED').length,
+    completed: mappedOrders.filter((o) => o.status === 'COMPLETED').length,
+    cancelled: mappedOrders.filter((o) => o.status === 'CANCELLED').length,
   };
 
   // Find the selected order from API data
@@ -209,44 +211,54 @@ export default function OrdersPage() {
               Tất cả ({counts.all})
             </button>
             <button
-              onClick={() => setSelectedStatus('DRAFT')}
+              onClick={() => setSelectedStatus('PENDING')}
               className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
-                selectedStatus === 'DRAFT'
+                selectedStatus === 'PENDING'
                   ? 'bg-slate-500/20 text-slate-300 border border-slate-500/30'
                   : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
               }`}
             >
-              Chờ ({counts.draft})
+              Chờ giao ({counts.pending})
             </button>
             <button
-              onClick={() => setSelectedStatus('CONFIRMED')}
+              onClick={() => setSelectedStatus('SHIPPING')}
               className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
-                selectedStatus === 'CONFIRMED'
-                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
-              }`}
-            >
-              Xác nhận ({counts.confirmed})
-            </button>
-            <button
-              onClick={() => setSelectedStatus('PRINTED')}
-              className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
-                selectedStatus === 'PRINTED'
+                selectedStatus === 'SHIPPING'
                   ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                   : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
               }`}
             >
-              Đã in ({counts.printed})
+              Đang giao ({counts.shipping})
             </button>
             <button
               onClick={() => setSelectedStatus('DELIVERED')}
               className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
                 selectedStatus === 'DELIVERED'
-                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                   : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
               }`}
             >
               Đã giao ({counts.delivered})
+            </button>
+            <button
+              onClick={() => setSelectedStatus('COMPLETED')}
+              className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
+                selectedStatus === 'COMPLETED'
+                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
+              }`}
+            >
+              Hoàn thành ({counts.completed})
+            </button>
+            <button
+              onClick={() => setSelectedStatus('CANCELLED')}
+              className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
+                selectedStatus === 'CANCELLED'
+                  ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
+              }`}
+            >
+              Đã hủy ({counts.cancelled})
             </button>
           </div>
 
@@ -298,7 +310,7 @@ export default function OrdersPage() {
               </thead>
               <tbody className="divide-y divide-white/5">
                 {filteredOrders.map((order) => {
-                  const status = statusConfig[order.status as keyof typeof statusConfig] || statusConfig.DRAFT;
+                  const status = statusConfig[order.status as keyof typeof statusConfig] || statusConfig.PENDING;
                   const StatusIcon = status.icon;
 
                   return (
@@ -368,8 +380,8 @@ export default function OrdersPage() {
           <div className="space-y-4">
             {/* Status badge */}
             <div className="flex items-center gap-2">
-              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${statusConfig[selectedOrder.status as keyof typeof statusConfig]?.color || statusConfig.DRAFT.color}`}>
-                {statusConfig[selectedOrder.status as keyof typeof statusConfig]?.label || 'Chờ xử lý'}
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${statusConfig[selectedOrder.status as keyof typeof statusConfig]?.color || statusConfig.PENDING.color}`}>
+                {statusConfig[selectedOrder.status as keyof typeof statusConfig]?.label || 'Chờ giao'}
               </span>
             </div>
 

@@ -4,12 +4,12 @@
 /* Phase 02: A5 delivery slip printing */
 
 @media print {
-  /* Hide everything except .print-slip on print - handles nested elements */
-  body *:not(.print-slip) {
+  /* Hide everything except .print-slip AND its descendants - handles deeply nested print elements */
+  body *:not(.print-slip):not(.print-slip *) {
     display: none !important;
   }
 
-  /* Show only the print slip and its contents */
+  /* Explicitly show .print-slip and all its descendants */
   .print-slip,
   .print-slip * {
     display: block !important;
