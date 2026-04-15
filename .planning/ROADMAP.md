@@ -6,7 +6,7 @@ IceFlow SaaS replaces pen-and-paper/Zalo workflows for ice factories with fast d
 
 ## Phases
 
-- [ ] **Phase 1: Foundation & Order Entry** - Fast order entry UI with customer/product data and per-customer pricing
+- [x] **Phase 1: Foundation & Order Entry** - Fast order entry UI with customer/product data and per-customer pricing ✅
 - [ ] **Phase 2: Delivery Slips** - Printed A5/thermal slips with customer signature line
 - [ ] **Phase 3: Driver Delivery View** - Mobile web-view for drivers to see daily delivery list
 - [ ] **Phase 4: Reconciliation & Reporting** - Accountant confirmation, auto-deduct inventory, debt tracking, and owner reports
@@ -26,9 +26,9 @@ IceFlow SaaS replaces pen-and-paper/Zalo workflows for ice factories with fast d
 **Plans**: TBD
 
 Plans:
-- [ ] 01-01: Customer and product data models with seed data
-- [ ] 01-02: Fast order entry UI (30-second target)
-- [ ] 01-03: Per-customer price list management
+- [x] 01-01: Customer and product data models with seed data ✅
+- [x] 01-02: Fast order entry UI (30-second target) ✅
+- [x] 01-03: Per-customer price list management ✅
 
 ### Phase 2: Delivery Slips
 **Goal**: Printed delivery slips (A5 or thermal) with customer signature line for drivers to collect
@@ -84,7 +84,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Order Entry | 0/3 | Not started | - |
+| 1. Foundation & Order Entry | 3/3 | ✅ Complete | 2026-04-15 |
 | 2. Delivery Slips | 0/2 | Not started | - |
 | 3. Driver Delivery View | 0/2 | Not started | - |
 | 4. Reconciliation & Reporting | 0/4 | Not started | - |
