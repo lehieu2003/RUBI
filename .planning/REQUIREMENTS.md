@@ -16,10 +16,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Delivery
 
-- [ ] **DLVR-01**: Office staff can print a delivery slip from any order with one click
-- [ ] **DLVR-02**: Printed slip shows customer name, address, products, quantities, and total
-- [ ] **DLVR-03**: Printed slip includes a signature line for customer acknowledgment
-- [ ] **DLVR-04**: Slip prints correctly on A5 paper and thermal printers (80mm)
+- [x] **DLVR-01**: Office staff can print a delivery slip from any order with one click
+- [x] **DLVR-02**: Printed slip shows customer name, address, products, quantities, and total
+- [x] **DLVR-03**: Printed slip includes a signature line for customer acknowledgment
+- [x] **DLVR-04**: Slip prints correctly on A5 paper and thermal printers (80mm)
 - [ ] **DLVR-05**: Driver can open a URL on their phone and see today's delivery list
 - [ ] **DLVR-06**: Driver delivery list shows customer name, address, products, quantities
 - [ ] **DLVR-07**: Driver delivery list updates as new orders are added (refresh-based)
@@ -97,10 +97,10 @@ Explicitly excluded. Documented to prevent scope creep.
 | CFG-01 | Phase 1 | Pending |
 | CFG-02 | Phase 1 | Pending |
 | CFG-03 | Phase 1 | Pending |
-| DLVR-01 | Phase 2 | Pending |
-| DLVR-02 | Phase 2 | Pending |
-| DLVR-03 | Phase 2 | Pending |
-| DLVR-04 | Phase 2 | Pending |
+| DLVR-01 | Phase 2 | Complete |
+| DLVR-02 | Phase 2 | Complete |
+| DLVR-03 | Phase 2 | Complete |
+| DLVR-04 | Phase 2 | Complete |
 | DLVR-05 | Phase 3 | Pending |
 | DLVR-06 | Phase 3 | Pending |
 | DLVR-07 | Phase 3 | Pending |
