@@ -1,40 +1,43 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { Search, Printer, FileText, Clock, Truck, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { OrderEntryDrawer } from '@/components/order/order-entry-drawer';
 import type { Customer, Product } from '@prisma/client';
 
-// Fake data
-const fakeOrders = [
-  { id: '1', code: 'DH001', customer: 'Đại lý Minh Tuấn', codeCus: 'KH001', driver: 'Anh Vinh', items: 'Đá Bi 10kg × 5, Đá Bi 5kg × 3', total: 920000, status: 'DRAFT', createdAt: '14:30' },
-  { id: '2', code: 'DH002', customer: 'Cửa hàng Bình An', codeCus: 'KH002', driver: 'Anh Hùng', items: 'Đá Viên 10kg × 4', total: 1040000, status: 'CONFIRMED', createdAt: '13:15' },
-  { id: '3', code: 'DH003', customer: 'Siêu thị Đông Nam', codeCus: 'KH003', driver: 'Anh Vinh', items: 'Đá Bi 20kg × 10, Đá Viên 5kg × 5', total: 4700000, status: 'PRINTED', createdAt: '11:45' },
-  { id: '4', code: 'DH004', customer: 'Tạp hóa Chị Hương', codeCus: 'KH004', driver: 'Anh Hùng', items: 'Đá Bi 5kg × 2', total: 240000, status: 'DELIVERED', createdAt: '10:00' },
-  { id: '5', code: 'DH005', customer: 'Nhà hàng Biển Đông', codeCus: 'KH005', driver: 'Anh Vinh', items: 'Đá Bi 10kg × 8, Đá Viên 20kg × 3', total: 3440000, status: 'DELIVERED', createdAt: '09:30' },
-  { id: '6', code: 'DH006', customer: 'Cửa hàng Phú Thọ', codeCus: 'KH006', driver: 'Anh Vinh', items: 'Đá Bi 5kg × 6', total: 720000, status: 'DRAFT', createdAt: '08:00' },
-];
+// Types for API response
+interface OrderItemWithProduct {
+  id: string;
+  quantity: number;
+  unitPrice: unknown;
+  lineTotal: unknown;
+  product: { id: string; name: string; sizeKg: number };
+}
 
-const fakeCustomers = [
-  { id: '1', code: 'KH001', name: 'Đại lý Minh Tuấn', phone: '0909123456' },
-  { id: '2', code: 'KH002', name: 'Cửa hàng Bình An', phone: '0912345678' },
-  { id: '3', code: 'KH003', name: 'Siêu thị Đông Nam', phone: '0934567890' },
-  { id: '4', code: 'KH004', name: 'Tạp hóa Chị Hương', phone: '0945678901' },
-  { id: '5', code: 'KH005', name: 'Nhà hàng Biển Đông', phone: '0956789012' },
-];
+interface CustomerInfo {
+  id: string;
+  code: string;
+  name: string;
+  address: string;
+  phone: string;
+}
 
-const fakeProducts = [
-  { id: 'p1', name: 'Đá Bi', sizeKg: 5, price: 12000 },
-  { id: 'p2', name: 'Đá Bi', sizeKg: 10, price: 22000 },
-  { id: 'p3', name: 'Đá Bi', sizeKg: 20, price: 40000 },
-  { id: 'p4', name: 'Đá Viên', sizeKg: 5, price: 14000 },
-  { id: 'p5', name: 'Đá Viên', sizeKg: 10, price: 26000 },
-  { id: 'p6', name: 'Đá Viên', sizeKg: 20, price: 48000 },
-];
+interface OrderFromAPI {
+  id: string;
+  code: string;
+  status: string;
+  total: unknown;
+  notes: string | null;
+  createdAt: string;
+  customer: CustomerInfo;
+  orderItems: OrderItemWithProduct[];
+}
 
-const fakeDrivers = ['Tất cả', 'Anh Vinh', 'Anh Hùng'];
+// Placeholder driver (not tracked in DB yet)
+const PLACEHOLDER_DRIVER = 'Anh Vinh';
+const DRIVERS = ['Tất cả', 'Anh Vinh', 'Anh Hùng'];
 
 const statusConfig = {
   DRAFT: { label: 'Chờ xử lý', icon: Clock, color: 'text-slate-400 bg-slate-500/20' },
@@ -44,12 +47,44 @@ const statusConfig = {
 };
 
 export default function OrdersPage() {
+  const [orders, setOrders] = useState<OrderFromAPI[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [selectedDriver, setSelectedDriver] = useState('Tất cả');
   const [selectedStatus, setSelectedStatus] = useState('Tất cả');
   const [filterDate, setFilterDate] = useState('');
 
-  const filteredOrders = fakeOrders.filter((order) => {
+  useEffect(() => {
+    async function fetchOrders() {
+      try {
+        const res = await fetch('/api/orders');
+        if (!res.ok) throw new Error('Failed to fetch orders');
+        const data = await res.json();
+        setOrders(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchOrders();
+  }, []);
+
+  // Map API orders to table format
+  const mappedOrders = orders.map((order) => ({
+    id: order.id,
+    code: order.code || `DH-${order.id.slice(-6).toUpperCase()}`,
+    customer: order.customer?.name || 'Unknown',
+    codeCus: order.customer?.code || '',
+    driver: PLACEHOLDER_DRIVER,
+    items: order.orderItems?.map((i) => `${i.product?.name || 'Unknown'} ${i.product?.sizeKg || 0}kg × ${i.quantity}`).join(', ') || '',
+    total: typeof order.total === 'number' ? order.total : Number(order.total) || 0,
+    status: order.status || 'DRAFT',
+    createdAt: order.createdAt ? new Date(order.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '--:--',
+  }));
+
+  const filteredOrders = mappedOrders.filter((order) => {
     if (selectedDriver !== 'Tất cả' && order.driver !== selectedDriver) return false;
     if (selectedStatus !== 'Tất cả' && order.status !== selectedStatus) return false;
     if (search && !order.customer.toLowerCase().includes(search.toLowerCase()) && !order.code.toLowerCase().includes(search.toLowerCase())) return false;
@@ -57,12 +92,28 @@ export default function OrdersPage() {
   });
 
   const counts = {
-    all: fakeOrders.length,
-    draft: fakeOrders.filter((o) => o.status === 'DRAFT').length,
-    confirmed: fakeOrders.filter((o) => o.status === 'CONFIRMED').length,
-    printed: fakeOrders.filter((o) => o.status === 'PRINTED').length,
-    delivered: fakeOrders.filter((o) => o.status === 'DELIVERED').length,
+    all: mappedOrders.length,
+    draft: mappedOrders.filter((o) => o.status === 'DRAFT').length,
+    confirmed: mappedOrders.filter((o) => o.status === 'CONFIRMED').length,
+    printed: mappedOrders.filter((o) => o.status === 'PRINTED').length,
+    delivered: mappedOrders.filter((o) => o.status === 'DELIVERED').length,
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 flex items-center justify-center">
+        <div className="text-slate-400">Đang tải đơn hàng...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 flex items-center justify-center">
+        <div className="text-red-400">Lỗi: {error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
@@ -78,9 +129,9 @@ export default function OrdersPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-black text-white">Quản lý Đơn hàng</h1>
-              <p className="text-slate-400 mt-1">{fakeOrders.length} đơn hàng</p>
+              <p className="text-slate-400 mt-1">{mappedOrders.length} đơn hàng</p>
             </div>
-            <OrderEntryDrawer customers={fakeCustomers as Customer[]} products={fakeProducts as Product[]} />
+            <OrderEntryDrawer customers={[]} products={[]} />
           </div>
 
           {/* Quick Filters */}
@@ -155,7 +206,7 @@ export default function OrdersPage() {
               onChange={(e) => setSelectedDriver(e.target.value)}
               className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
             >
-              {fakeDrivers.map((d) => (
+              {DRIVERS.map((d) => (
                 <option key={d} value={d} className="bg-slate-900">{d}</option>
               ))}
             </select>
