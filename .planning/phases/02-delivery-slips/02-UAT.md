@@ -20,9 +20,8 @@ severity: minor
 
 ### 2. Order detail page shows customer, items, total
 expected: On the orders list page (/orders), click "Xem" on any order row. Instead of navigating to a new URL, an ORDER DETAIL CARD OVERLAYS the list (like a modal/drawer). The card shows: customer name, address, phone, product items with quantities and prices, total amount, and a print button.
-result: issue
-reported: "want overlay card instead of separate page, also print bug"
-severity: major
+result: pass
+reported: "hiển thị đúng như yêu cầu"
 
 ### 3. Print delivery slip button works
 expected: On the order detail page (/orders/[id]), click the "In phiếu giao hàng" button. The browser print dialog should open. In the print preview, you should see the A5-formatted delivery slip with: company header "CÔNG TY TNHH ĐÁ LẠNH ICEFLOW", title "PHIẾU GIAO HÀNG", customer name, address, phone, product table, total, and signature line "Chữ ký khách hàng: _____________".
@@ -36,10 +35,16 @@ result: blocked
 blocked_by: not-implemented
 reason: "UI chưa có update status order — API có thể có nhưng UI chưa build"
 
+### 5. Update order status via UI
+expected: On the orders list page or order detail overlay, there is a way to update the order status (e.g., CONFIRMED, DELIVERED, CANCELLED). Clicking a status button/select should update the order status in the database and reflect immediately in the UI.
+result: issue
+reported: "Chưa có UI update status order — user mô tả workflow 5 status: Chờ giao (Gray), Đang giao (Amber), Đã giao-Chờ đối soát (Blue), Hoàn thành (Green), Đã hủy (Red) với action và hệ thống tương ứng"
+severity: major
+
 ## Summary
 
-total: 4
-passed: 0
+total: 5
+passed: 1
 issues: 3
 pending: 0
 skipped: 0
@@ -85,6 +90,16 @@ blocked: 1
   reason: "User reported: khi ấn vào in phiếu giao hàng nó không hiển thị gì cả"
   severity: major
   test: 3
+  root_cause: ""     # Filled by diagnosis
+  artifacts: []      # Filled by diagnosis
+  missing: []        # Filled by diagnosis
+  debug_session: ""  # Filled by diagnosis
+
+- truth: "UI cập nhật order status với 5 trạng thái: Chờ giao (Gray), Đang giao (Amber), Đã giao-Chờ đối soát (Blue), Hoàn thành (Green), Đã hủy (Red)"
+  status: failed
+  reason: "User mô tả workflow 5 trạng thái đầy đủ với actions và hệ thống tương ứng"
+  severity: major
+  test: 5
   root_cause: ""     # Filled by diagnosis
   artifacts: []      # Filled by diagnosis
   missing: []        # Filled by diagnosis
