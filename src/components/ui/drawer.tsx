@@ -98,16 +98,16 @@ export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="drawer-title"
-        className="fixed right-0 top-0 z-50 flex h-full w-full max-w-lg flex-col bg-white shadow-xl"
+        className="fixed right-0 top-0 z-50 flex h-full w-full max-w-lg flex-col bg-slate-800 shadow-xl"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b px-6 py-4">
-          <h2 id="drawer-title" className="text-lg font-semibold">
+        <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+          <h2 id="drawer-title" className="text-lg font-semibold text-white">
             {title}
           </h2>
           <button
             onClick={onClose}
-            className="rounded p-1 hover:bg-gray-100"
+            className="rounded p-1 text-slate-400 hover:bg-white/10 hover:text-white"
             aria-label="Close drawer"
           >
             <svg
@@ -126,7 +126,7 @@ export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
           </button>
         </div>
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-4">{children}</div>
+        <div className="flex-1 overflow-y-auto px-6 py-4 text-slate-200">{children}</div>
       </div>
     </>
   );
