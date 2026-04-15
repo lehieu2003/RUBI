@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node \"D:/IceFlow SaaS/.claude/get-shit-done/bin/gsd-tools.cjs\" commit \"docs: initialize project\" --files .planning/PROJECT.md)",
+      "Bash(node \"D:/IceFlow SaaS/.claude/get-shit-done/bin/gsd-tools.cjs\" commit \"chore: add project config\" --files .planning/config.json)",
+      "Bash(node \"D:/IceFlow SaaS/.claude/get-shit-done/bin/gsd-tools.cjs\" commit \"docs: generate project guidance\" --files CLAUDE.md)",
+      "Bash(node \"D:/IceFlow SaaS/.claude/get-shit-done/bin/gsd-tools.cjs\" commit \"docs: create roadmap \\(4 phases\\)\" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md CLAUDE.md)",
+      "Bash(node \"D:/IceFlow SaaS/.claude/get-shit-done/bin/gsd-tools.cjs\" commit \"docs\\(01\\): capture phase context\" --files \".planning/phases/01-foundation-order-entry/01-CONTEXT.md\" \".planning/phases/01-foundation-order-entry/01-DISCUSSION-LOG.md\")",
+      "Bash(npm view:*)",
+      "WebSearch",
+      "Bash(node \"D:/IceFlow SaaS/.claude/get-shit-done/bin/gsd-tools.cjs\" init plan-phase \"01-foundation-order-entry\")",
+      "Bash(node \"D:/IceFlow SaaS/.claude/get-shit-done/bin/gsd-tools.cjs\" frontmatter validate \"D:/IceFlow SaaS/.planning/phases/01-foundation-order-entry/01-01-PLAN.md\" --schema plan)",
+      "Bash(node \"D:/IceFlow SaaS/.claude/get-shit-done/bin/gsd-tools.cjs\" frontmatter validate \"D:/IceFlow SaaS/.planning/phases/01-foundation-order-entry/01-02-PLAN.md\" --schema plan)",
+      "Bash(node \"D:/IceFlow SaaS/.claude/get-shit-done/bin/gsd-tools.cjs\" frontmatter validate \"D:/IceFlow SaaS/.planning/phases/01-foundation-order-entry/01-03-PLAN.md\" --schema plan)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx prisma:*)",
+      "WebFetch(domain:minimax-algeng-chat-tts-us.oss-us-east-1.aliyuncs.com)"
+    ]
+  }
+}

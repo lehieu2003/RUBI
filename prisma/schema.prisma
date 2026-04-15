@@ -1,0 +1,124 @@
+// IceFlow SaaS - Phase 1 Data Model
+// Prisma schema for order entry foundation
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DIRECT_URL")
+}
+
+// User - Authenticated users (factory owners/staff)
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // bcrypt hashed
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+// Product - Ice types with sizes (Đá Bi 5/10/20kg, Đá Viên 5/10/20kg)
+model Product {
+  id        String   @id @default(cuid())
+  name      String   // "Đá Bi" or "Đá Viên"
+  sizeKg    Int      // 5, 10, 20
+  unit      String   @default("bag") // "bag" or "block"
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  globalPrices          GlobalPrice[]
+  customerPriceOverrides CustomerPriceOverride[]
+  orderItems            OrderItem[]
+
+  @@map("products")
+}
+
+// Customer - Wholesale customers with unique codes
+model Customer {
+  id        String   @id @default(cuid())
+  code      String   @unique // e.g., "KH001"
+  name      String
+  address   String
+  phone     String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  customerPriceOverrides CustomerPriceOverride[]
+  orders                 Order[]
+
+  @@map("customers")
+}
+
+// GlobalPrice - Base price for all products (applies to customers without overrides)
+model GlobalPrice {
+  id          String   @id @default(cuid())
+  productId   String   @unique @map("product_id")
+  pricePerUnit Decimal @db.Decimal(10, 2) @map("price_per_unit")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("global_prices")
+}
+
+// CustomerPriceOverride - Per-customer negotiated prices (overrides global prices)
+model CustomerPriceOverride {
+  id          String   @id @default(cuid())
+  customerId  String   @map("customer_id")
+  productId   String   @map("product_id")
+  pricePerUnit Decimal @db.Decimal(10, 2) @map("price_per_unit")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  product  Product  @relation(fields: [productId], references: [id])
+
+  @@unique([customerId, productId])
+  @@map("customer_price_overrides")
+}
+
+// Order - Customer orders with status workflow
+model Order {
+  id        String   @id @default(cuid())
+  customerId String  @map("customer_id")
+  status    OrderStatus @default(DRAFT)
+  total     Decimal  @db.Decimal(10, 2) @default(0)
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  customer Customer    @relation(fields: [customerId], references: [id])
+  orderItems OrderItem[]
+
+  @@index([customerId])
+  @@map("orders")
+}
+
+enum OrderStatus {
+  DRAFT
+  CONFIRMED
+  PRINTED
+  DELIVERED
+}
+
+// OrderItem - Line items for each order
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String  @map("order_id")
+  productId String  @map("product_id")
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10, 2) @map("unit_price")
+  lineTotal Decimal @db.Decimal(10, 2) @map("line_total")
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
