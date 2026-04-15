@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Sidebar } from '@/components/dashboard/sidebar';
+import { useReactToPrint } from 'react-to-print';
 import { Search, Printer, FileText, Clock, Truck, CheckCircle2, Package, XCircle } from 'lucide-react';
 import { OrderEntryDrawer } from '@/components/order/order-entry-drawer';
 import { Drawer } from '@/components/ui/drawer';
@@ -59,7 +60,11 @@ export default function OrdersPage() {
   const [selectedStatus, setSelectedStatus] = useState('Tất cả');
   const [filterDate, setFilterDate] = useState('');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [showPrintSlip, setShowPrintSlip] = useState(false);
+
+  const printRef = useRef(null);
+  const print = useReactToPrint({
+    contentRef: printRef,
+  });
 
   useEffect(() => {
     async function fetchData() {
@@ -143,24 +148,14 @@ export default function OrdersPage() {
       }
     : null;
 
-  // Print effect - runs after PrintSlip is rendered to DOM
-  useEffect(() => {
-    if (showPrintSlip && slipOrder) {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          window.print();
-          setShowPrintSlip(false);
-        });
-      });
-    }
-  }, [showPrintSlip, slipOrder]);
+  // Print effect removed - using react-to-print instead
 
   const handleCloseDrawer = () => {
     setSelectedOrderId(null);
   };
 
   const handlePrintFromDrawer = () => {
-    setShowPrintSlip(true);
+    print();
   };
 
   if (loading) {
@@ -468,12 +463,10 @@ export default function OrdersPage() {
         </Drawer>
       )}
 
-      {/* Print-only content: PrintSlip hidden on screen, visible in print */}
-      {showPrintSlip && slipOrder && (
-        <div className="print-slip">
-          <PrintSlip order={slipOrder} />
-        </div>
-      )}
+      {/* Print content - always in DOM for react-to-print */}
+      <div ref={printRef} className="print-slip">
+        {slipOrder && <PrintSlip order={slipOrder} />}
+      </div>
     </div>
   );
 }
