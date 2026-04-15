@@ -43,7 +43,7 @@ Plans:
 
 Plans:
 - [x] 02-01: Delivery slip print template and print integration
-- [ ] 02-02: Print button on order detail view
+- [x] 02-02: Print button on order detail view
 
 ### Phase 3: Driver Delivery View
 **Goal**: Drivers can view their daily delivery list on phone via web-view (no app install required)
