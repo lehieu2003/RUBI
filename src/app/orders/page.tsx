@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { Sidebar } from '@/components/dashboard/sidebar';
-import { Search, Filter, Plus, Printer, FileText, Clock, Truck, CheckCircle2, X } from 'lucide-react';
+import { Search, Printer, FileText, Clock, Truck, CheckCircle2 } from 'lucide-react';
 import { OrderEntryDrawer } from '@/components/order/order-entry-drawer';
+import type { Customer, Product } from '@prisma/client';
 
 // Fake data
 const fakeOrders = [
@@ -78,7 +79,7 @@ export default function OrdersPage() {
               <h1 className="text-3xl font-black text-white">Quản lý Đơn hàng</h1>
               <p className="text-slate-400 mt-1">{fakeOrders.length} đơn hàng</p>
             </div>
-            <OrderEntryDrawer customers={fakeCustomers as any} products={fakeProducts as any} />
+            <OrderEntryDrawer customers={fakeCustomers as Customer[]} products={fakeProducts as Product[]} />
           </div>
 
           {/* Quick Filters */}

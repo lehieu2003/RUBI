@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useOrderStore } from '@/stores/order-store';
 import { Drawer } from '@/components/ui/drawer';
 import { SearchBar } from '@/components/order/search-bar';
@@ -17,18 +17,17 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
   const { isOpen, customer, recentCustomerIds, openDrawer, closeDrawer } = useOrderStore();
   const [prices, setPrices] = useState<Record<string, number>>({});
   const [values, setValues] = useState<Map<string, number>>(new Map());
-  const [total, setTotal] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  // Compute total from values and prices
-  useEffect(() => {
+  // Compute total from values and prices using useMemo
+  const total = useMemo(() => {
     let sum = 0;
     values.forEach((qty, productId) => {
       const price = prices[productId] ?? 0;
       sum += qty * price;
     });
-    setTotal(sum);
+    return sum;
   }, [values, prices]);
 
   // Handle customer selection

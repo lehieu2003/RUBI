@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import Fuse from 'fuse.js';
 import type { Customer } from '@prisma/client';
 
@@ -13,7 +13,7 @@ interface SearchBarProps {
 export function SearchBar({ customers, onSelect, recentCustomerIds }: SearchBarProps) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
@@ -22,51 +22,53 @@ export function SearchBar({ customers, onSelect, recentCustomerIds }: SearchBarP
     .map((id) => customers.find((c) => c.id === id))
     .filter(Boolean) as Customer[];
 
-  // Fuse.js setup for fuzzy search
-  const fuse = useRef(
-    new Fuse(customers, {
-      keys: ['name', 'phone', 'code'],
-      threshold: 0.3,
-      includeScore: true,
-    })
+  // Fuse instance
+  const fuse = useMemo(
+    () =>
+      new Fuse(customers, {
+        keys: ['name', 'phone', 'code'],
+        threshold: 0.3,
+        includeScore: true,
+      }),
+    [customers]
   );
-
-  // Update Fuse when customers change
-  useEffect(() => {
-    fuse.current = new Fuse(customers, {
-      keys: ['name', 'phone', 'code'],
-      threshold: 0.3,
-      includeScore: true,
-    });
-  }, [customers]);
 
   // Get displayed results
   const results = query.trim()
-    ? fuse.current.search(query).map((r) => r.item)
+    ? fuse.search(query).map((r) => r.item)
     : recentCustomers;
 
   // Auto-select hint when exactly 1 result
   const singleResultHint =
     results.length === 1 ? `Enter để chọn "${results[0].name}"` : null;
 
-  // Focus input on mount
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+  // Compute isOpen from derived state
+  const isOpen = isFocused || Boolean(query.trim()) || results.length > 0;
 
   // Handle selection
   const handleSelect = useCallback(
     (customer: Customer) => {
       onSelect(customer);
       setQuery('');
-      setIsOpen(false);
       setSelectedIndex(0);
+      setIsFocused(false);
+      inputRef.current?.blur();
     },
     [onSelect]
   );
 
+  // Handle focus/blur
+  const handleFocus = useCallback(() => setIsFocused(true), []);
+  const handleBlur = useCallback(() => setIsFocused(false), []);
+
+  // Handle selection reset when query changes
+  const handleQueryChange = useCallback((value: string) => {
+    setQuery(value);
+    setSelectedIndex(0);
+  }, []);
+
   // Keyboard navigation
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (!isOpen && e.key !== 'Enter') return;
 
     switch (e.key) {
@@ -90,17 +92,11 @@ export function SearchBar({ customers, onSelect, recentCustomerIds }: SearchBarP
         e.preventDefault();
         setQuery('');
         setSelectedIndex(0);
-        setIsOpen(false);
+        setIsFocused(false);
         inputRef.current?.blur();
         break;
     }
-  };
-
-  // Show dropdown when typing or has results
-  useEffect(() => {
-    setIsOpen(Boolean(query.trim()) || results.length > 0);
-    setSelectedIndex(0);
-  }, [query, results.length]);
+  }, [isOpen, results, selectedIndex, handleSelect, singleResultHint]);
 
   return (
     <div className="relative">
@@ -110,9 +106,10 @@ export function SearchBar({ customers, onSelect, recentCustomerIds }: SearchBarP
           ref={inputRef}
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => handleQueryChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          onFocus={() => setIsOpen(true)}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           placeholder="Tìm khách hàng (tên, mã, SĐT)..."
           className="w-full rounded-md border border-gray-300 px-4 py-2 pr-10 text-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
