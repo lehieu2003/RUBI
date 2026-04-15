@@ -110,10 +110,11 @@ export default function OrderDetailPage() {
   };
 
   const statusColors: Record<string, string> = {
-    DRAFT: 'bg-slate-500/20 text-slate-300',
-    CONFIRMED: 'bg-blue-500/20 text-blue-400',
-    PRINTED: 'bg-amber-500/20 text-amber-400',
-    DELIVERED: 'bg-emerald-500/20 text-emerald-400',
+    PENDING: 'bg-slate-500/20 text-slate-300',
+    SHIPPING: 'bg-amber-500/20 text-amber-400',
+    DELIVERED: 'bg-blue-500/20 text-blue-400',
+    COMPLETED: 'bg-emerald-500/20 text-emerald-400',
+    CANCELLED: 'bg-red-500/20 text-red-400',
   };
 
   return (

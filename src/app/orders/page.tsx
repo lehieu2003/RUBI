@@ -60,7 +60,6 @@ export default function OrdersPage() {
   const [selectedStatus, setSelectedStatus] = useState('Tất cả');
   const [filterDate, setFilterDate] = useState('');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
