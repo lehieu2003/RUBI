@@ -88,7 +88,7 @@ model CustomerPriceOverride {
 model Order {
   id        String   @id @default(cuid())
   customerId String  @map("customer_id")
-  status    OrderStatus @default(DRAFT)
+  status    OrderStatus @default(PENDING)
   total     Decimal  @db.Decimal(10, 2) @default(0)
   notes     String?
   createdAt DateTime @default(now()) @map("created_at")
@@ -102,10 +102,11 @@ model Order {
 }
 
 enum OrderStatus {
-  DRAFT
-  CONFIRMED
-  PRINTED
-  DELIVERED
+  PENDING      // Chờ giao — Gray
+  SHIPPING     // Đang giao — Amber
+  DELIVERED    // Đã giao - chờ đối soát — Blue
+  COMPLETED    // Hoàn thành — Green
+  CANCELLED    // Đã hủy — Red
 }
 
 // OrderItem - Line items for each order

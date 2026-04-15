@@ -60,6 +60,11 @@ export default function OrdersPage() {
   const [selectedStatus, setSelectedStatus] = useState('Tất cả');
   const [filterDate, setFilterDate] = useState('');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   const printRef = useRef(null);
   const print = useReactToPrint({
@@ -106,7 +111,7 @@ export default function OrdersPage() {
     driver: PLACEHOLDER_DRIVER,
     items: order.orderItems?.map((i) => `${i.product?.name || 'Unknown'} ${i.product?.sizeKg || 0}kg × ${i.quantity}`).join(', ') || '',
     total: typeof order.total === 'number' ? order.total : Number(order.total) || 0,
-    status: order.status || 'DRAFT',
+    status: order.status || 'PENDING',
     createdAt: order.createdAt ? new Date(order.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '--:--',
   }));
 
@@ -156,6 +161,50 @@ export default function OrdersPage() {
 
   const handlePrintFromDrawer = () => {
     print();
+  };
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (!selectedOrderId) return;
+
+    // Show confirmation dialogs for COMPLETED and CANCELLED
+    if (newStatus === 'COMPLETED') {
+      setShowConfirmDialog(true);
+      return;
+    }
+    if (newStatus === 'CANCELLED') {
+      setShowCancelDialog(true);
+      return;
+    }
+
+    // Direct update for other statuses
+    await updateOrderStatus(newStatus);
+  };
+
+  const updateOrderStatus = async (newStatus: string, reason?: string) => {
+    if (!selectedOrderId) return;
+    setUpdatingStatus(true);
+    try {
+      const res = await fetch(`/api/orders/${selectedOrderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: newStatus,
+          cancellationReason: reason,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to update status');
+      // Refresh orders
+      const ordersRes = await fetch('/api/orders');
+      const ordersData = await ordersRes.json();
+      setOrders(ordersData);
+      setShowConfirmDialog(false);
+      setShowCancelDialog(false);
+      setCancelReason('');
+    } catch (err) {
+      console.error('Failed to update status:', err);
+    } finally {
+      setUpdatingStatus(false);
+    }
   };
 
   if (loading) {
@@ -373,11 +422,19 @@ export default function OrdersPage() {
           title={`Chi tiết đơn hàng #${slipOrder?.code}`}
         >
           <div className="space-y-4">
-            {/* Status badge */}
+            {/* Status change dropdown */}
             <div className="flex items-center gap-2">
-              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${statusConfig[selectedOrder.status as keyof typeof statusConfig]?.color || statusConfig.PENDING.color}`}>
-                {statusConfig[selectedOrder.status as keyof typeof statusConfig]?.label || 'Chờ giao'}
-              </span>
+              <select
+                value={selectedOrder.status}
+                onChange={(e) => handleStatusChange(e.target.value)}
+                disabled={updatingStatus}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium border-0 cursor-pointer ${statusConfig[selectedOrder.status as keyof typeof statusConfig]?.color || statusConfig.PENDING.color} ${updatingStatus ? 'opacity-50' : ''}`}
+              >
+                {Object.entries(statusConfig).map(([key, config]) => (
+                  <option key={key} value={key}>{config.label}</option>
+                ))}
+              </select>
+              {updatingStatus && <span className="text-xs text-slate-400">Đang cập nhật...</span>}
             </div>
 
             {/* Customer info */}
@@ -461,6 +518,67 @@ export default function OrdersPage() {
             </div>
           </div>
         </Drawer>
+      )}
+
+      {/* COMPLETED Confirmation Dialog */}
+      {showConfirmDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="w-full max-w-sm rounded-xl bg-slate-800 border border-white/10 p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-white mb-2">Xác nhận hoàn thành đơn hàng</h3>
+            <p className="text-sm text-slate-400 mb-4">
+              Khi xác nhận hoàn thành, hệ thống sẽ ghi nhận đã thanh toán đủ và cập nhật công nợ.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowConfirmDialog(false)}
+                className="flex-1 rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-white/5"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={() => updateOrderStatus('COMPLETED')}
+                disabled={updatingStatus}
+                className="flex-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {updatingStatus ? 'Đang xử lý...' : 'Xác nhận'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CANCELLED Reason Dialog */}
+      {showCancelDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="w-full max-w-sm rounded-xl bg-slate-800 border border-white/10 p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-white mb-2">Lý do hủy đơn hàng</h3>
+            <p className="text-sm text-slate-400 mb-4">
+              Vui lòng nhập lý do hủy đơn hàng này.
+            </p>
+            <textarea
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="VD: Khách hàng hủy, Hết hàng..."
+              className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-red-500 focus:outline-none resize-none"
+              rows={3}
+            />
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={() => { setShowCancelDialog(false); setCancelReason(''); }}
+                className="flex-1 rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-white/5"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={() => updateOrderStatus('CANCELLED', cancelReason)}
+                disabled={updatingStatus || !cancelReason.trim()}
+                className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {updatingStatus ? 'Đang xử lý...' : 'Xác nhận hủy'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Print content - always in DOM for react-to-print */}

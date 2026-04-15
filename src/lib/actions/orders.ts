@@ -72,7 +72,7 @@ async function saveOrderInternal(
     const order = await tx.order.create({
       data: {
         customerId,
-        status: 'DRAFT',
+        status: 'PENDING',
         total: total,
         orderItems: {
           create: validItems.map((item) => ({

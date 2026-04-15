@@ -209,13 +209,18 @@ async function createCustomerOverrides(
 }
 
 // Order status type
-type OrderStatus = 'DRAFT' | 'CONFIRMED' | 'PRINTED' | 'DELIVERED';
+type SeedOrderStatus = 'PENDING' | 'SHIPPING' | 'DELIVERED' | 'COMPLETED' | 'CANCELLED';
 
 // Sample orders data
-const SAMPLE_ORDERS = [
+const SAMPLE_ORDERS: Array<{
+  customerCode: string;
+  status: SeedOrderStatus;
+  items: Array<{ productKey: string; quantity: number }>;
+  notes: string | null;
+}> = [
   {
     customerCode: 'KH001',
-    status: 'DRAFT' as OrderStatus,
+    status: 'PENDING',
     items: [
       { productKey: 'Đá Bi-10', quantity: 5 },
       { productKey: 'Đá Bi-5', quantity: 3 },
@@ -224,7 +229,7 @@ const SAMPLE_ORDERS = [
   },
   {
     customerCode: 'KH002',
-    status: 'CONFIRMED' as OrderStatus,
+    status: 'SHIPPING',
     items: [
       { productKey: 'Đá Viên-10', quantity: 4 },
     ],
@@ -232,7 +237,7 @@ const SAMPLE_ORDERS = [
   },
   {
     customerCode: 'KH003',
-    status: 'PRINTED' as OrderStatus,
+    status: 'SHIPPING',
     items: [
       { productKey: 'Đá Bi-20', quantity: 10 },
       { productKey: 'Đá Viên-5', quantity: 5 },
@@ -241,7 +246,7 @@ const SAMPLE_ORDERS = [
   },
   {
     customerCode: 'KH004',
-    status: 'DELIVERED' as OrderStatus,
+    status: 'DELIVERED',
     items: [
       { productKey: 'Đá Bi-5', quantity: 2 },
     ],
@@ -249,7 +254,7 @@ const SAMPLE_ORDERS = [
   },
   {
     customerCode: 'KH005',
-    status: 'DELIVERED' as OrderStatus,
+    status: 'DELIVERED',
     items: [
       { productKey: 'Đá Bi-10', quantity: 8 },
       { productKey: 'Đá Viên-20', quantity: 3 },
@@ -258,7 +263,7 @@ const SAMPLE_ORDERS = [
   },
   {
     customerCode: 'KH001',
-    status: 'DRAFT' as OrderStatus,
+    status: 'PENDING',
     items: [
       { productKey: 'Đá Bi-5', quantity: 6 },
     ],
