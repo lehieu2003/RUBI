@@ -23,7 +23,7 @@ IceFlow SaaS replaces pen-and-paper/Zalo workflows for ice factories with fast d
   3. Order total calculates automatically using customer-specific prices
   4. Office staff can save and retrieve orders by customer or date
   5. Products and customer price lists can be configured in the system
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
 - [x] 01-01: Customer and product data models with seed data ✅
@@ -39,10 +39,10 @@ Plans:
   2. Printed slip shows customer name, products, quantities, and total
   3. Printed slip includes a signature line for customer acknowledgment
   4. Slip prints correctly on A5 paper and thermal printers
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: Delivery slip print template and print integration
+- [x] 02-01: Delivery slip print template and print integration
 - [ ] 02-02: Print button on order detail view
 
 ### Phase 3: Driver Delivery View
