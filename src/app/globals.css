@@ -1,1 +1,65 @@
 @import "tailwindcss";
+
+/* === DELIVERY SLIP PRINT STYLES === */
+/* Phase 02: A5 delivery slip printing */
+
+@media print {
+  /* Hide everything except the print slip on print */
+  body > *:not(.print-slip):not(main) {
+    display: none !important;
+  }
+
+  /* For main content area in orders page */
+  main > div {
+    display: none !important;
+  }
+
+  /* Show only the print slip */
+  .print-slip {
+    display: block !important;
+  }
+
+  /* Remove decorative backgrounds and shadows to save ink */
+  * {
+    background-color: white !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+
+  /* A5 page size (148 x 210mm) per D-02 */
+  @page {
+    size: 148mm 210mm;
+    margin: 10mm;
+  }
+
+  /* Print slip container styling */
+  .print-slip {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Times New Roman', 'Segoe UI', sans-serif;
+    font-size: 11pt;
+    line-height: 1.4;
+  }
+
+  /* Ensure table borders print properly */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  table th, table td {
+    border: 1px solid #000;
+    padding: 4pt 6pt;
+  }
+
+  /* Signature line styling - D-04 */
+  .print-slip .h-8 {
+    height: 24pt;
+  }
+
+  /* Avoid page breaks inside table rows */
+  tr {
+    page-break-inside: avoid;
+  }
+}
