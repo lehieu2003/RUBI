@@ -6,6 +6,7 @@
  * - 5 customers (KH001-KH005)
  * - Global prices for all products
  * - Customer price overrides for KH001 and KH002 (partial overrides)
+ * - 6 sample orders with order items (DRAFT, CONFIRMED, PRINTED, DELIVERED statuses)
  *
  * Run with: npx tsx src/db/seed.ts
  * Or: node --loader tsx src/db/seed.ts
@@ -207,6 +208,141 @@ async function createCustomerOverrides(
   }
 }
 
+// Order status type
+type OrderStatus = 'DRAFT' | 'CONFIRMED' | 'PRINTED' | 'DELIVERED';
+
+// Sample orders data
+const SAMPLE_ORDERS = [
+  {
+    customerCode: 'KH001',
+    status: 'DRAFT' as OrderStatus,
+    items: [
+      { productKey: 'Đá Bi-10', quantity: 5 },
+      { productKey: 'Đá Bi-5', quantity: 3 },
+    ],
+    notes: 'Giao buổi sáng',
+  },
+  {
+    customerCode: 'KH002',
+    status: 'CONFIRMED' as OrderStatus,
+    items: [
+      { productKey: 'Đá Viên-10', quantity: 4 },
+    ],
+    notes: null,
+  },
+  {
+    customerCode: 'KH003',
+    status: 'PRINTED' as OrderStatus,
+    items: [
+      { productKey: 'Đá Bi-20', quantity: 10 },
+      { productKey: 'Đá Viên-5', quantity: 5 },
+    ],
+    notes: 'Khách hàng VIP',
+  },
+  {
+    customerCode: 'KH004',
+    status: 'DELIVERED' as OrderStatus,
+    items: [
+      { productKey: 'Đá Bi-5', quantity: 2 },
+    ],
+    notes: null,
+  },
+  {
+    customerCode: 'KH005',
+    status: 'DELIVERED' as OrderStatus,
+    items: [
+      { productKey: 'Đá Bi-10', quantity: 8 },
+      { productKey: 'Đá Viên-20', quantity: 3 },
+    ],
+    notes: 'Thanh toán cuối tháng',
+  },
+  {
+    customerCode: 'KH001',
+    status: 'DRAFT' as OrderStatus,
+    items: [
+      { productKey: 'Đá Bi-5', quantity: 6 },
+    ],
+    notes: 'Đơn hàng bổ sung',
+  },
+];
+
+async function createOrders(
+  customers: Awaited<ReturnType<typeof createCustomers>>,
+  products: Awaited<ReturnType<typeof createProducts>>
+) {
+  console.log('\nCreating sample orders...');
+
+  const customerMap = Object.fromEntries(customers.map((c) => [c.code, c]));
+  const productMap = Object.fromEntries(products.map((p) => [`${p.name}-${p.sizeKg}`, p]));
+
+  // Get global prices for calculating totals
+  const globalPrices = await prisma.globalPrice.findMany();
+  const priceMap = Object.fromEntries(
+    globalPrices.map((gp) => [gp.productId, gp.pricePerUnit.toNumber()])
+  );
+
+  // Also get customer overrides
+  const overrides = await prisma.customerPriceOverride.findMany();
+  const overrideMap = new Map<string, number>();
+  for (const ov of overrides) {
+    overrideMap.set(`${ov.customerId}-${ov.productId}`, ov.pricePerUnit.toNumber());
+  }
+
+  let orderCount = 0;
+  for (const orderData of SAMPLE_ORDERS) {
+    const customer = customerMap[orderData.customerCode];
+    if (!customer) throw new Error(`Customer not found: ${orderData.customerCode}`);
+
+    // Build order items and calculate total
+    const orderItemsData: Array<{
+      productId: string;
+      quantity: number;
+      unitPrice: Prisma.Decimal;
+      lineTotal: Prisma.Decimal;
+    }> = [];
+
+    let orderTotal = 0;
+    for (const item of orderData.items) {
+      const product = productMap[item.productKey];
+      if (!product) throw new Error(`Product not found: ${item.productKey}`);
+
+      // Check for customer override first, then global price
+      const overrideKey = `${customer.id}-${product.id}`;
+      const unitPrice = overrideMap.has(overrideKey)
+        ? overrideMap.get(overrideKey)!
+        : priceMap[product.id];
+
+      const lineTotal = unitPrice * item.quantity;
+      orderTotal += lineTotal;
+
+      orderItemsData.push({
+        productId: product.id,
+        quantity: item.quantity,
+        unitPrice: new Prisma.Decimal(unitPrice),
+        lineTotal: new Prisma.Decimal(lineTotal),
+      });
+    }
+
+    // Create the order
+    const order = await prisma.order.create({
+      data: {
+        customerId: customer.id,
+        status: orderData.status,
+        total: new Prisma.Decimal(orderTotal),
+        notes: orderData.notes,
+        orderItems: {
+          create: orderItemsData,
+        },
+      },
+    });
+
+    orderCount++;
+    console.log(`  - Order ${order.id} (${orderData.status}): ${orderData.customerCode} - ${orderTotal.toLocaleString()}đ`);
+  }
+
+  console.log(`  Total orders created: ${orderCount}`);
+}
+
 export async function seed() {
   console.log('='.repeat(50));
   console.log('IceFlow SaaS - Phase 1 Seed');
@@ -225,6 +361,7 @@ export async function seed() {
     const customers = await createCustomers();
     await createGlobalPrices(products);
     await createCustomerOverrides(customers, products);
+    await createOrders(customers, products);
 
     console.log('\n' + '='.repeat(50));
     console.log('Seed completed successfully!');
@@ -235,12 +372,16 @@ export async function seed() {
     const customerCount = await prisma.customer.count();
     const globalPriceCount = await prisma.globalPrice.count();
     const overrideCount = await prisma.customerPriceOverride.count();
+    const orderCount = await prisma.order.count();
+    const orderItemCount = await prisma.orderItem.count();
 
     console.log('\nVerification:');
     console.log(`  - Products: ${productCount}/6`);
     console.log(`  - Customers: ${customerCount}/5`);
     console.log(`  - Global Prices: ${globalPriceCount}/6`);
     console.log(`  - Customer Overrides: ${overrideCount}/5`);
+    console.log(`  - Orders: ${orderCount}/6`);
+    console.log(`  - Order Items: ${orderItemCount}/9`);
   } catch (error) {
     console.error('\nSeed failed:', error);
     throw error;
