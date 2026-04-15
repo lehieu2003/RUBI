@@ -61,12 +61,21 @@ export default function OrderDetailPage() {
     fetchOrder();
   }, [params.id]);
 
+  // Use effect to print after PrintSlip renders to DOM
+  useEffect(() => {
+    if (showPrintSlip) {
+      // Wait for React to render PrintSlip to DOM, then print
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.print();
+          setShowPrintSlip(false); // Reset after print
+        });
+      });
+    }
+  }, [showPrintSlip]);
+
   const handlePrint = () => {
     setShowPrintSlip(true);
-    // Small delay to ensure the slip is rendered before print dialog
-    setTimeout(() => {
-      window.print();
-    }, 100);
   };
 
   if (loading) {
