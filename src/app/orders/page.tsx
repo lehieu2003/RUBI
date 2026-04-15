@@ -48,6 +48,8 @@ const statusConfig = {
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<OrderFromAPI[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -56,19 +58,34 @@ export default function OrdersPage() {
   const [filterDate, setFilterDate] = useState('');
 
   useEffect(() => {
-    async function fetchOrders() {
+    async function fetchData() {
       try {
-        const res = await fetch('/api/orders');
-        if (!res.ok) throw new Error('Failed to fetch orders');
-        const data = await res.json();
-        setOrders(data);
+        const [ordersRes, customersRes, productsRes] = await Promise.all([
+          fetch('/api/orders'),
+          fetch('/api/customers'),
+          fetch('/api/products'),
+        ]);
+
+        if (!ordersRes.ok) throw new Error('Failed to fetch orders');
+        if (!customersRes.ok) throw new Error('Failed to fetch customers');
+        if (!productsRes.ok) throw new Error('Failed to fetch products');
+
+        const [ordersData, customersData, productsData] = await Promise.all([
+          ordersRes.json(),
+          customersRes.json(),
+          productsRes.json(),
+        ]);
+
+        setOrders(ordersData);
+        setCustomers(customersData);
+        setProducts(productsData);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
         setLoading(false);
       }
     }
-    fetchOrders();
+    fetchData();
   }, []);
 
   // Map API orders to table format
@@ -131,7 +148,7 @@ export default function OrdersPage() {
               <h1 className="text-3xl font-black text-white">Quản lý Đơn hàng</h1>
               <p className="text-slate-400 mt-1">{mappedOrders.length} đơn hàng</p>
             </div>
-            <OrderEntryDrawer customers={[]} products={[]} />
+            <OrderEntryDrawer customers={customers} products={products} />
           </div>
 
           {/* Quick Filters */}
