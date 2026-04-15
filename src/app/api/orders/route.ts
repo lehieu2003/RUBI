@@ -31,7 +31,18 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
     });
 
-    return NextResponse.json(orders);
+    // Serialize Decimals to numbers for client compatibility
+    const serialized = orders.map((order) => ({
+      ...order,
+      total: order.total.toNumber(),
+      orderItems: order.orderItems.map((item) => ({
+        ...item,
+        unitPrice: item.unitPrice.toNumber(),
+        lineTotal: item.lineTotal.toNumber(),
+      })),
+    }));
+
+    return NextResponse.json(serialized);
   } catch (error) {
     console.error('[GET /api/orders]', error);
     return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
