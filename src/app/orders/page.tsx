@@ -458,7 +458,7 @@ export default function OrdersPage() {
 
       {/* Print-only content: PrintSlip hidden on screen, visible in print */}
       {showPrintSlip && slipOrder && (
-        <div className="hidden print:block">
+        <div className="print-slip">
           <PrintSlip order={slipOrder} />
         </div>
       )}
