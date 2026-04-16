@@ -19,6 +19,22 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
+
+    // --- Bearer token auth check ---
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Missing or invalid Authorization header' }, { status: 401 });
+    }
+    const token = authHeader.slice(7);
+
+    const driver = await prisma.driver.findUnique({
+      where: { token },
+    });
+    if (!driver) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
+    // --- Request body parsing ---
     const body = await request.json();
     const parsed = ConfirmSchema.safeParse(body);
 
@@ -29,10 +45,18 @@ export async function PATCH(
       );
     }
 
-    // Update order to DELIVERED with GPS coordinates
-    // Convert null to Prisma.JsonNull for Json field type compatibility
+    // --- Order ownership check ---
+    const order = await prisma.order.findUnique({ where: { id } });
+    if (!order) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+    if (order.driverId !== driver.id) {
+      return NextResponse.json({ error: 'Not authorized to confirm this order' }, { status: 403 });
+    }
+
+    // --- Update order to DELIVERED with GPS coordinates ---
     const gpsValue = parsed.data.gps == null ? Prisma.JsonNull : parsed.data.gps;
-    const order = await prisma.order.update({
+    const updated = await prisma.order.update({
       where: { id },
       data: {
         status: 'DELIVERED',
@@ -42,11 +66,15 @@ export async function PATCH(
 
     return NextResponse.json({
       success: true,
-      orderId: order.id,
-      status: order.status,
-      deliveryGps: order.deliveryGps,
+      orderId: updated.id,
+      status: updated.status,
+      deliveryGps: updated.deliveryGps,
     });
   } catch (error) {
+    // Handle Prisma not found error specifically
+    if (error instanceof Error && error.name === 'NotFoundError') {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
     console.error('[PATCH /api/orders/[id]/confirm]', error);
     return NextResponse.json({ error: 'Confirmation failed' }, { status: 500 });
   }

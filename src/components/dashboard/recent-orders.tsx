@@ -1,6 +1,6 @@
 'use client';
 
-import { FileText, Printer, Clock, CheckCircle2, Truck } from 'lucide-react';
+import { FileText, Printer, Clock, CheckCircle2, Truck, XCircle, Package } from 'lucide-react';
 
 interface OrderItem {
   product: { name: string; sizeKg: number };
@@ -12,7 +12,7 @@ interface Order {
   code?: string;
   customer: { name: string; code: string };
   total: string | number;
-  status: 'DRAFT' | 'CONFIRMED' | 'PRINTED' | 'DELIVERED';
+  status: 'PENDING' | 'SHIPPING' | 'DELIVERED' | 'COMPLETED' | 'CANCELLED';
   createdAt: Date | string;
   orderItems: OrderItem[];
 }
@@ -23,25 +23,30 @@ interface RecentOrdersProps {
 }
 
 const statusConfig = {
-  DRAFT: {
-    label: 'Chờ xử lý',
+  PENDING: {
+    label: 'Chờ giao',
     icon: Clock,
     color: 'text-slate-400 bg-slate-500/20',
   },
-  CONFIRMED: {
-    label: 'Đã xác nhận',
-    icon: CheckCircle2,
-    color: 'text-blue-400 bg-blue-500/20',
-  },
-  PRINTED: {
-    label: 'Đã in',
-    icon: FileText,
+  SHIPPING: {
+    label: 'Đang giao',
+    icon: Truck,
     color: 'text-amber-400 bg-amber-500/20',
   },
   DELIVERED: {
     label: 'Đã giao',
-    icon: Truck,
+    icon: Package,
+    color: 'text-blue-400 bg-blue-500/20',
+  },
+  COMPLETED: {
+    label: 'Hoàn thành',
+    icon: CheckCircle2,
     color: 'text-emerald-400 bg-emerald-500/20',
+  },
+  CANCELLED: {
+    label: 'Đã hủy',
+    icon: XCircle,
+    color: 'text-red-400 bg-red-500/20',
   },
 };
 
@@ -121,7 +126,7 @@ export function RecentOrders({ orders, onPrint }: RecentOrdersProps) {
           </thead>
           <tbody className="divide-y divide-white/5">
             {orders.map((order) => {
-              const status = statusConfig[order.status] || statusConfig.DRAFT;
+              const status = statusConfig[order.status] || statusConfig.PENDING;
               const StatusIcon = status.icon;
               const total =
                 typeof order.total === 'string'

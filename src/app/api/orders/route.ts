@@ -13,7 +13,12 @@ export async function GET(request: NextRequest) {
     const where: Record<string, unknown> = {};
 
     if (customerId) where.customerId = customerId;
-    if (status) where.status = status as 'DRAFT' | 'CONFIRMED' | 'PRINTED' | 'DELIVERED';
+    if (status) {
+      const validStatuses = ['PENDING', 'SHIPPING', 'DELIVERED', 'COMPLETED', 'CANCELLED'];
+      if (validStatuses.includes(status)) {
+        where.status = status as 'PENDING' | 'SHIPPING' | 'DELIVERED' | 'COMPLETED' | 'CANCELLED';
+      }
+    }
     if (date) {
       const startOfDay = new Date(date);
       startOfDay.setHours(0, 0, 0, 0);
