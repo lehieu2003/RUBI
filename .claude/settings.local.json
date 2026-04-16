@@ -23,7 +23,8 @@
       "Skill(gsd:discuss-phase:*)",
       "Bash(node \"D:/IceFlow SaaS/.claude/get-shit-done/bin/gsd-tools.cjs\" uat render-checkpoint --file \".planning/phases/02-delivery-slips/02-UAT.md\" --raw)",
       "Bash(node \"D:/IceFlow SaaS/.claude/get-shit-done/bin/gsd-tools.cjs\" commit \"test\\(phase-02\\): complete UAT - 0 passed, 3 issues, 1 blocked\" --files \".planning/phases/02-delivery-slips/02-UAT.md\")",
-      "Bash(node \"D:/IceFlow SaaS/.claude/get-shit-done/bin/gsd-tools.cjs\" commit \"test\\(phase-02\\): complete UAT - 1 passed, 3 issues, 1 blocked\" --files \".planning/phases/02-delivery-slips/02-UAT.md\")"
+      "Bash(node \"D:/IceFlow SaaS/.claude/get-shit-done/bin/gsd-tools.cjs\" commit \"test\\(phase-02\\): complete UAT - 1 passed, 3 issues, 1 blocked\" --files \".planning/phases/02-delivery-slips/02-UAT.md\")",
+      "Bash(node \"D:/IceFlow SaaS/.claude/get-shit-done/bin/gsd-tools.cjs\" commit \"docs\\(03\\): capture driver delivery view context\" --files \".planning/phases/03-driver-delivery-view/03-CONTEXT.md\" \".planning/phases/03-driver-delivery-view/03-DISCUSSION-LOG.md\")"
     ]
   }
 }
