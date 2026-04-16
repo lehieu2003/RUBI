@@ -1,0 +1,57 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import { z } from 'zod';
+
+// PATCH /api/orders/bulk-assign
+// Body: { orderIds: string[], driverId: string }
+// Assigns multiple orders to a single driver
+const BulkAssignSchema = z.object({
+  orderIds: z.array(z.string()).min(1),
+  driverId: z.string(),
+});
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const parsed = BulkAssignSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid request. Required: orderIds (string[]) and driverId (string)' },
+        { status: 400 }
+      );
+    }
+
+    const { orderIds, driverId } = parsed.data;
+
+    // Verify driver exists
+    const driver = await prisma.driver.findUnique({
+      where: { id: driverId },
+    });
+
+    if (!driver) {
+      return NextResponse.json({ error: 'Driver not found' }, { status: 404 });
+    }
+
+    // Bulk update orders to assign to driver
+    // Only updates orders that are in SHIPPING status (driver loaded, ready for delivery)
+    const result = await prisma.order.updateMany({
+      where: {
+        id: { in: orderIds },
+        status: 'SHIPPING', // Only assign to SHIPPING orders
+      },
+      data: {
+        driverId: driverId,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      assignedCount: result.count,
+      driver: { id: driver.id, name: driver.name },
+    });
+  } catch (error) {
+    console.error('[PATCH /api/orders/bulk-assign]', error);
+    return NextResponse.json({ error: 'Bulk assign failed' }, { status: 500 });
+  }
+}
