@@ -57,7 +57,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: Database schema (Driver model, Order.driverId, Order.deliveryGps) + API routes (driver auth, orders fetch, GPS confirm, bulk-assign, admin map data)
+- [x] 03-01: Database schema (Driver model, Order.driverId, Order.deliveryGps) + API routes (driver auth, orders fetch, GPS confirm, bulk-assign, admin map data)
 - [ ] 03-02: Driver web-view UI (token page, DeliveryCard, EmptyState, DriverMap)
 
 ### Phase 4: Reconciliation & Reporting
