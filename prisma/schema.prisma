@@ -84,6 +84,20 @@ model CustomerPriceOverride {
   @@map("customer_price_overrides")
 }
 
+// Driver - Delivery drivers with token-based URL auth
+model Driver {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  token     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  orders    Order[]
+
+  @@map("drivers")
+}
+
 // Order - Customer orders with status workflow
 model Order {
   id        String   @id @default(cuid())
@@ -91,13 +105,18 @@ model Order {
   status    OrderStatus @default(PENDING)
   total     Decimal  @db.Decimal(10, 2) @default(0)
   notes     String?
+  driverId    String?  @map("driver_id")
+  deliveryGps Json?              // {lat, lng} or null
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   customer Customer    @relation(fields: [customerId], references: [id])
+  driver   Driver?     @relation(fields: [driverId], references: [id])
   orderItems OrderItem[]
 
   @@index([customerId])
+  @@index([driverId])
+  @@index([status, createdAt])
   @@map("orders")
 }
 
