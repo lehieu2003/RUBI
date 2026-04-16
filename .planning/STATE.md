@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-14)
 Phase: 06
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-04-16 - Completed quick task 260416-lzs: Thiết kế Database User & Driver
+Last activity: 2026-04-16 - Completed quick task 260416-mfz: Staff Management UI
 
 Progress: [████████████████████] 100% (Phase 1 done, 3/3 plans)
 
@@ -81,6 +81,7 @@ None yet.
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260416-mfz | Staff Management UI: Admin tạo/khóa nhân viên, đổi mật khẩu nhanh | 2026-04-16 | 9151bce | [260416-mfz-staff-management-ui-admin-t-o-kh-a-nh-n-](./quick/260416-mfz-staff-management-ui-admin-t-o-kh-a-nh-n-/) |
 | 260416-lzs | Thiết kế Database User & Driver | 2026-04-16 | 6dbc0e3 | [260416-lzs-thi-t-k-database-user-driver](./quick/260416-lzs-thi-t-k-database-user-driver/) |
 
 ### Blockers/Concerns
