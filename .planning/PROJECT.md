@@ -80,6 +80,36 @@ Web-based order and inventory management system for ice factories. Replaces pen-
 | Per-customer price lists | Each wholesaler has negotiated rates | ✓ Included in v1 |
 | No offline support | Always-online operation is acceptable | ✓ Accepted |
 
+## User Roles & Permissions
+
+### Role Hierarchy
+
+**ADMIN (Chủ lò)**
+- 100% access: analytics, staff management, system settings
+- Can create/lock/reset passwords for ACCOUNTANT and STAFF
+- Can delete orders or adjust customer debt for error correction
+- Access: `/dashboard`, `/orders`, `/customers`, `/settle`, `/inventory`, `/vehicles`, `/settings`
+
+**ACCOUNTANT (Kế toán)**
+- Focus on cash flow, debt tracking, and cold storage
+- Settlement screen: confirm paper slips, cash input, shell recovery
+- Customer & debt management: track and follow up on outstanding balances
+- Cold storage management: adjust inventory for damage/loss
+- Access: `/dashboard`, `/orders`, `/customers`, `/settle`, `/inventory`, `/vehicles` (no `/settings`)
+
+**STAFF (Nhân viên)**
+- Order entry focus — speed is critical
+- Sees only: `/orders`, `/customers` (order entry is primary task)
+- Print delivery slips
+- Cannot see total factory debt, revenue reports, or settlement screens
+- Cannot modify customer prices
+
+### RBAC Implementation
+
+- **Adaptive Sidebar**: Menu items filtered by role — STAFF sees minimal menu
+- **Route Middleware**: Unauthorized route access → redirect to `/dashboard?error=unauthorized`
+- Admin is the only source of truth for account creation (direct assignment workflow)
+
 ---
 
-*Last updated: 2026-04-14 after initial project definition*
+*Last updated: 2026-04-16 after RBAC implementation*
