@@ -54,11 +54,11 @@ Plans:
   2. Driver sees customer name, address, products, and quantities for each delivery
   3. Delivery list updates as new orders are added (daily refresh)
   4. Interface is dead simple — suitable for drivers with minimal tech literacy
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: Driver web-view page with daily delivery list
-- [ ] 03-02: Simple mobile-first layout for phone screens
+- [ ] 03-01: Database schema (Driver model, Order.driverId, Order.deliveryGps) + API routes (driver auth, orders fetch, GPS confirm, bulk-assign, admin map data)
+- [ ] 03-02: Driver web-view UI (token page, DeliveryCard, EmptyState, DriverMap)
 
 ### Phase 4: Reconciliation & Reporting
 **Goal**: Accountant confirms delivered quantities, system auto-deducts inventory and updates customer debt; owner sees daily debt report
@@ -72,7 +72,7 @@ Plans:
   5. Owner can view daily debt report showing all outstanding balances
   6. System tracks shell/bag deposits owed by each customer separately
   7. Owner can see which customers owe deposits and how much
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 04-01: Delivery confirmation workflow (slip return → quantity confirm)
@@ -88,3 +88,35 @@ Plans:
 | 2. Delivery Slips | 0/2 | Not started | - |
 | 3. Driver Delivery View | 0/2 | Not started | - |
 | 4. Reconciliation & Reporting | 0/4 | Not started | - |
+
+### Phase 5: payment-integration
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 4
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 5 to break down)
+
+### Phase 6: Trial, Pricing & Onboarding
+**Goal**: Convert ice factory owners from pen-and-paper to IceFlow SaaS through frictionless 14-day trial + clear, flexible pricing
+**Depends on**: Phase 5 (payment-integration)
+**Requirements**: REQ-10 (trial), REQ-11 (pricing), REQ-12 (onboarding)
+**Success Criteria** (what must be TRUE):
+  1. Owner can start free trial with just phone number + factory name — no credit card required
+  2. Owner gets full access to all v1 features during trial (order entry, print slips, debt tracking, inventory)
+  3. System helps owner import existing customer list and price lists during onboarding
+  4. Dashboard shows trial countdown (12 days left) with upgrade CTA before trial expires
+  5. Owner can upgrade to paid plan with per-driver pricing (1 admin + N driver accounts)
+  6. Owner can cancel anytime — "use month-to-month, pay for what you use"
+  7. If owner cancels, system exports all customer data and debt balances to Excel
+  8. Payment via bank transfer or MoMo/ZaloPay (common in Vietnam)
+  9. Trial expiration warning appears 3 days before end date with support contact
+**Plans**: 2 plans
+
+Plans:
+- [ ] 06-01: Free trial flow (no credit card, phone signup, 14-day full access)
+- [ ] 06-02: Onboarding wizard (import customers + price lists from existing data)
+- [ ] 06-03: Per-driver pricing model UI + upgrade flow in dashboard
+- [ ] 06-04: Trial countdown banner + expiration warning + cancel/export data flow
