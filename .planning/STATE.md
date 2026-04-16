@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-04-16T02:00:30.333Z"
-last_activity: 2026-04-16
+status: in_progress
+stopped_at: Completed quick task 260416-nv1: RBAC menu + API 401
+last_updated: "2026-04-16T10:15:00.000Z"
+last_activity: "2026-04-16 - Completed quick task 260416-nv1: RBAC menu drawer + API 401"
 progress:
   total_phases: 6
   completed_phases: 3
@@ -84,6 +84,7 @@ None yet.
 | 260416-mp9 | RBAC: Adaptive Sidebar + Route Middleware theo vai trò User | 2026-04-16 | 6e25917 | [260416-mp9-rbac-adaptive-sidebar-route-middleware-t](./quick/260416-mp9-rbac-adaptive-sidebar-route-middleware-t/) |
 | 260416-mfz | Staff Management UI: Admin tạo/khóa nhân viên, đổi mật khẩu nhanh | 2026-04-16 | 9151bce | [260416-mfz-staff-management-ui-admin-t-o-kh-a-nh-n-](./quick/260416-mfz-staff-management-ui-admin-t-o-kh-a-nh-n-/) |
 | 260416-lzs | Thiết kế Database User & Driver | 2026-04-16 | 6dbc0e3 | [260416-lzs-thi-t-k-database-user-driver](./quick/260416-lzs-thi-t-k-database-user-driver/) |
+| 260416-nv1 | RBAC: Fix login missing role field + 401 JSON for API routes | 2026-04-16 | ddad39d | [260416-nv1-rbac-n-menu-drawer-theo-role-ch-n-truy-c](./quick/260416-nv1-rbac-n-menu-drawer-theo-role-ch-n-truy-c/) |
 
 ### Blockers/Concerns
 
