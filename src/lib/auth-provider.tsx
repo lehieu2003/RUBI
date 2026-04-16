@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       const data = await res.json();
       if (data.error) return { error: data.error };
-      setUser(data.user);
+      await checkAuth();
       return { error: null };
     } catch {
       return { error: 'Lỗi kết nối' };
