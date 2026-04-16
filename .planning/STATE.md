@@ -85,6 +85,7 @@ None yet.
 | 260416-mfz | Staff Management UI: Admin tạo/khóa nhân viên, đổi mật khẩu nhanh | 2026-04-16 | 9151bce | [260416-mfz-staff-management-ui-admin-t-o-kh-a-nh-n-](./quick/260416-mfz-staff-management-ui-admin-t-o-kh-a-nh-n-/) |
 | 260416-lzs | Thiết kế Database User & Driver | 2026-04-16 | 6dbc0e3 | [260416-lzs-thi-t-k-database-user-driver](./quick/260416-lzs-thi-t-k-database-user-driver/) |
 | 260416-nv1 | RBAC: Fix login missing role field + 401 JSON for API routes | 2026-04-16 | ddad39d | [260416-nv1-rbac-n-menu-drawer-theo-role-ch-n-truy-c](./quick/260416-nv1-rbac-n-menu-drawer-theo-role-ch-n-truy-c/) |
+| 260416-opw | Fix deliveryGps schema mismatch - add Json field to Order | 2026-04-16 | 702536f | [260416-opw-fix-deliverygps-schema-mismatch-add-json](./quick/260416-opw-fix-deliverygps-schema-mismatch-add-json/) |
 
 ### Blockers/Concerns
 
