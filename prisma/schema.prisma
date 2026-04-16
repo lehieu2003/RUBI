@@ -120,6 +120,7 @@ model Order {
   assignerId String?    @map("assigner_id")
   deliveryLat Float?   @map("delivery_lat")
   deliveryLng Float?    @map("delivery_lng")
+  deliveryGps Json?    @map("delivery_gps") // {lat, lng} or null
   deliveredAt DateTime? @map("delivered_at")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
