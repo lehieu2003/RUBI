@@ -39,7 +39,7 @@ export function DashboardClient({
     (o) => new Date(o.createdAt).toDateString() === today
   );
   const todayRevenue = todayOrders.reduce(
-    (sum, o) => sum + (typeof o.total === 'string' ? parseFloat(o.total) : o.total),
+    (sum, o) => sum + Number(o.total),
     0
   );
   const deliveredCount = todayOrders.filter((o) => o.status === 'DELIVERED').length;

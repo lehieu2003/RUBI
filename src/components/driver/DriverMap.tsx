@@ -36,7 +36,9 @@ export default function DriverMap({ orders, isOpen, onClose }: DriverMapProps) {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    // Set isClient to true after initial mount to avoid SSR hydration issues
     setIsClient(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!isOpen) return null;

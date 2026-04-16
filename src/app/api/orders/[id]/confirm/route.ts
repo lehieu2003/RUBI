@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 
 // PATCH /api/orders/[id]/confirm
@@ -29,11 +30,13 @@ export async function PATCH(
     }
 
     // Update order to DELIVERED with GPS coordinates
+    // Convert null to Prisma.JsonNull for Json field type compatibility
+    const gpsValue = parsed.data.gps == null ? Prisma.JsonNull : parsed.data.gps;
     const order = await prisma.order.update({
       where: { id },
       data: {
         status: 'DELIVERED',
-        deliveryGps: parsed.data.gps, // Json field - {lat, lng} or null
+        deliveryGps: gpsValue,
       },
     });
 

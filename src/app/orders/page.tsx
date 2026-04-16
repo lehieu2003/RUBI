@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { useReactToPrint } from 'react-to-print';
-import { Search, Printer, FileText, Clock, Truck, CheckCircle2, Package, XCircle } from 'lucide-react';
+import { Search, Printer, FileText, Clock, Truck, CheckCircle2, Package, XCircle, TruckIcon, CheckSquare, Square, MapPin } from 'lucide-react';
 import { OrderEntryDrawer } from '@/components/order/order-entry-drawer';
 import { Drawer } from '@/components/ui/drawer';
 import { PrintSlip } from '@/components/order/print-slip';
@@ -33,13 +33,16 @@ interface OrderFromAPI {
   total: unknown;
   notes: string | null;
   createdAt: string;
+  driverId: string | null;
   customer: CustomerInfo;
   orderItems: OrderItemWithProduct[];
 }
 
-// Placeholder driver (not tracked in DB yet)
-const PLACEHOLDER_DRIVER = 'Anh Vinh';
-const DRIVERS = ['Tất cả', 'Anh Vinh', 'Anh Hùng'];
+interface DriverFromAPI {
+  id: string;
+  name: string;
+  phone: string | null;
+}
 
 const statusConfig = {
   PENDING: { label: 'Chờ giao', icon: Clock, color: 'text-slate-400 bg-slate-500/20' },
@@ -53,10 +56,11 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<OrderFromAPI[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [drivers, setDrivers] = useState<DriverFromAPI[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [selectedDriver, setSelectedDriver] = useState('Tất cả');
+  const [selectedDriverId, setSelectedDriverId] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState('Tất cả');
   const [filterDate, setFilterDate] = useState('');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -64,6 +68,9 @@ export default function OrdersPage() {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
+  const [bulkAssignDriverId, setBulkAssignDriverId] = useState<string>('');
+  const [bulkAssigning, setBulkAssigning] = useState(false);
 
   const printRef = useRef(null);
   const print = useReactToPrint({
@@ -73,25 +80,29 @@ export default function OrdersPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [ordersRes, customersRes, productsRes] = await Promise.all([
+        const [ordersRes, customersRes, productsRes, driversRes] = await Promise.all([
           fetch('/api/orders'),
           fetch('/api/customers'),
           fetch('/api/products'),
+          fetch('/api/drivers'),
         ]);
 
         if (!ordersRes.ok) throw new Error('Failed to fetch orders');
         if (!customersRes.ok) throw new Error('Failed to fetch customers');
         if (!productsRes.ok) throw new Error('Failed to fetch products');
+        if (!driversRes.ok) throw new Error('Failed to fetch drivers');
 
-        const [ordersData, customersData, productsData] = await Promise.all([
+        const [ordersData, customersData, productsData, driversData] = await Promise.all([
           ordersRes.json(),
           customersRes.json(),
           productsRes.json(),
+          driversRes.json(),
         ]);
 
         setOrders(ordersData);
         setCustomers(customersData);
         setProducts(productsData);
+        setDrivers(driversData);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
@@ -102,20 +113,25 @@ export default function OrdersPage() {
   }, []);
 
   // Map API orders to table format
-  const mappedOrders = orders.map((order) => ({
-    id: order.id,
-    code: order.code || `DH-${order.id.slice(-6).toUpperCase()}`,
-    customer: order.customer?.name || 'Unknown',
-    codeCus: order.customer?.code || '',
-    driver: PLACEHOLDER_DRIVER,
-    items: order.orderItems?.map((i) => `${i.product?.name || 'Unknown'} ${i.product?.sizeKg || 0}kg × ${i.quantity}`).join(', ') || '',
-    total: typeof order.total === 'number' ? order.total : Number(order.total) || 0,
-    status: order.status || 'PENDING',
-    createdAt: order.createdAt ? new Date(order.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '--:--',
-  }));
+  const mappedOrders = orders.map((order) => {
+    const driver = drivers.find((d) => d.id === order.driverId);
+    return {
+      id: order.id,
+      code: order.code || `DH-${order.id.slice(-6).toUpperCase()}`,
+      customer: order.customer?.name || 'Unknown',
+      codeCus: order.customer?.code || '',
+      driverId: order.driverId,
+      driverName: driver?.name || 'Chưa giao',
+      items: order.orderItems?.map((i) => `${i.product?.name || 'Unknown'} ${i.product?.sizeKg || 0}kg × ${i.quantity}`).join(', ') || '',
+      total: typeof order.total === 'number' ? order.total : Number(order.total) || 0,
+      status: order.status || 'PENDING',
+      createdAt: order.createdAt ? new Date(order.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '--:--',
+    };
+  });
 
   const filteredOrders = mappedOrders.filter((order) => {
-    if (selectedDriver !== 'Tất cả' && order.driver !== selectedDriver) return false;
+    if (selectedDriverId === 'unassigned' && order.driverId !== null) return false;
+    if (selectedDriverId !== 'all' && selectedDriverId !== 'unassigned' && order.driverId !== selectedDriverId) return false;
     if (selectedStatus !== 'Tất cả' && order.status !== selectedStatus) return false;
     if (search && !order.customer.toLowerCase().includes(search.toLowerCase()) && !order.code.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
@@ -203,6 +219,51 @@ export default function OrdersPage() {
       console.error('Failed to update status:', err);
     } finally {
       setUpdatingStatus(false);
+    }
+  };
+
+  // Bulk assign selected orders to a driver
+  const handleBulkAssign = async () => {
+    if (!bulkAssignDriverId || selectedOrderIds.size === 0) return;
+    setBulkAssigning(true);
+    try {
+      const res = await fetch('/api/orders/bulk-assign', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderIds: Array.from(selectedOrderIds),
+          driverId: bulkAssignDriverId,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to assign orders');
+      // Refresh orders
+      const ordersRes = await fetch('/api/orders');
+      const ordersData = await ordersRes.json();
+      setOrders(ordersData);
+      setSelectedOrderIds(new Set());
+      setBulkAssignDriverId('');
+    } catch (err) {
+      console.error('Failed to bulk assign:', err);
+    } finally {
+      setBulkAssigning(false);
+    }
+  };
+
+  const toggleOrderSelection = (orderId: string) => {
+    const newSelected = new Set(selectedOrderIds);
+    if (newSelected.has(orderId)) {
+      newSelected.delete(orderId);
+    } else {
+      newSelected.add(orderId);
+    }
+    setSelectedOrderIds(newSelected);
+  };
+
+  const toggleAllSelection = () => {
+    if (selectedOrderIds.size === filteredOrders.length) {
+      setSelectedOrderIds(new Set());
+    } else {
+      setSelectedOrderIds(new Set(filteredOrders.map((o) => o.id)));
     }
   };
 
@@ -305,6 +366,39 @@ export default function OrdersPage() {
             </button>
           </div>
 
+          {/* Bulk Assign Bar - shown when orders selected */}
+          {selectedOrderIds.size > 0 && (
+            <div className="flex items-center gap-4 mb-4 p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
+              <span className="text-sm text-blue-400 font-medium">
+                Đã chọn {selectedOrderIds.size} đơn hàng
+              </span>
+              <select
+                value={bulkAssignDriverId}
+                onChange={(e) => setBulkAssignDriverId(e.target.value)}
+                className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500/50"
+              >
+                <option value="" className="bg-slate-900">-- Chọn tài xế --</option>
+                {drivers.map((d) => (
+                  <option key={d.id} value={d.id} className="bg-slate-900">{d.name}</option>
+                ))}
+              </select>
+              <button
+                onClick={handleBulkAssign}
+                disabled={!bulkAssignDriverId || bulkAssigning}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+              >
+                <TruckIcon className="h-4 w-4" />
+                {bulkAssigning ? 'Đang giao...' : 'Giao đơn đã chọn'}
+              </button>
+              <button
+                onClick={() => { setSelectedOrderIds(new Set()); setBulkAssignDriverId(''); }}
+                className="px-4 py-2 text-slate-400 hover:text-white text-sm transition-colors"
+              >
+                Hủy
+              </button>
+            </div>
+          )}
+
           {/* Filters Row */}
           <div className="flex items-center gap-4 mb-6">
             <div className="relative flex-1 max-w-md">
@@ -319,12 +413,14 @@ export default function OrdersPage() {
             </div>
 
             <select
-              value={selectedDriver}
-              onChange={(e) => setSelectedDriver(e.target.value)}
+              value={selectedDriverId}
+              onChange={(e) => setSelectedDriverId(e.target.value)}
               className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
             >
-              {DRIVERS.map((d) => (
-                <option key={d} value={d} className="bg-slate-900">{d}</option>
+              <option value="all" className="bg-slate-900">Tất cả tài xế</option>
+              <option value="unassigned" className="bg-slate-900">Chưa giao</option>
+              {drivers.map((d) => (
+                <option key={d.id} value={d.id} className="bg-slate-900">{d.name}</option>
               ))}
             </select>
 
@@ -334,6 +430,14 @@ export default function OrdersPage() {
               onChange={(e) => setFilterDate(e.target.value)}
               className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
             />
+
+            <a
+              href="/dashboard/map"
+              className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white hover:bg-white/10 transition-colors flex items-center gap-2"
+            >
+              <MapPin className="h-5 w-5" />
+              Bản đồ
+            </a>
           </div>
 
           {/* Orders Table */}
@@ -341,6 +445,18 @@ export default function OrdersPage() {
             <table className="w-full">
               <thead className="bg-white/5">
                 <tr>
+                  <th className="py-3 px-4 w-12">
+                    <button
+                      onClick={toggleAllSelection}
+                      className="text-slate-400 hover:text-white transition-colors"
+                    >
+                      {selectedOrderIds.size === filteredOrders.length && filteredOrders.length > 0 ? (
+                        <CheckSquare className="h-5 w-5 text-blue-400" />
+                      ) : (
+                        <Square className="h-5 w-5" />
+                      )}
+                    </button>
+                  </th>
                   <th className="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase">Mã đơn</th>
                   <th className="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase">Khách hàng</th>
                   <th className="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase">Sản phẩm</th>
@@ -357,7 +473,19 @@ export default function OrdersPage() {
                   const StatusIcon = status.icon;
 
                   return (
-                    <tr key={order.id} className="hover:bg-white/5 transition-colors">
+                    <tr key={order.id} className={`hover:bg-white/5 transition-colors ${selectedOrderIds.has(order.id) ? 'bg-blue-500/5' : ''}`}>
+                      <td className="py-4 px-4">
+                        <button
+                          onClick={() => toggleOrderSelection(order.id)}
+                          className="text-slate-400 hover:text-white transition-colors"
+                        >
+                          {selectedOrderIds.has(order.id) ? (
+                            <CheckSquare className="h-5 w-5 text-blue-400" />
+                          ) : (
+                            <Square className="h-5 w-5" />
+                          )}
+                        </button>
+                      </td>
                       <td className="py-4 px-4">
                         <span className="text-sm font-mono font-semibold text-blue-400">
                           #{order.code}
@@ -370,10 +498,12 @@ export default function OrdersPage() {
                         </div>
                       </td>
                       <td className="py-4 px-4">
-                        <p className="text-sm text-slate-300">{order.items}</p>
+                        <p className="text-sm text-slate-300 truncate max-w-50" title={order.items}>
+                          {order.items || '-'}
+                        </p>
                       </td>
                       <td className="py-4 px-4">
-                        <p className="text-sm text-slate-400">{order.driver}</p>
+                        <p className={`text-sm ${order.driverId ? 'text-slate-300' : 'text-amber-400'}`}>{order.driverName}</p>
                       </td>
                       <td className="py-4 px-4">
                         <p className="text-sm text-slate-400">{order.createdAt}</p>
