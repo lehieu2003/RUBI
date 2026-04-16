@@ -12,15 +12,24 @@ datasource db {
 
 // User - Authenticated users (factory owners/staff)
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String   // bcrypt hashed
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String    // bcrypt hashed
   name      String
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  role      UserRole  @default(STAFF)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  assignedOrders Order[] @relation("OrderAssigner")
 
   @@map("users")
+}
+
+enum UserRole {
+  ADMIN      // Chủ lò: Xem tất cả báo cáo
+  ACCOUNTANT // Kế toán: Chốt đơn, đối soát tiền, quản lý nợ
+  STAFF      // Nhân viên: Lên đơn, in phiếu
 }
 
 // Product - Ice types with sizes (Đá Bi 5/10/20kg, Đá Viên 5/10/20kg)
@@ -84,34 +93,40 @@ model CustomerPriceOverride {
   @@map("customer_price_overrides")
 }
 
-// Driver - Delivery drivers with token-based URL auth
+// Driver - Delivery drivers with token-based URL auth (D-01)
 model Driver {
   id        String   @id @default(cuid())
   name      String
+  phone     String?  @unique
+  token     String   @unique @default(uuid())
   slug      String   @unique
-  token     String   @unique
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-  orders    Order[]
+
+  orders Order[]
 
   @@map("drivers")
 }
 
 // Order - Customer orders with status workflow
 model Order {
-  id        String   @id @default(cuid())
-  customerId String  @map("customer_id")
+  id        String      @id @default(cuid())
+  customerId String     @map("customer_id")
   status    OrderStatus @default(PENDING)
-  total     Decimal  @db.Decimal(10, 2) @default(0)
+  total     Decimal     @db.Decimal(10, 2) @default(0)
   notes     String?
-  driverId    String?  @map("driver_id")
-  deliveryGps Json?              // {lat, lng} or null
+  driverId   String?    @map("driver_id")
+  assignerId String?    @map("assigner_id")
+  deliveryLat Float?   @map("delivery_lat")
+  deliveryLng Float?    @map("delivery_lng")
+  deliveredAt DateTime? @map("delivered_at")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  customer Customer    @relation(fields: [customerId], references: [id])
-  driver   Driver?     @relation(fields: [driverId], references: [id])
+  customer  Customer    @relation(fields: [customerId], references: [id])
+  driver    Driver?     @relation(fields: [driverId], references: [id])
+  assigner  User?       @relation("OrderAssigner", fields: [assignerId], references: [id])
   orderItems OrderItem[]
 
   @@index([customerId])
