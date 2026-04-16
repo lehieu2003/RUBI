@@ -20,10 +20,10 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DLVR-02**: Printed slip shows customer name, address, products, quantities, and total
 - [x] **DLVR-03**: Printed slip includes a signature line for customer acknowledgment
 - [x] **DLVR-04**: Slip prints correctly on A5 paper and thermal printers (80mm)
-- [ ] **DLVR-05**: Driver can open a URL on their phone and see today's delivery list
-- [ ] **DLVR-06**: Driver delivery list shows customer name, address, products, quantities
-- [ ] **DLVR-07**: Driver delivery list updates as new orders are added (refresh-based)
-- [ ] **DLVR-08**: Interface is dead simple — suitable for drivers with minimal tech literacy
+- [x] **DLVR-05**: Driver can open a URL on their phone and see today's delivery list
+- [x] **DLVR-06**: Driver delivery list shows customer name, address, products, quantities
+- [x] **DLVR-07**: Driver delivery list updates as new orders are added (refresh-based)
+- [x] **DLVR-08**: Interface is dead simple — suitable for drivers with minimal tech literacy
 
 ### Inventory & Debt
 
@@ -101,10 +101,10 @@ Explicitly excluded. Documented to prevent scope creep.
 | DLVR-02 | Phase 2 | Complete |
 | DLVR-03 | Phase 2 | Complete |
 | DLVR-04 | Phase 2 | Complete |
-| DLVR-05 | Phase 3 | Pending |
-| DLVR-06 | Phase 3 | Pending |
-| DLVR-07 | Phase 3 | Pending |
-| DLVR-08 | Phase 3 | Pending |
+| DLVR-05 | Phase 3 | Complete |
+| DLVR-06 | Phase 3 | Complete |
+| DLVR-07 | Phase 3 | Complete |
+| DLVR-08 | Phase 3 | Complete |
 | INVD-01 | Phase 4 | Pending |
 | INVD-02 | Phase 4 | Pending |
 | INVD-03 | Phase 4 | Pending |

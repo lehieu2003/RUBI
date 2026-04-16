@@ -8,7 +8,7 @@ IceFlow SaaS replaces pen-and-paper/Zalo workflows for ice factories with fast d
 
 - [x] **Phase 1: Foundation & Order Entry** - Fast order entry UI with customer/product data and per-customer pricing ✅
 - [ ] **Phase 2: Delivery Slips** - Printed A5/thermal slips with customer signature line
-- [ ] **Phase 3: Driver Delivery View** - Mobile web-view for drivers to see daily delivery list
+- [x] **Phase 3: Driver Delivery View** - Mobile web-view for drivers to see daily delivery list (completed 2026-04-16)
 - [ ] **Phase 4: Reconciliation & Reporting** - Accountant confirmation, auto-deduct inventory, debt tracking, and owner reports
 
 ## Phase Details
@@ -58,7 +58,7 @@ Plans:
 
 Plans:
 - [x] 03-01: Database schema (Driver model, Order.driverId, Order.deliveryGps) + API routes (driver auth, orders fetch, GPS confirm, bulk-assign, admin map data)
-- [ ] 03-02: Driver web-view UI (token page, DeliveryCard, EmptyState, DriverMap)
+- [x] 03-02: Driver web-view UI (token page, DeliveryCard, EmptyState, DriverMap)
 
 ### Phase 4: Reconciliation & Reporting
 **Goal**: Accountant confirms delivered quantities, system auto-deducts inventory and updates customer debt; owner sees daily debt report
@@ -86,7 +86,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Foundation & Order Entry | 3/3 | ✅ Complete | 2026-04-15 |
 | 2. Delivery Slips | 0/2 | Not started | - |
-| 3. Driver Delivery View | 0/2 | Not started | - |
+| 3. Driver Delivery View | 2/2 | Complete   | 2026-04-16 |
 | 4. Reconciliation & Reporting | 0/4 | Not started | - |
 
 ### Phase 5: payment-integration
@@ -94,7 +94,7 @@ Plans:
 **Goal:** [To be planned]
 **Requirements**: TBD
 **Depends on:** Phase 4
-**Plans:** 0 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] TBD (run /gsd-plan-phase 5 to break down)
