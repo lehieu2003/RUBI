@@ -7,9 +7,10 @@ IceFlow SaaS replaces pen-and-paper/Zalo workflows for ice factories with fast d
 ## Phases
 
 - [x] **Phase 1: Foundation & Order Entry** - Fast order entry UI with customer/product data and per-customer pricing ✅
-- [ ] **Phase 2: Delivery Slips** - Printed A5/thermal slips with customer signature line
-- [x] **Phase 3: Driver Delivery View** - Mobile web-view for drivers to see daily delivery list (completed 2026-04-16)
-- [ ] **Phase 4: Reconciliation & Reporting** - Accountant confirmation, auto-deduct inventory, debt tracking, and owner reports
+- [x] **Phase 2: Delivery Slips** - Printed A5/thermal slips with customer signature line ✅
+- [x] **Phase 3: Driver Delivery View** - Mobile web-view for drivers to see daily delivery list ✅ (completed 2026-04-16)
+- [ ] **Phase 4: Status Enum Fixes & API Hardening** - Fix status enum mismatches, add confirm endpoint token validation
+- [ ] **Phase 5: Reconciliation & Reporting** - Accountant confirmation, auto-deduct inventory, debt tracking, and owner reports
 
 ## Phase Details
 
@@ -60,7 +61,17 @@ Plans:
 - [x] 03-01: Database schema (Driver model, Order.driverId, Order.deliveryGps) + API routes (driver auth, orders fetch, GPS confirm, bulk-assign, admin map data)
 - [x] 03-02: Driver web-view UI (token page, DeliveryCard, EmptyState, DriverMap)
 
-### Phase 4: Reconciliation & Reporting
+### Phase 4: Status Enum Fixes & API Hardening
+**Goal**: Fix status enum mismatches in API and components; add driver token validation to confirm endpoint
+**Depends on**: Phase 3
+**Gaps Closed**: Closes gaps from v1.0 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. GET /api/orders status filter uses correct enum values (PENDING/SHIPPING/DELIVERED/COMPLETED/CANCELLED)
+  2. recent-orders.tsx uses correct status types matching Prisma schema
+  3. PATCH /api/orders/[id]/confirm validates driver token before confirming delivery
+  4. Phase 1 has VERIFICATION.md documenting requirements coverage
+
+### Phase 5: Reconciliation & Reporting
 **Goal**: Accountant confirms delivered quantities, system auto-deducts inventory and updates customer debt; owner sees daily debt report
 **Depends on**: Phase 3
 **Requirements**: REQ-04, REQ-05, REQ-06, REQ-08, REQ-09
@@ -75,7 +86,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: Delivery confirmation workflow (slip return → quantity confirm)
+- [x] 04-01: Delivery confirmation workflow (slip return → quantity confirm)
 - [ ] 04-02: Inventory deduction and debt update logic
 - [ ] 04-03: Daily debt report for owner
 - [ ] 04-04: Shell/bag deposit tracking per customer
@@ -85,9 +96,10 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Order Entry | 3/3 | ✅ Complete | 2026-04-15 |
-| 2. Delivery Slips | 0/2 | Not started | - |
-| 3. Driver Delivery View | 2/2 | Complete    | 2026-04-16 |
-| 4. Reconciliation & Reporting | 0/4 | Not started | - |
+| 2. Delivery Slips | 2/2 | ✅ Complete | 2026-04-16 |
+| 3. Driver Delivery View | 2/2 | ✅ Complete | 2026-04-16 |
+| 4. Status Enum Fixes & API Hardening | 0/0 | Not started | - |
+| 5. Reconciliation & Reporting | 0/4 | Not started | - |
 
 ### Phase 5: payment-integration
 
