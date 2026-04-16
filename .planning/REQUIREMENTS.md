@@ -3,6 +3,8 @@
 **Defined:** 2026-04-14
 **Core Value:** Speed over everything — staff must enter orders faster than writing by hand (30 seconds), or they reject the system and return to pen-and-paper.
 
+**Audit note (2026-04-16):** Phase 2 DLVR-01 through DLVR-04 marked complete but 3 human verification items deferred (thermal printer test, A5 visual confirm, one-click UX intent). Phase 4 added to close v1.0 audit gaps.
+
 ## v1 Requirements
 
 Requirements for initial release. Each maps to roadmap phases.
@@ -105,13 +107,13 @@ Explicitly excluded. Documented to prevent scope creep.
 | DLVR-06 | Phase 3 | Complete |
 | DLVR-07 | Phase 3 | Complete |
 | DLVR-08 | Phase 3 | Complete |
-| INVD-01 | Phase 4 | Pending |
-| INVD-02 | Phase 4 | Pending |
-| INVD-03 | Phase 4 | Pending |
-| INVD-04 | Phase 4 | Pending |
-| INVD-05 | Phase 4 | Pending |
-| INVD-06 | Phase 4 | Pending |
-| INVD-07 | Phase 4 | Pending |
+| INVD-01 | Phase 5 | Pending |
+| INVD-02 | Phase 5 | Pending |
+| INVD-03 | Phase 5 | Pending |
+| INVD-04 | Phase 5 | Pending |
+| INVD-05 | Phase 5 | Pending |
+| INVD-06 | Phase 5 | Pending |
+| INVD-07 | Phase 5 | Pending |
 
 **Coverage:**
 - v1 requirements: 20 total
