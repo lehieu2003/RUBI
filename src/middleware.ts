@@ -32,6 +32,10 @@ export async function middleware(request: NextRequest) {
 
   // Redirect unauthenticated users to login
   if (isAppRoute && !session) {
+    // For API routes, return 401 JSON instead of redirect
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.searchParams.set('redirect', pathname);
@@ -45,6 +49,9 @@ export async function middleware(request: NextRequest) {
 
     // Check exact pathname match first
     if (roleRoutes[pathname] && userRole && !roleRoutes[pathname].includes(userRole)) {
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
       const url = request.nextUrl.clone();
       url.pathname = '/dashboard';
       url.searchParams.set('error', 'unauthorized');
@@ -56,6 +63,9 @@ export async function middleware(request: NextRequest) {
     if (segments.length >= 2) {
       const parentPath = '/' + segments.slice(0, 2).join('/');
       if (roleRoutes[parentPath] && userRole && !roleRoutes[parentPath].includes(userRole)) {
+        if (pathname.startsWith('/api/')) {
+          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
         const url = request.nextUrl.clone();
         url.pathname = '/dashboard';
         url.searchParams.set('error', 'unauthorized');
