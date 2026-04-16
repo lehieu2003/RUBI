@@ -13,22 +13,29 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  Receipt,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-provider';
 
-const menuItems = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Tổng quan' },
-  { href: '/orders', icon: FileText, label: 'Đơn hàng' },
-  { href: '/customers', icon: Users, label: 'Khách hàng' },
-  { href: '/inventory', icon: Snowflake, label: 'Kho lạnh' },
-  { href: '/vehicles', icon: Truck, label: 'Đội xe' },
-  { href: '/settings', icon: Settings, label: 'Cài đặt' },
+type UserRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF';
+
+const allMenuItems = [
+  { href: '/dashboard', icon: LayoutDashboard, label: 'Tổng quan', roles: ['ADMIN', 'ACCOUNTANT', 'STAFF'] as UserRole[] },
+  { href: '/orders', icon: FileText, label: 'Đơn hàng', roles: ['ADMIN', 'ACCOUNTANT', 'STAFF'] as UserRole[] },
+  { href: '/customers', icon: Users, label: 'Khách hàng', roles: ['ADMIN', 'ACCOUNTANT', 'STAFF'] as UserRole[] },
+  { href: '/settle', icon: Receipt, label: 'Đối soát', roles: ['ADMIN', 'ACCOUNTANT'] as UserRole[] },
+  { href: '/inventory', icon: Snowflake, label: 'Kho lạnh', roles: ['ADMIN', 'ACCOUNTANT'] as UserRole[] },
+  { href: '/vehicles', icon: Truck, label: 'Đội xe', roles: ['ADMIN', 'ACCOUNTANT'] as UserRole[] },
+  { href: '/settings', icon: Settings, label: 'Cài đặt', roles: ['ADMIN'] as UserRole[] },
 ];
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
   const { user, signOut } = useAuth();
+
+  const role = user?.role as UserRole | undefined;
+  const menuItems = allMenuItems.filter(item => !role || item.roles.includes(role));
 
   return (
     <aside
