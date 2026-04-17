@@ -63,7 +63,7 @@ async function seedSystemFactory() {
   }
 
   // 3. Create TRIAL subscription for System factory (so it can be activated)
-  const existingSub = await prisma.subscription.findUnique({
+  const existingSub = await prisma.subscription.findFirst({
     where: { factoryId: systemFactory.id },
   });
   if (!existingSub) {
