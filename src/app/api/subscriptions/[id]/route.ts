@@ -51,7 +51,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     updates.driverCount = body.driverCount;
   }
 
-  if (typeof body.pricePerDriver === 'number' && body.pricePerDriver > 0) {
+  if (typeof body.pricePerDriver === 'number' && body.pricePerDriver >= 1000) {
     updates.pricePerDriver = body.pricePerDriver;
   }
 
