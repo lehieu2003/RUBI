@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db';
+import { getSession } from '@/lib/auth';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
 
 async function getCustomers() {
@@ -29,11 +30,22 @@ async function getOrders() {
 }
 
 export default async function DashboardPage() {
-  const [customers, products, orders] = await Promise.all([
+  const [customers, products, orders, session] = await Promise.all([
     getCustomers(),
     getProducts(),
     getOrders(),
+    getSession(),
   ]);
 
-  return <DashboardClient customers={customers} products={products} orders={orders} />;
+  const showOnboardingPrompt =
+    session?.role === 'ADMIN' && customers.length === 0;
+
+  return (
+    <DashboardClient
+      customers={customers}
+      products={products}
+      orders={orders}
+      showOnboardingPrompt={showOnboardingPrompt}
+    />
+  );
 }

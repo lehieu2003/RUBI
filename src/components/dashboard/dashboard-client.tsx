@@ -23,12 +23,14 @@ interface DashboardClientProps {
     customer: { name: string; code: string };
     orderItems: { product: { name: string; sizeKg: number }; quantity: number }[];
   })[];
+  showOnboardingPrompt?: boolean;
 }
 
 export function DashboardClient({
   customers,
   products,
   orders: initialOrders,
+  showOnboardingPrompt = false,
 }: DashboardClientProps) {
   const [orders] = useState(initialOrders);
   const { toasts, addToast, dismissToast } = useToast();
@@ -106,6 +108,24 @@ export function DashboardClient({
               })}
             </p>
           </div>
+
+          {/* Onboarding prompt for new factories with no customers */}
+          {showOnboardingPrompt && (
+            <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 flex items-center justify-between">
+              <div>
+                <p className="text-amber-300 font-semibold">Bạn chưa có khách hàng nào.</p>
+                <p className="text-amber-400/70 text-sm mt-0.5">
+                  Nhập danh sách khách hàng từ file CSV để bắt đầu tạo đơn hàng nhanh chóng.
+                </p>
+              </div>
+              <a
+                href="/onboarding"
+                className="ml-4 shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold rounded-lg text-sm transition-colors"
+              >
+                Nhập dữ liệu ngay
+              </a>
+            </div>
+          )}
 
           {/* Tier 1: Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
