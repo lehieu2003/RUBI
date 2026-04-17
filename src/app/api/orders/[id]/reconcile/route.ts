@@ -31,23 +31,20 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid body. Required: items[{id, actualQty}]' }, { status: 400 });
     }
 
-    // --- Check order is DELIVERED ---
-    const order = await prisma.order.findUnique({
-      where: { id },
-      include: { orderItems: true, customer: true },
-    });
-    if (!order) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-    }
-    if (order.status !== 'DELIVERED') {
-      return NextResponse.json(
-        { error: `Order is ${order.status}, cannot reconcile. Only DELIVERED orders can be reconciled.` },
-        { status: 409 }
-      );
-    }
-
     // --- Atomic transaction: reconcile + inventory deduction + debt entry ---
     await prisma.$transaction(async (tx) => {
+      // 0. Fetch order within transaction scope for atomicity
+      const order = await tx.order.findUnique({
+        where: { id },
+        include: { orderItems: true, customer: true },
+      });
+      if (!order) {
+        throw new Error('Order not found');
+      }
+      if (order.status !== 'DELIVERED') {
+        throw new Error(`Order is ${order.status}, cannot reconcile. Only DELIVERED orders can be reconciled.`);
+      }
+
       // 1. Update actualQty for each line item
       for (const item of parsed.data.items) {
         await tx.orderItem.update({
@@ -57,7 +54,7 @@ export async function PATCH(
       }
 
       // 2. Update order status to COMPLETED
-      const updatedOrder = await tx.order.update({
+      await tx.order.update({
         where: { id },
         data: { status: 'COMPLETED' },
       });
