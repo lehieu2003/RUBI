@@ -1,6 +1,3 @@
-// IceFlow SaaS - Phase 1 Data Model
-// Prisma schema for order entry foundation
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,128 +7,113 @@ datasource db {
   url      = env("DIRECT_URL")
 }
 
-// User - Authenticated users (factory owners/staff)
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  password  String    // bcrypt hashed
-  name      String
-  role      UserRole  @default(STAFF)
-  isActive  Boolean   @default(true)
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  id             String   @id @default(cuid())
+  email          String   @unique
+  password       String
+  name           String
+  phone          String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  role           UserRole @default(STAFF)
+  factoryId      String?  @map("factory_id")
+  isFactoryOwner Boolean  @default(false) @map("is_factory_owner")
+  assignedOrders Order[]  @relation("OrderAssigner")
+  factorySubscription Subscription?
 
-  assignedOrders Order[] @relation("OrderAssigner")
-
+  @@index([factoryId])
   @@map("users")
 }
 
-enum UserRole {
-  ADMIN      // Chủ lò: Xem tất cả báo cáo
-  ACCOUNTANT // Kế toán: Chốt đơn, đối soát tiền, quản lý nợ
-  STAFF      // Nhân viên: Lên đơn, in phiếu
-}
-
-// Product - Ice types with sizes (Đá Bi 5/10/20kg, Đá Viên 5/10/20kg)
 model Product {
-  id        String   @id @default(cuid())
-  name      String   // "Đá Bi" or "Đá Viên"
-  sizeKg    Int      // 5, 10, 20
-  unit      String   @default("bag") // "bag" or "block"
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  globalPrices          GlobalPrice[]
+  id                     String                  @id @default(cuid())
+  name                   String
+  sizeKg                 Int
+  unit                   String                  @default("bag")
+  isActive               Boolean                 @default(true)
+  createdAt              DateTime                @default(now()) @map("created_at")
+  updatedAt              DateTime                @updatedAt @map("updated_at")
   customerPriceOverrides CustomerPriceOverride[]
-  orderItems            OrderItem[]
-  inventory             Inventory[]
+  globalPrices           GlobalPrice?
+  inventory              Inventory[]
+  orderItems             OrderItem[]
 
   @@map("products")
 }
 
-// Customer - Wholesale customers with unique codes
 model Customer {
-  id        String   @id @default(cuid())
-  code      String   @unique // e.g., "KH001"
-  name      String
-  address   String
-  phone     String
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  customerPriceOverrides CustomerPriceOverride[]
-  orders                 Order[]
+  id                     String                  @id @default(cuid())
+  code                   String                  @unique
+  name                   String
+  address                String
+  phone                  String
+  isActive               Boolean                 @default(true)
+  createdAt              DateTime                @default(now()) @map("created_at")
+  updatedAt              DateTime                @updatedAt @map("updated_at")
   debtLedger             CustomerDebtLedger[]
+  customerPriceOverrides CustomerPriceOverride[]
   shellDeposit           CustomerShellDeposit?
+  orders                 Order[]
 
   @@map("customers")
 }
 
-// GlobalPrice - Base price for all products (applies to customers without overrides)
 model GlobalPrice {
-  id          String   @id @default(cuid())
-  productId   String   @unique @map("product_id")
-  pricePerUnit Decimal @db.Decimal(10, 2) @map("price_per_unit")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  product Product @relation(fields: [productId], references: [id])
+  id           String   @id @default(cuid())
+  productId    String   @unique @map("product_id")
+  pricePerUnit Decimal  @map("price_per_unit") @db.Decimal(10, 2)
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  product      Product  @relation(fields: [productId], references: [id])
 
   @@map("global_prices")
 }
 
-// CustomerPriceOverride - Per-customer negotiated prices (overrides global prices)
 model CustomerPriceOverride {
-  id          String   @id @default(cuid())
-  customerId  String   @map("customer_id")
-  productId   String   @map("product_id")
-  pricePerUnit Decimal @db.Decimal(10, 2) @map("price_per_unit")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  customer Customer @relation(fields: [customerId], references: [id])
-  product  Product  @relation(fields: [productId], references: [id])
+  id           String   @id @default(cuid())
+  customerId   String   @map("customer_id")
+  productId    String   @map("product_id")
+  pricePerUnit Decimal  @map("price_per_unit") @db.Decimal(10, 2)
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  customer     Customer @relation(fields: [customerId], references: [id])
+  product      Product  @relation(fields: [productId], references: [id])
 
   @@unique([customerId, productId])
   @@map("customer_price_overrides")
 }
 
-// Driver - Delivery drivers with token-based URL auth (D-01)
 model Driver {
   id        String   @id @default(cuid())
   name      String
-  phone     String?  @unique
-  token     String   @unique @default(uuid())
   slug      String   @unique
+  token     String   @unique @default(uuid())
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-
-  orders Order[]
+  phone     String?  @unique
+  orders    Order[]
 
   @@map("drivers")
 }
 
-// Order - Customer orders with status workflow
 model Order {
-  id        String      @id @default(cuid())
-  customerId String     @map("customer_id")
-  status    OrderStatus @default(PENDING)
-  total     Decimal     @db.Decimal(10, 2) @default(0)
-  notes     String?
-  driverId   String?    @map("driver_id")
-  assignerId String?    @map("assigner_id")
-  deliveryLat Float?   @map("delivery_lat")
-  deliveryLng Float?    @map("delivery_lng")
-  deliveryGps Json?    @map("delivery_gps") // {lat, lng} or null
-  deliveredAt DateTime? @map("delivered_at")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  customer  Customer    @relation(fields: [customerId], references: [id])
-  driver    Driver?     @relation(fields: [driverId], references: [id])
-  assigner  User?       @relation("OrderAssigner", fields: [assignerId], references: [id])
-  orderItems OrderItem[]
+  id          String      @id @default(cuid())
+  customerId  String      @map("customer_id")
+  status      OrderStatus @default(PENDING)
+  total       Decimal     @default(0) @db.Decimal(10, 2)
+  notes       String?
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  driverId    String?     @map("driver_id")
+  assignerId  String?     @map("assigner_id")
+  deliveryLat Float?      @map("delivery_lat")
+  deliveryLng Float?      @map("delivery_lng")
+  deliveredAt DateTime?   @map("delivered_at")
+  deliveryGps Json?       @map("delivery_gps")
+  orderItems  OrderItem[]
+  assigner    User?       @relation("OrderAssigner", fields: [assignerId], references: [id])
+  customer    Customer    @relation(fields: [customerId], references: [id])
+  driver      Driver?     @relation(fields: [driverId], references: [id])
 
   @@index([customerId])
   @@index([driverId])
@@ -139,73 +121,98 @@ model Order {
   @@map("orders")
 }
 
-enum OrderStatus {
-  PENDING      // Chờ giao — Gray
-  SHIPPING     // Đang giao — Amber
-  DELIVERED    // Đã giao - chờ đối soát — Blue
-  COMPLETED    // Hoàn thành — Green
-  CANCELLED    // Đã hủy — Red
-}
-
-enum LedgerType {
-  DEBT    // Delivery - adds to what customer owes (positive amount stored)
-  PAYMENT // Payment - reduces what customer owes (positive amount stored)
-}
-
-// OrderItem - Line items for each order
 model OrderItem {
   id        String  @id @default(cuid())
   orderId   String  @map("order_id")
   productId String  @map("product_id")
   quantity  Int
-  unitPrice Decimal @db.Decimal(10, 2) @map("unit_price")
-  lineTotal Decimal @db.Decimal(10, 2) @map("line_total")
-  actualQty Int?    @map("actual_qty") // Confirmed delivered quantity (null = not yet reconciled)
-
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
+  unitPrice Decimal @map("unit_price") @db.Decimal(10, 2)
+  lineTotal Decimal @map("line_total") @db.Decimal(10, 2)
+  actualQty Int?    @map("actual_qty")
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
 
   @@map("order_items")
 }
 
-// CustomerDebtLedger - Append-only debt ledger per D-03, D-04, D-05
 model CustomerDebtLedger {
-  id         String      @id @default(cuid())
-  customerId String      @map("customer_id")
+  id         String     @id @default(cuid())
+  customerId String     @map("customer_id")
   type       LedgerType
-  amount     Decimal     @db.Decimal(10, 2)
+  amount     Decimal    @db.Decimal(10, 2)
   notes      String?
-  createdAt  DateTime    @default(now()) @map("created_at")
-
-  customer Customer @relation(fields: [customerId], references: [id])
+  createdAt  DateTime   @default(now()) @map("created_at")
+  customer   Customer   @relation(fields: [customerId], references: [id])
 
   @@map("customer_debt_ledger")
 }
 
-// CustomerShellDeposit - Shell/bag deposit tracking per D-08, D-09
 model CustomerShellDeposit {
   id              String   @id @default(cuid())
   customerId      String   @unique @map("customer_id")
-  shellsOut       Int      @default(0)  // Positive = customer owes factory shells
-  shellsIn        Int      @default(0)  // Positive = factory owes customer shells
-  depositPerShell Decimal  @db.Decimal(10, 2) @default(50000) @map("deposit_per_shell")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-
-  customer Customer @relation(fields: [customerId], references: [id])
+  shellsOut       Int      @default(0)
+  shellsIn        Int      @default(0)
+  depositPerShell Decimal  @default(50000) @map("deposit_per_shell") @db.Decimal(10, 2)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  customer        Customer @relation(fields: [customerId], references: [id])
 
   @@map("customer_shell_deposits")
 }
 
-// Inventory - Daily on-hand inventory per D-18
 model Inventory {
-  id            String   @id @default(cuid())
-  productId     String   @map("product_id")
-  date          DateTime @default(now()) @map("date")
-  quantityOnHand Int     @default(0) @map("quantity_on_hand")
-
-  product Product @relation(fields: [productId], references: [id])
+  id             String   @id @default(cuid())
+  productId      String   @map("product_id")
+  date           DateTime @default(now()) @map("date")
+  quantityOnHand Int      @default(0) @map("quantity_on_hand")
+  product        Product  @relation(fields: [productId], references: [id])
 
   @@unique([productId, date])
   @@map("inventory")
+}
+
+enum UserRole {
+  ADMIN
+  ACCOUNTANT
+  STAFF
+}
+
+enum SubscriptionPlan {
+  TRIAL
+  PAID
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+model Subscription {
+  id             String             @id @default(cuid())
+  factoryId      String             @unique @map("factory_id")
+  planType       SubscriptionPlan   @default(TRIAL) @map("plan_type")
+  startDate      DateTime           @default(now()) @map("start_date")
+  endDate        DateTime           @map("end_date")
+  status         SubscriptionStatus @default(ACTIVE)
+  driverCount    Int                @default(0) @map("driver_count")
+  pricePerDriver Decimal?           @map("price_per_driver") @db.Decimal(10, 2)
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+  factory        User               @relation(fields: [factoryId], references: [id])
+
+  @@map("subscriptions")
+}
+
+enum OrderStatus {
+  PENDING
+  SHIPPING
+  DELIVERED
+  COMPLETED
+  CANCELLED
+}
+
+enum LedgerType {
+  DEBT
+  PAYMENT
 }
