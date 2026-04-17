@@ -1,20 +1,38 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/dashboard/sidebar';
-import { BarChart3, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
+
+interface DebtRecord {
+  customerId: string;
+  customerName: string;
+  outstandingDebt: number;
+  lastPaymentDate: string | null;
+}
 
 export default function DebtReportPage() {
-  const { data: debts = [], isLoading, error } = useQuery({
-    queryKey: ['debts'],
-    queryFn: async () => {
-      const res = await fetch('/api/reports/debt');
-      if (!res.ok) throw new Error('Failed to fetch debt report');
-      return res.json();
-    },
-  });
+  const [debts, setDebts] = useState<DebtRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const totalOutstanding = debts.reduce((sum: number, d: any) => sum + Math.max(0, d.outstandingDebt), 0);
+  useEffect(() => {
+    async function fetchDebts() {
+      try {
+        const res = await fetch('/api/reports/debt');
+        if (!res.ok) throw new Error('Failed to fetch debt report');
+        const data = await res.json();
+        setDebts(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchDebts();
+  }, []);
+
+  const totalOutstanding = debts.reduce((sum, d) => sum + Math.max(0, d.outstandingDebt), 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
@@ -57,7 +75,7 @@ export default function DebtReportPage() {
                 <div>
                   <p className="text-sm text-emerald-400">Khách không nợ</p>
                   <p className="text-2xl font-black text-white">
-                    {debts.filter((d: any) => d.outstandingDebt <= 0).length}
+                    {debts.filter(d => d.outstandingDebt <= 0).length}
                   </p>
                 </div>
               </div>
@@ -65,7 +83,7 @@ export default function DebtReportPage() {
           </div>
 
           {/* Debt Table */}
-          {isLoading ? (
+          {loading ? (
             <div className="flex items-center justify-center py-16">
               <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full" />
             </div>
@@ -92,7 +110,7 @@ export default function DebtReportPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {debts.map((debt: any, idx: number) => (
+                  {debts.map((debt, idx) => (
                     <tr key={debt.customerId} className={`border-b border-white/5 ${idx !== debts.length - 1 ? '' : 'last:border-0'}`}>
                       <td className="px-6 py-4">
                         <span className="text-white font-medium">{debt.customerName}</span>

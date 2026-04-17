@@ -1,66 +1,95 @@
 'use client';
 
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { Package, Plus, ArrowDownToLine, ArrowUpFromLine, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { ToastContainer, useToast } from '@/components/dashboard/toast';
 
+interface DepositRecord {
+  customerId: string;
+  customerName: string;
+  shellsOut: number;
+  shellsIn: number;
+  depositPerShell: number;
+  netDepositOwed: number;
+}
+
+interface Customer {
+  id: string;
+  name: string;
+}
+
 export default function ShellDepositsPage() {
-  const queryClient = useQueryClient();
   const { toasts, addToast, dismissToast } = useToast();
   const [selectedCustomer, setSelectedCustomer] = useState('');
   const [shellsOut, setShellsOut] = useState('');
   const [shellsIn, setShellsIn] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { data: deposits = [], isLoading, error } = useQuery({
-    queryKey: ['deposits', 'shells'],
-    queryFn: async () => {
-      const res = await fetch('/api/deposits/shells');
-      if (!res.ok) throw new Error('Failed to fetch deposits');
-      return res.json();
-    },
-  });
+  const [deposits, setDeposits] = useState<DepositRecord[]>([]);
+  const [allCustomers, setAllCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Fetch all customers for dropdown (not just those with deposit activity)
-  const { data: allCustomers = [] } = useQuery({
-    queryKey: ['customers', 'all'],
-    queryFn: async () => {
-      const res = await fetch('/api/customers');
-      if (!res.ok) return [];
-      return res.json();
-    },
-  });
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [depositsRes, customersRes] = await Promise.all([
+          fetch('/api/deposits/shells'),
+          fetch('/api/customers'),
+        ]);
+        if (!depositsRes.ok) throw new Error('Failed to fetch deposits');
+        setDeposits(await depositsRes.json());
+        if (customersRes.ok) {
+          setAllCustomers(await customersRes.json());
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
 
-  const recordMutation = useMutation({
-    mutationFn: async (body: { customerId: string; shellsOut?: number; shellsIn?: number }) => {
+  const handleSubmit = async () => {
+    if (!selectedCustomer) {
+      addToast({ type: 'error', title: 'Vui lòng chọn khách hàng' });
+      return;
+    }
+    setSubmitting(true);
+    try {
       const res = await fetch('/api/deposits/shells', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          customerId: selectedCustomer,
+          shellsOut: shellsOut ? parseInt(shellsOut) : undefined,
+          shellsIn: shellsIn ? parseInt(shellsIn) : undefined,
+        }),
       });
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error || 'Failed to record');
       }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['deposits', 'shells'] });
+      // Refresh deposits
+      const refreshRes = await fetch('/api/deposits/shells');
+      if (refreshRes.ok) setDeposits(await refreshRes.json());
       setIsModalOpen(false);
       setSelectedCustomer('');
       setShellsOut('');
       setShellsIn('');
       addToast({ type: 'success', title: 'Đã ghi nhận giao dịch vỏ bao' });
-    },
-    onError: (error: Error) => {
-      addToast({ type: 'error', title: 'Lỗi', message: error.message });
-    },
-  });
+    } catch (err) {
+      addToast({ type: 'error', title: 'Lỗi', message: err instanceof Error ? err.message : 'Unknown error' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-  const totalOwedByCustomers = deposits.reduce((sum: number, d: any) => sum + Math.max(0, d.netDepositOwed), 0);
-  const totalOwedToCustomers = deposits.reduce((sum: number, d: any) => sum + Math.min(0, d.netDepositOwed), 0);
+  const totalOwedByCustomers = deposits.reduce((sum, d) => sum + Math.max(0, d.netDepositOwed), 0);
+  const totalOwedToCustomers = deposits.reduce((sum, d) => sum + Math.min(0, d.netDepositOwed), 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
@@ -118,7 +147,7 @@ export default function ShellDepositsPage() {
           </div>
 
           {/* Deposits Table */}
-          {isLoading ? (
+          {loading ? (
             <div className="flex items-center justify-center py-16">
               <div className="animate-spin h-8 w-8 border-2 border-amber-500 border-t-transparent rounded-full" />
             </div>
@@ -147,7 +176,7 @@ export default function ShellDepositsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {deposits.map((deposit: any) => (
+                  {deposits.map((deposit) => (
                     <tr key={deposit.customerId} className="border-b border-white/5 last:border-0">
                       <td className="px-6 py-4">
                         <span className="text-white font-medium">{deposit.customerName}</span>
@@ -193,7 +222,7 @@ export default function ShellDepositsPage() {
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-amber-500/50"
                 >
                   <option value="" className="bg-slate-900">Chọn khách hàng...</option>
-                  {allCustomers.map((c: any) => (
+                  {allCustomers.map((c) => (
                     <option key={c.id} value={c.id} className="bg-slate-900">{c.name}</option>
                   ))}
                 </select>
@@ -242,21 +271,11 @@ export default function ShellDepositsPage() {
                 Hủy
               </button>
               <button
-                onClick={() => {
-                  if (!selectedCustomer) {
-                    addToast({ type: 'error', title: 'Vui lòng chọn khách hàng' });
-                    return;
-                  }
-                  recordMutation.mutate({
-                    customerId: selectedCustomer,
-                    shellsOut: shellsOut ? parseInt(shellsOut) : undefined,
-                    shellsIn: shellsIn ? parseInt(shellsIn) : undefined,
-                  });
-                }}
-                disabled={recordMutation.isPending || !selectedCustomer}
+                onClick={handleSubmit}
+                disabled={submitting || !selectedCustomer}
                 className="flex-1 py-3 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-600/50 text-white font-semibold rounded-xl transition-colors"
               >
-                {recordMutation.isPending ? 'Đang lưu...' : 'Xác nhận'}
+                {submitting ? 'Đang lưu...' : 'Xác nhận'}
               </button>
             </div>
           </div>
