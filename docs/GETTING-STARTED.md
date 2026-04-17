@@ -29,9 +29,10 @@
    ```
    NEXT_PUBLIC_SUPABASE_URL=your-project-ref.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+   DIRECT_URL=postgresql://postgres:your-password@your-project-ref.supabase.co:5432/postgres
    ```
    <!-- VERIFY: Supabase project URL and anon key format -->
-   <!-- VERIFY: DIRECT_URL connection string for Prisma (if different from Supabase URL) -->
+   <!-- VERIFY: DIRECT_URL connection string format for Supabase -->
 
 4. **Generate Prisma client and push database schema**
    ```bash
@@ -64,6 +65,6 @@ The application will be available at **http://localhost:3000**.
 
 ## Next Steps
 
-- See [DEVELOPMENT.md](DEVELOPMENT.md) for local development setup, build commands, and code style guidelines
-- See [TESTING.md](TESTING.md) for testing setup and running tests
-- See [CONFIGURATION.md](CONFIGURATION.md) for all available environment variables
+- See [DEVELOPMENT.md](docs/DEVELOPMENT.md) for local development setup, build commands, and code style guidelines
+- See [TESTING.md](docs/TESTING.md) for testing setup and running tests
+- See [CONFIGURATION.md](docs/CONFIGURATION.md) for all available environment variables

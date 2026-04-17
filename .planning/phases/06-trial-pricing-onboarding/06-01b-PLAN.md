@@ -59,6 +59,7 @@ export function isSubscriptionActive(sub: Subscription | null): boolean
 export function getDaysRemaining(sub: Subscription | null): number
 export function isWithinWarningPeriod(sub: Subscription | null): boolean
 export function isGracePeriodExpired(sub: Subscription | null): boolean
+export async function requireWritableSubscription(factoryId: string): Promise<{ allowed: boolean; error?: string; code?: string }>
 ```
 
 From src/lib/auth.ts (existing):
@@ -298,7 +299,7 @@ TrialWarningModal.tsx exists. Modal shows when isWithinWarningPeriod(subscriptio
 </task>
 
 <task type="auto">
-  <name>Task 4: Middleware — Extend Read-Only Enforcement</name>
+  <name>Task 4: Middleware — Read-Only Enforcement</name>
   <files>src/middleware.ts</files>
   <read_first>
 - src/middleware.ts (existing middleware with role checks)
@@ -347,13 +348,13 @@ Extend src/middleware.ts to add subscription read-only enforcement:
 
 4. Keep existing redirect behavior for /login, /register routes
 
-5. This enforcement is defense-in-depth; API routes should also check subscription status at handler level.
+5. **Defense-in-depth note:** Middleware enforcement is Layer 1. Each write API route MUST also call `requireWritableSubscription()` at the TOP of the handler (after auth check, before business logic). This is implemented in subsequent plans (06-02, 06-03). Middleware can be bypassed in some edge cases; API-level enforcement is the definitive check. API-level enforcement (requireWritableSubscription) is added in 06-02 and 06-03 for each write endpoint.
 </action>
   <verify>
 grep -n "isSubscriptionActive\|isGracePeriodExpired\|READ_ONLY\|ACCOUNT_LOCKED" src/middleware.ts | head -10
 </verify>
   <done>
-middleware.ts imports getFactorySubscription, isSubscriptionActive, isGracePeriodExpired. middleware.ts blocks POST/PATCH/DELETE on /api/* when subscription is CANCELLED+expired (ACCOUNT_LOCKED) or EXPIRED/CANCELLED inactive (READ_ONLY). GET requests are not blocked.</done>
+middleware.ts imports getFactorySubscription, isSubscriptionActive, isGracePeriodExpired. middleware.ts blocks POST/PATCH/DELETE on /api/* when subscription is CANCELLED+expired (ACCOUNT_LOCKED) or EXPIRED/CANCELLED inactive (READ_ONLY). GET requests are not blocked. Note: API-level requireWritableSubscription() is added in 06-02 and 06-03.</done>
 </task>
 
 </tasks>
@@ -385,6 +386,7 @@ middleware.ts imports getFactorySubscription, isSubscriptionActive, isGracePerio
 - TrialWarningModal shows on login when within 3-day warning period (ADMIN only, non-dismissible)
 - Register page has factoryName and phone as first two fields
 - Middleware blocks writes when subscription is inactive (EXPIRED/CANCELLED/CANCELLED+grace-expired)
+- Middleware notes defense-in-depth: API-level requireWritableSubscription() in subsequent plans
 </success_criteria>
 
 <output>

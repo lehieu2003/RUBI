@@ -7,7 +7,7 @@ IceFlow SaaS REST API for order and inventory management.
 
 The API uses **JWT (JSON Web Tokens)** for authentication via the `jose` library.
 
-### Cookie-based Session
+### Cookie-based Session (Staff/Admin)
 
 - **Cookie name**: `auth_token`
 - **Cookie settings**: `httpOnly: true`, `secure: true` in production, `sameSite: 'lax'`
@@ -24,6 +24,8 @@ The API uses **JWT (JSON Web Tokens)** for authentication via the `jose` library
 }
 ```
 
+Note: The `role` field is included when logging in. The registration endpoint (`POST /api/auth/register`) creates a JWT without a `role` field (defaults to staff-level access via session).
+
 ### Including Credentials
 
 Most endpoints require a valid `auth_token` cookie. Send requests from the same origin to automatically include the cookie.
@@ -33,6 +35,16 @@ For cross-origin requests or direct API testing, include the cookie header:
 ```http
 Cookie: auth_token=<your_token>
 ```
+
+### Driver Token Authentication
+
+The driver delivery confirmation endpoint uses a separate Bearer token authentication:
+
+```http
+Authorization: Bearer <driver_token>
+```
+
+Driver tokens are generated when creating a driver record and used instead of session cookies.
 
 ### Auth Service
 
@@ -48,13 +60,20 @@ JWT signing and verification uses `JWT_SECRET` from environment variables.
 | GET | `/api/auth/me` | Get current user | Yes |
 | POST | `/api/auth/register` | Register new user | No |
 | GET | `/api/customers` | List all active customers | Yes |
+| POST | `/api/customers` | Create new customer | Admin only |
 | GET | `/api/products` | List all active products | Yes |
-| GET | `/api/orders` | List orders with filters | Yes |
+| GET | `/api/drivers` | List all active drivers | Yes |
+| POST | `/api/drivers` | Create new driver | Admin only |
+| GET | `/api/orders` | List orders with filters | ACCOUNTANT/ADMIN only |
 | PATCH | `/api/orders/[id]/status` | Update order status | Yes |
-| POST | `/api/orders/[id]/confirm` | Confirm delivery with GPS | Yes |
+| POST | `/api/orders/[id]/confirm` | Confirm delivery with GPS (driver) | Bearer token |
+| PATCH | `/api/orders/[id]/reconcile` | Reconcile order (confirm qty, create debt) | ACCOUNTANT/ADMIN only |
 | PATCH | `/api/orders/bulk-assign` | Bulk assign orders to driver | Yes |
 | GET | `/api/orders/map` | Admin delivery map data | Yes |
-| GET | `/api/driver/orders` | Driver delivery view | Yes |
+| GET | `/api/driver/orders` | Driver delivery view | Driver token |
+| GET | `/api/deposits/shells` | List shell deposit balances | ACCOUNTANT/ADMIN only |
+| PATCH | `/api/deposits/shells` | Update shell deposit (shells out/in) | ACCOUNTANT/ADMIN only |
+| GET | `/api/reports/debt` | Customer debt report | ACCOUNTANT/ADMIN only |
 | GET | `/api/staff` | List all staff members | Admin only |
 | POST | `/api/staff` | Create new staff member | Admin only |
 | PATCH | `/api/staff/[id]` | Update staff member | Admin only |
@@ -81,7 +100,8 @@ JWT signing and verification uses `JWT_SECRET` from environment variables.
   "user": {
     "id": "clx...",
     "email": "user@example.com",
-    "name": "Nguyen Van A"
+    "name": "Nguyen Van A",
+    "role": "ADMIN"
   }
 }
 ```
@@ -89,6 +109,43 @@ JWT signing and verification uses `JWT_SECRET` from environment variables.
 **Error** `401 Unauthorized`
 ```json
 { "error": "Email hoặc mật khẩu không đúng" }
+```
+
+**Error** `403 Forbidden`
+```json
+{ "error": "Tài khoản đã bị vô hiệu hóa" }
+```
+
+### Register
+
+**Request** `POST /api/auth/register`
+```json
+{
+  "email": "user@example.com",
+  "password": "password123",
+  "name": "Nguyen Van A"
+}
+```
+
+**Response** `201 Created`
+```json
+{
+  "user": {
+    "id": "clx...",
+    "email": "user@example.com",
+    "name": "Nguyen Van A"
+  }
+}
+```
+
+**Error** `400 Bad Request`
+```json
+{ "error": "Thiếu thông tin bắt buộc" }
+```
+
+**Error** `409 Conflict`
+```json
+{ "error": "Email đã được đăng ký" }
 ```
 
 ### Get Current User
@@ -115,11 +172,11 @@ JWT signing and verification uses `JWT_SECRET` from environment variables.
 
 ### List Orders
 
-**Request** `GET /api/orders?customerId=xxx&status=CONFIRMED&date=2024-01-15`
+**Request** `GET /api/orders?customerId=xxx&status=SHIPPING&date=2024-01-15`
 
 Query parameters:
 - `customerId` - Filter by customer
-- `status` - Filter by status: `DRAFT`, `CONFIRMED`, `PRINTED`, `DELIVERED`
+- `status` - Filter by status: `PENDING`, `SHIPPING`, `DELIVERED`, `COMPLETED`, `CANCELLED`
 - `date` - Filter by date (YYYY-MM-DD)
 
 **Response** `200 OK`
@@ -127,7 +184,7 @@ Query parameters:
 [
   {
     "id": "clx...",
-    "status": "CONFIRMED",
+    "status": "SHIPPING",
     "total": 150000,
     "customer": { "id": "...", "name": "Khach Hang A", "address": "...", "phone": "..." },
     "orderItems": [
@@ -165,9 +222,17 @@ Valid statuses: `PENDING`, `SHIPPING`, `DELIVERED`, `COMPLETED`, `CANCELLED`
 }
 ```
 
-### Confirm Delivery
+**Error** `400 Bad Request`
+```json
+{ "error": "Cancellation reason is required when cancelling an order" }
+```
+
+### Confirm Delivery (Driver)
 
 **Request** `POST /api/orders/[id]/confirm`
+```http
+Authorization: Bearer <driver_token>
+```
 ```json
 {
   "gps": {
@@ -187,6 +252,48 @@ Set `gps: null` if GPS capture failed.
   "status": "DELIVERED",
   "deliveryGps": { "lat": 10.8231, "lng": 106.6297 }
 }
+```
+
+**Error** `401 Unauthorized`
+```json
+{ "error": "Invalid token" }
+```
+
+**Error** `403 Forbidden`
+```json
+{ "error": "Not authorized to confirm this order" }
+```
+
+### Reconcile Order (Confirm Quantities)
+
+**Request** `PATCH /api/orders/[id]/reconcile`
+```json
+{
+  "items": [
+    { "id": "order-item-id", "actualQty": 10 }
+  ]
+}
+```
+
+Reconciles delivered quantities, updates order status to `COMPLETED`, creates a DEBT ledger entry for the customer, and deducts inventory. Only `DELIVERED` orders can be reconciled.
+
+**Response** `200 OK`
+```json
+{
+  "success": true,
+  "orderId": "clx...",
+  "status": "COMPLETED"
+}
+```
+
+**Error** `400 Bad Request`
+```json
+{ "error": "Invalid body. Required: items[{id, actualQty}]" }
+```
+
+**Error** `400 Bad Request`
+```json
+{ "error": "Order is DELIVERED, cannot reconcile. Only DELIVERED orders can be reconciled." }
 ```
 
 ### Bulk Assign Orders
@@ -258,6 +365,79 @@ Query parameters:
 ]
 ```
 
+### List Drivers
+
+**Request** `GET /api/drivers`
+
+**Response** `200 OK`
+```json
+[
+  { "id": "...", "name": "Driver Name", "phone": "0912..." }
+]
+```
+
+### Create Driver (Admin Only)
+
+**Request** `POST /api/drivers`
+```json
+{
+  "name": "New Driver",
+  "phone": "0912...",
+  "isActive": true
+}
+```
+
+**Response** `201 Created`
+```json
+{
+  "id": "...",
+  "name": "New Driver",
+  "phone": "0912...",
+  "slug": "new-driver-abc123",
+  "isActive": true,
+  "token": "driver-auth-token..."
+}
+```
+
+### Shell Deposits
+
+**GET /api/deposits/shells** - List deposit balances
+```json
+[
+  {
+    "customerId": "...",
+    "customerName": "Customer Name",
+    "shellsOut": 10,
+    "shellsIn": 3,
+    "depositPerShell": 50000,
+    "netDepositOwed": 350000
+  }
+]
+```
+
+**PATCH /api/deposits/shells** - Update deposit
+```json
+{
+  "customerId": "customer-id",
+  "shellsOut": 5,
+  "shellsIn": 2
+}
+```
+
+### Debt Report
+
+**GET /api/reports/debt** - Customer debt report (sorted by outstanding debt descending)
+```json
+[
+  {
+    "customerId": "...",
+    "customerName": "Customer Name",
+    "outstandingDebt": 150000,
+    "lastPaymentDate": "2024-01-10T..."
+  }
+]
+```
+
 ### Staff Management (Admin Only)
 
 **GET /api/staff** - List all staff
@@ -278,6 +458,8 @@ Query parameters:
   "role": "STAFF"
 }
 ```
+
+Valid roles: `ADMIN`, `ACCOUNTANT`, `STAFF`
 
 **PATCH /api/staff/[id]** - Update staff
 ```json
@@ -340,11 +522,15 @@ Query parameters:
 | Message | Status | Description |
 |---------|--------|-------------|
 | `Thiếu email hoặc mật khẩu` | 400 | Login request missing credentials |
+| `Thiếu thông tin bắt buộc` | 400 | Required fields missing in request |
 | `Email hoặc mật khẩu không đúng` | 401 | Invalid email or password |
 | `Tài khoản đã bị vô hiệu hóa` | 403 | User account is deactivated |
 | `Unauthorized` | 401 | No valid session |
 | `Admin only` | 403 | Action restricted to ADMIN role |
+| `Forbidden` | 403 | Insufficient role permissions |
 | `Email đã được đăng ký` | 409 | Email already exists during registration |
+| `Không thể tự sửa tài khoản` | 400 | Admin attempting to modify own account |
+| `Không thể tự xóa tài khoản` | 400 | Admin attempting to delete own account |
 
 ## Rate Limits
 

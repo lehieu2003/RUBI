@@ -8,7 +8,7 @@ IceFlow SaaS is a web-based order and inventory management system for ice factor
 
 Primary users are office staff (order entry power users), drivers (read-only web view), accountants (delivery confirmation and debt reconciliation), and factory owners (reports and debt overview). The core design principle is speed over everything.
 
-The architecture follows a **layered full-stack pattern** with Next.js 15 App Router, Prisma ORM connecting to Supabase PostgreSQL, and JWT-based session authentication with role-based access control.
+The architecture follows a **layered full-stack pattern** with Next.js 15 App Router, Prisma ORM connecting to Supabase PostgreSQL, and JWT-based session authentication with role-based access control via Next.js middleware.
 
 ## Component Diagram
 
@@ -55,17 +55,17 @@ The architecture follows a **layered full-stack pattern** with Next.js 15 App Ro
 ### Order Creation (Office Staff)
 
 1. Staff opens order entry drawer via `OrderEntryDrawer` component
-2. `OrderStore` (Zustand) manages customer selection and line items
+2. `useOrderStore` (Zustand) manages customer selection and line items
 3. Customer search uses Fuse.js fuzzy matching against `/api/customers`
 4. Product prices loaded via `loadCustomerPrices()` server action (global + override merge)
 5. On submit, `saveOrder()` server action validates with Zod schema
 6. Prisma `order.create()` wraps in `$transaction` to create order + orderItems
-7. `revalidatePath('/orders')` triggers TanStack Query cache invalidation
+7. `revalidatePath('/orders')` triggers Next.js cache invalidation
 8. Success returns to UI; drawer closes and order appears in list
 
 ### Driver Delivery View
 
-1. Driver accesses `/d/[token]` with unique token from Driver.slug field
+1. Driver accesses `/d/[token]` with unique token from `Driver.token` field
 2. `DriverMap` component fetches assigned orders via `/api/driver/orders`
 3. `DeliveryCard` displays order items, customer address, and status
 4. Driver has no write access — read-only view optimized for mobile
@@ -90,20 +90,23 @@ PENDING → SHIPPING → DELIVERED → COMPLETED
 
 | Model | Purpose | Key Fields |
 |-------|---------|------------|
-| `User` | Authenticated staff with roles | email, password (bcrypt), role (ADMIN/ACCOUNTANT/STAFF), name |
-| `Customer` | Wholesale buyers | code (KH001), name, address, phone |
-| `Product` | Ice types (Bi 5/10/20kg, Vien 5/10/20kg) | name, sizeKg, unit |
+| `User` | Authenticated staff with roles | email, password (bcrypt), role (ADMIN/ACCOUNTANT/STAFF), name, isActive |
+| `Customer` | Wholesale buyers | code (KH001), name, address, phone, isActive, debtLedger, shellDeposit |
+| `Product` | Ice types (Bi 5/10/20kg, Vien 5/10/20kg) | name, sizeKg, unit, isActive |
 | `GlobalPrice` | Base price for all customers | productId (unique), pricePerUnit |
 | `CustomerPriceOverride` | Per-customer negotiated prices | customerId, productId, pricePerUnit |
-| `Driver` | Delivery personnel | name, phone, token (UUID), slug |
-| `Order` | Customer orders with workflow | customerId, status, total, driverId, assignerId |
-| `OrderItem` | Line items (product + qty + price) | orderId, productId, quantity, unitPrice, lineTotal |
+| `Driver` | Delivery personnel | name, phone, token (UUID), slug, isActive |
+| `Order` | Customer orders with workflow | customerId, status, total, driverId, assignerId, deliveryLat, deliveryLng, deliveredAt |
+| `OrderItem` | Line items (product + qty + price) | orderId, productId, quantity, unitPrice, lineTotal, actualQty |
+| `CustomerDebtLedger` | Debt/payment tracking | customerId, type (DEBT/PAYMENT), amount, notes |
+| `CustomerShellDeposit` | Shell deposit tracking | customerId, shellsOut, shellsIn, depositPerShell |
+| `Inventory` | Daily inventory snapshots | productId, date, quantityOnHand |
 
 ### Zustand Store (`src/stores/order-store.ts`)
 
 `useOrderStore` manages the order entry hot path:
-- `isOpen`, `customer`, `lineItems: Map<productId, LineItemData>`
-- `openDrawer()`, `closeDrawer()`, `setCustomer()`, `setLineItem()`
+- `isOpen`, `customer`, `lineItems: Map<productId, LineItemData>`, `total`, `recentCustomerIds`
+- `openDrawer()`, `closeDrawer()`, `setCustomer()`, `setLineItem()`, `removeLineItem()`
 - `clearOrder()`, `addToRecent()` with localStorage persistence
 
 ### Server Actions (`src/lib/actions/orders.ts`)
@@ -119,9 +122,17 @@ PENDING → SHIPPING → DELIVERED → COMPLETED
 
 ### Auth Module (`src/lib/auth.ts`)
 
-- `signJWT(payload)` / `verifyJWT(token)` — JWT with 7-day expiration
+- `signJWT(payload)` / `verifyJWT(token)` — JWT with jose library, 7-day expiration
 - `getSession()` — reads auth_token cookie, returns JWTPayload
 - `setSessionCookie()` / `clearSessionCookie()` — httpOnly, secure in production
+
+### Middleware (`src/middleware.ts`)
+
+Role-based access control protecting app routes:
+- `ADMIN`: all routes including `/settings`
+- `ACCOUNTANT`: `/dashboard`, `/orders`, `/customers`, `/settle`, `/inventory`, `/vehicles`
+- `STAFF`: `/dashboard`, `/orders`, `/customers`
+- Unauthenticated API requests return 401 JSON
 
 ## Directory Structure
 
@@ -129,33 +140,40 @@ PENDING → SHIPPING → DELIVERED → COMPLETED
 src/
 ├── app/                    # Next.js App Router pages and API routes
 │   ├── (auth)/            # Auth layout group: login, register
+│   │   ├── login/         # Login page
+│   │   └── register/      # Registration page
 │   ├── api/               # API route handlers
 │   │   ├── auth/          # Login, logout, register, me
-│   │   ├── orders/        # Order CRUD, status, confirm, bulk-assign, map
+│   │   ├── orders/        # Order CRUD, status, confirm, bulk-assign, map, reconcile
 │   │   ├── customers/     # Customer listing
 │   │   ├── products/      # Product listing
-│   │   ├── prices/        # Global and customer price overrides
+│   │   ├── prices/        # Global prices and customer overrides
+│   │   │   ├── global/    # Global price management
+│   │   │   └── customer/  # Customer price overrides
 │   │   ├── driver/        # Driver order fetching
-│   │   └── staff/         # Staff management
-│   ├── dashboard/         # Main dashboard page
+│   │   ├── staff/         # Staff management
+│   │   ├── reports/       # Report endpoints (debt)
+│   │   └── deposits/      # Shell deposit endpoints
+│   ├── dashboard/        # Main dashboard and map pages
 │   ├── orders/            # Order list and detail pages
 │   ├── customers/         # Customer management
 │   ├── inventory/         # Inventory view
 │   ├── settle/            # Debt settlement
 │   ├── vehicles/          # Vehicle/driver management
 │   ├── driver/            # Driver delivery view
-│   ├── d/[token]/         # Token-based driver URL (e.g., /d/D-01)
-│   ├── config/prices/     # Price configuration
+│   ├── d/[token]/         # Token-based driver URL (e.g., /d/abc-123)
+│   ├── config/prices/     # Price configuration page
+│   ├── reports/           # Report pages (debt)
+│   ├── deposits/shells/   # Shell deposit management
 │   └── settings/          # Admin settings
 ├── components/            # React components
-│   ├── dashboard/         # Dashboard widgets (stat-card, hourly-chart, etc.)
+│   ├── dashboard/         # Dashboard widgets (stat-card, hourly-chart, sidebar, etc.)
 │   ├── driver/            # Driver view (DeliveryCard, DriverMap, MapInner)
-│   ├── order/             # Order entry (order-entry-drawer, print-slip)
+│   ├── order/             # Order entry (order-entry-drawer, print-slip, search-bar)
 │   ├── pricing/           # Price tables and forms
-│   ├── ui/                # Shared UI (Drawer component)
-│   └── landing/           # Landing page components
+│   └── ui/                # Shared UI (Drawer component)
 ├── lib/                   # Server-side utilities
-│   ├── auth.ts            # JWT sign/verify, session management
+│   ├── auth.ts            # JWT sign/verify (jose), session management
 │   ├── db.ts             # Prisma client singleton
 │   ├── pricing.ts        # Price lookup and update functions
 │   ├── supabase.ts       # Supabase client (future use)

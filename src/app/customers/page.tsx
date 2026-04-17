@@ -1,33 +1,80 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { Search, Plus, Phone, MapPin, DollarSign, Package, ChevronRight, X } from 'lucide-react';
+import { ToastContainer, useToast } from '@/components/dashboard/toast';
 
-// Fake data
-const fakeCustomers = [
-  { id: '1', code: 'KH001', name: 'Đại lý Minh Tuấn', phone: '0909123456', address: '123 Lê Lợi, Quận 1, TP.HCM', debt: 4500000, bagsOwed: 28 },
-  { id: '2', code: 'KH002', name: 'Cửa hàng Bình An', phone: '0912345678', address: '456 Trần Hưng Đạo, Quận 5, TP.HCM', debt: 2300000, bagsOwed: 15 },
-  { id: '3', code: 'KH003', name: 'Siêu thị Đông Nam', phone: '0934567890', address: '789 Nguyễn Trãi, Quận 7, TP.HCM', debt: 8900000, bagsOwed: 62 },
-  { id: '4', code: 'KH004', name: 'Tạp hóa Chị Hương', phone: '0945678901', address: '321 Phạm Văn Đồng, Thủ Đức', debt: 560000, bagsOwed: 4 },
-  { id: '5', code: 'KH005', name: 'Nhà hàng Biển Đông', phone: '0956789012', address: '555 Võ Văn Kiệt, Quận 8, TP.HCM', debt: 12000000, bagsOwed: 85 },
-];
+interface Customer {
+  id: string;
+  code: string;
+  name: string;
+  address: string;
+  phone: string;
+  isActive: boolean;
+}
 
-const fakeProducts = [
-  { id: 'p1', name: 'Đá Bi', sizeKg: 5, price: 12000 },
-  { id: 'p2', name: 'Đá Bi', sizeKg: 10, price: 22000 },
-  { id: 'p3', name: 'Đá Bi', sizeKg: 20, price: 40000 },
-  { id: 'p4', name: 'Đá Viên', sizeKg: 5, price: 14000 },
-  { id: 'p5', name: 'Đá Viên', sizeKg: 10, price: 26000 },
-  { id: 'p6', name: 'Đá Viên', sizeKg: 20, price: 48000 },
-];
+interface CustomerDetail extends Customer {
+  debt?: number;
+  bagsOwed?: number;
+}
+
+interface Product {
+  id: string;
+  name: string;
+  sizeKg: number;
+  price: number;
+}
 
 export default function CustomersPage() {
+  const { toasts, addToast, dismissToast } = useToast();
   const [search, setSearch] = useState('');
-  const [selectedCustomer, setSelectedCustomer] = useState<typeof fakeCustomers[0] | null>(null);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerDetail | null>(null);
   const [editingPrices, setEditingPrices] = useState<Record<string, string>>({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({ code: '', name: '', phone: '', address: '', isActive: true });
+  const [submitting, setSubmitting] = useState(false);
 
-  const filteredCustomers = fakeCustomers.filter(
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/customers').then(r => r.ok ? r.json() : []),
+      fetch('/api/products').then(r => r.ok ? r.json() : []),
+    ]).then(([customersData, productsData]) => {
+      setCustomers(customersData);
+      setProducts(productsData);
+      setLoading(false);
+    });
+  }, []);
+
+  const handleAddCustomer = async () => {
+    if (!formData.code || !formData.name) {
+      addToast({ type: 'error', title: 'Vui lòng nhập mã và tên khách hàng' });
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) throw new Error('Failed to create');
+      const customer = await res.json();
+      setCustomers(prev => [...prev, customer]);
+      setIsModalOpen(false);
+      setFormData({ code: '', name: '', phone: '', address: '', isActive: true });
+      addToast({ type: 'success', title: 'Đã thêm khách hàng' });
+    } catch {
+      addToast({ type: 'error', title: 'Lỗi', message: 'Không thể tạo khách hàng' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const filteredCustomers = customers.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
       c.phone.includes(search) ||
@@ -46,6 +93,7 @@ export default function CustomersPage() {
       </div>
 
       <Sidebar />
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
       <main className="pl-64">
         <div className="relative p-8">
@@ -53,9 +101,12 @@ export default function CustomersPage() {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-3xl font-black text-white">Khách hàng</h1>
-              <p className="text-slate-400 mt-1">{fakeCustomers.length} đại lý đang hoạt động</p>
+              <p className="text-slate-400 mt-1">{customers.length} khách hàng</p>
             </div>
-            <button className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/30 transition-all">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/30 transition-all"
+            >
               <Plus className="h-5 w-5" />
               Thêm khách hàng
             </button>
@@ -74,56 +125,132 @@ export default function CustomersPage() {
           </div>
 
           {/* Customer List */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {filteredCustomers.map((customer) => (
-              <div
-                key={customer.id}
-                onClick={() => setSelectedCustomer(customer)}
-                className="group cursor-pointer rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 hover:bg-white/10 hover:border-blue-500/30 transition-all"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono text-blue-400 bg-blue-500/20 px-2 py-0.5 rounded">
-                        {customer.code}
-                      </span>
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {filteredCustomers.map((customer) => (
+                <div
+                  key={customer.id}
+                  onClick={() => setSelectedCustomer(customer)}
+                  className="group cursor-pointer rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 hover:bg-white/10 hover:border-blue-500/30 transition-all"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono text-blue-400 bg-blue-500/20 px-2 py-0.5 rounded">
+                          {customer.code}
+                        </span>
+                        {!customer.isActive && (
+                          <span className="text-xs font-mono text-slate-500 bg-slate-500/20 px-2 py-0.5 rounded">
+                            inactive
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="text-lg font-semibold text-white mt-1">{customer.name}</h3>
                     </div>
-                    <h3 className="text-lg font-semibold text-white mt-1">{customer.name}</h3>
+                    <ChevronRight className="h-5 w-5 text-slate-500 group-hover:text-blue-400 transition-colors" />
                   </div>
-                  <ChevronRight className="h-5 w-5 text-slate-500 group-hover:text-blue-400 transition-colors" />
-                </div>
 
-                <div className="flex items-center gap-4 text-sm text-slate-400 mb-3">
-                  <span className="flex items-center gap-1">
-                    <Phone className="h-4 w-4" />
-                    {customer.phone}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-1 text-slate-500 text-xs mb-3">
-                  <MapPin className="h-3 w-3" />
-                  {customer.address}
-                </div>
-
-                <div className="flex items-center gap-4 pt-3 border-t border-white/10">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-amber-400" />
-                    <span className="text-sm font-semibold text-amber-400">
-                      {customer.debt.toLocaleString('vi-VN')}đ
+                  <div className="flex items-center gap-4 text-sm text-slate-400 mb-3">
+                    <span className="flex items-center gap-1">
+                      <Phone className="h-4 w-4" />
+                      {customer.phone || '—'}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Package className="h-4 w-4 text-red-400" />
-                    <span className="text-sm font-semibold text-red-400">
-                      {customer.bagsOwed} vỏ
-                    </span>
+
+                  <div className="flex items-center gap-1 text-slate-500 text-xs mb-3">
+                    <MapPin className="h-3 w-3" />
+                    {customer.address || '—'}
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </main>
+
+      {/* Add Customer Modal */}
+      {isModalOpen && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+          <div className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-slate-900 border border-white/10 rounded-2xl shadow-2xl p-6">
+            <h3 className="text-xl font-bold text-white mb-1">Thêm khách hàng</h3>
+            <p className="text-slate-400 text-sm mb-6">Tạo khách hàng mới (có thể để inactive)</p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-2">Mã khách hàng *</label>
+                <input
+                  type="text"
+                  value={formData.code}
+                  onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
+                  placeholder="KH001"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-2">Tên khách hàng *</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
+                  placeholder="Đại lý Minh Tuấn"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-2">Số điện thoại</label>
+                <input
+                  type="text"
+                  value={formData.phone}
+                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
+                  placeholder="0909123456"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-2">Địa chỉ</label>
+                <input
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
+                  placeholder="123 Lê Lợi, Quận 1, TP.HCM"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isActive"
+                  checked={formData.isActive}
+                  onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                  className="w-4 h-4 rounded border-white/20 bg-white/5"
+                />
+                <label htmlFor="isActive" className="text-sm text-white">Active ngay (bỏ chọn nếu muốn tạo inactive)</label>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="flex-1 py-3 border border-white/20 text-slate-400 font-semibold rounded-xl hover:bg-white/5 transition-colors"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleAddCustomer}
+                disabled={submitting}
+                className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white font-semibold rounded-xl transition-colors"
+              >
+                {submitting ? 'Đang lưu...' : 'Xác nhận'}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Customer Detail Modal */}
       {selectedCustomer && (
@@ -152,83 +279,12 @@ export default function CustomersPage() {
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
                     <Phone className="h-4 w-4 text-slate-500" />
-                    <span className="text-white">{selectedCustomer.phone}</span>
+                    <span className="text-white">{selectedCustomer.phone || '—'}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <MapPin className="h-4 w-4 text-slate-500" />
-                    <span className="text-white">{selectedCustomer.address}</span>
+                    <span className="text-white">{selectedCustomer.address || '—'}</span>
                   </div>
-                </div>
-              </div>
-
-              {/* Debt Summary */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-5">
-                  <p className="text-sm text-amber-400 mb-1">Công nợ hiện tại</p>
-                  <p className="text-2xl font-black text-amber-400">
-                    {selectedCustomer.debt.toLocaleString('vi-VN')}đ
-                  </p>
-                </div>
-                <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-5">
-                  <p className="text-sm text-red-400 mb-1">Vỏ bao đang nợ</p>
-                  <p className="text-2xl font-black text-red-400">{selectedCustomer.bagsOwed} vỏ</p>
-                </div>
-              </div>
-
-              {/* Price Overrides */}
-              <div className="rounded-xl border border-white/10 bg-white/5 p-5">
-                <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Bảng giá riêng</h3>
-                <div className="space-y-3">
-                  {fakeProducts.map((product) => {
-                    const priceKey = `${product.id}-${product.sizeKg}`;
-                    const basePrice = product.price;
-                    const customPrice = editingPrices[priceKey];
-
-                    return (
-                      <div key={product.id} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-                        <div>
-                          <span className="text-white font-medium">{product.name} {product.sizeKg}kg</span>
-                          <span className="text-slate-500 text-sm ml-2">({basePrice.toLocaleString('vi-VN')}đ)</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            placeholder="Giá mặc định"
-                            value={customPrice || ''}
-                            onChange={(e) => handlePriceChange(priceKey, e.target.value)}
-                            className="w-28 px-3 py-1.5 bg-white/5 border border-white/20 rounded-lg text-white text-sm text-right focus:outline-none focus:border-blue-500/50"
-                          />
-                          <span className="text-xs text-slate-500">đ</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <button className="mt-4 w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors">
-                  Lưu bảng giá
-                </button>
-              </div>
-
-              {/* Order History */}
-              <div className="rounded-xl border border-white/10 bg-white/5 p-5">
-                <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Đơn hàng gần đây</h3>
-                <div className="space-y-3">
-                  {[
-                    { date: '18/04/2026', items: 'Đá Bi 10kg × 5, Đá Viên 5kg × 3', total: 1820000, status: 'Đã giao' },
-                    { date: '17/04/2026', items: 'Đá Bi 5kg × 10', total: 1200000, status: 'Đã giao' },
-                    { date: '15/04/2026', items: 'Đá Viên 20kg × 2', total: 960000, status: 'Đã giao' },
-                  ].map((order, i) => (
-                    <div key={i} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
-                      <div>
-                        <p className="text-white text-sm">{order.items}</p>
-                        <p className="text-slate-500 text-xs">{order.date}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-emerald-400 font-semibold text-sm">{order.total.toLocaleString('vi-VN')}đ</p>
-                        <p className="text-slate-500 text-xs">{order.status}</p>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
             </div>

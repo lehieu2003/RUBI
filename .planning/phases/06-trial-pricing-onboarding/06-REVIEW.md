@@ -1,45 +1,44 @@
 ---
-phase: 06-trial-pricing-onboarding
+phase: 06
 reviewed: 2026-04-17T00:00:00Z
 depth: standard
 files_reviewed: 27
 files_reviewed_list:
   - prisma/schema.prisma
-  - src/app/(auth)/register/page.tsx
-  - src/app/(auth)/login/page.tsx
-  - src/app/api/auth/me/route.ts
   - src/app/api/auth/register/route.ts
-  - src/app/api/billing/subscription/route.ts
-  - src/app/api/customers/import/route.ts
-  - src/app/api/customers/route.ts
-  - src/app/api/drivers/route.ts
-  - src/app/api/payments/confirm/route.ts
-  - src/app/api/subscriptions/[id]/route.ts
-  - src/app/api/subscriptions/cancel/route.ts
-  - src/app/dashboard/page.tsx
-  - src/app/onboarding/page.tsx
-  - src/app/settings/billing/page.tsx
-  - src/components/billing/CancelSubscriptionFlow.tsx
-  - src/components/billing/PaymentRecorder.tsx
-  - src/components/billing/PricingDisplay.tsx
-  - src/components/billing/VietQRCode.tsx
-  - src/components/dashboard/dashboard-client.tsx
-  - src/components/layout/AppShell.tsx
+  - src/lib/subscription-status.ts
+  - src/app/(auth)/register/page.tsx
   - src/components/trial/TrialBanner.tsx
   - src/components/trial/TrialWarningModal.tsx
-  - src/lib/auth-provider.tsx
-  - src/lib/auth.ts
-  - src/lib/export-excel.ts
-  - src/lib/subscription-status.ts
   - src/middleware.ts
+  - src/app/settings/page.tsx
+  - src/app/settings/billing/page.tsx
+  - src/app/onboarding/page.tsx
+  - src/components/billing/PricingDisplay.tsx
+  - src/components/billing/VietQRCode.tsx
+  - src/components/billing/PaymentRecorder.tsx
+  - src/app/api/payments/confirm/route.ts
+  - src/app/api/customers/import/route.ts
+  - src/app/api/drivers/route.ts
+  - src/lib/auth.ts
+  - src/components/billing/CancelSubscriptionFlow.tsx
+  - src/lib/export-excel.ts
+  - src/app/api/subscriptions/cancel/route.ts
+  - src/app/api/subscriptions/[id]/route.ts
+  - src/app/api/auth/me/route.ts
+  - src/lib/auth-provider.tsx
+  - src/components/layout/AppShell.tsx
+  - src/app/(auth)/login/page.tsx
+  - src/app/dashboard/page.tsx
 findings:
   critical: 1
-  warning: 6
+  warning: 5
   info: 3
-  total: 10
+  total: 9
 status: issues_found
 ---
-# Phase 6: Code Review Report
+
+# Phase 06: Code Review Report
 
 **Reviewed:** 2026-04-17
 **Depth:** standard
@@ -48,241 +47,215 @@ status: issues_found
 
 ## Summary
 
-Reviewed all Phase 6 (trial-pricing-onboarding) files for bugs, security issues, and code quality problems. Found 1 critical issue, 6 warnings, and 3 informational items.
+Reviewed all 27 Phase 06 source files (trial-pricing-onboarding). Found 1 critical payment validation gap, 5 warnings including hardcoded bank details and settings calling non-existent API endpoints, and 3 informational items.
 
-The most serious issue is in `CancelSubscriptionFlow.tsx` where customer/order data is fetched using malformed URL query parameters that do not match the actual API endpoints, causing the export to always silently fail. There are also several authorization gaps in API routes and potential data inconsistency issues in subscription handling.
+The codebase is generally well-structured with proper auth checks on API routes. However, the CancelSubscriptionFlow component fetches from a non-existent `/api/customers/debt-export` endpoint, the payment confirmation endpoint accepts any amount without validating against expected cost, and the settings page references `/api/staff` endpoints that do not exist.
 
 ## Critical Issues
 
-### CR-01: CancelSubscriptionFlow fetches data using wrong URL parameters
+### CR-01: Payment amount not validated server-side
 
-**File:** `src/components/billing/CancelSubscriptionFlow.tsx:23-29`
-**Issue:** The export fetches customer and order data using query parameters that the respective API routes do not accept. The `/api/customers` route does not accept a `factoryId` query parameter, and `/api/orders` endpoint was not even provided in the phase 6 changes. This means the Excel export will always receive `undefined` data and proceed to export an empty file.
+**File:** `src/app/api/payments/confirm/route.ts:18-33`
+**Issue:** The `/api/payments/confirm` endpoint accepts any positive amount without verifying it matches the expected subscription cost. A user could confirm a payment of 1000 VND instead of the expected 300,000+ VND and the system would accept it, updating the subscription to PAID status.
 
 ```typescript
-// Lines 23-29 - WRONG URL parameters
-const [customersRes, ordersRes] = await Promise.all([
-  fetch(`/api/customers?factoryId=${factoryId}`),  // /api/customers does NOT accept factoryId
-  fetch(`/api/orders?factoryId=${factoryId}&months=6`),  // /api/orders endpoint does not exist in phase 6
-]);
+// Line 18-19: amount validated as positive number only
+if (!subscriptionId || typeof amount !== 'number' || amount <= 0) {
+  return NextResponse.json({ error: 'Invalid input: subscriptionId and positive amount required' }, { status: 400 });
+}
 
-const { customers } = await customersRes.json();  // customers will be undefined
-const { orders } = await ordersRes.json();  // orders will be undefined
+// Lines 24-33: subscription ownership verified but amount NOT validated against expected cost
+const subscription = await prisma.subscription.findUnique({
+  where: { id: subscriptionId },
+});
+if (!subscription) {
+  return NextResponse.json({ error: 'Subscription not found' }, { status: 404 });
+}
+if (subscription.factoryId !== factoryId) {
+  return NextResponse.json({ error: 'Subscription does not belong to your factory' }, { status: 403 });
+}
+// MISSING: validation that amount === (driverCount - 1) * pricePerDriver
+
+// Lines 35-43: subscription updated regardless of amount paid
+const updatedSubscription = await prisma.subscription.update({
+  where: { id: subscriptionId },
+  data: {
+    planType: 'PAID',
+    status: 'ACTIVE',
+    endDate: newEndDate,
+  },
+});
 ```
 
-**Fix:**
-The export should use the correct API endpoints. Looking at the existing endpoints:
-- `/api/customers` (GET) returns all customers filtered by `isActive: true` - no factoryId needed
-- There is no `/api/orders` endpoint in phase 6
-
-If the intent is to export customer debt data, the backend needs either a dedicated export endpoint or the existing endpoints need to accept factory-scoped parameters:
-
+**Fix:** Add server-side validation of the paid amount against expected cost:
 ```typescript
-// Option: Fetch customers from the correct endpoint
-const customersRes = await fetch('/api/customers');
-const { customers } = await customersRes.json();
-
-// Option: Create a new /api/customers/debt-export endpoint that accepts factoryId
+const pricePerDriver = Number(subscription.pricePerDriver) || 150000;
+const expectedAmount = Math.max(0, subscription.driverCount - 1) * pricePerDriver;
+if (amount < expectedAmount) {
+  return NextResponse.json(
+    { error: 'Amount paid is less than expected', expected: expectedAmount },
+    { status: 400 }
+  );
+}
 ```
 
 ---
 
 ## Warnings
 
-### WR-01: `/api/subscriptions/[id]` GET lacks authorization check
+### WR-01: CancelSubscriptionFlow calls non-existent export endpoint
 
-**File:** `src/app/api/subscriptions/[id]/route.ts:7-24`
-**Issue:** The GET handler does not verify that the subscription belongs to the current factory. Any authenticated user can fetch any subscription by ID if they know the ID.
-
-```typescript
-// Line 15-18 - No ownership check before returning subscription
-const subscription = await prisma.subscription.findUnique({
-  where: { id },
-});
-// Missing: if (!subscription || subscription.factoryId !== session.factoryId) return 404
-```
-
-**Fix:**
-Add ownership verification before returning the subscription, consistent with the PATCH handler:
+**File:** `src/components/billing/CancelSubscriptionFlow.tsx:22-34`
+**Issue:** The cancel flow fetches customer debt data from `/api/customers/debt-export` (line 23), but this endpoint does not exist in the Phase 06 file list. The export will always fail silently, causing `customers` to be undefined and the Excel file to contain no data.
 
 ```typescript
-const subscription = await prisma.subscription.findUnique({
-  where: { id },
-});
+// Line 22-29: Fetches from non-existent endpoint
+const exportRes = await fetch('/api/customers/debt-export');
+if (!exportRes.ok) {
+  throw new Error('Failed to fetch export data');
+}
+const { customers, orders } = await exportRes.json();
+// customers will be undefined if endpoint doesn't exist or returns different shape
 
-if (!subscription || subscription.factoryId !== session.factoryId) {
-  return NextResponse.json({ error: 'Not found' }, { status: 404 });
+// Lines 32-34: Proceeds to export even with undefined data
+if (customers) {
+  exportCustomerDebtExcel(customers, orders || []);
 }
 ```
 
-### WR-02: `/api/billing/subscription` GET lacks role authorization
-
-**File:** `src/app/api/billing/subscription/route.ts:7-30`
-**Issue:** The endpoint returns subscription and driver count data for any authenticated user without checking if they are an ADMIN. Any staff member in the factory can see billing details.
-
+**Fix:** Either implement the `/api/customers/debt-export` endpoint, or use existing endpoints:
 ```typescript
-// Line 9-12 - Only checks if session exists, not role
-const session = await getSession();
-if (!session) {
-  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-}
-// Missing: role check for ADMIN
+// Option: Use existing /api/customers endpoint
+const customersRes = await fetch('/api/customers');
+const { customers } = await customersRes.json();
 ```
 
-**Fix:**
-Add role verification consistent with other billing-related endpoints:
+### WR-02: Settings page calls non-existent API endpoints
+
+**File:** `src/app/settings/page.tsx:62,433-437,484-495`
+**Issue:** The settings page makes API calls to `/api/staff` and `/api/staff/:id` which are not in the Phase 06 file list and do not appear to exist in the codebase. All staff management operations (list, create, update password, toggle active) will result in 404 errors.
 
 ```typescript
-const session = await getSession();
-if (!session) {
-  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-}
-if (session.role !== 'ADMIN') {
-  return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-}
+// Line 62: GET /api/staff - endpoint does not exist
+const res = await fetch('/api/staff');
+const data = await res.json();
+if (data.users) setStaffUsers(data.users);
+
+// Lines 433-437: POST /api/staff - endpoint does not exist
+await fetch('/api/staff', { method: 'POST', ... });
+
+// Lines 484-495: PATCH /api/staff/:id - endpoint does not exist
+await fetch(`/api/staff/${showPasswordModal}`, { method: 'PATCH', ... });
 ```
 
-### WR-03: `/api/drivers` GET returns count without factory scoping
+**Fix:** Either implement the `/api/staff` endpoints or remove staff management UI until those endpoints are built.
 
-**File:** `src/app/api/drivers/route.ts:21`
-**Issue:** When called with `?active=true` (billing use case), the endpoint counts ALL active drivers across all factories, not just the current factory's drivers. This is a data leak in a multi-tenant scenario.
+### WR-03: Hardcoded bank account details
+
+**File:** `src/components/billing/VietQRCode.tsx:26-34`
+**Issue:** Bank account number, account name, and bank name are hardcoded. If any of these change, a code deployment is required.
 
 ```typescript
-// Line 21 - Counts ALL drivers, not factory-scoped
-const driverCount = await prisma.driver.count({
-  where: { isActive: true },
-  // Missing: where factoryId = session.factoryId
-});
+// Lines 26-34: All hardcoded
+<span className="font-medium">Vietcombank</span>
+<span className="font-medium font-mono">1234567890</span>
+<span className="font-medium">CTY TNHH ICEFLOW</span>
 ```
 
-**Fix:**
-Add factory filtering to the driver count query:
+**Fix:** Move to environment variables:
+```typescript
+const BANK_NAME = process.env.NEXT_PUBLIC_VIETQR_BANK_NAME || 'Vietcombank';
+const BANK_ACCOUNT = process.env.NEXT_PUBLIC_VIETQR_BANK_ACCOUNT || '1234567890';
+const ACCOUNT_NAME = process.env.NEXT_PUBLIC_VIETQR_ACCOUNT_NAME || 'CTY TNHH ICEFLOW';
+```
+
+### WR-04: PaymentRecorder uses hardcoded pricePerDriver
+
+**File:** `src/components/billing/PaymentRecorder.tsx:24`
+**Issue:** The expected amount calculation uses hardcoded `150000` instead of reading from the subscription's `pricePerDriver` field. If the price is changed in the subscription record, this component shows an incorrect expected amount, and the server also doesn't validate against the actual price.
 
 ```typescript
-const driverCount = await prisma.driver.count({
-  where: { 
-    isActive: true,
-    // Add factory scoping if drivers are factory-associated
-    // OR ensure the drivers table has a factoryId column
-  },
-});
+// Line 24: hardcoded, ignores subscription.pricePerDriver
+const expectedAmount = Math.max(0, driverCount - 1) * 150000;
 ```
 
-### WR-04: Middleware fails open on subscription check error
-
-**File:** `src/middleware.ts:97-99`
-**Issue:** If the database call to `getFactorySubscription()` throws, the middleware silently catches the error and allows the request to proceed. This could allow writes when subscription check should have blocked them.
-
+**Fix:** Use the subscription's pricePerDriver:
 ```typescript
-// Lines 97-99
-} catch {
-  // Fail open on DB errors
-}
+const pricePerDriver = Number(subscription.pricePerDriver) || 150000;
+const expectedAmount = Math.max(0, driverCount - 1) * pricePerDriver;
 ```
 
-**Fix:**
-Fail closed instead - reject write operations if subscription status cannot be verified:
-
-```typescript
-} catch {
-  // Fail closed: reject write if subscription check fails
-  return NextResponse.json(
-    { error: 'Unable to verify subscription status', code: 'CHECK_FAILED' },
-    { status: 503 }
-  );
-}
-```
-
-### WR-05: PATCH `/api/subscriptions/[id]` allows pricePerDriver to be zero
+### WR-05: pricePerDriver allows values below 1000 VND
 
 **File:** `src/app/api/subscriptions/[id]/route.ts:54`
-**Issue:** The validation allows `pricePerDriver` to be set to 0, which seems unintentional for a pricing field.
+**Issue:** The PATCH endpoint allows `pricePerDriver` to be set to any value >= 0, including 1-999 VND which is below the stated minimum of 1000 VND.
 
 ```typescript
-// Line 54 - Allows zero
-if (typeof body.pricePerDriver === 'number' && body.pricePerDriver > 0) {
+// Line 54: Allows zero
+if (typeof body.pricePerDriver === 'number' && body.pricePerDriver >= 0) {
+  updates.pricePerDriver = body.pricePerDriver;
+}
 ```
 
-**Fix:**
-Add minimum value validation:
-
+**Fix:** Require minimum 1000 VND:
 ```typescript
 if (typeof body.pricePerDriver === 'number' && body.pricePerDriver >= 1000) {
-  // Minimum 1,000 VND per driver
+  updates.pricePerDriver = body.pricePerDriver;
+}
 ```
-
-### WR-06: Subscription status never transitions to EXPIRED
-
-**File:** `src/lib/subscription-status.ts:15-21`
-**Issue:** The schema defines an `EXPIRED` subscription status, and the middleware checks for `sub.status === 'EXPIRED'`, but nothing in the codebase ever sets a subscription to `EXPIRED`. The `isSubscriptionActive()` function checks `new Date() > sub.endDate` for TRIAL plans, but the status remains `ACTIVE`. This means the `EXPIRED` status is dead code and the middleware's `EXPIRED` check is unreachable.
-
-**Fix:**
-Add a mechanism to transition subscriptions to EXPIRED status. This could be:
-1. A cron job/background process that runs daily
-2. A check in `isSubscriptionActive()` that sets the status before returning
-3. A database trigger
 
 ---
 
 ## Info
 
-### IN-01: Magic numbers in subscription-status.ts
-
-**File:** `src/lib/subscription-status.ts:31-34`
-**Issue:** The 3-day warning period is hardcoded. This value may need to be configurable.
-
-```typescript
-// Line 34
-return days <= 3 && days > 0;
-```
-
-**Fix:**
-Extract to a constant or environment variable:
-
-```typescript
-const WARNING_DAYS_THRESHOLD = parseInt(process.env.TRIAL_WARNING_DAYS || '3');
-return days <= WARNING_DAYS_THRESHOLD && days > 0;
-```
-
-### IN-02: Hardcoded bank account in VietQRCode component
-
-**File:** `src/components/billing/VietQRCode.tsx:30`
-**Issue:** The Vietcombank account number `1234567890` is hardcoded. This should come from environment variables for production.
-
-```typescript
-// Line 30
-<span className="font-medium font-mono">1234567890</span>
-```
-
-**Fix:**
-Use environment variable:
-
-```typescript
-<span className="font-medium font-mono">{process.env.NEXT_PUBLIC_BANK_ACCOUNT || '1234567890'}</span>
-```
-
-### IN-03: Hardcoded JWT secret fallback in auth.ts
+### IN-01: JWT_SECRET fallback insecure for production
 
 **File:** `src/lib/auth.ts:4-6`
-**Issue:** The JWT secret has a fallback value that would be insecure in production if the environment variable is not set.
+**Issue:** The JWT secret defaults to `'iceflow-secret-key-change-in-production'` if the environment variable is not set. If this code runs in production without JWT_SECRET configured, all JWTs are signed with a well-known secret.
 
 ```typescript
-// Lines 4-6
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'iceflow-secret-key-change-in-production'
 );
 ```
 
-**Fix:**
-Throw an error in production if the secret is not configured:
+**Fix:** Fail closed in production:
+```typescript
+if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+  throw new Error('JWT_SECRET environment variable is required in production');
+}
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || 'dev-secret-only'
+);
+```
+
+### IN-02: Magic number for warning period
+
+**File:** `src/lib/subscription-status.ts:34`
+**Issue:** The 3-day warning threshold is hardcoded as a magic number.
 
 ```typescript
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required');
-}
-export const encoder = new TextEncoder();
-const secret = encoder.encode(JWT_SECRET);
+return days <= 3 && days > 0;
+```
+
+**Fix:** Extract to named constant:
+```typescript
+const WARNING_DAYS_THRESHOLD = 3;
+return days <= WARNING_DAYS_THRESHOLD && days > 0;
+```
+
+### IN-03: Driver slug collision potential
+
+**File:** `src/app/api/drivers/route.ts:59`
+**Issue:** Slug generation uses only name + millisecond timestamp. Two drivers with the same name created in the same millisecond will have colliding slugs, causing a 500 error from Prisma's unique constraint.
+
+```typescript
+const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') + '-' + Date.now().toString(36);
+```
+
+**Fix:** Use UUID for slug or handle unique constraint error gracefully:
+```typescript
+const slug = `${name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}-${crypto.randomUUID().slice(0, 8)}`;
 ```
 
 ---
