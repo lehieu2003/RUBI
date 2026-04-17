@@ -2,11 +2,22 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
+interface SubscriptionInfo {
+  id: string;
+  planType: 'TRIAL' | 'PAID';
+  status: 'ACTIVE' | 'CANCELLED' | 'EXPIRED';
+  endDate: string;
+  driverCount: number;
+  daysRemaining: number;
+}
+
 interface User {
   id: string;
   email: string;
   name: string;
   role?: 'ADMIN' | 'ACCOUNTANT' | 'STAFF';
+  factoryId?: string;
+  subscription?: SubscriptionInfo | null;
 }
 
 interface AuthContextType {
