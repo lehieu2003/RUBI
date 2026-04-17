@@ -23,6 +23,16 @@ export default function ShellDepositsPage() {
     },
   });
 
+  // Fetch all customers for dropdown (not just those with deposit activity)
+  const { data: allCustomers = [] } = useQuery({
+    queryKey: ['customers', 'all'],
+    queryFn: async () => {
+      const res = await fetch('/api/customers');
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
   const recordMutation = useMutation({
     mutationFn: async (body: { customerId: string; shellsOut?: number; shellsIn?: number }) => {
       const res = await fetch('/api/deposits/shells', {
@@ -183,8 +193,8 @@ export default function ShellDepositsPage() {
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-amber-500/50"
                 >
                   <option value="" className="bg-slate-900">Chọn khách hàng...</option>
-                  {deposits.map((d: any) => (
-                    <option key={d.customerId} value={d.customerId} className="bg-slate-900">{d.customerName}</option>
+                  {allCustomers.map((c: any) => (
+                    <option key={c.id} value={c.id} className="bg-slate-900">{c.name}</option>
                   ))}
                 </select>
               </div>
