@@ -45,6 +45,7 @@ export default async function DashboardPage() {
       customers={customers}
       products={products}
       orders={orders}
+      currentUser={session ? { id: session.userId, role: session.role, factoryId: session.factoryId } : null}
       showOnboardingPrompt={showOnboardingPrompt}
     />
   );

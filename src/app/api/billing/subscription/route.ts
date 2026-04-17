@@ -22,7 +22,7 @@ export async function GET() {
     });
 
     const driverCount = await prisma.driver.count({
-      where: { isActive: true },
+      where: { factoryId, isActive: true },
     });
 
     return NextResponse.json({ subscription, driverCount });

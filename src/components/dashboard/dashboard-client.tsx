@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { StatCard } from '@/components/dashboard/stat-card';
+import { SubscriptionStatusCard } from '@/components/dashboard/subscription-status-card';
 import { HourlyChart } from '@/components/dashboard/hourly-chart';
 import { RecentOrders } from '@/components/dashboard/recent-orders';
 import { QuickActions } from '@/components/dashboard/quick-actions';
@@ -14,7 +15,7 @@ import {
   Snowflake,
   Package,
 } from 'lucide-react';
-import type { Customer, Product, Order } from '@prisma/client';
+import type { Customer, Product, Order, Subscription } from '@prisma/client';
 
 interface DashboardClientProps {
   customers: Customer[];
@@ -23,17 +24,39 @@ interface DashboardClientProps {
     customer: { name: string; code: string };
     orderItems: { product: { name: string; sizeKg: number }; quantity: number }[];
   })[];
+  currentUser: { id: string; role: string; factoryId: string | null } | null;
   showOnboardingPrompt?: boolean;
+}
+
+interface SubscriptionData {
+  subscription: Subscription | null;
+  driverCount: number;
 }
 
 export function DashboardClient({
   customers,
   products,
   orders: initialOrders,
+  currentUser,
   showOnboardingPrompt = false,
 }: DashboardClientProps) {
   const [orders] = useState(initialOrders);
+  const [subscriptionData, setSubscriptionData] = useState<SubscriptionData>({ subscription: null, driverCount: 0 });
   const { toasts, addToast, dismissToast } = useToast();
+
+  // Fetch subscription data for ADMIN users
+  useEffect(() => {
+    if (currentUser?.role === 'ADMIN' && currentUser?.factoryId) {
+      fetch('/api/billing/subscription')
+        .then(res => res.json())
+        .then(data => {
+          if (data.subscription) {
+            setSubscriptionData({ subscription: data.subscription, driverCount: data.driverCount ?? 0 });
+          }
+        })
+        .catch(console.error);
+    }
+  }, [currentUser]);
 
   // Calculate stats
   const today = new Date().toDateString();
@@ -167,6 +190,17 @@ export function DashboardClient({
               trendValue={stats.bags.trendValue}
               warning={stats.bags.warning}
             />
+          </div>
+
+          {/* ADMIN Subscription Status Card (5th card, full width on lg) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            <div className="lg:col-span-1">
+              <SubscriptionStatusCard
+                subscription={subscriptionData.subscription}
+                driverCount={subscriptionData.driverCount}
+                isAdmin={currentUser?.role === 'ADMIN'}
+              />
+            </div>
           </div>
 
           {/* Tier 2: Action Hub */}
