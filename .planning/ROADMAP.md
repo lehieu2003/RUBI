@@ -118,11 +118,11 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 06-01a: Backend foundation (Subscription model, atomic register API, subscription helpers)
-- [ ] 06-01b: Frontend UI (register page reorder, trial banner, warning modal, middleware extension)
-- [ ] 06-02: Pricing dashboard + VietQR + payment recording + onboarding wizard + customer import API
-- [ ] 06-03: Cancel flow + two-sheet Excel export + grace period enforcement + subscription update API
-- [ ] 06-04: Integration (AppShell, /api/auth/me, auth provider subscription, login warning modal, dashboard onboarding prompt)
+- [x] 06-01a: Backend foundation (Subscription model, atomic register API, subscription helpers)
+- [x] 06-01b: Frontend UI (register page reorder, trial banner, warning modal, middleware extension)
+- [x] 06-02: Pricing dashboard + VietQR + payment recording + onboarding wizard + customer import API
+- [x] 06-03: Cancel flow + two-sheet Excel export + grace period enforcement + subscription update API
+- [x] 06-04: Integration (AppShell, /api/auth/me, auth provider subscription, login warning modal, dashboard onboarding prompt)
 
 **Wave Structure:**
 - Wave 1: 06-01a (backend schema + API, parallel)
