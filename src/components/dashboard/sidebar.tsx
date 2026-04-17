@@ -15,6 +15,7 @@ import {
   LogOut,
   Receipt,
   BarChart3,
+  Package,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-provider';
 
@@ -26,6 +27,7 @@ const allMenuItems = [
   { href: '/customers', icon: Users, label: 'Khách hàng', roles: ['ADMIN', 'ACCOUNTANT', 'STAFF'] as UserRole[] },
   { href: '/settle', icon: Receipt, label: 'Đối soát', roles: ['ADMIN', 'ACCOUNTANT'] as UserRole[] },
   { href: '/reports/debt', icon: BarChart3, label: 'Báo cáo nợ', roles: ['ADMIN', 'ACCOUNTANT'] as UserRole[] },
+  { href: '/deposits/shells', icon: Package, label: 'Vỏ bao', roles: ['ADMIN', 'ACCOUNTANT'] as UserRole[] },
   { href: '/inventory', icon: Snowflake, label: 'Kho lạnh', roles: ['ADMIN', 'ACCOUNTANT'] as UserRole[] },
   { href: '/vehicles', icon: Truck, label: 'Đội xe', roles: ['ADMIN', 'ACCOUNTANT'] as UserRole[] },
   { href: '/settings', icon: Settings, label: 'Cài đặt', roles: ['ADMIN'] as UserRole[] },
