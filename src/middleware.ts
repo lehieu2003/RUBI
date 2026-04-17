@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyJWT } from '@/lib/auth';
+import { getFactorySubscription, isSubscriptionActive, isGracePeriodExpired } from '@/lib/subscription-status';
 
 type UserRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF';
 
@@ -70,6 +71,32 @@ export async function middleware(request: NextRequest) {
         url.pathname = '/dashboard';
         url.searchParams.set('error', 'unauthorized');
         return NextResponse.redirect(url);
+      }
+    }
+
+    // Subscription enforcement for non-GET API requests
+    if (request.method !== 'GET' && pathname.startsWith('/api/')) {
+      const factoryId = (session as { factoryId?: string }).factoryId;
+      if (factoryId) {
+        try {
+          const sub = await getFactorySubscription(factoryId);
+          if (sub) {
+            if (sub.status === 'CANCELLED' && isGracePeriodExpired(sub)) {
+              return NextResponse.json(
+                { error: 'Subscription cancelled and grace period expired. Account locked.', code: 'ACCOUNT_LOCKED' },
+                { status: 403 }
+              );
+            }
+            if (!isSubscriptionActive(sub)) {
+              return NextResponse.json(
+                { error: 'Subscription inactive. System is read-only.', code: 'READ_ONLY' },
+                { status: 403 }
+              );
+            }
+          }
+        } catch {
+          // Fail open on DB errors
+        }
       }
     }
   }

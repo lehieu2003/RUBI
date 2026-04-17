@@ -8,6 +8,8 @@ import { useAuth } from '@/lib/auth-provider';
 export default function RegisterPage() {
   const { signUp } = useAuth();
   const router = useRouter();
+  const [factoryName, setFactoryName] = useState('');
+  const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,13 +25,19 @@ export default function RegisterPage() {
       return;
     }
 
+    if (phone.length < 9 || phone.length > 15) {
+      setError('Số điện thoại không hợp lệ');
+      return;
+    }
+
     setLoading(true);
-    const { error } = await signUp(email, password, name);
+    // Pass factoryName and phone to signUp via extra data
+    const { error } = await signUp(email, password, name, factoryName, phone);
     if (error) {
       setError(error);
       setLoading(false);
     } else {
-      router.push('/orders');
+      router.push('/dashboard');
     }
   };
 
@@ -52,15 +60,49 @@ export default function RegisterPage() {
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
+          <label htmlFor="factoryName" className="block text-sm font-medium text-gray-300 mb-2">
+            Tên nhà máy / Doanh nghiệp
+          </label>
+          <input
+            id="factoryName"
+            type="text"
+            value={factoryName}
+            onChange={(e) => setFactoryName(e.target.value)}
+            placeholder="Nhà máy đá ABC"
+            required
+            minLength={2}
+            maxLength={100}
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all text-sm"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-2">
+            Số điện thoại liên hệ
+          </label>
+          <input
+            id="phone"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="09xxxxxxxx"
+            required
+            minLength={9}
+            maxLength={15}
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all text-sm"
+          />
+        </div>
+
+        <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
-            Tên / Tên nhà máy
+            Tên người quản lý
           </label>
           <input
             id="name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Nhà máy đá ABC"
+            placeholder="Nguyễn Văn A"
             required
             className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all text-sm"
           />
