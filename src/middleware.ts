@@ -94,8 +94,13 @@ export async function middleware(request: NextRequest) {
               );
             }
           }
-        } catch {
-          // Fail open on DB errors
+        } catch (error) {
+          // Fail closed: reject write if subscription check fails
+          console.error('[Middleware] Subscription check failed:', error);
+          return NextResponse.json(
+            { error: 'Unable to verify subscription status', code: 'CHECK_FAILED' },
+            { status: 503 }
+          );
         }
       }
     }
