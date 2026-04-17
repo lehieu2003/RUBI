@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
+import { isSubscriptionActive } from '@/lib/subscription-status';
 
 // PATCH /api/orders/bulk-assign
 // Body: { orderIds: string[], driverId: string }
@@ -31,6 +32,32 @@ export async function PATCH(request: NextRequest) {
 
     if (!driver) {
       return NextResponse.json({ error: 'Driver not found' }, { status: 404 });
+    }
+
+    // SUB-01: Check subscription is active (read-only mode if not)
+    const subscription = await prisma.subscription.findFirst({
+      where: { factoryId: driver.factoryId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (subscription && !isSubscriptionActive(subscription)) {
+      return NextResponse.json(
+        { error: 'Subscription đã hết hạn. Tài khoản chỉ đọc.', code: 'READ_ONLY' },
+        { status: 403 }
+      );
+    }
+
+    // SUB-03: Check driverCount subscription limit
+    // 1 admin free, paid drivers counted against subscription.driverCount
+    const maxDrivers = 1 + (subscription?.driverCount ?? 0);
+    const currentDriverCount = await prisma.driver.count({
+      where: { factoryId: driver.factoryId, isActive: true },
+    });
+    if (currentDriverCount >= maxDrivers) {
+      return NextResponse.json(
+        { error: 'Cần nâng cấp subscription để thêm driver', code: 'DRIVER_LIMIT_EXCEEDED' },
+        { status: 403 }
+      );
     }
 
     // Bulk update orders to assign to driver

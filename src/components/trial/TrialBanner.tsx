@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/lib/auth-provider';
-import { getFactorySubscription, getDaysRemaining, isSubscriptionActive, isGracePeriodExpired } from '@/lib/subscription-status';
+import { getFactorySubscription, getDaysRemaining, isSubscriptionActive, isGracePeriodExpired, isWithinWarningPeriod } from '@/lib/subscription-status';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
@@ -36,7 +36,14 @@ export function TrialBanner() {
         return;
       }
 
-      setBannerData({ type: 'trial', daysRemaining: getDaysRemaining(sub) });
+      // Only show trial banner when within warning period (≤3 days remaining)
+      if (sub.planType === 'TRIAL' && isWithinWarningPeriod(sub)) {
+        setBannerData({ type: 'trial', daysRemaining: getDaysRemaining(sub) });
+        return;
+      }
+
+      // Trial active but not in warning period — no banner shown
+      setBannerData({ type: null, daysRemaining: 0 });
     });
   }, [user]);
 
@@ -50,8 +57,8 @@ export function TrialBanner() {
   };
 
   const bannerText = {
-    trial: `Bạn đang dùng thử IceFlow. Còn ${bannerData.daysRemaining} ngày nữa.`,
-    expired: 'Dùng thử đã hết hạn. Tài khoản chỉ có thể đọc.',
+    trial: `Trial còn ${bannerData.daysRemaining} ngày — Liên hệ Admin để nâng cấp.`,
+    expired: 'Hệ thống chỉ đọc — Subscription hết hạn. Liên hệ Admin để nâng cấp.',
     cancelled: 'Tài khoản đã bị khóa do hết thời gian gia hạn.',
     grace: `Tài khoản đã hủy. Còn ${bannerData.daysRemaining} ngày trong giai đoạn chờ (chỉ đọc).`,
   };

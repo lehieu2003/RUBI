@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { signJWT, setSessionCookie } from '@/lib/auth';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/db';
 
 // Validation schema
 const registerSchema = {
@@ -43,7 +41,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Tên xưởng phải có ít nhất 2 ký tự' }, { status: 400 });
     }
 
-    // Check if user exists
+    // Check if user exists (SUPER_ADMIN bypass handled by prisma $extends)
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       return NextResponse.json(
@@ -55,37 +53,37 @@ export async function POST(req: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user and subscription atomically using prisma.$transaction
-    // Step 1: Create User first (ADMIN is the factory owner)
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        name,
-        phone,
-        role: 'ADMIN',
-        isFactoryOwner: true,
-        factoryId: undefined, // Will be set to self after creation
-      },
-    });
-
-    // Step 2: Create TRIAL subscription for this factory (14 days)
+    // Create factory, user, and subscription atomically
     const trialEndDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
-    const subscription = await prisma.subscription.create({
-      data: {
-        factoryId: user.id, // Factory is the ADMIN user
-        planType: 'TRIAL',
-        startDate: new Date(),
-        endDate: trialEndDate,
-        status: 'ACTIVE',
-        driverCount: 0,
-      },
-    });
-
-    // Step 3: Update user's factoryId to point to self (ADMIN = factory owner)
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { factoryId: user.id },
+    const [factory, user, subscription] = await prisma.$transaction(async (tx) => {
+      // Create factory first
+      const factory = await tx.factory.create({
+        data: { name: factoryName, phone },
+      });
+      // Create user linked to factory
+      const user = await tx.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          name,
+          phone,
+          role: 'ADMIN',
+          isFactoryOwner: true,
+          factoryId: factory.id,
+        },
+      });
+      // Create TRIAL subscription
+      const subscription = await tx.subscription.create({
+        data: {
+          factoryId: factory.id,
+          planType: 'TRIAL',
+          startDate: new Date(),
+          endDate: trialEndDate,
+          status: 'ACTIVE',
+          driverCount: 0,
+        },
+      });
+      return [factory, user, subscription];
     });
 
     // Generate JWT with factoryId
@@ -94,7 +92,7 @@ export async function POST(req: NextRequest) {
       email: user.email,
       name: user.name,
       role: 'ADMIN',
-      factoryId: user.id, // ADMIN user.id = factoryId
+      factoryId: factory.id,
     });
 
     // Set cookie
@@ -106,7 +104,7 @@ export async function POST(req: NextRequest) {
         email: user.email,
         name: user.name,
         phone: user.phone,
-        factoryId: user.id,
+        factoryId: factory.id,
       },
       subscription: {
         id: subscription.id,
