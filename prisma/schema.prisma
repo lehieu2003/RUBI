@@ -207,6 +207,7 @@ enum UserRole {
   ADMIN
   ACCOUNTANT
   STAFF
+  SUPER_ADMIN
 }
 
 enum SubscriptionPlan {
