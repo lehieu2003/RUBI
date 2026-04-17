@@ -7,6 +7,24 @@ datasource db {
   url      = env("DIRECT_URL")
 }
 
+model Factory {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  address   String?
+  isSystem  Boolean  @default(false) @map("is_system")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  users         User[]
+  subscriptions Subscription[]
+  customers     Customer[]
+  drivers       Driver[]
+  orders        Order[]
+  products      Product[]
+
+  @@map("factories")
+}
+
 model User {
   id             String   @id @default(cuid())
   email          String   @unique
@@ -18,9 +36,9 @@ model User {
   updatedAt      DateTime @updatedAt @map("updated_at")
   role           UserRole @default(STAFF)
   factoryId      String?  @map("factory_id")
+  factory        Factory? @relation(fields: [factoryId], references: [id])
   isFactoryOwner Boolean  @default(false) @map("is_factory_owner")
   assignedOrders Order[]  @relation("OrderAssigner")
-  factorySubscription Subscription?
 
   @@index([factoryId])
   @@map("users")
@@ -34,28 +52,35 @@ model Product {
   isActive               Boolean                 @default(true)
   createdAt              DateTime                @default(now()) @map("created_at")
   updatedAt              DateTime                @updatedAt @map("updated_at")
+  factoryId              String                  @map("factory_id")
+  factory                Factory                 @relation(fields: [factoryId], references: [id])
   customerPriceOverrides CustomerPriceOverride[]
   globalPrices           GlobalPrice?
   inventory              Inventory[]
   orderItems             OrderItem[]
 
+  @@index([factoryId])
   @@map("products")
 }
 
 model Customer {
   id                     String                  @id @default(cuid())
-  code                   String                  @unique
+  code                   String
   name                   String
   address                String
   phone                  String
   isActive               Boolean                 @default(true)
   createdAt              DateTime                @default(now()) @map("created_at")
   updatedAt              DateTime                @updatedAt @map("updated_at")
+  factoryId              String                  @map("factory_id")
+  factory                Factory                 @relation(fields: [factoryId], references: [id])
   debtLedger             CustomerDebtLedger[]
   customerPriceOverrides CustomerPriceOverride[]
   shellDeposit           CustomerShellDeposit?
   orders                 Order[]
 
+  @@unique([code, factoryId])
+  @@index([factoryId])
   @@map("customers")
 }
 
@@ -90,9 +115,13 @@ model Driver {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-  phone     String?  @unique
+  phone     String?
+  factoryId String   @map("factory_id")
+  factory   Factory  @relation(fields: [factoryId], references: [id])
   orders    Order[]
 
+  @@unique([phone, factoryId])
+  @@index([factoryId])
   @@map("drivers")
 }
 
@@ -110,6 +139,8 @@ model Order {
   deliveryLng Float?      @map("delivery_lng")
   deliveredAt DateTime?   @map("delivered_at")
   deliveryGps Json?       @map("delivery_gps")
+  factoryId   String      @map("factory_id")
+  factory     Factory     @relation(fields: [factoryId], references: [id])
   orderItems  OrderItem[]
   assigner    User?       @relation("OrderAssigner", fields: [assignerId], references: [id])
   customer    Customer    @relation(fields: [customerId], references: [id])
@@ -118,6 +149,7 @@ model Order {
   @@index([customerId])
   @@index([driverId])
   @@index([status, createdAt])
+  @@index([factoryId])
   @@map("orders")
 }
 
@@ -190,7 +222,7 @@ enum SubscriptionStatus {
 
 model Subscription {
   id             String             @id @default(cuid())
-  factoryId      String             @unique @map("factory_id")
+  factoryId      String             @map("factory_id")
   planType       SubscriptionPlan   @default(TRIAL) @map("plan_type")
   startDate      DateTime           @default(now()) @map("start_date")
   endDate        DateTime           @map("end_date")
@@ -199,8 +231,9 @@ model Subscription {
   pricePerDriver Decimal?           @map("price_per_driver") @db.Decimal(10, 2)
   createdAt      DateTime           @default(now()) @map("created_at")
   updatedAt      DateTime           @updatedAt @map("updated_at")
-  factory        User               @relation(fields: [factoryId], references: [id])
+  factory        Factory            @relation(fields: [factoryId], references: [id])
 
+  @@index([factoryId])
   @@map("subscriptions")
 }
 
