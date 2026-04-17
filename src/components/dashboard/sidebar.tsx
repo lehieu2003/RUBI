@@ -30,6 +30,8 @@ const allMenuItems = [
   { href: '/deposits/shells', icon: Package, label: 'Vỏ bao', roles: ['ADMIN', 'ACCOUNTANT'] as UserRole[] },
   { href: '/inventory', icon: Snowflake, label: 'Kho lạnh', roles: ['ADMIN', 'ACCOUNTANT'] as UserRole[] },
   { href: '/vehicles', icon: Truck, label: 'Đội xe', roles: ['ADMIN', 'ACCOUNTANT'] as UserRole[] },
+  { href: '/dashboard/map', icon: Truck, label: 'Bản đồ', roles: ['ADMIN', 'ACCOUNTANT'] as UserRole[] },
+  { href: '/settings/billing', icon: Settings, label: 'Thanh toán', roles: ['ADMIN'] as UserRole[] },
   { href: '/settings', icon: Settings, label: 'Cài đặt', roles: ['ADMIN'] as UserRole[] },
 ];
 
