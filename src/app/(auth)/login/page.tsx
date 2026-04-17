@@ -1,17 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-provider';
+import { TrialWarningModal } from '@/components/trial/TrialWarningModal';
+import { isWithinWarningPeriod } from '@/lib/subscription-status';
+import type { Subscription } from '@prisma/client';
 
 export default function LoginPage() {
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showTrialWarning, setShowTrialWarning] = useState(false);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+
+  // Check subscription status after login (when user is set)
+  useEffect(() => {
+    if (!user) return;
+
+    async function checkSubscription() {
+      try {
+        const res = await fetch('/api/auth/me');
+        const data = await res.json();
+        if (data.subscription && isWithinWarningPeriod({ endDate: new Date(data.subscription.endDate) } as Subscription)) {
+          setSubscription({ ...data.subscription, endDate: new Date(data.subscription.endDate) } as Subscription);
+          setShowTrialWarning(true);
+        }
+      } catch {
+        // Ignore - trial warning is optional
+      }
+    }
+    checkSubscription();
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +52,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative bg-slate-800/50 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
+    <>
+      {showTrialWarning && subscription && (
+        <TrialWarningModal subscription={subscription} />
+      )}
+      <div className="relative bg-slate-800/50 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-white mb-2">Đăng nhập</h1>
         <p className="text-sm text-slate-400">Chào mừng bạn quay trở lại</p>
@@ -99,5 +127,6 @@ export default function LoginPage() {
         </Link>
       </p>
     </div>
+    </>
   );
 }
