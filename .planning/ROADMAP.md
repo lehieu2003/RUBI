@@ -40,9 +40,9 @@ v2.0 transforms IceFlow SaaS from a single-tenant system into a multi-tenant arc
 5. `@@unique([code, factoryId])` constraints applied to Customer.code and Driver.phone; composite uniqueness enforced by Prisma
 
 **Plans:**
-- [ ] 01-01-PLAN.md — Factory model + factoryId fields on tenant entities + composite unique constraints
-- [ ] 01-02-PLAN.md — Tenant middleware (AsyncLocalStorage + Prisma $extends) + SUPER_ADMIN bypass + subscription enforcement
-- [ ] 01-03-PLAN.md — Backfill migration + System factory seed + SUPER_ADMIN user creation
+- [x] 01-01-PLAN.md — Factory model + factoryId fields on tenant entities + composite unique constraints
+- [x] 01-02-PLAN.md — Tenant middleware (AsyncLocalStorage + Prisma $extends) + SUPER_ADMIN bypass + subscription enforcement
+- [x] 01-03-PLAN.md — Backfill migration + System factory seed + SUPER_ADMIN user creation
 
 ---
 

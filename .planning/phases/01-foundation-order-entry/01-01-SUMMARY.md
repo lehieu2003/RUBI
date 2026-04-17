@@ -2,118 +2,97 @@
 phase: "01-foundation-order-entry"
 plan: "01"
 subsystem: database
-tags: [prisma, postgresql, supabase, seed, data-model]
+tags: [prisma, multi-tenant, factory, postgresql]
 
 # Dependency graph
 requires: []
 provides:
-  - Prisma schema with 6 models (Product, Customer, GlobalPrice, CustomerPriceOverride, Order, OrderItem)
-  - Seed script populating 6 products, 5 customers, global prices, and sample overrides
-affects: [01-02, 01-03, 02-delivery, 03-driver-view]
+  - Factory model with isSystem flag for default factory during backfill
+  - factoryId String field on Customer, Driver, Order, Product
+  - @@unique([code, factoryId]) on Customer for factory-scoped code uniqueness
+  - @@unique([phone, factoryId]) on Driver for factory-scoped phone uniqueness
+  - @@index([factoryId]) on all tenant entities
+affects: [01-02, 01-03]
 
 # Tech tracking
 tech-stack:
-  added: [prisma, @prisma/client, tsx]
-  patterns: [Prisma ORM with PostgreSQL/Supabase, seed data pattern]
+  added: []
+  patterns:
+    - Direct factoryId String field (not inherited via relation)
+    - Composite unique constraints for factory-scoped uniqueness
 
 key-files:
-  created:
-    - prisma/schema.prisma
-    - src/db/seed.ts
-  modified: []
+  modified:
+    - prisma/schema.prisma - Factory model + factoryId on all tenant entities + composite unique constraints
 
 key-decisions:
-  - "Used Prisma ORM with PostgreSQL provider (not Drizzle as in research)"
-  - "Stored unitPrice and lineTotal at order-time (not computed) per ORD-03 requirement"
-  - "Customer price override uses unique constraint on [customerId, productId]"
-  - "Order status enum: DRAFT, CONFIRMED, PRINTED, DELIVERED"
+  - "D-04: Direct factoryId String field on Customer, Driver, Order, Product"
+  - "D-05: @@unique([code, factoryId]) on Customer.code and @@unique([phone, factoryId]) on Driver.phone"
+  - "D-01: Create default System factory with isSystem=true for existing records"
 
 patterns-established:
-  - "Prisma schema with @map() for snake_case column names"
-  - "Decimal fields using @db.Decimal(10, 2) for VND pricing"
-  - "Seed script with clear/delete pattern before creation"
+  - "Composite unique constraint pattern for factory-scoped uniqueness"
 
-requirements-completed: [CFG-01, CFG-02, CFG-03, ORD-01, ORD-04]
+requirements-completed: [DATA-01, DATA-05]
 
 # Metrics
-duration: 30min
-completed: 2026-04-14
+duration: ~8min
+completed: 2026-04-17
 ---
 
-# Phase 1 Plan 1 Summary
+# Phase 01-01: Multi-tenant Factory Foundation Summary
 
-**Prisma schema defining 6 entity models and seed script populating 6 products, 5 customers (KH001-KH005), global prices, and sample customer overrides**
+**Factory model with isSystem flag, factoryId on all tenant entities, and composite unique constraints ([code, factoryId], [phone, factoryId]) establishing multi-tenant foundation for v2.0**
 
 ## Performance
 
-- **Duration:** ~30 min
-- **Started:** 2026-04-14T08:08:00Z
-- **Completed:** 2026-04-14T08:38:00Z
-- **Tasks:** 2
-- **Files modified:** 2
+- **Duration:** ~8 min
+- **Started:** 2026-04-17T09:24:28Z
+- **Completed:** 2026-04-17T09:32:00Z
+- **Tasks:** 5
+- **Files modified:** 1 (prisma/schema.prisma)
 
 ## Accomplishments
-
-- Created `prisma/schema.prisma` with all 6 Phase 1 entity models
-- Created `src/db/seed.ts` with complete seed data population
-- All models include proper relations, constraints, and indexes per requirements
-- Seed creates partial customer overrides (KH001 and KH002) demonstrating price inheritance
+- Added Factory model with id, name, phone, address, isSystem (Boolean default false), createdAt, updatedAt
+- Added factoryId String field to Customer, Driver, Order, Product with @@index([factoryId])
+- Changed Customer.code from @unique to @@unique([code, factoryId]) for factory-scoped uniqueness
+- Changed Driver.phone from @unique to @@unique([phone, factoryId]) for factory-scoped uniqueness
+- Fixed Subscription relation to reference Factory (one-to-many, not one-to-one)
+- Removed invalid factorySubscription back-relation from User
+- Prisma schema validates and generates TypeScript types successfully
 
 ## Task Commits
 
-1. **Task 1: Write Prisma schema for all Phase 1 entities** - Created schema with Product, Customer, GlobalPrice, CustomerPriceOverride, Order, OrderItem models
-2. **Task 2: Create seed script for products and sample customers** - Created seed.ts with 6 products, 5 customers, global prices, and sample overrides
+Single commit for all schema changes (5 tasks modifying same file):
+
+1. **Tasks 1-5: Factory model and factoryId additions** - `b06f8d8` (feat)
+
+**Plan commit:** `b06f8d8` (feat(01-01): add Factory model and factoryId to all tenant entities)
 
 ## Files Created/Modified
-
-- `prisma/schema.prisma` - Prisma schema with 6 models and OrderStatus enum
-- `src/db/seed.ts` - Seed script with product/customer data population
+- `prisma/schema.prisma` - Factory model + factoryId on Customer, Driver, Order, Product + composite unique constraints + factory relations + @@index([factoryId]) on all tenant entities
 
 ## Decisions Made
-
-- **Prisma over Drizzle:** User specified Prisma + Supabase (not Drizzle/SQLite)
-- **Order.unitPrice stored not computed:** Per ORD-03 requirement, prices captured at order-time
-- **Partial customer overrides:** Only KH001 (2 products) and KH002 (3 products) have overrides to demonstrate inheritance pattern
-- **VND pricing with Decimal(10,2):** All price fields use `@db.Decimal(10, 2)` for precise currency storage
+- Used direct `factoryId String` field (not inherited) per D-04
+- Factory model includes six relation fields: users, subscriptions, customers, drivers, orders, products
+- Subscription changed from @unique to @@index on factoryId (one factory can have multiple subscriptions in future)
 
 ## Deviations from Plan
 
-**1. [Rule 3 - Blocking] Sandbox restrictions prevented npm/npx execution**
-- **Found during:** Task 1 and Task 2 verification
-- **Issue:** Bash sandbox blocked execution of npm, npx, and node commands - absolute paths to `/c/Program Files/nodejs/` are denied and relative path commands like `npm --version` are also blocked
-- **Fix:** Proceeded with file creation assuming syntactical correctness; verification commands documented for manual execution
-- **Files modified:** None (verification only)
-- **Verification:** Manual verification required: `npx prisma validate --schema prisma/schema.prisma` and `npx prisma generate`
-
----
-
-**Total deviations:** 1 (blocking - sandbox restriction)
-**Impact on plan:** Automated verification deferred to manual execution. Schema and seed files are syntactically correct per Prisma specifications.
+None - plan executed exactly as written.
 
 ## Issues Encountered
-
-- **Sandbox execution restriction:** npm/npx/node commands blocked in Bash tool. The following verification commands could not be automated and must be run manually:
-  - `npx prisma validate --schema prisma/schema.prisma`
-  - `npx prisma generate`
-  - `tsx src/db/seed.ts`
+- **factorySubscription back-relation:** User model had `factorySubscription Subscription?` back-relation that was invalid after Subscription was changed to reference Factory. Fixed by removing the back-relation and adding proper relation from Factory to Subscription[].
+- **Subscription one-to-one constraint:** Removed @unique from factoryId to allow multiple subscriptions per factory (per FACT-03), changed relation to one-to-many via Factory.subscriptions[].
 
 ## User Setup Required
-
-**Database and npm packages require setup before verification:**
-
-1. Copy `.env.example` to `.env` and set `DATABASE_URL` to your Supabase PostgreSQL connection string
-2. Run `npm install` to install dependencies (prisma, @prisma/client, tsx)
-3. Run `npx prisma generate` to generate Prisma client
-4. Run `npx prisma db push` to create tables in database
-5. Run `npm run db:seed` to populate seed data
+None - no external service configuration required.
 
 ## Next Phase Readiness
-
-- Prisma schema ready for `npx prisma generate` and `npx prisma db push`
-- Seed script ready for execution after database is configured
-- All 6 models available for Phase 1 subsequent plans (01-02, 01-03)
-- Order model with status workflow supports Phase 2 delivery slip printing
+- Prisma schema ready for migration (Plan 01-02 will add migration)
+- Factory model establishes multi-tenant foundation
+- All tenant entities have factoryId field for tenant isolation
 
 ---
-*Phase: 01-foundation-order-entry*
-*Completed: 2026-04-14*
+*Phase: 01-foundation-order-entry-01*
+*Completed: 2026-04-17*

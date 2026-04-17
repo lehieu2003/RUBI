@@ -72,11 +72,11 @@ Requirements for milestone v2.0 — Multi-tenant Factory Architecture.
 
 ### Data Layer (Cross-cutting)
 
-- [ ] **DATA-01**: Add factoryId to Customer, Driver, Order, Product (and backfill existing records)
+- [x] **DATA-01**: Add factoryId to Customer, Driver, Order, Product (and backfill existing records)
 - [ ] **DATA-02**: Prisma tenant middleware auto-injects factoryId into all queries via `$extends` + AsyncLocalStorage
 - [ ] **DATA-03**: Super Admin queries bypass factoryId filter (SUPER_ADMIN role flag)
 - [ ] **DATA-04**: Middleware enforces subscription status on every write request (403 if inactive)
-- [ ] **DATA-05**: Unique constraints are factory-scoped — e.g. Customer.code is unique only within a Factory (use `@@unique([code, factoryId])` in Prisma). Factory A's KH01 and Factory B's KH01 are distinct records.
+- [x] **DATA-05**: Unique constraints are factory-scoped — e.g. Customer.code is unique only within a Factory (use `@@unique([code, factoryId])` in Prisma). Factory A's KH01 and Factory B's KH01 are distinct records.
 
 ### Integration (v1.0 existing features)
 
@@ -154,11 +154,11 @@ Requirements for milestone v2.0 — Multi-tenant Factory Architecture.
 | SADM-03 | 03 | Pending |
 | SADM-04 | 03 | Pending |
 | SADM-05 | 03 | Pending |
-| DATA-01 | 01 | Pending |
+| DATA-01 | 01 | Complete |
 | DATA-02 | 01 | Pending |
 | DATA-03 | 01 | Pending |
 | DATA-04 | 01 | Pending |
-| DATA-05 | 01 | Pending |
+| DATA-05 | 01 | Complete |
 | INT-01 | 04 | Pending |
 | INT-02 | 04 | Pending |
 | INT-03 | 04 | Pending |

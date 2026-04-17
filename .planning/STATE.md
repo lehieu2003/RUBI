@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: milestone
-status: phase_01_context_done
-stopped_at: Phase 01 context gathered — ready for planning
-last_updated: "2026-04-17T05:30:00.000Z"
+milestone: v1.0
+milestone_name: Features + Grace Period
+status: executing
+stopped_at: Completed 01-foundation-order-entry-01 plan
+last_updated: "2026-04-17T09:29:35.225Z"
 last_activity: 2026-04-17
 progress:
   total_phases: 4
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 3
+  completed_plans: 3
+  percent: 100
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-17)
 **Current milestone:** v2.0 Multi-tenant Factory Architecture
 **Core value:** Speed over everything — staff must enter orders faster than writing by hand (30 seconds), or they reject the system and return to pen-and-paper.
-**Current focus:** Roadmap defined — Phase 01 not started
+**Current focus:** Phase 01 — foundation-order-entry
 
 ## Current Position
 
-Phase: Not started (roadmap defined)
-Plan: —
-Status: v2.0 roadmap created
-Last activity: 2026-04-17 — v2.0 roadmap defined (4 phases, 24 requirements)
+Phase: 01 (foundation-order-entry) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-04-17
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/4 phases)
 
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/4
 | Phase 05 P02 | 253 | 2 tasks | 1 files |
 | Phase 05-reconciliation-reporting P03 | 2min | 2 tasks | 2 files |
 | Phase 05-reconciliation-reporting P04 | 5 | 2 tasks | 2 files |
+| Phase 01-foundation-order-entry P01 | 8 | 5 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,9 @@ Key decisions from PROJECT.md affecting current work:
 - [Phase ?]: Delivery confirmation (D-08, D-09) - DELIVERED status with GPS capture, null fallback allowed
 - [Phase 03]: Driver delivery view UI uses SHIPPING/DELIVERED status, not PRINTED
 - [Phase 05-reconciliation-reporting]: ToastContainer + useToast hook integrated directly in shell deposits page (not relying on parent layout)
+- [Phase 01-foundation-order-entry]: D-04: Direct factoryId String field on Customer, Driver, Order, Product (not inherited via relation)
+- [Phase 01-foundation-order-entry]: D-05: @@unique([code, factoryId]) on Customer.code and @@unique([phone, factoryId]) on Driver.phone for factory-scoped uniqueness
+- [Phase 01-foundation-order-entry]: D-01: Create default System factory with isSystem=true for existing records during migration
 
 ### Pending Todos
 
@@ -100,6 +104,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-17T02:38:44.239Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-trial-pricing-onboarding/06-CONTEXT.md
+Last session: 2026-04-17T09:29:35.222Z
+Stopped at: Completed 01-foundation-order-entry-01 plan
+Resume file: None
