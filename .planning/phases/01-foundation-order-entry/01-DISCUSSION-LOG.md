@@ -1,88 +1,70 @@
-# Phase 1: Foundation & Order Entry - Discussion Log
+# Phase 01: Foundation — Discussion Log
 
 > **Audit trail only.** Do not use as input to planning, research, or execution agents.
 > Decisions are captured in CONTEXT.md — this log preserves the alternatives considered.
 
-**Date:** 2026-04-14
-**Phase:** 01-foundation-order-entry
-**Areas discussed:** Order entry UI pattern, Customer lookup UX, Product selection UX, Price list structure
+**Date:** 2026-04-17
+**Phase:** 01-foundation-data-layer
+**Areas discussed:** Backfill strategy, Middleware approach, SUPER_ADMIN creation, factoryId propagation
 
 ---
 
-## Order entry UI pattern
+## Area 1: Backfill Strategy
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| Modal overlay | Popup covering screen, context visible behind | |
-| Inline form | Form always visible on main page | |
-| Slide-out drawer | Side panel sliding in from right | ✓ |
+| Create default factory | Create 'Hệ thống' (System) factory, assign all existing records to it | ✓ |
+| NULL = legacy | Allow NULL factoryId for existing records | |
+| Onboarding wizard | Force admin to create factory on first login | |
 
-**User's choice:** Slide-out Drawer
-**Notes:** Keeps order list visible while building an order. Slides away cleanly when done.
+**User's choice:** Create default factory
+
+**Notes:** Simple, works for single-factory migrations. All existing data goes to one "System" factory.
 
 ---
 
-## Customer lookup UX
+## Area 2: Tenant Middleware Approach
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| Type customer code + Enter | Staff know codes by heart, typing "A001" + Enter is instant | |
-| Search-as-you-type | Start typing name, list filters down. Good when customer says "Cho tôi đặt" | |
-| Dropdown with recent | Show last 5-10 customers first, type to filter. Hybrid | |
-| "Ultimate Search Bar" (3-in-1) | Default 10 recent + as-you-type filter (name/phone/code) + auto-single-select + Enter | ✓ |
+| AsyncLocalStorage + $extends | Store factoryId in AsyncLocalStorage per request. Prisma $extends auto-injects filter. | ✓ |
+| Query helper function | requireTenant(factoryId) helper wraps every query | |
+| Prisma $use middleware | $use() hook inspects queries and auto-injects | |
 
-**User's choice:** "The Ultimate Search Bar" (Search-as-you-type + Recent)
-**Notes:**
-- Default (empty): Show 10 most recent customers. Click or arrow keys to select. Zero typing for repeat orders.
-- As-you-type: Filter simultaneously by 3 fields — name (fuzzy), phone (last 3-4 digits, fastest since phone is unique), customer code.
-- Auto-select: If only 1 result, Enter automatically selects + moves focus to quantity input field.
-- Enter key confirms selection.
+**User's choice:** AsyncLocalStorage + $extends (Recommended)
+
+**Notes:** Cleanest approach — no query changes needed in API routes.
 
 ---
 
-## Product selection UX
+## Area 3: SUPER_ADMIN Creation
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| Grid/buttons | Each product is a button. Click to add. | |
-| Type-to-search | Type "5" to filter all 5kg bags. Fast for users who know products. | |
-| Tab + number | Tab through fields, type quantity, Enter = add to order | |
-| "Order Matrix" (Grid-based fixed layout) | All 6 products displayed simultaneously. Auto-focus first field. Tab to navigate. Enter to confirm. | ✓ |
+| Seed script | One-time seed script creates first SUPER_ADMIN. Run manually after deployment. | ✓ |
+| Environment variable flag | CREATE_SUPER_ADMIN=true + credentials in .env on first start | |
 
-**User's choice:** "The Order Matrix" (Lưới nhập liệu cố định)
-**Notes:**
-- Grid layout: rows = ice types (Đá Bi, Đá Viên), columns = bag sizes (5kg, 10kg, 20kg). Total 6 cells.
-- Auto-focus: When customer selected, cursor jumps to quantity field of first product (Đá Bi 5kg).
-- Tab key navigates between quantity fields. Leave blank if not ordering.
-- Enter key confirms order and triggers print.
-- "Because product catalog doesn't change frequently, instead of searching, lay out all bags on screen."
+**User's choice:** Seed script
+
+**Notes:** Simple, explicit, no credentials in env files.
 
 ---
 
-## Price list structure
+## Area 4: factoryId Field Propagation
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| Flat discount % | Each customer has 1 % discount from base price. Simple but inflexible. | |
-| Per-product prices | Each customer has individual price for every product. Most flexible but high data entry. | |
-| Mixed (Global Base + Customer Override) | Default prices for all products, with per-customer override table. Inheritance logic: override first, fallback to base. | ✓ |
+| Direct field on each model | Add factoryId String to Customer, Driver, Order, Product | ✓ |
+| Inherit via relation | Customer.factoryId = User.factoryId via relation | |
 
-**User's choice:** "Mixed" (Global Base + Customer Override)
-**Notes:**
-- Global Base Price: Standard price for 6 products. Applied to new customers or those without individual agreements.
-- Customer Override Table: Per-customer table with product-specific prices. Only enter prices that differ from default.
-- Inheritance Logic: System checks override first. If override is empty for a product, falls back to global base price.
-- Why optimal:
-  1. Flexible: Wholesalers negotiate per-product ("give me lower price on 20kg blocks, other products at market rate"). Only enter exceptions.
-  2. Time-saving: Don't need to enter 6 prices for hundreds of customers. Only enter differences.
-  3. Easy adjustment: When electricity prices increase, change base price once. All customers without override automatically get new price.
+**User's choice:** Direct field on each model (Recommended)
+
+**Notes:** More explicit, simpler constraints, clear @@unique([code, factoryId]) patterns.
 
 ---
-
-## Claude's Discretion
-
-No areas deferred to Claude — user had clear preferences for all 4 areas.
 
 ## Deferred Ideas
 
-None.
+- FACT-04 (7-day grace period after cancellation) — Phase 04
+- FACT-01/FACT-02 (Factory registration flow) — Phase 02
+- SADM-02 to SADM-05 (Super Admin dashboard UI) — Phase 03

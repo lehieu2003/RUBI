@@ -1,51 +1,45 @@
-# Phase 1: Foundation & Order Entry - Context
+# Phase 01: Foundation — Data Layer + Factory Model + Super Admin Role
 
-**Gathered:** 2026-04-14
+**Gathered:** 2026-04-17
 **Status:** Ready for planning
 
 <domain>
 ## Phase Boundary
 
-Office staff enter wholesale orders on phone calls. Fast (< 30 seconds per order). Per-customer pricing. Printed delivery slips.
+Build the cross-cutting data layer that enables multi-tenancy for v2.0. All subsequent phases depend on this foundation.
 
-This phase delivers: customer lookup + order entry UI + per-customer price list management.
+This phase delivers:
+- `Factory` model created
+- `factoryId` field added to Customer, Driver, Order, Product
+- Prisma tenant middleware auto-injects `factoryId` filter via AsyncLocalStorage + `$extends`
+- SUPER_ADMIN role bypasses factoryId filter
+- Subscription enforcement middleware on write requests
+- Factory-scoped unique constraints (`@@unique([code, factoryId])`)
+- Tenant activation/deactivation via subscription status
 
 </domain>
 
 <decisions>
 ## Implementation Decisions
 
-### Order Entry UI Pattern
-- **D-01:** Slide-out Drawer — overlay form that slides in from right. Keeps order list visible behind it. Slides away cleanly when order is saved/printed.
+### Backfill Strategy
+- **D-01:** Create a default "System" factory. All existing Customer, Driver, Order, Product records assigned to this factory during backfill migration. New records created by admins get their factory's factoryId.
 
-### Customer Lookup UX — "Ultimate Search Bar"
-- **D-02:** 3-in-1 smart search bar with 3 states:
-  1. **Default (empty):** Show 10 most recent customers. Click or arrow keys to select. Zero typing for repeat orders.
-  2. **As-you-type:** Filter simultaneously by 3 fields — name (fuzzy), phone (last 3-4 digits, fastest since phone is unique), customer code.
-  3. **Auto-select:** If only 1 result, Enter automatically selects + moves focus to quantity input field.
-- **D-03:** Enter key confirms selection. No additional click needed.
+### Tenant Middleware Approach
+- **D-02:** AsyncLocalStorage stores `factoryId` per request context. Prisma `$extends` hook auto-injects `factoryId` filter into all `findMany`/`findFirst` queries for non-SUPER_ADMIN users. No query changes needed in API routes.
 
-### Product Selection UX — "Order Matrix"
-- **D-04:** Grid-based fixed layout — all 6 products displayed simultaneously (Đá Bi 5/10/20kg, Đá Viên 5/10/20kg). No search required.
-- **D-05:** Auto-focus: When customer is selected, cursor jumps to quantity field of first product (Đá Bi 5kg).
-- **D-06:** Tab key navigates between quantity fields. Leave blank if customer doesn't want that product.
-- **D-07:** Enter key confirms order and triggers print.
+### SUPER_ADMIN Creation
+- **D-03:** One-time seed script creates the first SUPER_ADMIN account. Run manually after deployment. No automatic creation mechanism.
 
-### Price List Structure — "Mixed" (Global Base + Customer Override)
-- **D-08:** **Global Base Price** — Standard price for all 6 products. Applied to new customers or those without individual agreements.
-- **D-09:** **Customer Override Table** — Per-customer table with product-specific prices. Only enter prices that differ from default.
-- **D-10:** **Inheritance Logic** — System checks override first. If override is empty for a product, falls back to global base price.
-- **D-11:** **Why this works:** Wholesalers negotiate per-product ("give me a lower price on 20kg blocks, other products at market rate"). Only enter exceptions, not full price lists for hundreds of customers.
-- **D-12:** **Price adjustment propagation:** When global base price changes, all customers without override automatically get the new price.
+### factoryId Field Placement
+- **D-04:** Direct `factoryId` String field on Customer, Driver, Order, Product models. Not inherited via relations — explicit field is simpler for constraints and JOINs.
+- **D-05:** `@@unique([code, factoryId])` on Customer.code and Driver.phone for factory-scoped uniqueness.
 
-### Order Matrix Layout
-- **D-13:** Layout: Rows = ice types (Đá Bi, Đá Viên), Columns = bag sizes (5kg, 10kg, 20kg). Total 6 cells.
-- **D-14:** Each cell shows: Product name + size label, quantity input field, unit price (from customer's price list), line total.
+### Subscription Enforcement
+- **D-06:** Dual-layer enforcement: Edge middleware (existing) + per-route guard in write handlers. HTTP 403 returned when TRIAL expired or PAID cancelled.
 
-### Data Model Scope (Phase 1)
-- **D-15:** Products: 6 fixed SKUs (Đá Bi 5kg, Đá Bi 10kg, Đá Bi 20kg, Đá Viên 5kg, Đá Viên 10kg, Đá Viên 20kg). Configurable in system.
-- **D-16:** Customers: Code, name, address, phone, price list reference (override table).
-- **D-17:** Orders: Customer reference, line items (product + qty + unit price), total, status (draft/confirmed/printed/delivered).
+### SUPER_ADMIN Bypass
+- **D-07:** SUPER_ADMIN role bypasses factoryId filter entirely — can query across all factories. Implemented via role check in tenant middleware before auto-injecting factoryId.
 
 </decisions>
 
@@ -55,51 +49,68 @@ This phase delivers: customer lookup + order entry UI + per-customer price list 
 **Downstream agents MUST read these before planning or implementing.**
 
 ### Project Documents
-- `.planning/PROJECT.md` — Core constraint: Speed over everything, 30-second order entry target, web-only
-- `.planning/REQUIREMENTS.md` — Phase 1 requirements: ORD-01, ORD-02, ORD-03, ORD-04, CFG-01, CFG-02, CFG-03
-- `.planning/ROADMAP.md` — Phase 1 goal: "Fast order entry UI with customer/product data and per-customer pricing"
+- `.planning/ROADMAP.md` — Phase 01 goal, requirements DATA-01 to DATA-05, FACT-03, SADM-01, success criteria
+- `.planning/REQUIREMENTS.md` — All v2.0 requirements (Factory Management, Subscription, Super Admin, Data Layer)
+- `.planning/research/STACK.md` — AsyncLocalStorage + Prisma $extends approach (Section 2)
+- `.planning/research/PITFALLS.md` — Critical gaps: no factoryId on Customer/Driver/Order/Product, GET routes without factoryId filter
+- `.planning/PROJECT.md` — Current milestone: v2.0 Multi-tenant Factory Architecture
 
-### No external specs — requirements fully captured in decisions above
+### Existing Code
+- `src/lib/db.ts` — PrismaClient singleton
+- `src/lib/subscription-status.ts` — isSubscriptionActive(), getFactorySubscription()
+- `src/middleware.ts` — Existing JWT auth + role routing + subscription check on writes
+- `prisma/schema.prisma` — Current schema (User.factoryId and Subscription.factoryId already exist)
+
+### External Docs
+- Prisma `$extends` API: https://www.prisma.io/docs/orm/prisma-client/extensions
+- Node.js AsyncLocalStorage: https://nodejs.org/api/async_context.html#class-asynclocalstorage
 
 </canonical_refs>
 
 <code_context>
 ## Existing Code Insights
 
-### No existing codebase
-This is a greenfield project. No prior code exists — researcher will need to propose patterns for:
-- Component structure (drawer, search bar, order matrix grid)
-- Data model (customer, product, order entities)
-- State management approach
+### Reusable Assets
+- `src/lib/subscription-status.ts` — `isSubscriptionActive()`, `getFactorySubscription()`, `getDaysRemaining()` — already implemented, reuse for DATA-04
+- `src/middleware.ts` — JWT verification + role routing pattern — extend for SUPER_ADMIN check
+- `prisma/schema.prisma` — User.factoryId and Subscription.factoryId already exist
 
-### Integration Points (for future phases)
-- Phase 2 (Delivery Slips): Order must have print-trigger endpoint
-- Phase 3 (Driver View): Order must expose status and delivery info
-- Phase 4 (Reconciliation): Order must track actual vs ordered quantities
+### Integration Points
+- All API routes in `src/app/api/*/route.ts` — GET /api/drivers, GET /api/customers, GET /api/orders currently have NO factoryId filter (from PITFALLS.md)
+- `src/lib/db.ts` — Where PrismaClient is instantiated, add $extends here
+- New `src/lib/tenant.ts` — AsyncLocalStorage context + $extends configuration
+
+### Schema Changes Required
+1. Create `Factory` model (id, name, phone, address, createdAt, updatedAt)
+2. Add `factoryId` String to Customer, Driver, Order, Product
+3. Add `@@unique([code, factoryId])` to Customer.code
+4. Add `@@unique([code, factoryId])` to Driver.phone
+5. Add `factoryId` String to Subscription (already has it)
+6. Add `factoryId` String to User (already has it)
 
 </code_context>
 
 <specifics>
 ## Specific Ideas
 
-1. **"Ultimate Search Bar"** — The 3-in-1 smart search described by user. Default 10 recent + as-you-type (name/phone/code) + auto-single-select + Enter confirms.
+1. **Hybrid enforcement** — Edge middleware catches HTTP requests; per-route guard catches direct Server Action calls. Both check `isSubscriptionActive()`.
 
-2. **"Order Matrix"** — Grid with ice types as rows and bag sizes as columns. Tab to navigate, Enter to confirm and print. Auto-focus first field on customer selection.
+2. **Grace period** — FACT-04 (7-day grace) is Phase 04, not this phase. This phase only sets up activation/deactivation mechanism (via subscription status).
 
-3. **"Mixed Pricing"** — Global base price + per-customer override with inheritance logic. Only enter exceptions, not full lists.
-
-4. **Speed target:** < 30 seconds per order. Staff on phone = pressure. System must beat pen-and-paper speed or staff rejects it.
+3. **Backfill script** — Prisma migration adds factoryId as optional first, then backfill script assigns all records to default factory, then migration makes factoryId required + with default.
 
 </specifics>
 
 <deferred>
 ## Deferred Ideas
 
-None — discussion stayed within Phase 1 scope.
+- FACT-04 (7-day grace period after cancellation) — Phase 04
+- FACT-01/FACT-02 (Factory registration flow) — Phase 02
+- SADM-02 to SADM-05 (Super Admin dashboard UI) — Phase 03
 
 </deferred>
 
 ---
 
-*Phase: 01-foundation-order-entry*
-*Context gathered: 2026-04-14*
+*Phase: 01-foundation-data-layer*
+*Context gathered: 2026-04-17*
