@@ -74,7 +74,7 @@ Plans:
 ### Phase 5: Reconciliation & Reporting
 **Goal**: Accountant confirms delivered quantities, system auto-deducts inventory and updates customer debt; owner sees daily debt report
 **Depends on**: Phase 3
-**Requirements**: REQ-04, REQ-05, REQ-06, REQ-08, REQ-09
+**Requirements**: INVD-01, INVD-02, INVD-03, INVD-04, INVD-05, INVD-06, INVD-07
 **Success Criteria** (what must be TRUE):
   1. Accountant can view a list of delivered slips returned by drivers at day end
   2. Accountant can enter actual delivered quantity for each line item
