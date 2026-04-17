@@ -29,13 +29,13 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Inventory & Debt
 
-- [ ] **INVD-01**: Accountant can view a list of delivered slips returned by drivers at day end
-- [ ] **INVD-02**: Accountant can enter actual delivered quantity for each line item (handwritten notes from driver)
-- [ ] **INVD-03**: System auto-deducts confirmed quantities from cold inventory after confirmation
-- [ ] **INVD-04**: Customer debt balance updates automatically after delivery confirmation
-- [ ] **INVD-05**: Owner can view daily debt report showing all outstanding customer balances
-- [ ] **INVD-06**: System tracks shell/bag deposits owed by each customer separately
-- [ ] **INVD-07**: Owner can see which customers owe deposits and how much
+- [x] **INVD-01**: Accountant can view a list of delivered slips returned by drivers at day end
+- [x] **INVD-02**: Accountant can enter actual delivered quantity for each line item (handwritten notes from driver)
+- [x] **INVD-03**: System auto-deducts confirmed quantities from cold inventory after confirmation
+- [x] **INVD-04**: Customer debt balance updates automatically after delivery confirmation
+- [x] **INVD-05**: Owner can view daily debt report showing all outstanding customer balances
+- [x] **INVD-06**: System tracks shell/bag deposits owed by each customer separately
+- [x] **INVD-07**: Owner can see which customers owe deposits and how much
 
 ### Configuration
 
@@ -107,13 +107,13 @@ Explicitly excluded. Documented to prevent scope creep.
 | DLVR-06 | Phase 3 | Complete |
 | DLVR-07 | Phase 3 | Complete |
 | DLVR-08 | Phase 3 | Complete |
-| INVD-01 | Phase 5 | Pending |
-| INVD-02 | Phase 5 | Pending |
-| INVD-03 | Phase 5 | Pending |
-| INVD-04 | Phase 5 | Pending |
-| INVD-05 | Phase 5 | Pending |
-| INVD-06 | Phase 5 | Pending |
-| INVD-07 | Phase 5 | Pending |
+| INVD-01 | Phase 5 | Complete |
+| INVD-02 | Phase 5 | Complete |
+| INVD-03 | Phase 5 | Complete |
+| INVD-04 | Phase 5 | Complete |
+| INVD-05 | Phase 5 | Complete |
+| INVD-06 | Phase 5 | Complete |
+| INVD-07 | Phase 5 | Complete |
 
 **Coverage:**
 - v1 requirements: 20 total
