@@ -83,7 +83,7 @@ Plans:
   5. Owner can view daily debt report showing all outstanding balances
   6. System tracks shell/bag deposits owed by each customer separately
   7. Owner can see which customers owe deposits and how much
-**Plans**: 2 plans
+**Plans**: 4 plans
 
 Plans:
 - [x] 04-01: Delivery confirmation workflow (slip return → quantity confirm)
@@ -99,17 +99,7 @@ Plans:
 | 2. Delivery Slips | 2/2 | ✅ Complete | 2026-04-16 |
 | 3. Driver Delivery View | 2/2 | ✅ Complete | 2026-04-16 |
 | 4. Status Enum Fixes & API Hardening | 0/0 | Not started | - |
-| 5. Reconciliation & Reporting | 2/4 | In Progress|  |
-
-### Phase 5: payment-integration
-
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 4
-**Plans:** 2/4 plans executed
-
-Plans:
-- [ ] TBD (run /gsd-plan-phase 5 to break down)
+| 5. Reconciliation & Reporting | 1/4 | In Progress | - |
 
 ### Phase 6: Trial, Pricing & Onboarding
 **Goal**: Convert ice factory owners from pen-and-paper to IceFlow SaaS through frictionless 14-day trial + clear, flexible pricing
@@ -123,12 +113,19 @@ Plans:
   5. Owner can upgrade to paid plan with per-driver pricing (1 admin + N driver accounts)
   6. Owner can cancel anytime — "use month-to-month, pay for what you use"
   7. If owner cancels, system exports all customer data and debt balances to Excel
-  8. Payment via bank transfer or MoMo/ZaloPay (common in Vietnam)
+  8. Payment via bank transfer or VietQR (common in Vietnam)
   9. Trial expiration warning appears 3 days before end date with support contact
-**Plans**: 2 plans
+**Plans**: 5 plans
 
 Plans:
-- [ ] 06-01: Free trial flow (no credit card, phone signup, 14-day full access)
-- [ ] 06-02: Onboarding wizard (import customers + price lists from existing data)
-- [ ] 06-03: Per-driver pricing model UI + upgrade flow in dashboard
-- [ ] 06-04: Trial countdown banner + expiration warning + cancel/export data flow
+- [ ] 06-01a: Backend foundation (Subscription model, atomic register API, subscription helpers)
+- [ ] 06-01b: Frontend UI (register page reorder, trial banner, warning modal, middleware extension)
+- [ ] 06-02: Pricing dashboard + VietQR + payment recording + onboarding wizard + customer import API
+- [ ] 06-03: Cancel flow + two-sheet Excel export + grace period enforcement + subscription update API
+- [ ] 06-04: Integration (AppShell, /api/auth/me, auth provider subscription, login warning modal, dashboard onboarding prompt)
+
+**Wave Structure:**
+- Wave 1: 06-01a (backend schema + API, parallel)
+- Wave 2: 06-01b (frontend components, depends on 06-01a prisma push)
+- Wave 3: 06-02, 06-03 (both depend on 06-01b, parallel)
+- Wave 4: 06-04 (depends on 06-01b and 06-03)

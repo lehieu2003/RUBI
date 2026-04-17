@@ -346,31 +346,31 @@ export async function middleware(request: NextRequest) {
 
 > All claims in this research were verified or cited. No assumptions require user confirmation.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Factory vs User identity for Subscription**
    - What we know: D-02 says Subscription links to factory/account with `factoryId`. The ADMIN User represents the factory.
-   - What's unclear: Should `factoryId` reference the ADMIN User directly, or should there be a separate `Factory` model?
-   - Recommendation: Use ADMIN User.id as factoryId for v1 simplicity. If multi-factory support needed later, introduce Factory model.
+   - Resolution: Use ADMIN User.id as factoryId for v1 simplicity. If multi-factory support needed later, introduce Factory model.
+   - Implementation: Subscription.factoryId = User.id (where User.role = ADMIN)
 
 2. **Driver count tracking**
    - What we know: D-08 counts drivers with `isActive: true` in Driver table. D-09 says admin free.
-   - What's unclear: Is there a "factory-level" driver count, or does driverCount on Subscription get manually set?
-   - Recommendation: Driver.count (active) computed on-demand when generating invoices, not stored. Subscription.driverCount stores the count at last billing period.
+   - Resolution: Driver.count (active) computed on-demand when generating invoices. Subscription.driverCount stores the count at last billing period as informational field.
+   - Implementation: Count `Driver.count({ where: { factoryId, isActive: true } })` at runtime for billing display.
 
 3. **Cancellation grace period enforcement**
    - What we know: D-15 says 7-day read-only grace period, then locked. "Locked" means what?
-   - What's unclear: Is "locked" a login-block (401 redirect to contact support), or just all writes blocked?
-   - Recommendation: Block writes but allow login for data export. After 30 days, hard-delete or anonymize.
+   - Resolution: Block writes but allow login for data export. After 30 days, account is fully locked (login blocked).
+   - Implementation: During grace period (CANCELLED status, endDate in future) — allow GET, block writes with code 'GRACE_PERIOD_READ_ONLY'. After grace period (endDate passed) — block all access with code 'ACCOUNT_LOCKED'.
 
 ## Environment Availability
 
 | Dependency | Required By | Available | Version | Fallback |
 |------------|------------|-----------|---------|----------|
-| PostgreSQL | Data layer | ✓ | (via Prisma) | — |
-| Node.js | Runtime | ✓ | (via Next.js) | — |
-| `xlsx` npm | Excel export | ✗ (not installed) | — | Install via `npm install xlsx` |
-| `papaparse` npm | CSV import | ✗ (not installed) | — | Install via `npm install papaparse` |
+| PostgreSQL | Data layer | Yes | (via Prisma) | — |
+| Node.js | Runtime | Yes | (via Next.js) | — |
+| `xlsx` npm | Excel export | No (not installed) | — | Install via `npm install xlsx` |
+| `papaparse` npm | CSV import | No (not installed) | — | Install via `npm install papaparse` |
 
 **Missing dependencies with no fallback:**
 - None — both missing packages are standard npm installs
@@ -423,7 +423,7 @@ export async function middleware(request: NextRequest) {
 ### Applicable ASVS Categories
 
 | ASVS Category | Applies | Standard Control |
-|---------------|---------|-----------------|
+|---------------|---------|------------------|
 | V2 Authentication | yes | JWT via `jose`, 7-day expiry, httpOnly cookie |
 | V3 Session Management | yes | httpOnly secure cookie, server-side session validation |
 | V4 Access Control | yes | Middleware role checks, subscription status checks |
@@ -438,6 +438,13 @@ export async function middleware(request: NextRequest) {
 | Cancel subscription then continue writing | Tampering | Middleware blocks writes for CANCELLED/EXPIRED status |
 | Excel export of another factory's data | Information Disclosure | Subscription scoped query — factory can only export own data |
 | CSV import injection | Tampering | Zod validation + parameterized inserts, never interpolated SQL |
+
+### Read-Only Enforcement Note
+**D-04 implementation:** This codebase uses Next.js API Routes exclusively (no Server Actions). Read-only enforcement is implemented via:
+1. Middleware layer: blocks POST/PATCH/DELETE on `/api/*` routes when subscription is inactive
+2. Per-route validation: write-capable API routes (orders, customers, drivers, etc.) additionally check subscription status at handler entry as defense-in-depth
+
+This dual-layer approach ensures read-only enforcement even if middleware is bypassed or for routes added after Phase 6.
 
 ## Sources
 
