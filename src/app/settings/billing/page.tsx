@@ -3,6 +3,7 @@
 import { PricingDisplay } from '@/components/billing/PricingDisplay';
 import { VietQRCode } from '@/components/billing/VietQRCode';
 import { PaymentRecorder } from '@/components/billing/PaymentRecorder';
+import { CancelSubscriptionFlow } from '@/components/billing/CancelSubscriptionFlow';
 import { useEffect, useState } from 'react';
 import type { Subscription } from '@prisma/client';
 
@@ -81,6 +82,16 @@ export default function BillingPage() {
               .catch(() => {});
           }}
         />
+      )}
+
+      {/* Cancel Subscription */}
+      {subscription && subscription.status === 'ACTIVE' && (
+        <div className="border-t pt-4 mt-4">
+          <CancelSubscriptionFlow
+            subscription={subscription}
+            factoryId={subscription.factoryId}
+          />
+        </div>
       )}
     </div>
   );
