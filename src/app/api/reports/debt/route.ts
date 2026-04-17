@@ -42,10 +42,11 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Sort by outstanding debt descending (highest debt first)
-    debtReport.sort((a, b) => b.outstandingDebt - a.outstandingDebt);
+    // Sort by outstanding debt descending (highest debt first), hide zero-balance
+    const filtered = debtReport.filter(d => d.outstandingDebt > 0);
+    filtered.sort((a, b) => b.outstandingDebt - a.outstandingDebt);
 
-    return NextResponse.json(debtReport);
+    return NextResponse.json(filtered);
   } catch (error) {
     console.error('[GET /api/reports/debt]', error);
     return NextResponse.json({ error: 'Failed to fetch debt report' }, { status: 500 });
