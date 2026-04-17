@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getSession } from '@/lib/auth';
 
 // GET /api/orders - List orders with filters (D-06)
 // Supports: customerId, status, date
 export async function GET(request: NextRequest) {
   try {
+    // --- Session auth ---
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (session.role !== 'ACCOUNTANT' && session.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url);
     const customerId = searchParams.get('customerId');
     const status = searchParams.get('status');
