@@ -112,4 +112,4 @@ Web-based order and inventory management system for ice factories. Replaces pen-
 
 ---
 
-*Last updated: 2026-04-16 after RBAC implementation*
+*Last updated: 2026-04-17 after Phase 06 complete (trial-pricing-onboarding)*
