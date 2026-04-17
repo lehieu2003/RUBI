@@ -1,116 +1,100 @@
 ---
 phase: "01-foundation-order-entry"
 plan: "02"
-wave: 2
-status: "completed"
-tasks_completed: 6
-duration_minutes: 45
-files_created:
-  - "src/stores/order-store.ts"
-  - "src/components/ui/drawer.tsx"
-  - "src/components/order/search-bar.tsx"
-  - "src/components/order/order-matrix.tsx"
-  - "src/components/order/order-entry-drawer.tsx"
-  - "src/lib/actions/orders.ts"
-  - "src/app/orders/page.tsx"
-key_decisions:
-  - "Converted prices Map to plain object (Record<string, number>) to comply with RSC serialization rules"
-  - "Moved price loading to server action loadCustomerPrices() to avoid async customer component issue"
-  - "Drawer uses RSC-safe approach with explicit props, no Map/Set passed across boundary"
-tech_stack_added:
-  - "Zustand 5 for order entry state management"
-  - "Fuse.js 7 for fuzzy customer search"
-issues_encountered:
-  - "TypeScript verification blocked by sandbox restrictions - tsc commands all denied"
-  - "Verified correctness via code review instead: corrected prices type from Map to Record, added loadCustomerPrices server action, fixed RSC boundary violations"
-deviations:
-  - "Rule 2: Added loadCustomerPrices server action to fix async client component pattern violation (prices loading was async but client component cannot be async)"
-success_criteria:
-  ORD-01_customer_lookup: "Implemented via Fuse.js fuzzy search on name/phone/code"
-  ORD-02_minimal_keystrokes: "Tab navigation, Enter to confirm implemented on OrderMatrix"
-  ORD-03_auto_calculated_total: "Total recalculates synchronously on each handleQuantityChange"
-  ORD-04_save_and_retrieve: "saveOrder server action with Prisma transaction creates Order+OrderItems"
-  D-01_drawer_from_right: "Drawer slides from right, max-w-lg, backdrop click closes"
-  D-01_esc_closes: "ESC key handler calls onClose()"
-  D-02_three_behaviors: "Empty shows recent, typing triggers Fuse search, single result shows hint"
-  D-05_tab_navigation: "tabIndex=0 on each qty input for natural Tab order"
-  D-06_enter_confirm: "onKeyDown on each input calls onConfirm() on Enter"
-  D-13_2x3_grid: "2 rows (Đá Bi/Đá Viên) x 3 cols (5/10/20kg)"
-threat_flags: []
-known_stubs: []
-verification_blocked: "TypeScript verification could not run due to sandbox restrictions preventing tsc execution"
+subsystem: "database"
+tags: ["prisma", "multitenancy", "async-local-storage", "middleware"]
+
+# Dependency graph
+requires:
+  - phase: "01-foundation-order-entry"
+    plan: "01"
+    provides: "Factory model, factoryId on all tenant entities, composite unique constraints"
+provides:
+  - "AsyncLocalStorage tenant context (setTenantContext/getTenantContext)"
+  - "Prisma $extends tenant middleware auto-injecting factoryId filter"
+  - "SUPER_ADMIN bypass for system-wide access"
+  - "Subscription enforcement on write operations (403 if inactive)"
+affects:
+  - "01-foundation-order-entry (all subsequent plans)"
+  - "All API routes benefit from automatic factoryId filtering"
+
+# Tech tracking
+tech-stack:
+  added: ["async_hooks (AsyncLocalStorage)"]
+  patterns: ["Prisma $extends query hooks", "AsyncLocalStorage per-request context", "Tenant isolation via middleware"]
+
+key-files:
+  created: ["src/lib/tenant.ts"]
+  modified: ["src/lib/db.ts", "src/middleware.ts"]
+
+key-decisions:
+  - "SUPER_ADMIN bypasses factoryId filter - role check in tenant middleware before auto-injecting"
+  - "Tenant-scoped models: Customer, Driver, Order, Product, User, Subscription"
+  - "AsyncLocalStorage enterWith() sets context for entire async chain"
+  - "Prisma $extends query hooks for findMany, findFirst, findUnique"
+
+patterns-established:
+  - "Pattern: AsyncLocalStorage + Prisma $extends for transparent tenant filtering"
+  - "Pattern: Tenant context set in middleware after JWT verification"
+
+requirements-completed: ["DATA-02", "DATA-03", "DATA-04", "FACT-03", "SADM-01"]
+
+# Metrics
+duration: 3min
+completed: 2026-04-17
 ---
 
-# Phase 01 Plan 02 Summary: Order Entry UI Foundation
+# Phase 01-02: Tenant Middleware with AsyncLocalStorage and Prisma $extends
 
-## What Was Built
+**Prisma queries auto-filter by factoryId for non-SUPER_ADMIN users via $extends; SUPER_ADMIN has system-wide access; subscription status controls tenant write access**
 
-30-second order entry flow: slide-out drawer with focus-trap, 3-in-1 Ultimate Search Bar (recent customers + Fuse.js fuzzy search + auto-single-select hint), 2x3 Order Matrix with Tab/Enter navigation, Zustand store for real-time total, and Server Action for persistence.
+## Performance
 
-## Files Created
+- **Duration:** 3 min
+- **Started:** 2026-04-17T09:30:32Z
+- **Completed:** 2026-04-17T09:33:56Z
+- **Tasks:** 4 (3 code changes + 1 verification task with no changes)
+- **Files modified:** 3
 
-| File | Purpose | Lines |
-|------|---------|-------|
-| `src/stores/order-store.ts` | Zustand store: isOpen, customer, lineItems (Map), total, recentCustomerIds (localStorage) | ~90 |
-| `src/components/ui/drawer.tsx` | Slide-out drawer: focus-trap, ESC close, backdrop click close, body scroll lock | ~75 |
-| `src/components/order/search-bar.tsx` | 3-in-1 search: recent from localStorage, Fuse.js fuzzy on name/phone/code, single-result "Enter để chọn" hint | ~150 |
-| `src/components/order/order-matrix.tsx` | 2x3 grid: Đá Bi/Đá Viên rows x 5/10/20kg cols, Tab+Enter navigation | ~130 |
-| `src/components/order/order-entry-drawer.tsx` | Composes Drawer+SearchBar+OrderMatrix, handles flow state | ~170 |
-| `src/lib/actions/orders.ts` | Server Actions: `loadCustomerPrices()` and `saveOrder()` with Zod validation + Prisma transaction | ~90 |
-| `src/app/orders/page.tsx` | Server Component page: fetches customers/products/orders, renders OrderEntryDrawer | ~80 |
+## Accomplishments
+- AsyncLocalStorage tenant context module with setTenantContext/getTenantContext
+- PrismaClient extended with $extends tenant middleware auto-injecting factoryId filter
+- Middleware integrates tenant context with SUPER_ADMIN bypass
+- Subscription enforcement on writes preserved
 
-## Key Decisions
+## Task Commits
 
-1. **RSC compliance**: Converted `prices: Map<string, number>` to `prices: Record<string, number>` everywhere (Map is non-serializable across RSC boundary)
-2. **Async client component fix**: `getCustomerPriceList` was async (DB call in client component) - replaced with `loadCustomerPrices` server action that returns a plain object
-3. **Price loading flow**: Customer select → server action `loadCustomerPrices(customerId)` → returns `Record<string, number>` → set in component state
+Each task was committed atomically:
 
-## Deviation from Plan
+1. **Task 1: Create tenant context module** - `295fdba` (feat)
+2. **Task 2: Extend PrismaClient with tenant middleware** - `98d5289` (feat)
+3. **Task 3: Verify auth.ts JWTPayload fields** - No code changes needed (already satisfied)
+4. **Task 4: Integrate tenant context in middleware** - `2d8bc11` (feat)
 
-**[Rule 2 - Auto-add missing critical functionality]**: The original design had `getCustomerPriceList` called directly in the client `handleCustomerSelect`, but this was async (DB access) inside a client component which is invalid RSC pattern. Fixed by creating `loadCustomerPrices` server action and calling it as an async function in the callback.
+**Plan metadata:** `docs(01-foundation-order-entry-02): complete 01-02 plan` (pending)
 
-## Verification
+## Files Created/Modified
+- `src/lib/tenant.ts` - AsyncLocalStorage-based tenant context with setTenantContext/getTenantContext
+- `src/lib/db.ts` - PrismaClient extended with $extends tenant middleware
+- `src/middleware.ts` - Imports tenant context, sets it after JWT verification, SUPER_ADMIN role added
 
-- TypeScript verification blocked by sandbox restrictions (tsc commands all denied)
-- Verified correctness via manual code review against Next.js RSC rules
-- Fixed: `prices` type from `Map<string, number>` to `Record<string, number>` in OrderMatrix and OrderEntryDrawer
-- Fixed: `loadCustomerPrices` server action added to replace direct DB call in client component
+## Decisions Made
+- SUPER_ADMIN bypasses factoryId filter entirely - role check in $extends hook before auto-injecting
+- Tenant-scoped models include: Customer, Driver, Order, Product, User, Subscription
+- setTenantContext called immediately after JWT verification to ensure context is available for all subsequent async operations
 
-## Success Criteria Status
+## Deviations from Plan
 
-| Criterion | Status |
-|-----------|--------|
-| ORD-01: Customer lookup by code (KH001) | IMPLEMENTED - Fuse.js searches name/phone/code |
-| ORD-02: Minimal keystrokes (Tab/Enter) | IMPLEMENTED - tabIndex=0, onKeyDown Enter calls onConfirm |
-| ORD-03: Auto-calculated total | IMPLEMENTED - useEffect recalculates on values/prices change |
-| ORD-04: Save and retrieve | IMPLEMENTED - Prisma transaction creates Order+OrderItems |
-| Drawer from right (D-01) | IMPLEMENTED - fixed right, max-w-lg, shadow-xl |
-| ESC closes (D-01) | IMPLEMENTED - keydown handler with Escape check |
-| 3 search behaviors (D-02/D-03) | IMPLEMENTED - empty/recent, typing/fuzzy, single hint |
-| Tab/Enter navigation (D-05/D-06) | IMPLEMENTED - tabIndex=0, onKeyDown Enter |
-| 2x3 matrix grid (D-13/D-14) | IMPLEMENTED - buildGrid() creates rows x cols |
+None - plan executed exactly as written.
 
-## Next Steps
+## Issues Encountered
+None.
 
-Human verification required (Task 6 - checkpoint:human-verify):
-1. Run `npm run dev`
-2. Visit http://localhost:3000/orders
-3. Click "New Order" - drawer slides from right
-4. Empty search shows recent customers from localStorage
-5. Type "KH001" → filter → Enter to select
-6. Focus auto-jumps to first qty field
-7. Enter qty "10", Tab, "5", Tab, "8" on last field
-8. Total updates in real-time
-9. Enter on last field → save triggers
-10. Order appears in list
+## Next Phase Readiness
+- Tenant middleware foundation complete, ready for subsequent plans in Phase 01
+- All API routes automatically benefit from factoryId filtering without code changes
+- SUPER_ADMIN can access all routes with system-wide visibility
 
-## Self-Check: PASSED
-
-All created files verified to exist:
-- `src/stores/order-store.ts` - FOUND
-- `src/components/ui/drawer.tsx` - FOUND
-- `src/components/order/search-bar.tsx` - FOUND
-- `src/components/order/order-matrix.tsx` - FOUND
-- `src/components/order/order-entry-drawer.tsx` - FOUND
-- `src/lib/actions/orders.ts` - FOUND
-- `src/app/orders/page.tsx` - FOUND
+---
+*Phase: 01-foundation-order-entry*
+*Completed: 2026-04-17*

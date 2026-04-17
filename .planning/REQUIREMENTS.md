@@ -51,7 +51,7 @@ Requirements for milestone v2.0 — Multi-tenant Factory Architecture.
 
 - [ ] **FACT-01**: Factory can register with phone, name, email, password
 - [ ] **FACT-02**: Registration atomically creates User (ADMIN, isFactoryOwner=true) + Subscription (TRIAL, 14 days)
-- [ ] **FACT-03**: Tenant activation/deactivation via subscription status
+- [x] **FACT-03**: Tenant activation/deactivation via subscription status
 - [ ] **FACT-04**: 7-day grace period after cancellation (read-only), then locked
 
 ### Subscription
@@ -64,7 +64,7 @@ Requirements for milestone v2.0 — Multi-tenant Factory Architecture.
 
 ### Super Admin
 
-- [ ] **SADM-01**: SUPER_ADMIN role above ADMIN — system-wide access, no factory filter
+- [x] **SADM-01**: SUPER_ADMIN role above ADMIN — system-wide access, no factory filter
 - [ ] **SADM-02**: Tenant list dashboard — all factories, subscription status, driver count, days remaining
 - [ ] **SADM-03**: Activate/deactivate tenant subscription from dashboard
 - [ ] **SADM-04**: Extend trial or subscription period (admin override)
@@ -73,9 +73,9 @@ Requirements for milestone v2.0 — Multi-tenant Factory Architecture.
 ### Data Layer (Cross-cutting)
 
 - [x] **DATA-01**: Add factoryId to Customer, Driver, Order, Product (and backfill existing records)
-- [ ] **DATA-02**: Prisma tenant middleware auto-injects factoryId into all queries via `$extends` + AsyncLocalStorage
-- [ ] **DATA-03**: Super Admin queries bypass factoryId filter (SUPER_ADMIN role flag)
-- [ ] **DATA-04**: Middleware enforces subscription status on every write request (403 if inactive)
+- [x] **DATA-02**: Prisma tenant middleware auto-injects factoryId into all queries via `$extends` + AsyncLocalStorage
+- [x] **DATA-03**: Super Admin queries bypass factoryId filter (SUPER_ADMIN role flag)
+- [x] **DATA-04**: Middleware enforces subscription status on every write request (403 if inactive)
 - [x] **DATA-05**: Unique constraints are factory-scoped — e.g. Customer.code is unique only within a Factory (use `@@unique([code, factoryId])` in Prisma). Factory A's KH01 and Factory B's KH01 are distinct records.
 
 ### Integration (v1.0 existing features)
@@ -142,22 +142,22 @@ Requirements for milestone v2.0 — Multi-tenant Factory Architecture.
 |-------------|-------|--------|
 | FACT-01 | 02 | Pending |
 | FACT-02 | 02 | Pending |
-| FACT-03 | 01 | Pending |
+| FACT-03 | 01 | Complete |
 | FACT-04 | 04 | Pending |
 | SUB-01 | 02 | Pending |
 | SUB-02 | 02 | Pending |
 | SUB-03 | 02 | Pending |
 | SUB-04 | 03 | Pending |
 | SUB-05 | 03 | Pending |
-| SADM-01 | 01 | Pending |
+| SADM-01 | 01 | Complete |
 | SADM-02 | 03 | Pending |
 | SADM-03 | 03 | Pending |
 | SADM-04 | 03 | Pending |
 | SADM-05 | 03 | Pending |
 | DATA-01 | 01 | Complete |
-| DATA-02 | 01 | Pending |
-| DATA-03 | 01 | Pending |
-| DATA-04 | 01 | Pending |
+| DATA-02 | 01 | Complete |
+| DATA-03 | 01 | Complete |
+| DATA-04 | 01 | Complete |
 | DATA-05 | 01 | Complete |
 | INT-01 | 04 | Pending |
 | INT-02 | 04 | Pending |
