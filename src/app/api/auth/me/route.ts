@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { getFactorySubscription, getDaysRemaining } from '@/lib/subscription-status';
 
 export async function GET() {
   const session = await getSession();
 
   if (!session) {
-    return NextResponse.json({ user: null }, { status: 401 });
+    return NextResponse.json({ user: null, subscription: null }, { status: 401 });
   }
 
   const user = await prisma.user.findUnique({
@@ -15,8 +16,32 @@ export async function GET() {
   });
 
   if (!user) {
-    return NextResponse.json({ user: null }, { status: 401 });
+    return NextResponse.json({ user: null, subscription: null }, { status: 401 });
   }
 
-  return NextResponse.json({ user });
+  // Get subscription status for this factory
+  const subscription = session.factoryId
+    ? await getFactorySubscription(session.factoryId)
+    : null;
+
+  const daysRemaining = getDaysRemaining(subscription);
+
+  return NextResponse.json({
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      factoryId: session.factoryId,
+    },
+    subscription: subscription ? {
+      id: subscription.id,
+      planType: subscription.planType,
+      status: subscription.status,
+      startDate: subscription.startDate.toISOString(),
+      endDate: subscription.endDate.toISOString(),
+      driverCount: subscription.driverCount,
+      daysRemaining,
+    } : null,
+  });
 }
