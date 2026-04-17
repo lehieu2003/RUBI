@@ -45,6 +45,7 @@ model Product {
   globalPrices          GlobalPrice[]
   customerPriceOverrides CustomerPriceOverride[]
   orderItems            OrderItem[]
+  inventory             Inventory[]
 
   @@map("products")
 }
@@ -62,6 +63,8 @@ model Customer {
 
   customerPriceOverrides CustomerPriceOverride[]
   orders                 Order[]
+  debtLedger             CustomerDebtLedger[]
+  shellDeposit           CustomerShellDeposit?
 
   @@map("customers")
 }
@@ -144,6 +147,11 @@ enum OrderStatus {
   CANCELLED    // Đã hủy — Red
 }
 
+enum LedgerType {
+  DEBT    // Delivery - adds to what customer owes (positive amount stored)
+  PAYMENT // Payment - reduces what customer owes (positive amount stored)
+}
+
 // OrderItem - Line items for each order
 model OrderItem {
   id        String  @id @default(cuid())
@@ -152,9 +160,52 @@ model OrderItem {
   quantity  Int
   unitPrice Decimal @db.Decimal(10, 2) @map("unit_price")
   lineTotal Decimal @db.Decimal(10, 2) @map("line_total")
+  actualQty Int?    @map("actual_qty") // Confirmed delivered quantity (null = not yet reconciled)
 
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])
 
   @@map("order_items")
+}
+
+// CustomerDebtLedger - Append-only debt ledger per D-03, D-04, D-05
+model CustomerDebtLedger {
+  id         String      @id @default(cuid())
+  customerId String      @map("customer_id")
+  type       LedgerType
+  amount     Decimal     @db.Decimal(10, 2)
+  notes      String?
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@map("customer_debt_ledger")
+}
+
+// CustomerShellDeposit - Shell/bag deposit tracking per D-08, D-09
+model CustomerShellDeposit {
+  id              String   @id @default(cuid())
+  customerId      String   @unique @map("customer_id")
+  shellsOut       Int      @default(0)  // Positive = customer owes factory shells
+  shellsIn        Int      @default(0)  // Positive = factory owes customer shells
+  depositPerShell Decimal  @db.Decimal(10, 2) @default(50000) @map("deposit_per_shell")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@map("customer_shell_deposits")
+}
+
+// Inventory - Daily on-hand inventory per D-18
+model Inventory {
+  id            String   @id @default(cuid())
+  productId     String   @map("product_id")
+  date          DateTime @default(now()) @map("date")
+  quantityOnHand Int     @default(0) @map("quantity_on_hand")
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([productId, date])
+  @@map("inventory")
 }
