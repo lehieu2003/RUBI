@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       email: user.email,
       name: user.name,
       role: user.role,
-      factoryId: user.factoryId,
+      factoryId: (user as { factoryId?: string }).factoryId ?? undefined,
     });
 
     // Set cookie
