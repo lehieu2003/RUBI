@@ -1,131 +1,133 @@
-# Roadmap: IceFlow SaaS
+# Roadmap: v2.0 Multi-tenant Factory Architecture
+
+**Milestone:** v2.0
+**Created:** 2026-04-17
+**Phase numbering:** Starts at 01 (fresh reset)
+
+---
 
 ## Overview
 
-IceFlow SaaS replaces pen-and-paper/Zalo workflows for ice factories with fast digital order entry, printed delivery slips, driver web-view, and automated inventory/debt tracking. The system must be faster than writing by hand (30-second order entry) to earn staff adoption.
+v2.0 transforms IceFlow SaaS from a single-tenant system into a multi-tenant architecture where each ice factory is a completely isolated tenant. All data is scoped via `factoryId` on every entity. A Super Admin dashboard provides system-wide oversight and subscription management.
 
-## Phases
+**24 requirements** across 5 categories map to **4 phases**.
 
-- [x] **Phase 1: Foundation & Order Entry** - Fast order entry UI with customer/product data and per-customer pricing ✅
-- [x] **Phase 2: Delivery Slips** - Printed A5/thermal slips with customer signature line ✅
-- [x] **Phase 3: Driver Delivery View** - Mobile web-view for drivers to see daily delivery list ✅ (completed 2026-04-16)
-- [ ] **Phase 4: Status Enum Fixes & API Hardening** - Fix status enum mismatches, add confirm endpoint token validation
-- [ ] **Phase 5: Reconciliation & Reporting** - Accountant confirmation, auto-deduct inventory, debt tracking, and owner reports
+---
 
-## Phase Details
+## Phase 01: Foundation — Data Layer + Factory Model + Super Admin Role
 
-### Phase 1: Foundation & Order Entry
-**Goal**: Office staff can enter wholesale orders faster than writing by hand, with each customer having their own negotiated price list
-**Depends on**: Nothing (first phase)
-**Requirements**: REQ-01, REQ-07
-**Success Criteria** (what must be TRUE):
-  1. Office staff can look up customer by code and see their name instantly
-  2. Office staff can add products to an order with quantity using minimal keystrokes
-  3. Order total calculates automatically using customer-specific prices
-  4. Office staff can save and retrieve orders by customer or date
-  5. Products and customer price lists can be configured in the system
-**Plans**: 3 plans
+**Goal:** Build the cross-cutting data layer that enables multi-tenancy, introduce the Factory model, and add the SUPER_ADMIN role. All subsequent phases depend on this.
 
-Plans:
-- [x] 01-01: Customer and product data models with seed data ✅
-- [x] 01-02: Fast order entry UI (30-second target) ✅
-- [x] 01-03: Per-customer price list management ✅
+**Requirements:**
 
-### Phase 2: Delivery Slips
-**Goal**: Printed delivery slips (A5 or thermal) with customer signature line for drivers to collect
-**Depends on**: Phase 1
-**Requirements**: REQ-02
-**Success Criteria** (what must be TRUE):
-  1. Office staff can print a delivery slip from an order with one click
-  2. Printed slip shows customer name, products, quantities, and total
-  3. Printed slip includes a signature line for customer acknowledgment
-  4. Slip prints correctly on A5 paper and thermal printers
-**Plans**: 2 plans
+| ID | Requirement |
+|----|-------------|
+| DATA-01 | Add factoryId to Customer, Driver, Order, Product (and backfill existing records) |
+| DATA-02 | Prisma tenant middleware auto-injects factoryId into all queries via `$extends` + AsyncLocalStorage |
+| DATA-03 | Super Admin queries bypass factoryId filter (SUPER_ADMIN role flag) |
+| DATA-04 | Middleware enforces subscription status on every write request (403 if inactive) |
+| DATA-05 | Unique constraints are factory-scoped — e.g. Customer.code is unique only within a Factory (use `@@unique([code, factoryId])` in Prisma) |
+| FACT-03 | Tenant activation/deactivation via subscription status |
+| SADM-01 | SUPER_ADMIN role above ADMIN — system-wide access, no factory filter |
 
-Plans:
-- [x] 02-01: Delivery slip print template and print integration
-- [x] 02-02: Print button on order detail view
+**Dependencies:** None (first phase)
 
-### Phase 3: Driver Delivery View
-**Goal**: Drivers can view their daily delivery list on phone via web-view (no app install required)
-**Depends on**: Phase 2
-**Requirements**: REQ-03
-**Success Criteria** (what must be TRUE):
-  1. Driver can open a URL on their phone and see today's deliveries
-  2. Driver sees customer name, address, products, and quantities for each delivery
-  3. Delivery list updates as new orders are added (daily refresh)
-  4. Interface is dead simple — suitable for drivers with minimal tech literacy
-**Plans**: 2 plans
+**Success Criteria:**
+1. All four models (Customer, Driver, Order, Product) have `factoryId` field; existing records backfilled to a default factory
+2. Every Prisma query passes through tenant middleware that auto-injects `factoryId` filter for non-SUPER_ADMIN users
+3. SUPER_ADMIN role bypasses factoryId filtering and can query across all factories
+4. Write requests to inactive tenants return HTTP 403; TRIAL and cancelled PAID subscriptions are flagged inactive
+5. `@@unique([code, factoryId])` constraints applied to Customer.code and Driver.phone; composite uniqueness enforced by Prisma
 
-Plans:
-- [x] 03-01: Database schema (Driver model, Order.driverId, Order.deliveryGps) + API routes (driver auth, orders fetch, GPS confirm, bulk-assign, admin map data)
-- [x] 03-02: Driver web-view UI (token page, DeliveryCard, EmptyState, DriverMap)
+---
 
-### Phase 4: Status Enum Fixes & API Hardening
-**Goal**: Fix status enum mismatches in API and components; add driver token validation to confirm endpoint
-**Depends on**: Phase 3
-**Gaps Closed**: Closes gaps from v1.0 milestone audit
-**Success Criteria** (what must be TRUE):
-  1. GET /api/orders status filter uses correct enum values (PENDING/SHIPPING/DELIVERED/COMPLETED/CANCELLED)
-  2. recent-orders.tsx uses correct status types matching Prisma schema
-  3. PATCH /api/orders/[id]/confirm validates driver token before confirming delivery
-  4. Phase 1 has VERIFICATION.md documenting requirements coverage
+## Phase 02: Factory Registration + Subscription Core
 
-### Phase 5: Reconciliation & Reporting
-**Goal**: Accountant confirms delivered quantities, system auto-deducts inventory and updates customer debt; owner sees daily debt report
-**Depends on**: Phase 3
-**Requirements**: INVD-01, INVD-02, INVD-03, INVD-04, INVD-05, INVD-06, INVD-07
-**Success Criteria** (what must be TRUE):
-  1. Accountant can view a list of delivered slips returned by drivers at day end
-  2. Accountant can enter actual delivered quantity for each line item
-  3. System auto-deducts confirmed quantities from inventory records
-  4. Customer debt balance updates automatically after confirmation (quantity × price)
-  5. Owner can view daily debt report showing all outstanding balances
-  6. System tracks shell/bag deposits owed by each customer separately
-  7. Owner can see which customers owe deposits and how much
-**Plans**: 4 plans
+**Goal:** Enable new factories to self-register with a trial subscription; block write operations when subscription is inactive or expired.
 
-Plans:
-- [x] 04-01: Delivery confirmation workflow (slip return → quantity confirm)
-- [ ] 04-02: Inventory deduction and debt update logic
-- [ ] 04-03: Daily debt report for owner
-- [ ] 04-04: Shell/bag deposit tracking per customer
+**Requirements:**
 
-## Progress
+| ID | Requirement |
+|----|-------------|
+| FACT-01 | Factory can register with phone, name, email, password |
+| FACT-02 | Registration atomically creates User (ADMIN, isFactoryOwner=true) + Subscription (TRIAL, 14 days) |
+| SUB-01 | Trial subscription auto-created on factory registration (14 days) |
+| SUB-02 | Subscription enforcement — write operations blocked when TRIAL expired or PAID cancelled |
+| SUB-03 | Per-driver pricing — 1 admin free, paid per driver per month |
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Foundation & Order Entry | 3/3 | ✅ Complete | 2026-04-15 |
-| 2. Delivery Slips | 2/2 | ✅ Complete | 2026-04-16 |
-| 3. Driver Delivery View | 2/2 | ✅ Complete | 2026-04-16 |
-| 4. Status Enum Fixes & API Hardening | 0/0 | Not started | - |
-| 5. Reconciliation & Reporting | 1/4 | In Progress | - |
+**Dependencies:** Phase 01 complete (DATA-01, DATA-02, DATA-04, FACT-03 required)
 
-### Phase 6: Trial, Pricing & Onboarding
-**Goal**: Convert ice factory owners from pen-and-paper to IceFlow SaaS through frictionless 14-day trial + clear, flexible pricing
-**Depends on**: Phase 5 (payment-integration)
-**Requirements**: REQ-10 (trial), REQ-11 (pricing), REQ-12 (onboarding)
-**Success Criteria** (what must be TRUE):
-  1. Owner can start free trial with just phone number + factory name — no credit card required
-  2. Owner gets full access to all v1 features during trial (order entry, print slips, debt tracking, inventory)
-  3. System helps owner import existing customer list and price lists during onboarding
-  4. Dashboard shows trial countdown (12 days left) with upgrade CTA before trial expires
-  5. Owner can upgrade to paid plan with per-driver pricing (1 admin + N driver accounts)
-  6. Owner can cancel anytime — "use month-to-month, pay for what you use"
-  7. If owner cancels, system exports all customer data and debt balances to Excel
-  8. Payment via bank transfer or VietQR (common in Vietnam)
-  9. Trial expiration warning appears 3 days before end date with support contact
-**Plans**: 5 plans
+**Success Criteria:**
+1. Registration route creates Factory record + ADMIN User + TRIAL Subscription atomically in a Prisma transaction
+2. Subscription enforcement middleware reads subscription status; expired TRIAL or cancelled PAID returns 403 on all mutating requests
+3. Driver count tracked on Subscription; write operations that add a 2nd+ driver require an active PAID subscription
+4. FACT-04 (grace period) is NOT in this phase — that belongs to Phase 04
 
-Plans:
-- [x] 06-01a: Backend foundation (Subscription model, atomic register API, subscription helpers)
-- [x] 06-01b: Frontend UI (register page reorder, trial banner, warning modal, middleware extension)
-- [x] 06-02: Pricing dashboard + VietQR + payment recording + onboarding wizard + customer import API
-- [x] 06-03: Cancel flow + two-sheet Excel export + grace period enforcement + subscription update API
-- [x] 06-04: Integration (AppShell, /api/auth/me, auth provider subscription, login warning modal, dashboard onboarding prompt)
+---
 
-**Wave Structure:**
-- Wave 1: 06-01a (backend schema + API, parallel)
-- Wave 2: 06-01b (frontend components, depends on 06-01a prisma push)
-- Wave 3: 06-02, 06-03 (both depend on 06-01b, parallel)
-- Wave 4: 06-04 (depends on 06-01b and 06-03)
+## Phase 03: Subscription Management + Super Admin Dashboard
+
+**Goal:** Complete subscription billing workflow (manual payment confirmation, VietQR) and build the Super Admin dashboard for system-wide tenant management.
+
+**Requirements:**
+
+| ID | Requirement |
+|----|-------------|
+| SUB-04 | Manual payment confirmation — Admin records payment → extends +30 days |
+| SUB-05 | VietQR content template for payment reference |
+| SADM-02 | Tenant list dashboard — all factories, subscription status, driver count, days remaining |
+| SADM-03 | Activate/deactivate tenant subscription from dashboard |
+| SADM-04 | Extend trial or subscription period (admin override) |
+| SADM-05 | Set price per driver |
+
+**Dependencies:** Phase 01 (SADM-01), Phase 02 (SUB-01, SUB-02)
+
+**Success Criteria:**
+1. Admin can record a payment against a factory's subscription, extending it by 30 days from current expiry
+2. VietQR payment slip shows factory name + subscription reference code; template renders correctly on thermal printer
+3. Super Admin dashboard lists all factories with subscription status, driver count, trial/subscription days remaining
+4. Super Admin can activate/deactivate any tenant's subscription from the dashboard
+5. Super Admin can override and extend any tenant's trial or subscription expiry date
+6. Super Admin can configure the per-driver monthly price
+
+---
+
+## Phase 04: Integration — Factory-Scoped v1.0 Features + Grace Period
+
+**Goal:** Ensure all v1.0 existing features work correctly within the factory-scoped model; implement the 7-day grace period after cancellation.
+
+**Requirements:**
+
+| ID | Requirement |
+|----|-------------|
+| INT-01 | All v1.0 entities (Customer, Order, Driver, Product) properly factory-scoped |
+| INT-02 | Per-customer pricing works within factory scope (CustomerPriceOverride scoped via customer.factoryId) |
+| INT-03 | RBAC middleware extended with SUPER_ADMIN bypass |
+| INT-04 | Delivery slips filtered by factory (via order.factoryId) |
+| INT-05 | Driver web-view scoped to factory (via driver.factoryId) |
+| FACT-04 | 7-day grace period after cancellation (read-only), then locked |
+
+**Dependencies:** Phase 01 (DATA-01 through DATA-05, SADM-01), Phase 02 (FACT-03, SUB-02)
+
+**Success Criteria:**
+1. All existing v1.0 queries and mutations use factoryId scoping via tenant middleware; no data leaks across factories
+2. CustomerPriceOverride joined through customer.factoryId correctly retrieves factory-scoped price list
+3. RBAC middleware allows SUPER_ADMIN to bypass factoryId filter; regular ADMIN/STAFF always scoped
+4. Delivery slip endpoint filters by order.factoryId; driver web-view returns only their factory's orders
+5. After cancellation, tenant enters 7-day grace period (read-only); after grace period expires, all writes return 403
+
+---
+
+## Summary
+
+| Phase | Requirements | Key Deliverables |
+|-------|-------------|------------------|
+| 01 | DATA-01, DATA-02, DATA-03, DATA-04, DATA-05, FACT-03, SADM-01 (7 total) | factoryId data layer, Factory model, SUPER_ADMIN role |
+| 02 | FACT-01, FACT-02, SUB-01, SUB-02, SUB-03 (5 total) | Factory registration, trial subscription, subscription enforcement |
+| 03 | SUB-04, SUB-05, SADM-02, SADM-03, SADM-04, SADM-05 (6 total) | Payment confirmation, VietQR, Super Admin dashboard |
+| 04 | INT-01, INT-02, INT-03, INT-04, INT-05, FACT-04 (6 total) | v1.0 factory-scoped integration, 7-day grace period |
+| **Total** | **24 requirements** | |
+
+---
+
+*Last updated: 2026-04-17*

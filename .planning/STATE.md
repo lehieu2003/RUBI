@@ -1,36 +1,36 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
+milestone: v2.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 6 context gathered
-last_updated: "2026-04-17T04:16:30.740Z"
+status: defining
+stopped_at: Roadmap created
+last_updated: "2026-04-17T04:20:00.000Z"
 last_activity: 2026-04-17
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 18
-  completed_plans: 18
-  percent: 100
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-14)
-
+See: .planning/PROJECT.md (updated 2026-04-17)
+**Current milestone:** v2.0 Multi-tenant Factory Architecture
 **Core value:** Speed over everything — staff must enter orders faster than writing by hand (30 seconds), or they reject the system and return to pen-and-paper.
-**Current focus:** Phase 06 — trial-pricing-onboarding
+**Current focus:** Roadmap defined — Phase 01 not started
 
 ## Current Position
 
-Phase: 06
-Plan: Not started
-Status: Executing Phase 06
-Last activity: 2026-04-17
+Phase: Not started (roadmap defined)
+Plan: —
+Status: v2.0 roadmap created
+Last activity: 2026-04-17 — v2.0 roadmap defined (4 phases, 24 requirements)
 
-Progress: [████████████████████] 100% (Phase 1 done, 3/3 plans)
+Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/4 phases)
 
 ## Performance Metrics
 

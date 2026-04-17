@@ -110,6 +110,40 @@ Web-based order and inventory management system for ice factories. Replaces pen-
 - **Route Middleware**: Unauthorized route access → redirect to `/dashboard?error=unauthorized`
 - Admin is the only source of truth for account creation (direct assignment workflow)
 
+## Current Milestone: v2.0 Multi-tenant Factory Architecture
+
+**Goal:** Thay thế hệ thống đơn lẻ bằng kiến trúc multi-tenant — mỗi factory là một tenant riêng biệt, data cô lập hoàn toàn qua factory_id. Có Super Admin dashboard để quản lý tất cả factories.
+
+**Target features:**
+
+- Multi-tenancy: Shared database, logic phân tách qua factory_id trên mọi bảng
+- Factory entity: Mỗi doanh nghiệp là một Factory — sở hữu User, Customer, Product, Order
+- Super Admin dashboard: Quản lý tất cả factories, subscription plans, activate/deactivate
+- Factory Admin onboarding: Đăng ký → tạo Factory → tạo trial 30 ngày → user đầu tiên = admin
+- Data isolation: Mọi query đều tự động filter theo factory_id
+- Subscription management: Trial → Basic/Premium, theo dõi expiry, 7-day grace period
+
+---
+
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd-transition`):
+
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd-complete-milestone`):
+
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
 ---
 
 *Last updated: 2026-04-17 after Phase 06 complete (trial-pricing-onboarding)*
