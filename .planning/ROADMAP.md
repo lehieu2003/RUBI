@@ -39,6 +39,11 @@ v2.0 transforms IceFlow SaaS from a single-tenant system into a multi-tenant arc
 4. Write requests to inactive tenants return HTTP 403; TRIAL and cancelled PAID subscriptions are flagged inactive
 5. `@@unique([code, factoryId])` constraints applied to Customer.code and Driver.phone; composite uniqueness enforced by Prisma
 
+**Plans:**
+- [ ] 01-01-PLAN.md — Factory model + factoryId fields on tenant entities + composite unique constraints
+- [ ] 01-02-PLAN.md — Tenant middleware (AsyncLocalStorage + Prisma $extends) + SUPER_ADMIN bypass + subscription enforcement
+- [ ] 01-03-PLAN.md — Backfill migration + System factory seed + SUPER_ADMIN user creation
+
 ---
 
 ## Phase 02: Factory Registration + Subscription Core
@@ -73,7 +78,7 @@ v2.0 transforms IceFlow SaaS from a single-tenant system into a multi-tenant arc
 
 | ID | Requirement |
 |----|-------------|
-| SUB-04 | Manual payment confirmation — Admin records payment → extends +30 days |
+| SUB-04 | Manual payment confirmation — Admin records payment, extends +30 days |
 | SUB-05 | VietQR content template for payment reference |
 | SADM-02 | Tenant list dashboard — all factories, subscription status, driver count, days remaining |
 | SADM-03 | Activate/deactivate tenant subscription from dashboard |
@@ -121,7 +126,7 @@ v2.0 transforms IceFlow SaaS from a single-tenant system into a multi-tenant arc
 ## Summary
 
 | Phase | Requirements | Key Deliverables |
-|-------|-------------|------------------|
+|-------|-------------|-----------------|
 | 01 | DATA-01, DATA-02, DATA-03, DATA-04, DATA-05, FACT-03, SADM-01 (7 total) | factoryId data layer, Factory model, SUPER_ADMIN role |
 | 02 | FACT-01, FACT-02, SUB-01, SUB-02, SUB-03 (5 total) | Factory registration, trial subscription, subscription enforcement |
 | 03 | SUB-04, SUB-05, SADM-02, SADM-03, SADM-04, SADM-05 (6 total) | Payment confirmation, VietQR, Super Admin dashboard |
