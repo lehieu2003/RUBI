@@ -55,37 +55,43 @@ export async function POST(req: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user and subscription atomically
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        name,
-        phone,
-        role: 'ADMIN',
-        isFactoryOwner: true,
-        factoryId: undefined, // Will be updated after creation
-      },
-    });
+    // Create user and subscription atomically using prisma.$transaction
+    // The user creates with temporary factoryId, then we update it to self-reference,
+    // all within the same transaction
+    const [user, subscription] = await prisma.$transaction([
+      prisma.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          name,
+          phone,
+          role: 'ADMIN',
+          isFactoryOwner: true,
+          factoryId: undefined, // temporary until update
+        },
+      }),
+      prisma.subscription.create({
+        data: {
+          planType: 'TRIAL',
+          startDate: new Date(),
+          endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+          status: 'ACTIVE',
+          driverCount: 0,
+        },
+      }),
+    ]);
 
-    // Update user's factoryId to own id (ADMIN user IS the factory)
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { factoryId: user.id },
-    });
-
-    // Create TRIAL subscription (14 days)
-    const trialEndDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
-    const subscription = await prisma.subscription.create({
-      data: {
-        factoryId: user.id,
-        planType: 'TRIAL',
-        startDate: new Date(),
-        endDate: trialEndDate,
-        status: 'ACTIVE',
-        driverCount: 0,
-      },
-    });
+    // Update user's factoryId to own id and subscription's factoryId atomically
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: user.id },
+        data: { factoryId: user.id },
+      }),
+      prisma.subscription.update({
+        where: { id: subscription.id },
+        data: { factoryId: user.id },
+      }),
+    ]);
 
     // Generate JWT with factoryId
     const token = await signJWT({
