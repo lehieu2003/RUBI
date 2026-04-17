@@ -99,14 +99,14 @@ Plans:
 | 2. Delivery Slips | 2/2 | ✅ Complete | 2026-04-16 |
 | 3. Driver Delivery View | 2/2 | ✅ Complete | 2026-04-16 |
 | 4. Status Enum Fixes & API Hardening | 0/0 | Not started | - |
-| 5. Reconciliation & Reporting | 0/4 | Not started | - |
+| 5. Reconciliation & Reporting | 2/4 | In Progress|  |
 
 ### Phase 5: payment-integration
 
 **Goal:** [To be planned]
 **Requirements**: TBD
 **Depends on:** Phase 4
-**Plans:** 2/2 plans complete
+**Plans:** 2/4 plans executed
 
 Plans:
 - [ ] TBD (run /gsd-plan-phase 5 to break down)
