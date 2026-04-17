@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyJWT } from '@/lib/auth';
-import { getFactorySubscription, isSubscriptionActive, isGracePeriodExpired } from '@/lib/subscription-status';
+import { isSubscriptionActive, isGracePeriodExpired } from '@/lib/subscription-status';
 
 type UserRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF';
 
@@ -79,15 +79,21 @@ export async function middleware(request: NextRequest) {
       const factoryId = (session as { factoryId?: string }).factoryId;
       if (factoryId) {
         try {
-          const sub = await getFactorySubscription(factoryId);
-          if (sub) {
-            if (sub.status === 'CANCELLED' && isGracePeriodExpired(sub)) {
+          // Use fetch to call internal API instead of Prisma directly
+          // Prisma Client doesn't work in edge runtime
+          const subRes = await fetch(
+            new URL('/api/billing/subscription', request.url),
+            { headers: { Cookie: request.headers.get('cookie') || '' } }
+          );
+          if (subRes.ok) {
+            const sub = await subRes.json();
+            if (sub && sub.status === 'CANCELLED' && isGracePeriodExpired(sub)) {
               return NextResponse.json(
                 { error: 'Subscription cancelled and grace period expired. Account locked.', code: 'ACCOUNT_LOCKED' },
                 { status: 403 }
               );
             }
-            if (!isSubscriptionActive(sub)) {
+            if (sub && !isSubscriptionActive(sub)) {
               return NextResponse.json(
                 { error: 'Subscription inactive. System is read-only.', code: 'READ_ONLY' },
                 { status: 403 }
