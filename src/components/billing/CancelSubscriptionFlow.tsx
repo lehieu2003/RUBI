@@ -19,18 +19,18 @@ export function CancelSubscriptionFlow({ subscription, factoryId }: CancelSubscr
     setCancelling(true);
 
     try {
-      // 1. Fetch customer and order data for export
-      const [customersRes, ordersRes] = await Promise.all([
-        fetch(`/api/customers?factoryId=${factoryId}`),
-        fetch(`/api/orders?factoryId=${factoryId}&months=6`),
-      ]);
+      // 1. Fetch customer debt data for export
+      const exportRes = await fetch('/api/customers/debt-export');
 
-      const { customers } = await customersRes.json();
-      const { orders } = await ordersRes.json();
+      if (!exportRes.ok) {
+        throw new Error('Failed to fetch export data');
+      }
+
+      const { customers, orders } = await exportRes.json();
 
       // 2. Trigger Excel download immediately (before cancel)
-      if (customers && orders) {
-        exportCustomerDebtExcel(customers, orders);
+      if (customers) {
+        exportCustomerDebtExcel(customers, orders || []);
       }
 
       // 3. Call cancel API
