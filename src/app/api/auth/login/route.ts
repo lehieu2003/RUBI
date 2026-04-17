@@ -41,12 +41,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Generate JWT
+    // Generate JWT with factoryId
     const token = await signJWT({
       userId: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
+      factoryId: user.factoryId,
     });
 
     // Set cookie
