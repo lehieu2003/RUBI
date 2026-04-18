@@ -52,9 +52,11 @@ function StatusBadge({ status }: { status: string }) {
 function RowActions({
   factory,
   onUpdate,
+  onError,
 }: {
   factory: Factory;
   onUpdate: (updated: Factory) => void;
+  onError?: (message: string) => void;
 }) {
   const [showExtend, setShowExtend] = useState(false);
   const [extendDays, setExtendDays] = useState(30);
@@ -78,7 +80,13 @@ function RowActions({
           ...factory,
           subscription: { ...factory.subscription, ...data.subscription },
         });
+      } else {
+        // Handle error case - notify user
+        const errorData = await res.json().catch(() => ({}));
+        onError?.(errorData.error ?? `Action failed (${res.status})`);
       }
+    } catch (err) {
+      onError?.('Network error - please try again');
     } finally {
       setLoading(null);
       if (action === 'extend') setShowExtend(false);
@@ -355,6 +363,7 @@ export function TenantTable({ onError }: TenantTableProps) {
                         prev.map(f => f.id === updated.id ? updated : f)
                       );
                     }}
+                    onError={onError}
                   />
                 </td>
               </tr>
