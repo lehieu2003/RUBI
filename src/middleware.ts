@@ -5,6 +5,29 @@ import { setTenantContext, TenantContext } from '@/lib/tenant';
 
 type UserRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'SUPER_ADMIN';
 
+// Check if impersonation token is valid (not expired, not ended)
+async function isImpersonating(request: NextRequest): Promise<{ active: boolean; factoryId?: string }> {
+  const token = request.cookies.get('impersonate_token')?.value;
+  if (!token) return { active: false };
+
+  // Use fetch to call internal API to check impersonation validity
+  // (Prisma doesn't work in Edge runtime)
+  try {
+    const url = new URL('/api/admin/impersonate/status', request.url);
+    const res = await fetch(url.toString(), {
+      headers: { Cookie: request.headers.get('cookie') || '' },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return { active: data.active, factoryId: data.factoryId };
+    }
+  } catch {
+    // Fail closed: if check fails, don't allow writes
+    console.error('[Middleware] Impersonation check failed');
+  }
+  return { active: false };
+}
+
 // Routes accessible by role (SUPER_ADMIN only accesses /admin/*)
 const roleRoutes: Record<string, UserRole[]> = {
   '/dashboard': ['ADMIN', 'ACCOUNTANT', 'STAFF'],
@@ -80,6 +103,17 @@ export async function middleware(request: NextRequest) {
         url.pathname = '/dashboard';
         url.searchParams.set('error', 'unauthorized');
         return NextResponse.redirect(url);
+      }
+    }
+
+    // Impersonation enforcement: block writes while impersonating
+    if (request.method !== 'GET' && pathname.startsWith('/api/')) {
+      const { active } = await isImpersonating(request);
+      if (active) {
+        return NextResponse.json(
+          { error: 'Read-only during impersonation. End impersonation to make changes.', code: 'READ_ONLY_IMPERSONATION' },
+          { status: 403 }
+        );
       }
     }
 
