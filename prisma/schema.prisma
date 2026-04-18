@@ -21,6 +21,7 @@ model Factory {
   drivers       Driver[]
   orders        Order[]
   products      Product[]
+  payments      Payment[]
 
   @@map("factories")
 }
@@ -39,6 +40,7 @@ model User {
   factory        Factory? @relation(fields: [factoryId], references: [id])
   isFactoryOwner Boolean  @default(false) @map("is_factory_owner")
   assignedOrders Order[]  @relation("OrderAssigner")
+  payments       Payment[]
 
   @@index([factoryId])
   @@map("users")
@@ -190,6 +192,22 @@ model CustomerShellDeposit {
   customer        Customer @relation(fields: [customerId], references: [id])
 
   @@map("customer_shell_deposits")
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  factoryId   String   @map("factory_id")
+  amount      Decimal  @db.Decimal(10, 2)
+  adminId     String   @map("admin_id")
+  confirmedAt DateTime @default(now()) @map("confirmed_at")
+  notes       String?
+  factory     Factory  @relation(fields: [factoryId], references: [id])
+  admin       User     @relation(fields: [adminId], references: [id])
+
+  @@index([factoryId])
+  @@index([adminId])
+  @@index([confirmedAt])
+  @@map("payments")
 }
 
 model Inventory {
