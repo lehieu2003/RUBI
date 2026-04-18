@@ -61,21 +61,6 @@ export async function GET(request: Request) {
     take: 10000,
   });
 
-  // Get driver count for each factory
-  const factoryIds = [...new Set(payments.map(p => p.factoryId))];
-  const factoryDriverCounts = await basePrisma.driver.groupBy({
-    by: ['factoryId'],
-    _count: { factoryId: true },
-    where: {
-      factoryId: { in: factoryIds },
-      isActive: true,
-    },
-  });
-
-  const driverCountMap = new Map(
-    factoryDriverCounts.map(f => [f.factoryId, f._count.factoryId])
-  );
-
   // Format date as DD/MM/YYYY HH:mm (Vietnam locale)
   const formatDate = (date: Date) => {
     const day = String(date.getDate()).padStart(2, '0');
@@ -94,13 +79,12 @@ export async function GET(request: Request) {
   };
 
   // Build CSV
-  const headers = ['Date', 'Admin', 'Factory', 'Amount', 'Driver Count'];
+  const headers = ['Date', 'Admin', 'Factory', 'Amount'];
   const rows = payments.map(p => [
     formatDate(p.confirmedAt),
     p.admin.name,
     p.factory.name,
     formatAmount(Number(p.amount)),
-    String(driverCountMap.get(p.factoryId) ?? 0),
   ]);
 
   const csv = [

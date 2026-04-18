@@ -68,21 +68,6 @@ export async function GET(request: Request) {
     take: limit,
   });
 
-  // Get driver count for each factory (current snapshot)
-  const factoryIds = [...new Set(payments.map(p => p.factoryId))];
-  const factoryDriverCounts = await basePrisma.driver.groupBy({
-    by: ['factoryId'],
-    _count: { factoryId: true },
-    where: {
-      factoryId: { in: factoryIds },
-      isActive: true,
-    },
-  });
-
-  const driverCountMap = new Map(
-    factoryDriverCounts.map(f => [f.factoryId, f._count.factoryId])
-  );
-
   // Transform to audit log format
   const logs = payments.map(p => ({
     id: p.id,
@@ -90,7 +75,6 @@ export async function GET(request: Request) {
     amount: Number(p.amount),
     adminName: p.admin.name,
     factoryName: p.factory.name,
-    driverCount: driverCountMap.get(p.factoryId) ?? 0,
   }));
 
   return NextResponse.json({
