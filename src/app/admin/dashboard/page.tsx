@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { TenantTable } from '@/components/admin/tenant-table';
-import { toast } from 'sonner';
+import { toast } from '@/components/dashboard/toast';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -11,7 +11,7 @@ export default function AdminDashboardPage() {
 
   const handleError = (message: string) => {
     if (!toastShown) {
-      toast.error(message);
+      toast({ type: 'error', title: message });
       setToastShown(true);
     }
   };

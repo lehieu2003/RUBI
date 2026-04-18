@@ -5,15 +5,15 @@ import { setTenantContext, TenantContext } from '@/lib/tenant';
 
 type UserRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'SUPER_ADMIN';
 
-// Routes accessible by role (SUPER_ADMIN bypasses all role restrictions)
+// Routes accessible by role (SUPER_ADMIN only accesses /admin/*)
 const roleRoutes: Record<string, UserRole[]> = {
-  '/dashboard': ['ADMIN', 'ACCOUNTANT', 'STAFF', 'SUPER_ADMIN'],
-  '/orders': ['ADMIN', 'ACCOUNTANT', 'STAFF', 'SUPER_ADMIN'],
-  '/customers': ['ADMIN', 'ACCOUNTANT', 'STAFF', 'SUPER_ADMIN'],
-  '/settle': ['ADMIN', 'ACCOUNTANT', 'SUPER_ADMIN'],
-  '/inventory': ['ADMIN', 'ACCOUNTANT', 'SUPER_ADMIN'],
-  '/vehicles': ['ADMIN', 'ACCOUNTANT', 'SUPER_ADMIN'],
-  '/settings': ['ADMIN', 'SUPER_ADMIN'],
+  '/dashboard': ['ADMIN', 'ACCOUNTANT', 'STAFF'],
+  '/orders': ['ADMIN', 'ACCOUNTANT', 'STAFF'],
+  '/customers': ['ADMIN', 'ACCOUNTANT', 'STAFF'],
+  '/settle': ['ADMIN', 'ACCOUNTANT'],
+  '/inventory': ['ADMIN', 'ACCOUNTANT'],
+  '/vehicles': ['ADMIN', 'ACCOUNTANT'],
+  '/settings': ['ADMIN'],
 };
 
 export async function middleware(request: NextRequest) {
