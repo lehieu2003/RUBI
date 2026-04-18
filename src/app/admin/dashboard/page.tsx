@@ -30,9 +30,11 @@ export default function AdminDashboardPage() {
       if (res.ok) {
         const data = await res.json();
         setStats(data);
+      } else {
+        handleError('Failed to load statistics');
       }
     } catch {
-      // Handle errors silently - don't crash dashboard
+      handleError('Network error - could not load statistics');
     } finally {
       setStatsLoading(false);
     }
