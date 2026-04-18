@@ -120,6 +120,24 @@ function RowActions({
         >
           Sửa giá
         </button>
+        <button
+          onClick={async () => {
+            setLoading('impersonate');
+            try {
+              const res = await fetch(`/api/admin/impersonate/${factory.id}`, { method: 'POST' });
+              if (res.ok) {
+                const data = await res.json();
+                window.location.href = '/dashboard?impersonating=' + encodeURIComponent(data.factoryName);
+              }
+            } finally {
+              setLoading(null);
+            }
+          }}
+          disabled={loading === 'impersonate'}
+          className="px-2 py-1 text-xs rounded bg-violet-500/20 text-violet-400 hover:bg-violet-500/30 disabled:opacity-50"
+        >
+          {loading === 'impersonate' ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Xem'}
+        </button>
       </div>
 
       {/* Inline extend input */}
