@@ -22,6 +22,7 @@ model Factory {
   orders        Order[]
   products      Product[]
   payments      Payment[]
+  impersonationLogs ImpersonationLog[]
 
   @@map("factories")
 }
@@ -41,6 +42,7 @@ model User {
   isFactoryOwner Boolean  @default(false) @map("is_factory_owner")
   assignedOrders Order[]  @relation("OrderAssigner")
   payments       Payment[]
+  impersonationLogs ImpersonationLog[]
 
   @@index([factoryId])
   @@map("users")
@@ -219,6 +221,22 @@ model Inventory {
 
   @@unique([productId, date])
   @@map("inventory")
+}
+
+model ImpersonationLog {
+  id           String   @id @default(cuid())
+  superAdminId String   @map("super_admin_id")
+  factoryId    String   @map("factory_id")
+  token        String   @unique @default(uuid())
+  startedAt    DateTime @default(now()) @map("started_at")
+  endedAt      DateTime? @map("ended_at")
+  superAdmin   User     @relation(fields: [superAdminId], references: [id])
+  factory      Factory  @relation(fields: [factoryId], references: [id])
+
+  @@index([superAdminId])
+  @@index([factoryId])
+  @@index([token])
+  @@map("impersonation_logs")
 }
 
 enum UserRole {
