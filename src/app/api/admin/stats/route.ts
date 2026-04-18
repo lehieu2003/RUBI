@@ -38,20 +38,6 @@ export async function GET() {
 
   // monthlyRevenue: SUM(subscription.driverCount * subscription.pricePerDriver)
   // for ACTIVE subscriptions with endDate >= first day of current month
-  // Use COALESCE to treat NULL pricePerDriver as 0
-  const revenueResult = await basePrisma.subscription.aggregate({
-    _sum: {
-      driverCount: true,
-    },
-    where: {
-      status: 'ACTIVE',
-      endDate: {
-        gte: firstDayOfMonth,
-      },
-    },
-  });
-
-  // We need the actual revenue calculation: sum(driverCount * pricePerDriver)
   // Since we can't do arithmetic in Prisma easily, fetch subscriptions and compute
   const subscriptions = await basePrisma.subscription.findMany({
     select: {
