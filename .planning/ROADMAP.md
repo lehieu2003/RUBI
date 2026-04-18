@@ -40,7 +40,7 @@ v2.0 transforms IceFlow SaaS from a single-tenant system into a multi-tenant arc
 5. `@@unique([code, factoryId])` constraints applied to Customer.code and Driver.phone; composite uniqueness enforced by Prisma
 
 **Plans:**
-3/3 plans complete
+2/2 plans complete
 - [x] 01-02-PLAN.md — Tenant middleware (AsyncLocalStorage + Prisma $extends) + SUPER_ADMIN bypass + subscription enforcement
 - [x] 01-03-PLAN.md — Backfill migration + System factory seed + SUPER_ADMIN user creation
 
@@ -95,6 +95,33 @@ v2.0 transforms IceFlow SaaS from a single-tenant system into a multi-tenant arc
 5. Super Admin can override and extend any tenant's trial or subscription expiry date
 6. Super Admin can configure the per-driver monthly price
 
+**Plans:**
+3/3 plans complete
+- [x] 03-01-PLAN.md — Admin billing page (/billing) with PaymentRecorder + VietQRCode
+- [x] 03-02-PLAN.md — Super Admin API endpoints + TenantTable component
+- [x] 03-03-PLAN.md — Super Admin dashboard page (/admin/dashboard)
+
+---
+
+## Phase 03x: Super Admin Extensions
+
+**Goal:** Extend Super Admin dashboard with System Overview, Payment Audit Log, and Impersonation/Support Tool.
+
+**Requirements:** None (enhancement phase)
+
+**Dependencies:** Phase 03 complete (existing Super Admin dashboard)
+
+**Success Criteria:**
+1. System Overview shows: active factory count, active driver count, monthly revenue
+2. Audit Log page with filterable table and CSV export, 12-month retention
+3. Impersonation tool: "Xem" button, badge indicator, read-only access, 15-min timeout, audit log
+
+**Plans:**
+3/3 plans complete
+- [x] 03X-01-PLAN.md — System Overview Dashboard
+- [x] 03X-02-PLAN.md — Payment Audit Log
+- [x] 03X-03-PLAN.md — Impersonation / Support Tool
+
 ---
 
 ## Phase 04: Integration — Factory-Scoped v1.0 Features + Grace Period
@@ -130,9 +157,10 @@ v2.0 transforms IceFlow SaaS from a single-tenant system into a multi-tenant arc
 | 01 | DATA-01, DATA-02, DATA-03, DATA-04, DATA-05, FACT-03, SADM-01 (7 total) | factoryId data layer, Factory model, SUPER_ADMIN role |
 | 02 | FACT-01, FACT-02, SUB-01, SUB-02, SUB-03 (5 total) | Factory registration, trial subscription, subscription enforcement |
 | 03 | SUB-04, SUB-05, SADM-02, SADM-03, SADM-04, SADM-05 (6 total) | Payment confirmation, VietQR, Super Admin dashboard |
+| 03x | Enhancement (3 features) | System Overview, Audit Log, Impersonation |
 | 04 | INT-01, INT-02, INT-03, INT-04, INT-05, FACT-04 (6 total) | v1.0 factory-scoped integration, 7-day grace period |
 | **Total** | **24 requirements** | |
 
 ---
 
-*Last updated: 2026-04-17*
+*Last updated: 2026-04-18*
