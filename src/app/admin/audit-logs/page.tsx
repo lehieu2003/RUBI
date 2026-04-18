@@ -28,6 +28,7 @@ export default function AuditLogsPage() {
   const [factories, setFactories] = useState<Factory[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [factoryError, setFactoryError] = useState<string>('');
 
   // Filters
   const [selectedFactory, setSelectedFactory] = useState<string>('');
@@ -53,12 +54,15 @@ export default function AuditLogsPage() {
   // Fetch factories for dropdown
   useEffect(() => {
     fetch('/api/admin/factories')
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error('Failed to load factories');
+        return r.json();
+      })
       .then(data => {
         setFactories(data.factories ?? []);
       })
-      .catch(() => {
-        // Silently fail
+      .catch(err => {
+        setFactoryError(err.message);
       });
   }, []);
 
@@ -159,6 +163,9 @@ export default function AuditLogsPage() {
                   <option key={f.id} value={f.id}>{f.name}</option>
                 ))}
               </select>
+              {factoryError && (
+                <p className="text-xs text-red-400">{factoryError}</p>
+              )}
             </div>
 
             {/* Start date */}
