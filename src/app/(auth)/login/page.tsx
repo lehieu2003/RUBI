@@ -47,8 +47,10 @@ export default function LoginPage() {
       setError(error);
       setLoading(false);
     } else {
-      // Redirect SUPER_ADMIN to admin dashboard
-      if (user?.role === 'SUPER_ADMIN') {
+      // Fetch fresh user data to ensure role is up-to-date (signIn checkAuth is async)
+      const meRes = await fetch('/api/auth/me');
+      const meData = await meRes.json();
+      if (meData.user?.role === 'SUPER_ADMIN') {
         router.push('/admin/dashboard');
       } else {
         router.push('/dashboard');
