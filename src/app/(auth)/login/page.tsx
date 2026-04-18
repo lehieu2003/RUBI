@@ -47,7 +47,12 @@ export default function LoginPage() {
       setError(error);
       setLoading(false);
     } else {
-      router.push('/dashboard');
+      // Redirect SUPER_ADMIN to admin dashboard
+      if (user?.role === 'SUPER_ADMIN') {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/dashboard');
+      }
     }
   };
 
