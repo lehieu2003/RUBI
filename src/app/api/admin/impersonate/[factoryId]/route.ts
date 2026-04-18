@@ -38,6 +38,7 @@ export async function POST(
   const response = NextResponse.json({
     success: true,
     token: impersonation.token,
+    factoryId: factory.id,
     factoryName: factory.name,
     expiresAt: expiresAt.toISOString(),
   });

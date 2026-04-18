@@ -127,7 +127,7 @@ function RowActions({
               const res = await fetch(`/api/admin/impersonate/${factory.id}`, { method: 'POST' });
               if (res.ok) {
                 const data = await res.json();
-                window.location.href = '/dashboard?impersonating=' + encodeURIComponent(data.factoryName);
+                window.location.href = '/admin/dashboard?impersonating=' + encodeURIComponent(data.factoryName) + '&factoryId=' + encodeURIComponent(data.factoryId);
               }
             } finally {
               setLoading(null);
