@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { Truck, Plus, Phone, TrendingUp, DollarSign, Package } from 'lucide-react';
-import { ToastContainer, useToast } from '@/components/dashboard/toast';
+import { toast } from '@/components/dashboard/toast';
 
 interface Driver {
   id: string;
@@ -15,7 +15,6 @@ interface Driver {
 }
 
 export default function VehiclesPage() {
-  const { toasts, addToast, dismissToast } = useToast();
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -34,7 +33,7 @@ export default function VehiclesPage() {
 
   const handleAddDriver = async () => {
     if (!formData.name) {
-      addToast({ type: 'error', title: 'Vui lòng nhập tên tài xế' });
+      toast({ type: 'error', title: 'Vui lòng nhập tên tài xế' });
       return;
     }
     setSubmitting(true);
@@ -49,9 +48,9 @@ export default function VehiclesPage() {
       setDrivers(prev => [...prev, driver]);
       setNewDriverToken(driver.token);
       setFormData({ name: '', phone: '', isActive: true });
-      addToast({ type: 'success', title: 'Đã thêm tài xế mới' });
+      toast({ type: 'success', title: 'Đã thêm tài xế mới' });
     } catch {
-      addToast({ type: 'error', title: 'Lỗi', message: 'Không thể tạo tài xế' });
+      toast({ type: 'error', title: 'Lỗi', message: 'Không thể tạo tài xế' });
     } finally {
       setSubmitting(false);
     }
@@ -70,7 +69,6 @@ export default function VehiclesPage() {
       </div>
 
       <Sidebar />
-      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
       <main className="pl-64">
         <div className="relative p-8">

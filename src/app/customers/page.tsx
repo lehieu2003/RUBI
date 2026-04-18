@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { Search, Plus, Phone, MapPin, DollarSign, Package, ChevronRight, X } from 'lucide-react';
-import { ToastContainer, useToast } from '@/components/dashboard/toast';
+import { toast } from '@/components/dashboard/toast';
 
 interface Customer {
   id: string;
@@ -27,7 +27,6 @@ interface Product {
 }
 
 export default function CustomersPage() {
-  const { toasts, addToast, dismissToast } = useToast();
   const [search, setSearch] = useState('');
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -51,7 +50,7 @@ export default function CustomersPage() {
 
   const handleAddCustomer = async () => {
     if (!formData.code || !formData.name) {
-      addToast({ type: 'error', title: 'Vui lòng nhập mã và tên khách hàng' });
+      toast({ type: 'error', title: 'Vui lòng nhập mã và tên khách hàng' });
       return;
     }
     setSubmitting(true);
@@ -66,9 +65,9 @@ export default function CustomersPage() {
       setCustomers(prev => [...prev, customer]);
       setIsModalOpen(false);
       setFormData({ code: '', name: '', phone: '', address: '', isActive: true });
-      addToast({ type: 'success', title: 'Đã thêm khách hàng' });
+      toast({ type: 'success', title: 'Đã thêm khách hàng' });
     } catch {
-      addToast({ type: 'error', title: 'Lỗi', message: 'Không thể tạo khách hàng' });
+      toast({ type: 'error', title: 'Lỗi', message: 'Không thể tạo khách hàng' });
     } finally {
       setSubmitting(false);
     }
@@ -93,7 +92,6 @@ export default function CustomersPage() {
       </div>
 
       <Sidebar />
-      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
       <main className="pl-64">
         <div className="relative p-8">

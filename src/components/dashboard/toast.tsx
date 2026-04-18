@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { createContext, useEffect, useState } from 'react';
 import { X, CheckCircle2, AlertCircle, Info } from 'lucide-react';
 
 export interface ToastMessage {
@@ -9,6 +9,14 @@ export interface ToastMessage {
   title: string;
   message?: string;
 }
+
+interface ToastContextValue {
+  toasts: ToastMessage[];
+  addToast: (toast: Omit<ToastMessage, 'id'>) => void;
+  dismissToast: (id: string) => void;
+}
+
+const ToastContext = createContext<ToastContextValue | null>(null);
 
 interface ToastProps {
   toasts: ToastMessage[];
@@ -101,7 +109,7 @@ export function ToastContainer({ toasts, onDismiss }: ToastProps) {
   );
 }
 
-// Hook for managing toasts
+// Hook for managing toasts (kept for backward compatibility)
 export function useToast() {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
@@ -115,4 +123,43 @@ export function useToast() {
   };
 
   return { toasts, addToast, dismissToast };
+}
+
+// Singleton toast state (module-level, shared across all callers)
+const globalToastsState: { toasts: ToastMessage[]; addToast: (t: Omit<ToastMessage, 'id'>) => void; dismissToast: (id: string) => void } = {
+  toasts: [],
+  addToast: () => {},
+  dismissToast: () => {},
+};
+
+function GlobalToastContainer() {
+  const [toasts, setToasts] = useState<ToastMessage[]>(globalToastsState.toasts);
+
+  useEffect(() => {
+    globalToastsState.addToast = (toast: Omit<ToastMessage, 'id'>) => {
+      const id = Math.random().toString(36).slice(2);
+      const newToast = { ...toast, id };
+      globalToastsState.toasts = [...globalToastsState.toasts, newToast];
+      setToasts([...globalToastsState.toasts]);
+    };
+    globalToastsState.dismissToast = (id: string) => {
+      globalToastsState.toasts = globalToastsState.toasts.filter((t) => t.id !== id);
+      setToasts([...globalToastsState.toasts]);
+    };
+  }, []);
+
+  return <ToastContainer toasts={toasts} onDismiss={(id) => globalToastsState.dismissToast(id)} />;
+}
+
+export function ToastProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <ToastContext.Provider value={{ toasts: [], addToast: () => {}, dismissToast: () => {} }}>
+      {children}
+      <GlobalToastContainer />
+    </ToastContext.Provider>
+  );
+}
+
+export function toast(message: Omit<ToastMessage, 'id'>) {
+  globalToastsState.addToast(message);
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { Package, Plus, ArrowDownToLine, ArrowUpFromLine, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { ToastContainer, useToast } from '@/components/dashboard/toast';
+import { toast } from '@/components/dashboard/toast';
 
 interface DepositRecord {
   customerId: string;
@@ -20,7 +20,6 @@ interface Customer {
 }
 
 export default function ShellDepositsPage() {
-  const { toasts, addToast, dismissToast } = useToast();
   const [selectedCustomer, setSelectedCustomer] = useState('');
   const [shellsOut, setShellsOut] = useState('');
   const [shellsIn, setShellsIn] = useState('');
@@ -55,7 +54,7 @@ export default function ShellDepositsPage() {
 
   const handleSubmit = async () => {
     if (!selectedCustomer) {
-      addToast({ type: 'error', title: 'Vui lòng chọn khách hàng' });
+      toast({ type: 'error', title: 'Vui lòng chọn khách hàng' });
       return;
     }
     setSubmitting(true);
@@ -80,9 +79,9 @@ export default function ShellDepositsPage() {
       setSelectedCustomer('');
       setShellsOut('');
       setShellsIn('');
-      addToast({ type: 'success', title: 'Đã ghi nhận giao dịch vỏ bao' });
+      toast({ type: 'success', title: 'Đã ghi nhận giao dịch vỏ bao' });
     } catch (err) {
-      addToast({ type: 'error', title: 'Lỗi', message: err instanceof Error ? err.message : 'Unknown error' });
+      toast({ type: 'error', title: 'Lỗi', message: err instanceof Error ? err.message : 'Unknown error' });
     } finally {
       setSubmitting(false);
     }
@@ -98,8 +97,6 @@ export default function ShellDepositsPage() {
       </div>
 
       <Sidebar />
-
-      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
       <main className="pl-64">
         <div className="relative p-8">

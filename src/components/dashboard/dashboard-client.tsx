@@ -7,7 +7,6 @@ import { SubscriptionStatusCard } from '@/components/dashboard/subscription-stat
 import { HourlyChart } from '@/components/dashboard/hourly-chart';
 import { RecentOrders } from '@/components/dashboard/recent-orders';
 import { QuickActions } from '@/components/dashboard/quick-actions';
-import { ToastContainer, useToast } from '@/components/dashboard/toast';
 import { OrderEntryDrawer } from '@/components/order/order-entry-drawer';
 import {
   DollarSign,
@@ -42,7 +41,6 @@ export function DashboardClient({
 }: DashboardClientProps) {
   const [orders] = useState(initialOrders);
   const [subscriptionData, setSubscriptionData] = useState<SubscriptionData>({ subscription: null, driverCount: 0 });
-  const { toasts, addToast, dismissToast } = useToast();
 
   // Fetch subscription data for ADMIN users
   useEffect(() => {
@@ -220,9 +218,6 @@ export function DashboardClient({
           <RecentOrders orders={orders} />
         </div>
       </main>
-
-      {/* Toast notifications */}
-      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }
