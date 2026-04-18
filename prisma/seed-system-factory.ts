@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { SignJWT } from 'jose';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -30,13 +31,14 @@ async function seedSystemFactory() {
 
   const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
   if (!existingAdmin) {
+    const hashedPassword = await bcrypt.hash(adminPassword, 12);
     const adminUser = await prisma.user.create({
       data: {
         email: adminEmail,
         name: 'System Administrator',
-        password: adminPassword, // In production, use bcrypt hash
+        password: hashedPassword,
         role: 'SUPER_ADMIN',
-        factoryId: null, // System-wide access, no factory
+        factoryId: null,
         isFactoryOwner: false,
         isActive: true,
       },
@@ -59,7 +61,18 @@ async function seedSystemFactory() {
     console.log('SUPER_ADMIN JWT token:', token);
     console.log('Store this token securely — it provides system-wide access.');
   } else {
-    console.log('SUPER_ADMIN already exists:', existingAdmin.email);
+    // Ensure password is hashed (re-hash if stored as plaintext)
+    const isHashed = existingAdmin.password.startsWith('$2');
+    if (!isHashed) {
+      const hashedPassword = await bcrypt.hash(adminPassword, 12);
+      await prisma.user.update({
+        where: { id: existingAdmin.id },
+        data: { password: hashedPassword },
+      });
+      console.log('SUPER_ADMIN password hashed:', existingAdmin.email);
+    } else {
+      console.log('SUPER_ADMIN already exists:', existingAdmin.email);
+    }
   }
 
   // 3. Create TRIAL subscription for System factory (so it can be activated)
