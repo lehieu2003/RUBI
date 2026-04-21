@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { X, Building2, Users, Truck, Calendar, ChevronRight } from 'lucide-react';
+import { X, Building2, Truck, Calendar, ChevronRight } from 'lucide-react';
 
 interface ImpersonationDrawerProps {
   factoryId: string;

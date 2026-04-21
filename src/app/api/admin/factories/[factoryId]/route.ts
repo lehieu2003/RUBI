@@ -18,7 +18,10 @@ export async function GET(
   const factory = await basePrisma.factory.findUnique({
     where: { id: factoryId },
     include: {
-      subscription: true,
+      subscriptions: {
+        where: { status: 'ACTIVE' },
+        take: 1,
+      },
       drivers: {
         where: { isActive: true },
       },
@@ -28,6 +31,9 @@ export async function GET(
   if (!factory) {
     return NextResponse.json({ error: 'Factory not found' }, { status: 404 });
   }
+
+  // Get active subscription (first active one)
+  const subscription = factory.subscriptions[0] ?? null;
 
   // Get order stats
   const thirtyDaysAgo = new Date();
@@ -55,15 +61,15 @@ export async function GET(
       address: factory.address,
       createdAt: factory.createdAt.toISOString(),
     },
-    subscription: factory.subscription
+    subscription: subscription
       ? {
-          id: factory.subscription.id,
-          planType: factory.subscription.planType,
-          status: factory.subscription.status,
-          startDate: factory.subscription.startDate.toISOString(),
-          endDate: factory.subscription.endDate.toISOString(),
-          driverCount: factory.subscription.driverCount,
-          pricePerDriver: Number(factory.subscription.pricePerDriver),
+          id: subscription.id,
+          planType: subscription.planType,
+          status: subscription.status,
+          startDate: subscription.startDate.toISOString(),
+          endDate: subscription.endDate.toISOString(),
+          driverCount: subscription.driverCount,
+          pricePerDriver: Number(subscription.pricePerDriver),
         }
       : null,
     activeDriverCount: factory.drivers.length,
