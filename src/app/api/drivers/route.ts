@@ -7,13 +7,18 @@ import { getSession } from '@/lib/auth';
 // Supports ?active=true to return {count, drivers} for billing use.
 export async function GET(request: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const activeParam = searchParams.get('active');
 
     // Billing count mode: ?active=true returns { count, drivers }
     if (activeParam === 'true') {
       const drivers = await prisma.driver.findMany({
-        where: { isActive: true },
+        where: { isActive: true, factoryId: session.factoryId },
         select: { id: true, name: true, phone: true },
         orderBy: { name: 'asc' },
       });
@@ -21,7 +26,7 @@ export async function GET(request: NextRequest) {
     }
 
     const drivers = await prisma.driver.findMany({
-      where: { isActive: true },
+      where: { isActive: true, factoryId: session.factoryId },
       select: {
         id: true,
         name: true,

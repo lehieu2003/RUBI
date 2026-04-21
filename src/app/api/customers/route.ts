@@ -4,16 +4,21 @@ import { getSession } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const countOnly = searchParams.get('countOnly') === 'true';
 
     if (countOnly) {
-      const count = await prisma.customer.count({ where: { isActive: true } });
+      const count = await prisma.customer.count({ where: { isActive: true, factoryId: session.factoryId } });
       return NextResponse.json({ count });
     }
 
     const customers = await prisma.customer.findMany({
-      where: { isActive: true },
+      where: { isActive: true, factoryId: session.factoryId },
       orderBy: { name: 'asc' },
     });
     return NextResponse.json(customers);
