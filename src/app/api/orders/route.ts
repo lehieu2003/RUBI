@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const date = searchParams.get('date');
 
-    const where: Record<string, unknown> = {};
+    const where: Record<string, unknown> = { factoryId: session.factoryId };
 
     if (customerId) where.customerId = customerId;
     if (status) {

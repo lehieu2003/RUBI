@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
+import { getSession } from '@/lib/auth';
 
 // PATCH /api/orders/[id]/status - Update order status (D-05)
 // Valid statuses: PENDING, SHIPPING, DELIVERED, COMPLETED, CANCELLED
@@ -16,6 +17,15 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
+
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (session.role !== 'ACCOUNTANT' && session.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const parsed = StatusSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -33,8 +43,16 @@ export async function PATCH(
       );
     }
 
+    // Verify order belongs to current factory before updating
+    const existing = await prisma.order.findFirst({
+      where: { id, factoryId: session.factoryId },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: 'Order not found or access denied' }, { status: 404 });
+    }
+
     const order = await prisma.order.update({
-      where: { id },
+      where: { id, factoryId: session.factoryId },
       data: {
         status: parsed.data.status,
         notes: parsed.data.cancellationReason

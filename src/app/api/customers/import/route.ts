@@ -43,9 +43,9 @@ export async function POST(req: NextRequest) {
       }
 
       try {
-        // Customer.code is globally unique in the schema — check before inserting
-        const existing = await prisma.customer.findUnique({
-          where: { code },
+        // Customer.code is factory-scoped unique — check code + factoryId before inserting
+        const existing = await prisma.customer.findFirst({
+          where: { code, factoryId: session.factoryId },
         });
 
         if (existing) {
@@ -60,6 +60,7 @@ export async function POST(req: NextRequest) {
             phone: String(customer.phone ?? '').trim() || '',
             address: String(customer.address ?? '').trim() || '',
             isActive: true,
+            factoryId: session.factoryId,
           },
         });
         imported++;

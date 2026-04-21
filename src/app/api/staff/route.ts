@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
     }
 
     const users = await prisma.user.findMany({
+      where: { factoryId: session.factoryId },
       select: {
         id: true,
         name: true,
@@ -85,6 +86,7 @@ export async function POST(request: NextRequest) {
         email,
         password: hashedPassword,
         role,
+        factoryId: session.factoryId,
       },
       select: {
         id: true,

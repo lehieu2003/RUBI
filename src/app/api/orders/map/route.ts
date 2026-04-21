@@ -1,11 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getSession } from '@/lib/auth';
 
 // GET /api/orders/map?date=YYYY-MM-DD&driverId=xxx
 // Returns all orders with GPS data for admin map
 // Supports filtering by date and/or driver
 export async function GET(request: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (session.role !== 'ACCOUNTANT' && session.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url);
     const dateParam = searchParams.get('date');
     const driverId = searchParams.get('driverId');
@@ -19,6 +28,7 @@ export async function GET(request: NextRequest) {
 
     // Build where clause
     const where: Record<string, unknown> = {
+      factoryId: session.factoryId,
       status: { in: ['SHIPPING', 'DELIVERED'] },
       createdAt: { gte: startOfDay, lte: endOfDay },
       deliveryGps: { not: null }, // Only orders with GPS data
