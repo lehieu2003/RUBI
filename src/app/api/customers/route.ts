@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     const customer = await prisma.customer.create({
-      data: { code, name, address: address || '', phone: phone || '', isActive },
+      data: { code, name, address: address || '', phone: phone || '', isActive, factoryId: session.factoryId },
     });
 
     return NextResponse.json(customer, { status: 201 });

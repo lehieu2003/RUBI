@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
         slug,
         phone: phone || null,
         isActive,
+        factoryId: session.factoryId,
       },
     });
 

@@ -3,6 +3,7 @@
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
+import { getSession } from '@/lib/auth';
 
 // --- Price loading action ---
 export async function loadCustomerPrices(customerId: string): Promise<Record<string, number>> {
@@ -62,6 +63,11 @@ async function saveOrderInternal(
   customerId: string,
   lineItems: { productId: string; quantity: number; unitPrice: number; lineTotal: number }[]
 ) {
+  const session = await getSession();
+  if (!session?.factoryId) {
+    throw new Error('Factory context required');
+  }
+
   const validItems = lineItems.filter((item) => item.quantity > 0);
   const total = validItems.reduce(
     (sum, item) => sum + item.quantity * item.unitPrice,
@@ -74,6 +80,7 @@ async function saveOrderInternal(
         customerId,
         status: 'PENDING',
         total: total,
+        factoryId: session.factoryId,
         orderItems: {
           create: validItems.map((item) => ({
             productId: item.productId,
