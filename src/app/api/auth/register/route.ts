@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { signJWT, setSessionCookie } from '@/lib/auth';
-import { prisma } from '@/lib/db';
 import { registerSchema } from '@/lib/schemas/auth';
 import { rateLimit, getIpFromRequest } from '@/lib/rate-limit';
+
+// Use basePrisma for global auth queries (no tenant filtering)
+// Registration creates factory-scoped records but needs global user lookup
+import { prisma as basePrisma } from '@/lib/db';
+const prismaAuth = basePrisma;
 
 export async function POST(req: NextRequest) {
   // RATEL-02: Registration rate limit - 3 per IP per minute
@@ -29,8 +33,8 @@ export async function POST(req: NextRequest) {
     const { email, password, name, phone, factoryName } = parseResult.data;
     // VALI-02: Email already normalized by Zod transform (trim + lowercase)
 
-    // Check existing user (globally unique email)
-    const existing = await prisma.user.findUnique({ where: { email } });
+    // Check existing user (globally unique email) - no tenant context needed
+    const existing = await prismaAuth.user.findUnique({ where: { email } });
     if (existing) {
       return NextResponse.json({ error: 'Email đã được đăng ký' }, { status: 409 });
     }
@@ -39,8 +43,9 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     // FACT-02 + SUB-01: Atomic factory + user + subscription creation
+    // Use basePrisma for transaction to avoid tenant context requirement
     const trialEndDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
-    const [factory, user, subscription] = await prisma.$transaction(async (tx) => {
+    const [factory, user, subscription] = await prismaAuth.$transaction(async (tx) => {
       const factory = await tx.factory.create({
         data: { name: factoryName, phone },
       });

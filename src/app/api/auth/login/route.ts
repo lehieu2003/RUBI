@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { signJWT, setSessionCookie } from '@/lib/auth';
-import { prisma } from '@/lib/db';
 import { loginSchema } from '@/lib/schemas/auth';
 import { rateLimit, getIpFromRequest } from '@/lib/rate-limit';
+
+// Use basePrisma for global auth queries (no tenant filtering)
+import { prisma as basePrisma } from '@/lib/db';
+const prismaAuth = basePrisma;
 
 export async function POST(req: NextRequest) {
   // RATEL-01: Login rate limit - 5 per IP per minute
@@ -28,7 +31,7 @@ export async function POST(req: NextRequest) {
 
     const { email, password } = parseResult.data;
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prismaAuth.user.findUnique({ where: { email } });
     if (!user) {
       // Perform dummy bcrypt comparison to prevent timing leak attack
       await bcrypt.compare(password, '$2b$12$placeholder.hash.that.is.valid.for.timing');
