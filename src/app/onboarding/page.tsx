@@ -83,6 +83,11 @@ export default function OnboardingPage() {
         imported: result.imported ?? 0,
         skipped: result.skipped ?? 0,
       });
+
+      // REG-04: Mark onboarding complete after successful import
+      await fetch('/api/factory/onboarding', {
+        method: 'PATCH',
+      });
     } catch {
       setImportResult({ imported: 0, skipped: customers.length });
     }
