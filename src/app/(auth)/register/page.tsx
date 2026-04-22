@@ -3,10 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/lib/auth-provider';
 
 export default function RegisterPage() {
-  const { signUp } = useAuth();
   const router = useRouter();
   const [factoryName, setFactoryName] = useState('');
   const [phone, setPhone] = useState('');
@@ -31,13 +29,23 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    // Pass factoryName and phone to signUp via extra data
-    const { error } = await signUp(email, password, name, factoryName, phone);
-    if (error) {
-      setError(error);
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name, factoryName, phone }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setError(data.error);
+        setLoading(false);
+        return;
+      }
+      // REG-02: Redirect to nextUrl from response instead of hardcoded /dashboard
+      router.push(data.nextUrl || '/dashboard');
+    } catch {
+      setError('Lỗi kết nối');
       setLoading(false);
-    } else {
-      router.push('/dashboard');
     }
   };
 
