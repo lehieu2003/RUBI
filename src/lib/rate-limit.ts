@@ -39,9 +39,13 @@ export function rateLimit(
 }
 
 export function getIpFromRequest(request: Request): string {
-  return (
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip') ||
-    'unknown'
-  );
+  const TRUSTED_PROXIES = process.env.TRUSTED_PROXY_IPS?.split(',') ?? [];
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded && TRUSTED_PROXIES.length > 0) {
+    const clientIp = forwarded.split(',')[0]?.trim();
+    if (TRUSTED_PROXIES.includes(clientIp)) {
+      return clientIp;
+    }
+  }
+  return request.headers.get('x-real-ip') || 'unknown';
 }
