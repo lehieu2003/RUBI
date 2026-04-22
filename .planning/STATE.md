@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: Features + Grace Period
-status: executing
-stopped_at: Completed 03x-03-PLAN.md
-last_updated: "2026-04-18T03:45:24.282Z"
-last_activity: 2026-04-18
+milestone: v2.0
+milestone_name: Multi-tenant Factory Architecture
+status: milestone_complete
+stopped_at: Milestone v2.0 complete — archived and tagged
+last_updated: "2026-04-22T01:30:00Z"
+last_activity: 2026-04-22 — Milestone v2.0 completion
 progress:
   total_phases: 5
-  completed_phases: 3
-  total_plans: 9
-  completed_plans: 10
+  completed_phases: 5
+  total_plans: 13
+  completed_plans: 13
   percent: 100
 ---
 
@@ -18,101 +18,75 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-17)
-**Current milestone:** v2.0 Multi-tenant Factory Architecture
+See: .planning/PROJECT.md (updated 2026-04-22)
+**Current milestone:** v2.0 complete — archive phase
 **Core value:** Speed over everything — staff must enter orders faster than writing by hand (30 seconds), or they reject the system and return to pen-and-paper.
-**Current focus:** Phase 03x — super-admin-extensions
+**Next milestone:** v3.0 (not yet planned)
 
 ## Current Position
 
-Phase: 03x (super-admin-extensions) — EXECUTING
-Plan: 2 of 3
-Status: Ready to execute
-Last activity: 2026-04-18
-
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/4 phases)
+Milestone: v2.0 Multi-tenant Factory Architecture
+Status: Milestone complete
+All 5 phases finished: 01 (Foundation), 02 (Factory Reg), 03 (Super Admin), 03x (Extensions), 04 (Integration)
+Last activity: 2026-04-22 — Milestone v2.0 archived
 
 ## Performance Metrics
 
-**Velocity:**
+**Velocity (v2.0):**
 
-- Total plans completed: 29
+- Total plans: 13
 - Average duration: ~35 min/plan
-- Total execution time: ~2 hours
+- Timeline: 7 days (2026-04-14 → 2026-04-21)
+- Files changed: 14 (+411/-11 LOC)
 
 **By Phase:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01 | 3 | - | - |
-| 02 | 1 | - | - |
-| 3 | 2 | - | - |
-| 04 | 1 | - | - |
-| 05 | 4 | - | - |
-| 06 | 5 | - | - |
-| 03 | 3 | - | - |
-
-**Recent Trend:**
-
-- Last 3 plans: 01-01 (30min), 01-02 (45min), 01-03 (30min)
-- Trend: Consistent ~35 min/plan
-
-*Updated after each plan completion*
-| Phase 03 P01 | 15 | 5 tasks | 6 files |
-| Phase 03 P02 | 5 | 4 tasks | 5 files |
-| Phase 05 P02 | 253 | 2 tasks | 1 files |
-| Phase 05-reconciliation-reporting P03 | 2min | 2 tasks | 2 files |
-| Phase 05-reconciliation-reporting P04 | 5 | 2 tasks | 2 files |
-| Phase 01-foundation-order-entry P01 | 8 | 5 tasks | 1 files |
-| Phase 01-foundation-order-entry P02 | 3 | 4 tasks | 3 files |
-| Phase 01-foundation-order-entry P03 | 18 | 3 tasks | 4 files |
-| Phase 03x P03 | 8 | 5 tasks | 7 files |
+| Phase | Plans | Complete |
+|-------|-------|----------|
+| 01 | 2/2 | ✓ |
+| 02 | 2/2 | ✓ |
+| 03 | 3/3 | ✓ |
+| 03x | 3/3 | ✓ |
+| 04 | 3/3 | ✓ |
 
 ## Accumulated Context
 
 ### Decisions
 
-Key decisions from PROJECT.md affecting current work:
+Key decisions from v2.0 affecting current work:
 
-- Web-only (no native apps) — solo dev, web-view sufficient for drivers
-- Speed-first order entry — core constraint for Phase 1
-- Shell deposit tracking as core feature — included in Phase 4
-- Confirm deliveries via accountant (not driver) — paper slips returned daily
-- Per-customer price lists — each wholesaler has negotiated rates
-- [Phase ?]: Token-based URL auth for drivers (D-01, D-25) - Driver model with unique token field
-- [Phase ?]: Order visibility rule (D-06) - status=SHIPPING AND driverId IS NOT NULL
-- [Phase ?]: Delivery confirmation (D-08, D-09) - DELIVERED status with GPS capture, null fallback allowed
-- [Phase 03]: Driver delivery view UI uses SHIPPING/DELIVERED status, not PRINTED
-- [Phase 05-reconciliation-reporting]: ToastContainer + useToast hook integrated directly in shell deposits page (not relying on parent layout)
-- [Phase 01-foundation-order-entry]: D-04: Direct factoryId String field on Customer, Driver, Order, Product (not inherited via relation)
-- [Phase 01-foundation-order-entry]: D-05: @@unique([code, factoryId]) on Customer.code and @@unique([phone, factoryId]) on Driver.phone for factory-scoped uniqueness
-- [Phase 01-foundation-order-entry]: D-01: Create default System factory with isSystem=true for existing records during migration
-- [Phase ?]: D-02 (01-02): AsyncLocalStorage + Prisma $extends - factoryId auto-injected via $extends query hooks
-- [Phase ?]: D-07 (01-02): SUPER_ADMIN bypasses factoryId filter - role check before auto-injecting
-- [Phase 01-foundation-order-entry]: D-01: System factory with isSystem=true owns all pre-existing records
-- [Phase 01-foundation-order-entry]: D-03: SUPER_ADMIN user has factoryId=null for system-wide access
+- factoryId on all tenant entities (Customer, Driver, Order, Product) — direct String field, not relation
+- AsyncLocalStorage + Prisma $extends — auto-inject factoryId filter without manual wrapping
+- SUPER_ADMIN bypasses factoryId filter — role check before auto-injecting
+- @@unique([code, factoryId]) and @@unique([phone, factoryId]) — factory-scoped uniqueness
+- System factory with isSystem=true owns all pre-existing records
+- 7-day grace period via isGracePeriodExpired middleware
+- $transaction for atomic factory+user+subscription creation
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Quick Tasks Completed
 
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 260416-mp9 | RBAC: Adaptive Sidebar + Route Middleware theo vai trò User | 2026-04-16 | 6e25917 | [260416-mp9-rbac-adaptive-sidebar-route-middleware-t](./quick/260416-mp9-rbac-adaptive-sidebar-route-middleware-t/) |
-| 260416-mfz | Staff Management UI: Admin tạo/khóa nhân viên, đổi mật khẩu nhanh | 2026-04-16 | 9151bce | [260416-mfz-staff-management-ui-admin-t-o-kh-a-nh-n-](./quick/260416-mfz-staff-management-ui-admin-t-o-kh-a-nh-n-/) |
-| 260416-lzs | Thiết kế Database User & Driver | 2026-04-16 | 6dbc0e3 | [260416-lzs-thi-t-k-database-user-driver](./quick/260416-lzs-thi-t-k-database-user-driver/) |
-| 260416-nv1 | RBAC: Fix login missing role field + 401 JSON for API routes | 2026-04-16 | ddad39d | [260416-nv1-rbac-n-menu-drawer-theo-role-ch-n-truy-c](./quick/260416-nv1-rbac-n-menu-drawer-theo-role-ch-n-truy-c/) |
-| 260416-opw | Fix deliveryGps schema mismatch - add Json field to Order | 2026-04-16 | 702536f | [260416-opw-fix-deliverygps-schema-mismatch-add-json](./quick/260416-opw-fix-deliverygps-schema-mismatch-add-json/) |
-| 260418-ddj | Unify toast system: global ToastContext provider, replace per-page useToast boilerplate with global toast() function | 2026-04-18 | 34f215f | [260418-ddj-unify-toast-system-global-toastcontext-p](./quick/260418-ddj-unify-toast-system-global-toastcontext-p/) |
-
-### Blockers/Concerns
-
-None yet.
+(Total: 32+ completed)
 
 ## Session Continuity
 
-Last session: 2026-04-18T03:45:24.276Z
-Stopped at: Completed 03x-03-PLAN.md
-Resume file: None
+Last session: 2026-04-22T01:30:00Z
+Stopped at: Milestone v2.0 complete, archived, tagged
+
+## Milestone Archive
+
+- v1.0: [.planning/milestones/v1.0-ROADMAP.md]
+- v2.0: [.planning/milestones/v2.0-ROADMAP.md] (archived 2026-04-22)
+
+## Known Tech Debt (v2.0 gaps)
+
+1. **Payment audit log broken:** `POST /api/payments/confirm` extends subscription but does NOT create Payment records — audit log shows empty
+2. **SUPER_ADMIN blocked from /api/orders:** breaks impersonation read
+3. **factoryId fallback:** `session.factoryId || session.userId` is semantically wrong (userId != factoryId)
+
+---
+
+*Last updated: 2026-04-22 after v2.0 milestone completion*

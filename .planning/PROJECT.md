@@ -14,40 +14,35 @@ Web-based order and inventory management system for ice factories. Replaces pen-
 
 **Speed over everything.** Staff taking phone calls under pressure must enter orders faster than writing by hand (30 seconds). If the system is slower than pen-and-paper, staff rejects it and returns to chaos.
 
-## Context
+## Current State
 
-**Current pain points:**
-- Orders tracked on paper + Zalo photos → no central source of truth
-- End-of-day reconciliation often mismatches (unknown where errors occur)
-- Ice bag deposits (shells) owed by customers = hidden cost often larger than the ice itself
-- Manual calculation of daily profit impossible during peak season
-- 2+ trucks = "who delivered what, who owes what" becomes chaotic
-
-**Existing tools:** Pen + paper + Zalo. No existing software.
-
-**Scale assumptions:**
-- ~50-100 orders/day (can spike 2x during summer peak)
-- 2-4 delivery trucks, 4-6 drivers
-- 10-15 total staff
-- Products: Ice cubes in 5kg/10kg/20kg bags, Ice blocks (various sizes)
+**Shipped:** v1.0 MVP + v2.0 Multi-tenant Factory Architecture
+**Total LOC:** ~12,853 lines of TypeScript/React
+**Architecture:** Multi-tenant with factoryId scoping, AsyncLocalStorage + Prisma $extends, SUPER_ADMIN role with system-wide access
 
 ## Requirements
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ Office staff can enter wholesale orders faster than writing by hand — v1.0
+- ✓ Printed delivery slips (A5 or thermal) with customer signature line — v1.0
+- ✓ Drivers can view daily delivery list on phone (web-view, no app install) — v1.0
+- ✓ Accountant can confirm actual delivered quantity from paper slips — v1.0
+- ✓ System auto-deducts inventory when delivery is confirmed — v1.0
+- ✓ Customer debt balance updates automatically after each delivery — v1.0
+- ✓ Each customer has their own price list (negotiated rates per product) — v1.0
+- ✓ Owner can see daily debt report and outstanding balances — v1.0
+- ✓ System tracks shell/bag inventory (deposit owed by customer) — v1.0
+- ✓ Factory-scoped multi-tenancy with factoryId on all entities — v2.0
+- ✓ Super Admin dashboard with tenant management — v2.0
+- ✓ Subscription management with TRIAL/PAID/ACTIVE/CANCELLED states — v2.0
+- ✓ 7-day grace period after cancellation — v2.0
 
 ### Active
 
-- [ ] Office staff can enter wholesale orders faster than writing by hand
-- [ ] Printed delivery slips (A5 or thermal) with customer signature line
-- [ ] Drivers can view daily delivery list on phone (web-view, no app install)
-- [ ] Accountant can confirm actual delivered quantity from paper slips
-- [ ] System auto-deducts inventory when delivery is confirmed
-- [ ] Customer debt balance updates automatically after each delivery
-- [ ] Each customer has their own price list (negotiated rates per product)
-- [ ] Owner can see daily debt report and outstanding balances
-- [ ] System tracks shell/bag inventory (deposit owed by customer)
+- [ ] Factory self-registration with trial subscription (FACT-01, FACT-02, SUB-01, SUB-02, SUB-03 — Phase 02 implemented but gaps exist)
+- [ ] Super Admin impersonation tool (SADM-04 — audit log empty due to no Payment writes)
+- [ ] Payment audit log for subscription payments (SADM-04 partial — tech debt)
 
 ### Out of Scope
 
@@ -79,6 +74,10 @@ Web-based order and inventory management system for ice factories. Replaces pen-
 | Confirm deliveries via accountant (not driver) | Drivers have no app; paper slips returned daily | ✓ Realistic for v1 |
 | Per-customer price lists | Each wholesaler has negotiated rates | ✓ Included in v1 |
 | No offline support | Always-online operation is acceptable | ✓ Accepted |
+| factoryId on all tenant entities | Direct String field (not relation) for simpler queries | ✓ v2.0 |
+| AsyncLocalStorage + Prisma $extends | Auto-inject factoryId filter without manual wrapping | ✓ v2.0 |
+| SUPER_ADMIN bypasses factoryId filter | Role check before auto-injecting | ✓ v2.0 |
+| @@unique([code, factoryId]) | Factory-scoped uniqueness for customer codes | ✓ v2.0 |
 
 ## User Roles & Permissions
 
@@ -104,24 +103,51 @@ Web-based order and inventory management system for ice factories. Replaces pen-
 - Cannot see total factory debt, revenue reports, or settlement screens
 - Cannot modify customer prices
 
+**SUPER_ADMIN (Quản trị hệ thống)**
+- System-wide access, no factory filter
+- Can view all factories, impersonate any tenant
+- Manages subscription plans and pricing
+
 ### RBAC Implementation
 
 - **Adaptive Sidebar**: Menu items filtered by role — STAFF sees minimal menu
 - **Route Middleware**: Unauthorized route access → redirect to `/dashboard?error=unauthorized`
 - Admin is the only source of truth for account creation (direct assignment workflow)
+- Tenant middleware auto-injects factoryId filter via Prisma $extends
 
-## Current Milestone: v2.0 Multi-tenant Factory Architecture
+---
 
-**Goal:** Thay thế hệ thống đơn lẻ bằng kiến trúc multi-tenant — mỗi factory là một tenant riêng biệt, data cô lập hoàn toàn qua factory_id. Có Super Admin dashboard để quản lý tất cả factories.
+## Current Milestone: v3.0 (Planned)
 
-**Target features:**
+**Status:** Not yet started
 
-- Multi-tenancy: Shared database, logic phân tách qua factory_id trên mọi bảng
-- Factory entity: Mỗi doanh nghiệp là một Factory — sở hữu User, Customer, Product, Order
-- Super Admin dashboard: Quản lý tất cả factories, subscription plans, activate/deactivate
-- Factory Admin onboarding: Đăng ký → tạo Factory → tạo trial 30 ngày → user đầu tiên = admin
-- Data isolation: Mọi query đều tự động filter theo factory_id
-- Subscription management: Trial → Basic/Premium, theo dõi expiry, 7-day grace period
+**Next milestone will focus on:**
+- Factory onboarding flow (FACT-01, FACT-02)
+- Subscription billing (SUB-04, SUB-05)
+- Super Admin tenant management improvements
+
+<details>
+<summary>Previous Milestone: v2.0 Multi-tenant Factory Architecture</summary>
+
+**Goal:** Transform from single-tenant to multi-tenant architecture — each factory is a completely isolated tenant with data scoped via `factoryId`.
+
+**Achieved:**
+- factoryId data layer on all tenant entities (Customer, Driver, Order, Product)
+- Tenant middleware via AsyncLocalStorage + Prisma $extends
+- SUPER_ADMIN role with system-wide access
+- Subscription management (TRIAL → PAID/ACTIVE/CANCELLED)
+- Super Admin dashboard with tenant list, activate/deactivate, extend
+- 7-day grace period after cancellation
+- System overview, audit log, impersonation tool
+
+**Tech debt (known gaps):**
+- Payment audit log (SADM-04) has no data — `POST /api/payments/confirm` doesn't create Payment records
+- SUPER_ADMIN blocked from `/api/orders` GET — breaks impersonation read
+- `factoryId: session.factoryId || session.userId` fallback is semantically wrong
+
+**Archive:** [.planning/milestones/v2.0-ROADMAP.md](.planning/milestones/v2.0-ROADMAP.md)
+
+</details>
 
 ---
 
@@ -129,16 +155,14 @@ Web-based order and inventory management system for ice factories. Replaces pen-
 
 This document evolves at phase transitions and milestone boundaries.
 
-**After each phase transition** (via `/gsd-transition`):
-
+**After each phase transition:**
 1. Requirements invalidated? → Move to Out of Scope with reason
 2. Requirements validated? → Move to Validated with phase reference
 3. New requirements emerged? → Add to Active
 4. Decisions to log? → Add to Key Decisions
 5. "What This Is" still accurate? → Update if drifted
 
-**After each milestone** (via `/gsd-complete-milestone`):
-
+**After each milestone:**
 1. Full review of all sections
 2. Core Value check — still the right priority?
 3. Audit Out of Scope — reasons still valid?
@@ -146,4 +170,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-*Last updated: 2026-04-17 after Phase 06 complete (trial-pricing-onboarding)*
+*Last updated: 2026-04-22 after v2.0 milestone completion*

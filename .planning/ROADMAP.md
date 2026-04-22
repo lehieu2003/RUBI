@@ -1,48 +1,19 @@
-# Roadmap: v2.0 Multi-tenant Factory Architecture
+# Roadmap: IceFlow SaaS
 
-**Milestone:** v2.0
-**Created:** 2026-04-17
-**Phase numbering:** Starts at 01 (fresh reset)
+## Milestones
 
----
-
-## Overview
-
-v2.0 transforms IceFlow SaaS from a single-tenant system into a multi-tenant architecture where each ice factory is a completely isolated tenant. All data is scoped via `factoryId` on every entity. A Super Admin dashboard provides system-wide oversight and subscription management.
-
-**24 requirements** across 5 categories map to **4 phases**.
+- ✅ **v1.0 MVP** — Core order entry + delivery (shipped 2026-04-16)
+- ✅ **v2.0 Multi-tenant Factory Architecture** — Phases 01-04 (shipped 2026-04-21)
+- 🚧 **vNext** — Next milestone (not yet planned)
 
 ---
 
 ## Phase 01: Foundation — Data Layer + Factory Model + Super Admin Role
 
-**Goal:** Build the cross-cutting data layer that enables multi-tenancy, introduce the Factory model, and add the SUPER_ADMIN role. All subsequent phases depend on this.
+**Goal:** Build the cross-cutting data layer that enables multi-tenancy, introduce the Factory model, and add the SUPER_ADMIN role.
 
-**Requirements:**
-
-| ID | Requirement |
-|----|-------------|
-| DATA-01 | Add factoryId to Customer, Driver, Order, Product (and backfill existing records) |
-| DATA-02 | Prisma tenant middleware auto-injects factoryId into all queries via `$extends` + AsyncLocalStorage |
-| DATA-03 | Super Admin queries bypass factoryId filter (SUPER_ADMIN role flag) |
-| DATA-04 | Middleware enforces subscription status on every write request (403 if inactive) |
-| DATA-05 | Unique constraints are factory-scoped — e.g. Customer.code is unique only within a Factory (use `@@unique([code, factoryId])` in Prisma) |
-| FACT-03 | Tenant activation/deactivation via subscription status |
-| SADM-01 | SUPER_ADMIN role above ADMIN — system-wide access, no factory filter |
-
-**Dependencies:** None (first phase)
-
-**Success Criteria:**
-1. All four models (Customer, Driver, Order, Product) have `factoryId` field; existing records backfilled to a default factory
-2. Every Prisma query passes through tenant middleware that auto-injects `factoryId` filter for non-SUPER_ADMIN users
-3. SUPER_ADMIN role bypasses factoryId filtering and can query across all factories
-4. Write requests to inactive tenants return HTTP 403; TRIAL and cancelled PAID subscriptions are flagged inactive
-5. `@@unique([code, factoryId])` constraints applied to Customer.code and Driver.phone; composite uniqueness enforced by Prisma
-
-**Plans:**
-2/2 plans complete
-- [x] 01-02-PLAN.md — Tenant middleware (AsyncLocalStorage + Prisma $extends) + SUPER_ADMIN bypass + subscription enforcement
-- [x] 01-03-PLAN.md — Backfill migration + System factory seed + SUPER_ADMIN user creation
+**Requirements:** DATA-01, DATA-02, DATA-03, DATA-04, DATA-05, FACT-03, SADM-01
+**Plans:** 2/2 complete ✓
 
 ---
 
@@ -50,103 +21,26 @@ v2.0 transforms IceFlow SaaS from a single-tenant system into a multi-tenant arc
 
 **Goal:** Enable new factories to self-register with a trial subscription; block write operations when subscription is inactive or expired.
 
-**Requirements:**
-
-| ID | Requirement |
-|----|-------------|
-| FACT-01 | Factory can register with phone, name, email, password |
-| FACT-02 | Registration atomically creates User (ADMIN, isFactoryOwner=true) + Subscription (TRIAL, 14 days) |
-| SUB-01 | Trial subscription auto-created on factory registration (14 days) |
-| SUB-02 | Subscription enforcement — write operations blocked when TRIAL expired or PAID cancelled |
-| SUB-03 | Per-driver pricing — 1 admin free, paid per driver per month |
-
-**Dependencies:** Phase 01 complete (DATA-01, DATA-02, DATA-04, FACT-03 required)
-
-**Success Criteria:**
-1. Registration route creates Factory record + ADMIN User + TRIAL Subscription atomically in a Prisma transaction
-2. Subscription enforcement middleware reads subscription status; expired TRIAL or cancelled PAID returns 403 on all mutating requests
-3. Driver count tracked on Subscription; write operations that add a 2nd+ driver require an active PAID subscription
-4. FACT-04 (grace period) is NOT in this phase — that belongs to Phase 04
+**Requirements:** FACT-01, FACT-02, SUB-01, SUB-02, SUB-03
+**Plans:** 2/2 complete ✓
 
 ---
 
 ## Phase 03: Subscription Management + Super Admin Dashboard
 
-**Goal:** Complete subscription billing workflow (manual payment confirmation, VietQR) and build the Super Admin dashboard for system-wide tenant management.
+**Goal:** Complete subscription billing workflow and build the Super Admin dashboard.
 
-**Requirements:**
-
-| ID | Requirement |
-|----|-------------|
-| SUB-04 | Manual payment confirmation — Admin records payment, extends +30 days |
-| SUB-05 | VietQR content template for payment reference |
-| SADM-02 | Tenant list dashboard — all factories, subscription status, driver count, days remaining |
-| SADM-03 | Activate/deactivate tenant subscription from dashboard |
-| SADM-04 | Extend trial or subscription period (admin override) |
-| SADM-05 | Set price per driver |
-
-**Dependencies:** Phase 01 (SADM-01), Phase 02 (SUB-01, SUB-02)
-
-**Success Criteria:**
-1. Admin can record a payment against a factory's subscription, extending it by 30 days from current expiry
-2. VietQR payment slip shows factory name + subscription reference code; template renders correctly on thermal printer
-3. Super Admin dashboard lists all factories with subscription status, driver count, trial/subscription days remaining
-4. Super Admin can activate/deactivate any tenant's subscription from the dashboard
-5. Super Admin can override and extend any tenant's trial or subscription expiry date
-6. Super Admin can configure the per-driver monthly price
-
-**Plans:**
-3/3 plans complete
-- [x] 03-01-PLAN.md — Admin billing page (/billing) with PaymentRecorder + VietQRCode
-- [x] 03-02-PLAN.md — Super Admin API endpoints + TenantTable component
-- [x] 03-03-PLAN.md — Super Admin dashboard page (/admin/dashboard)
-
----
-
-## Phase 03x: Super Admin Extensions
-
-**Goal:** Extend Super Admin dashboard with System Overview, Payment Audit Log, and Impersonation/Support Tool.
-
-**Requirements:** None (enhancement phase)
-
-**Dependencies:** Phase 03 complete (existing Super Admin dashboard)
-
-**Success Criteria:**
-1. System Overview shows: active factory count, active driver count, monthly revenue
-2. Audit Log page with filterable table and CSV export, 12-month retention
-3. Impersonation tool: "Xem" button, badge indicator, read-only access, 15-min timeout, audit log
-
-**Plans:**
-3/3 plans complete
-- [x] 03X-01-PLAN.md — System Overview Dashboard
-- [x] 03X-02-PLAN.md — Payment Audit Log
-- [x] 03X-03-PLAN.md — Impersonation / Support Tool
+**Requirements:** SUB-04, SUB-05, SADM-02, SADM-03, SADM-04, SADM-05
+**Plans:** 3/3 complete ✓
 
 ---
 
 ## Phase 04: Integration — Factory-Scoped v1.0 Features + Grace Period
 
-**Goal:** Ensure all v1.0 existing features work correctly within the factory-scoped model; implement the 7-day grace period after cancellation.
+**Goal:** Ensure all v1.0 features work within factory-scoped model; implement 7-day grace period.
 
-**Requirements:**
-
-| ID | Requirement |
-|----|-------------|
-| INT-01 | All v1.0 entities (Customer, Order, Driver, Product) properly factory-scoped |
-| INT-02 | Per-customer pricing works within factory scope (CustomerPriceOverride scoped via customer.factoryId) |
-| INT-03 | RBAC middleware extended with SUPER_ADMIN bypass |
-| INT-04 | Delivery slips filtered by factory (via order.factoryId) |
-| INT-05 | Driver web-view scoped to factory (via driver.factoryId) |
-| FACT-04 | 7-day grace period after cancellation (read-only), then locked |
-
-**Dependencies:** Phase 01 (DATA-01 through DATA-05, SADM-01), Phase 02 (FACT-03, SUB-02)
-
-**Success Criteria:**
-1. All existing v1.0 queries and mutations use factoryId scoping via tenant middleware; no data leaks across factories
-2. CustomerPriceOverride joined through customer.factoryId correctly retrieves factory-scoped price list
-3. RBAC middleware allows SUPER_ADMIN to bypass factoryId filter; regular ADMIN/STAFF always scoped
-4. Delivery slip endpoint filters by order.factoryId; driver web-view returns only their factory's orders
-5. After cancellation, tenant enters 7-day grace period (read-only); after grace period expires, all writes return 403
+**Requirements:** INT-01, INT-02, INT-03, INT-04, INT-05, FACT-04
+**Plans:** 3/3 complete ✓
 
 ---
 
@@ -154,13 +48,14 @@ v2.0 transforms IceFlow SaaS from a single-tenant system into a multi-tenant arc
 
 | Phase | Requirements | Key Deliverables |
 |-------|-------------|-----------------|
-| 01 | DATA-01, DATA-02, DATA-03, DATA-04, DATA-05, FACT-03, SADM-01 (7 total) | factoryId data layer, Factory model, SUPER_ADMIN role |
-| 02 | FACT-01, FACT-02, SUB-01, SUB-02, SUB-03 (5 total) | Factory registration, trial subscription, subscription enforcement |
-| 03 | SUB-04, SUB-05, SADM-02, SADM-03, SADM-04, SADM-05 (6 total) | Payment confirmation, VietQR, Super Admin dashboard |
-| 03x | Enhancement (3 features) | System Overview, Audit Log, Impersonation |
-| 04 | INT-01, INT-02, INT-03, INT-04, INT-05, FACT-04 (6 total) | v1.0 factory-scoped integration, 7-day grace period |
+| 01 | DATA-01, DATA-02, DATA-03, DATA-04, DATA-05, FACT-03, SADM-01 | factoryId data layer, Factory model, SUPER_ADMIN role |
+| 02 | FACT-01, FACT-02, SUB-01, SUB-02, SUB-03 | Factory registration, trial subscription, subscription enforcement |
+| 03 | SUB-04, SUB-05, SADM-02, SADM-03, SADM-04, SADM-05 | Payment confirmation, VietQR, Super Admin dashboard |
+| 04 | INT-01, INT-02, INT-03, INT-04, INT-05, FACT-04 | v1.0 factory-scoped integration, 7-day grace period |
 | **Total** | **24 requirements** | |
+
+**Archive:** [.planning/milestones/v2.0-ROADMAP.md](.planning/milestones/v2.0-ROADMAP.md)
 
 ---
 
-*Last updated: 2026-04-18*
+*Last updated: 2026-04-22 after v2.0 milestone completion*
