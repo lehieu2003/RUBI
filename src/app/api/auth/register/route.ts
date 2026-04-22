@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
         endDate: subscription.endDate,
         status: subscription.status,
       },
-      nextUrl: '/onboarding',
+      nextUrl: '/dashboard',
     });
   } catch (error) {
     console.error('Register error:', error);

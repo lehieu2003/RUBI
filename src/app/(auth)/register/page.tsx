@@ -140,9 +140,9 @@ export default function RegisterPage() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Ít nhất 6 ký tự"
+            placeholder="Ít nhất 8 ký tự"
             required
-            minLength={6}
+            minLength={8}
             className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all text-sm"
           />
         </div>
