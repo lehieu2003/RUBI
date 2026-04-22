@@ -13,6 +13,14 @@
         "hooks": [
           {
             "type": "command",
+            "command": "type .claude\\karpathy-guidelines.md"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
             "command": "bash .claude/hooks/gsd-session-state.sh"
           }
         ]

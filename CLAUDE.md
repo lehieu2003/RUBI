@@ -50,7 +50,16 @@ Web-based order and inventory management system for ice factories. Replaces pen-
 <!-- GSD:conventions-start source:CONVENTIONS.md -->
 ## Conventions
 
-Conventions not yet established. Will populate as patterns emerge during development.
+### Coding Guidelines (karpathy-guidelines)
+
+Follow these for all code changes:
+
+1. **Think Before Coding** — State assumptions explicitly. If uncertain, ask. Surface tradeoffs.
+2. **Simplicity First** — Minimum code that solves the problem. No speculative features or abstractions.
+3. **Surgical Changes** — Touch only what you must. Match existing style. Clean up only your own orphans.
+4. **Goal-Driven Execution** — Define success criteria before implementing. Loop until verified.
+
+Reference: [Karpathy on LLM coding pitfalls](https://x.com/karpathy/status/2015883857489522876)
 <!-- GSD:conventions-end -->
 
 <!-- GSD:architecture-start source:ARCHITECTURE.md -->

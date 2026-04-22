@@ -119,12 +119,14 @@ Web-based order and inventory management system for ice factories. Replaces pen-
 
 ## Current Milestone: v3.0 (Planned)
 
-**Status:** Not yet started
+**Goal:** Fix critical tenant data leaks, lock down API auth, improve registration/onboarding, make build green, and correct subscription enforcement.
 
-**Next milestone will focus on:**
-- Factory onboarding flow (FACT-01, FACT-02)
-- Subscription billing (SUB-04, SUB-05)
-- Super Admin tenant management improvements
+**Target features:**
+- Tenant data isolation — explicit factoryId on all queries, fail-closed on missing factoryId
+- API auth hardening — requireSession/requireFactoryId/requireRole helpers on all write endpoints
+- Registration + onboarding — Zod validation, email normalization, password policy, nextUrl routing, onboarding state
+- Build green — TypeScript errors fixed, Decimal serialization, seed scripts with factoryId
+- Subscription correctness — middleware subscription parsing fixed, route-level enforcement
 
 <details>
 <summary>Previous Milestone: v2.0 Multi-tenant Factory Architecture</summary>
