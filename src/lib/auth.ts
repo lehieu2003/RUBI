@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
+import { setTenantContext } from '@/lib/tenant';
 
 // At module scope — throws immediately in production if JWT_SECRET is not configured
 if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
@@ -42,7 +43,12 @@ export async function getSession(): Promise<JWTPayload | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get('auth_token')?.value;
   if (!token) return null;
-  return verifyJWT(token);
+  const session = await verifyJWT(token);
+  if (session) {
+    // Propagate tenant context so Prisma $extends hooks work in API route handlers
+    setTenantContext(session.factoryId ?? null, session.role as 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'SUPER_ADMIN' | null);
+  }
+  return session;
 }
 
 export async function setSessionCookie(token: string) {
