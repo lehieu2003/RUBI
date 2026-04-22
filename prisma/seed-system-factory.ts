@@ -1,12 +1,7 @@
 import { PrismaClient } from '@prisma/client';
-import { SignJWT } from 'jose';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'iceflow-secret-key-change-in-production'
-);
 
 async function seedSystemFactory() {
   console.log('Seeding System Factory + SUPER_ADMIN user...');
@@ -45,21 +40,8 @@ async function seedSystemFactory() {
     });
     console.log('SUPER_ADMIN created:', adminUser.email);
 
-    // Generate JWT for the SUPER_ADMIN
-    const token = await new SignJWT({
-      userId: adminUser.id,
-      email: adminUser.email,
-      name: adminUser.name,
-      role: 'SUPER_ADMIN',
-      factoryId: null,
-    })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setIssuedAt()
-      .setExpirationTime('7d')
-      .sign(JWT_SECRET);
-
-    console.log('SUPER_ADMIN JWT token:', token);
-    console.log('Store this token securely — it provides system-wide access.');
+    console.log('SUPER_ADMIN user ready:', adminUser.email);
+    console.log('System factory seeding complete.');
   } else {
     // Ensure password is hashed (re-hash if stored as plaintext)
     const isHashed = existingAdmin.password.startsWith('$2');
