@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
+import { BillingScreen } from '@/components/billing/BillingScreen';
 
 export default function SettingsBillingPage() {
-  redirect('/billing');
+  return <BillingScreen />;
 }

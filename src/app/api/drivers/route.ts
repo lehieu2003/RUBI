@@ -1,17 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
-import { requireRole } from '@/lib/auth/helpers';
+import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
 
 // GET /api/drivers
 // Returns all active drivers.
 // Supports ?active=true to return {count, drivers} for billing use.
 export async function GET(request: NextRequest) {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const session = await requireRole(['ADMIN', 'ACCOUNTANT', 'STAFF']);
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
     }
@@ -41,6 +37,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(drivers);
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('[GET /api/drivers]', error);
     return NextResponse.json({ error: 'Failed to fetch drivers' }, { status: 500 });
   }
@@ -50,6 +47,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
+    await requireActiveSubscription();
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
     }

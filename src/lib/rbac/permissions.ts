@@ -10,7 +10,6 @@ export type AppRoutePermission = {
 
 const allTenantRoles: TenantRole[] = ['ADMIN', 'ACCOUNTANT', 'STAFF'];
 const opsRoles: TenantRole[] = ['ADMIN', 'ACCOUNTANT'];
-const adminRoles: TenantRole[] = ['ADMIN'];
 
 export const tenantRoutePermissions: AppRoutePermission[] = [
   { href: '/dashboard', label: 'Tong quan', roles: allTenantRoles, match: 'exact' },
@@ -22,10 +21,10 @@ export const tenantRoutePermissions: AppRoutePermission[] = [
   { href: '/reports/debt', label: 'Bao cao no', roles: opsRoles, match: 'prefix' },
   { href: '/deposits/shells', label: 'Vo bao', roles: opsRoles, match: 'prefix' },
   { href: '/dashboard/map', label: 'Ban do', roles: opsRoles, match: 'prefix' },
-  { href: '/settings/billing', label: 'Thanh toan', roles: adminRoles, match: 'prefix' },
-  { href: '/settings', label: 'Cai dat', roles: adminRoles, match: 'prefix' },
-  { href: '/billing', label: 'Thanh toan', roles: adminRoles, match: 'prefix' },
-  { href: '/config/prices', label: 'Bang gia', roles: adminRoles, match: 'prefix' },
+  { href: '/settings/billing', label: 'Thanh toan', roles: opsRoles, match: 'prefix' },
+  { href: '/settings', label: 'Cai dat', roles: opsRoles, match: 'prefix' },
+  { href: '/billing', label: 'Thanh toan', roles: opsRoles, match: 'prefix' },
+  { href: '/config/prices', label: 'Bang gia', roles: ['ADMIN'], match: 'prefix' },
 ];
 
 function isPathMatch(pathname: string, permission: AppRoutePermission): boolean {

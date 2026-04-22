@@ -1,42 +1,62 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { requireRole } from '@/lib/auth/helpers';
+import { getSession } from '@/lib/auth';
+import { prismaAuth } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await requireRole(['ADMIN']);
-    if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (session.role !== 'ADMIN' && session.role !== 'SUPER_ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const body = await req.json();
     const { subscriptionId, amount } = body;
 
-    if (!subscriptionId || typeof amount !== 'number' || amount <= 0) {
-      return NextResponse.json({ error: 'Invalid input: subscriptionId and positive amount required' }, { status: 400 });
+    if (!subscriptionId || typeof amount !== 'number' || amount < 0) {
+      return NextResponse.json({ error: 'Invalid input: subscriptionId and non-negative amount required' }, { status: 400 });
     }
 
-    // Verify subscription belongs to this factory
-    const factoryId = session.factoryId;
-    const subscription = await prisma.subscription.findFirst({
-      where: { id: subscriptionId, factoryId },
-    });
+    const subscription = session.role === 'SUPER_ADMIN'
+      ? await prismaAuth.subscription.findUnique({ where: { id: subscriptionId } })
+      : await prismaAuth.subscription.findFirst({
+          where: {
+            id: subscriptionId,
+            factoryId: session.factoryId,
+          },
+        });
 
     if (!subscription) {
       return NextResponse.json({ error: 'Subscription not found' }, { status: 404 });
     }
-    if (subscription.factoryId !== factoryId) {
-      return NextResponse.json({ error: 'Subscription does not belong to your factory' }, { status: 403 });
-    }
 
-    // Update subscription: planType = PAID, status = ACTIVE, extend endDate +30 days
-    const newEndDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-    const updatedSubscription = await prisma.subscription.update({
+    const baseDate = subscription.endDate > new Date() ? subscription.endDate : new Date();
+    const newEndDate = new Date(baseDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const updatedSubscription = await prismaAuth.subscription.update({
       where: { id: subscriptionId },
       data: {
         planType: 'PAID',
         status: 'ACTIVE',
         endDate: newEndDate,
+      },
+    });
+
+    const monthlyAmount =
+      Math.max(0, (updatedSubscription.driverCount ?? 0) - 1) *
+      (updatedSubscription.pricePerDriver?.toNumber() ?? 0);
+    await prismaAuth.payment.create({
+      data: {
+        factoryId: updatedSubscription.factoryId,
+        amount: monthlyAmount > 0 ? monthlyAmount : amount,
+        adminId: session.userId,
+        confirmedAt: new Date(),
+        notes:
+          session.role === 'SUPER_ADMIN'
+            ? `Super admin confirmed VietQR payment for subscription ${updatedSubscription.id}`
+            : `Tenant admin self-upgraded subscription ${updatedSubscription.id}`,
       },
     });
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import bcrypt from 'bcryptjs';
-import { requireRole } from '@/lib/auth/helpers';
+import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
 
 // PATCH /api/staff/[id] — Update user (ADMIN only)
 export async function PATCH(
@@ -10,6 +10,7 @@ export async function PATCH(
 ) {
   try {
     const session = await requireRole(['ADMIN']);
+    await requireActiveSubscription();
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
     }
@@ -83,6 +84,7 @@ export async function DELETE(
 ) {
   try {
     const session = await requireRole(['ADMIN']);
+    await requireActiveSubscription();
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
     }

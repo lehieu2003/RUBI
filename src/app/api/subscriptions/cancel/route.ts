@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requireRole } from '@/lib/auth/helpers';
+import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
 
 export async function POST(req: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
+    await requireActiveSubscription();
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
     }

@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
-import { requireRole } from '@/lib/auth/helpers';
+import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const session = await requireRole(['ADMIN', 'ACCOUNTANT', 'STAFF']);
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
     }
@@ -27,6 +23,7 @@ export async function GET(request: NextRequest) {
     });
     return NextResponse.json(customers);
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('[GET /api/customers]', error);
     return NextResponse.json({ error: 'Failed to fetch customers' }, { status: 500 });
   }
@@ -36,6 +33,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
+    await requireActiveSubscription();
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
     }

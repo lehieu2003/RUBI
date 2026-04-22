@@ -1,104 +1,150 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
-import { Building2, Truck, Currency } from 'lucide-react';
 
-import { TenantTable } from '@/components/admin/tenant-table';
+import { useEffect, useState } from 'react';
+import {
+  AlertTriangle,
+  Building2,
+  CreditCard,
+  Snowflake,
+  Timer,
+  Truck,
+} from 'lucide-react';
 import { StatCard } from '@/components/dashboard/stat-card';
-import { toast } from '@/components/dashboard/toast';
 
 interface SystemStats {
+  totalFactoryCount: number;
   activeFactoryCount: number;
+  trialFactoryCount: number;
+  expiredFactoryCount: number;
   activeDriverCount: number;
   monthlyRevenue: number;
+  monthlyPaymentTotal: number;
+  nearExpiryCount: number;
+}
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat('vi-VN').format(value);
 }
 
 export default function AdminDashboardPage() {
-  const [toastShown, setToastShown] = useState(false);
   const [stats, setStats] = useState<SystemStats | null>(null);
-  const [statsLoading, setStatsLoading] = useState(true);
-
-  const handleError = (message: string) => {
-    if (!toastShown) {
-      toast({ type: 'error', title: message });
-      setToastShown(true);
-    }
-  };
-
-  const fetchStats = useCallback(async () => {
-    try {
-      const res = await fetch('/api/admin/stats');
-      if (res.ok) {
-        const data = await res.json();
-        setStats(data);
-      } else {
-        handleError('Failed to load statistics');
-      }
-    } catch {
-      handleError('Network error - could not load statistics');
-    } finally {
-      setStatsLoading(false);
-    }
-  }, []);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchStats();
-    const interval = setInterval(() => {
-      fetchStats();
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [fetchStats]);
+    let active = true;
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('vi-VN').format(value);
-  };
+    async function fetchStats() {
+      try {
+        const response = await fetch('/api/admin/stats');
+        if (!response.ok) throw new Error('Không thể tải thống kê hệ thống');
+        const data = await response.json();
+        if (active) setStats(data);
+      } catch (err) {
+        if (active)
+          setError(
+            err instanceof Error ? err.message : 'Không thể tải thống kê',
+          );
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    fetchStats();
+    const interval = setInterval(fetchStats, 30000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   return (
-    <div className="min-h-screen bg-slate-900">
-      {/* Header with back navigation */}
-      <div className="max-w-7xl mx-auto px-4 pt-6 pb-4">
-
-        {/* Page title */}
-        <h1 className="text-2xl font-black text-slate-50">Quản lý thuê bao</h1>
-        <p className="text-sm text-slate-400 mt-1">
-          Quản lý subscription cho tất cả các nhà máy
+    <div>
+      <div className='mb-8'>
+        <p className='text-sm font-medium text-blue-400'>Super Admin</p>
+        <h1 className='mt-1 text-3xl font-black text-white'>
+          Tổng quan hệ thống
+        </h1>
+        <p className='mt-2 text-slate-400'>
+          Theo dõi tình trạng tenant, subscription và doanh thu dự kiến.
         </p>
       </div>
 
-      {/* System overview stat cards */}
-      <div className="max-w-7xl mx-auto px-4 pb-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <StatCard
-            title="Tổng nhà máy đang hoạt động"
-            value={statsLoading ? '...' : String(stats?.activeFactoryCount ?? 0)}
-            subValue="Active factories"
-            icon={Building2}
-            iconColor="text-blue-500"
-            iconBg="bg-blue-50"
-          />
-          <StatCard
-            title="Tổng tài xế đang hoạt động"
-            value={statsLoading ? '...' : String(stats?.activeDriverCount ?? 0)}
-            subValue="Active drivers"
-            icon={Truck}
-            iconColor="text-emerald-500"
-            iconBg="bg-emerald-50"
-          />
-          <StatCard
-            title="Doanh thu tháng này"
-            value={statsLoading ? '...' : formatCurrency(stats?.monthlyRevenue ?? 0)}
-            subValue="Từ subscription"
-            icon={Currency}
-            iconColor="text-violet-500"
-            iconBg="bg-violet-50"
-          />
+      {error && (
+        <div className='mb-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300'>
+          {error}
         </div>
-      </div>
+      )}
 
-      {/* Tenant table */}
-      <div className="max-w-7xl mx-auto px-4 pb-8">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <TenantTable onError={handleError} />
-        </div>
+      <div className='grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4'>
+        <StatCard
+          title='Tổng tenant'
+          value={loading ? '...' : String(stats?.totalFactoryCount ?? 0)}
+          subValue='Nhà máy đã đăng ký'
+          icon={Building2}
+          iconColor='text-blue-400'
+          iconBg='bg-blue-500/20'
+        />
+        <StatCard
+          title='Tenant active'
+          value={loading ? '...' : String(stats?.activeFactoryCount ?? 0)}
+          subValue='Subscription còn hiệu lực'
+          icon={Snowflake}
+          iconColor='text-emerald-400'
+          iconBg='bg-emerald-500/20'
+        />
+        <StatCard
+          title='Đang trial'
+          value={loading ? '...' : String(stats?.trialFactoryCount ?? 0)}
+          subValue='Tenant trial active'
+          icon={Timer}
+          iconColor='text-amber-400'
+          iconBg='bg-amber-500/20'
+        />
+        <StatCard
+          title='Hết hạn/cancelled'
+          value={loading ? '...' : String(stats?.expiredFactoryCount ?? 0)}
+          subValue='Cần hỗ trợ hoặc gia hạn'
+          icon={AlertTriangle}
+          iconColor='text-red-400'
+          iconBg='bg-red-500/20'
+          warning={(stats?.expiredFactoryCount ?? 0) > 0}
+        />
+        <StatCard
+          title='Tài xế active'
+          value={loading ? '...' : String(stats?.activeDriverCount ?? 0)}
+          subValue='Toàn hệ thống'
+          icon={Truck}
+          iconColor='text-cyan-400'
+          iconBg='bg-cyan-500/20'
+        />
+        <StatCard
+          title='Doanh thu dự kiến'
+          value={loading ? '...' : formatCurrency(stats?.monthlyRevenue ?? 0)}
+          subValue='Theo subscription active'
+          icon={CreditCard}
+          iconColor='text-violet-400'
+          iconBg='bg-violet-500/20'
+        />
+        <StatCard
+          title='Payment tháng này'
+          value={
+            loading ? '...' : formatCurrency(stats?.monthlyPaymentTotal ?? 0)
+          }
+          subValue='Đã ghi nhận'
+          icon={CreditCard}
+          iconColor='text-emerald-400'
+          iconBg='bg-emerald-500/20'
+        />
+        <StatCard
+          title='Sắp hết hạn'
+          value={loading ? '...' : String(stats?.nearExpiryCount ?? 0)}
+          subValue='Trong 7 ngày tới'
+          icon={AlertTriangle}
+          iconColor='text-orange-400'
+          iconBg='bg-orange-500/20'
+          warning={(stats?.nearExpiryCount ?? 0) > 0}
+        />
       </div>
     </div>
   );

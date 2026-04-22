@@ -4,6 +4,13 @@ import { prismaAuth } from '@/lib/db';
 
 const basePrisma = prismaAuth;
 
+function inferPaymentSource(notes: string | null): 'TENANT_SELF_UPGRADE' | 'SUPER_ADMIN_OVERRIDE' | 'MANUAL_ADJUSTMENT' {
+  const normalized = notes?.toLowerCase() ?? '';
+  if (normalized.includes('tenant admin self-upgraded')) return 'TENANT_SELF_UPGRADE';
+  if (normalized.includes('super admin')) return 'SUPER_ADMIN_OVERRIDE';
+  return 'MANUAL_ADJUSTMENT';
+}
+
 export async function GET(request: Request) {
   const session = await getSession();
   if (!session || session.role !== 'SUPER_ADMIN') {
@@ -51,7 +58,18 @@ export async function GET(request: Request) {
     where,
     include: {
       factory: {
-        select: { id: true, name: true },
+        select: {
+          id: true,
+          name: true,
+          subscriptions: {
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+            select: {
+              driverCount: true,
+              pricePerDriver: true,
+            },
+          },
+        },
       },
       admin: {
         select: { id: true, name: true },
@@ -79,13 +97,20 @@ export async function GET(request: Request) {
   };
 
   // Build CSV
-  const headers = ['Date', 'Admin', 'Factory', 'Amount'];
-  const rows = payments.map(p => [
-    formatDate(p.confirmedAt),
-    p.admin.name,
-    p.factory.name,
-    formatAmount(Number(p.amount)),
-  ]);
+  const headers = ['Date', 'Admin', 'Factory', 'Amount', 'Driver Count', 'Price Per Driver', 'Source', 'Notes'];
+  const rows = payments.map(p => {
+    const subscription = p.factory.subscriptions[0] ?? null;
+    return [
+      formatDate(p.confirmedAt),
+      p.admin.name,
+      p.factory.name,
+      formatAmount(Number(p.amount)),
+      subscription?.driverCount ?? '',
+      subscription?.pricePerDriver ? formatAmount(Number(subscription.pricePerDriver)) : '',
+      inferPaymentSource(p.notes),
+      p.notes ?? '',
+    ];
+  });
 
   const csv = [
     headers.join(','),

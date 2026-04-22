@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: milestone
-status: ready_to_discuss
-stopped_at: Phase 7B execution complete
+status: verification_pending
+stopped_at: Phase 8 execution complete, verification pending
 last_updated: "2026-04-22T08:55:00.000Z"
-last_activity: 2026-04-22 -- Phase 7B login regression hotfixed
+last_activity: 2026-04-22 -- Phase 8 API route hardening plans executed
 progress:
   total_phases: 6
   completed_phases: 3
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-22)
 **Current milestone:** v3.0 Security Hardening + SaaS Readiness
 **Core value:** Speed over everything — staff must enter orders faster than writing by hand (30 seconds), or they reject the system and return to pen-and-paper.
-**Next phase:** Phase 8 (API Route Hardening + Subscription Enforcement)
+**Current phase:** Phase 8 (API Route Hardening + Subscription Enforcement)
 
 ## Current Position
 
 Phase: 8
-Plan: Not started
-Status: Ready to discuss
-Last activity: 2026-04-22 -- Phase 7B login regression hotfixed
+Plan: 5/5 executed
+Status: Verification pending
+Last activity: 2026-04-22 -- Phase 8 API route hardening plans executed
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████████] 100% execution, verification pending
 
 ## Performance Metrics
 
@@ -88,7 +88,7 @@ None.
 
 Last session: 2026-04-22T08:55:00.000Z
 Stopped at: Phase 7B login regression hotfixed
-Resume from: /gsd-discuss-phase 8
+Resume from: /gsd-code-review 8, then /gsd-verify-work 8
 
 ## Milestone Archive
 
@@ -107,4 +107,6 @@ Resume from: /gsd-discuss-phase 8
 
 **Completed Phase:** 7B (RBAC Enforcement) — 3/3 plans — verification passed 2026-04-22
 
-**Next Recommended:** `/gsd-discuss-phase 8`
+**Latest Phase:** 8 (API Route Hardening + Subscription Enforcement) — 5/5 plans executed 2026-04-22; verification pending because gsd-sdk CLI is unavailable
+
+**Next Recommended:** `/gsd-code-review 8` then `/gsd-verify-work 8`

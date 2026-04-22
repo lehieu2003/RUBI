@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requireRole } from '@/lib/auth/helpers';
+import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
 import { z } from 'zod';
 
 const ShellDepositSchema = z.object({
@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
+    await requireActiveSubscription();
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
     }

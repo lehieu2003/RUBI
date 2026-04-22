@@ -10,25 +10,25 @@ export function PricingDisplay({ driverCount, pricePerDriver = 150000 }: Pricing
   const isFree = driverCount <= 1;
 
   return (
-    <div className="bg-white rounded-lg border p-4">
-      <h2 className="text-lg font-semibold mb-4">Bảng giá</h2>
+    <div className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur">
+      <h2 className="mb-4 text-lg font-semibold text-white">Bảng giá</h2>
 
-      <div className="space-y-2 text-sm">
+      <div className="space-y-2 text-sm text-slate-300">
         <div className="flex justify-between">
-          <span>Giá mỗi driver:</span>
-          <span className="font-medium">
+          <span className="text-slate-400">Giá mỗi driver:</span>
+          <span className="font-medium text-white">
             {pricePerDriver.toLocaleString('vi-VN')} VND / tháng
           </span>
         </div>
         <div className="flex justify-between">
-          <span>Tài khoản Admin:</span>
-          <span className="text-green-600">Miễn phí</span>
+          <span className="text-slate-400">Tài khoản Admin:</span>
+          <span className="text-emerald-400">Miễn phí</span>
         </div>
         <div className="flex justify-between">
-          <span>Số lượng driver đang hoạt động:</span>
-          <span className="font-medium">{driverCount}</span>
+          <span className="text-slate-400">Số lượng driver đang hoạt động:</span>
+          <span className="font-medium text-white">{driverCount}</span>
         </div>
-        <div className="border-t pt-2 mt-2 flex justify-between font-semibold">
+        <div className="mt-2 flex justify-between border-t border-white/10 pt-2 font-semibold text-white">
           <span>Tổng cộng hàng tháng:</span>
           <span>
             {isFree
@@ -39,13 +39,13 @@ export function PricingDisplay({ driverCount, pricePerDriver = 150000 }: Pricing
       </div>
 
       {!isFree && (
-        <p className="text-xs text-gray-500 mt-3">
+        <p className="mt-3 text-xs text-slate-400">
           Bao gồm: 1 Admin (miễn phí) + {chargeableDrivers} Driver ×{' '}
           {pricePerDriver.toLocaleString('vi-VN')} VND
         </p>
       )}
       {isFree && (
-        <p className="text-xs text-gray-500 mt-3">
+        <p className="mt-3 text-xs text-slate-400">
           Gói của bạn hiện miễn phí (chưa có driver hoặc chỉ có Admin).
         </p>
       )}

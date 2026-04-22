@@ -10,23 +10,20 @@ export async function GET() {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  // Get first day of current month
   const now = new Date();
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-  // activeFactoryCount: COUNT factories WHERE isSystem=false AND has ACTIVE subscription
-  const activeFactoryCount = await basePrisma.factory.count({
-    where: {
-      isSystem: false,
+  const factories = await basePrisma.factory.findMany({
+    where: { isSystem: false },
+    include: {
       subscriptions: {
-        some: {
-          status: 'ACTIVE',
-        },
+        orderBy: { createdAt: 'desc' },
+        take: 1,
       },
     },
   });
 
-  // activeDriverCount: COUNT drivers WHERE isActive=true AND factory.isSystem=false
   const activeDriverCount = await basePrisma.driver.count({
     where: {
       isActive: true,
@@ -36,30 +33,46 @@ export async function GET() {
     },
   });
 
-  // monthlyRevenue: SUM(subscription.driverCount * subscription.pricePerDriver)
-  // for ACTIVE subscriptions with endDate >= first day of current month
-  // Since we can't do arithmetic in Prisma easily, fetch subscriptions and compute
-  const subscriptions = await basePrisma.subscription.findMany({
-    select: {
-      driverCount: true,
-      pricePerDriver: true,
-    },
+  const monthlyPayments = await basePrisma.payment.findMany({
     where: {
-      status: 'ACTIVE',
-      endDate: {
-        gte: firstDayOfMonth,
-      },
+      confirmedAt: { gte: firstDayOfMonth },
+      factory: { isSystem: false },
     },
+    select: { amount: true },
   });
 
-  const monthlyRevenue = subscriptions.reduce((sum, sub) => {
-    const price = sub.pricePerDriver ? Number(sub.pricePerDriver) : 0;
-    return sum + sub.driverCount * price;
+  const latestSubscriptions = factories.map(factory => factory.subscriptions[0]).filter(Boolean);
+  const activeSubscriptions = latestSubscriptions.filter(
+    subscription => subscription.status === 'ACTIVE' && subscription.endDate >= now
+  );
+  const trialSubscriptions = latestSubscriptions.filter(
+    subscription => subscription.planType === 'TRIAL' && subscription.status === 'ACTIVE'
+  );
+  const expiredSubscriptions = latestSubscriptions.filter(
+    subscription => subscription.status === 'EXPIRED' || subscription.status === 'CANCELLED' || subscription.endDate < now
+  );
+  const nearExpirySubscriptions = activeSubscriptions.filter(
+    subscription => subscription.endDate <= sevenDaysFromNow
+  );
+
+  const monthlyRevenue = activeSubscriptions.reduce((sum, subscription) => {
+    const price = subscription.pricePerDriver ? Number(subscription.pricePerDriver) : 0;
+    const chargeableDrivers = Math.max(0, subscription.driverCount - 1);
+    return sum + chargeableDrivers * price;
+  }, 0);
+
+  const monthlyPaymentTotal = monthlyPayments.reduce((sum, payment) => {
+    return sum + Number(payment.amount);
   }, 0);
 
   return NextResponse.json({
-    activeFactoryCount,
+    totalFactoryCount: factories.length,
+    activeFactoryCount: activeSubscriptions.length,
+    trialFactoryCount: trialSubscriptions.length,
+    expiredFactoryCount: expiredSubscriptions.length,
     activeDriverCount,
     monthlyRevenue,
+    monthlyPaymentTotal,
+    nearExpiryCount: nearExpirySubscriptions.length,
   });
 }

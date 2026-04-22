@@ -4,6 +4,13 @@ import { prismaAuth } from '@/lib/db';
 
 const basePrisma = prismaAuth;
 
+function inferPaymentSource(notes: string | null): 'TENANT_SELF_UPGRADE' | 'SUPER_ADMIN_OVERRIDE' | 'MANUAL_ADJUSTMENT' {
+  const normalized = notes?.toLowerCase() ?? '';
+  if (normalized.includes('tenant admin self-upgraded')) return 'TENANT_SELF_UPGRADE';
+  if (normalized.includes('super admin')) return 'SUPER_ADMIN_OVERRIDE';
+  return 'MANUAL_ADJUSTMENT';
+}
+
 export async function GET(request: Request) {
   const session = await getSession();
   if (!session || session.role !== 'SUPER_ADMIN') {
@@ -57,7 +64,18 @@ export async function GET(request: Request) {
     where,
     include: {
       factory: {
-        select: { id: true, name: true },
+        select: {
+          id: true,
+          name: true,
+          subscriptions: {
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+            select: {
+              driverCount: true,
+              pricePerDriver: true,
+            },
+          },
+        },
       },
       admin: {
         select: { id: true, name: true },
@@ -69,13 +87,20 @@ export async function GET(request: Request) {
   });
 
   // Transform to audit log format
-  const logs = payments.map(p => ({
-    id: p.id,
-    confirmedAt: p.confirmedAt.toISOString(),
-    amount: Number(p.amount),
-    adminName: p.admin.name,
-    factoryName: p.factory.name,
-  }));
+  const logs = payments.map(p => {
+    const subscription = p.factory.subscriptions[0] ?? null;
+    return {
+      id: p.id,
+      confirmedAt: p.confirmedAt.toISOString(),
+      amount: Number(p.amount),
+      adminName: p.admin.name,
+      factoryName: p.factory.name,
+      driverCount: subscription?.driverCount ?? null,
+      pricePerDriver: subscription?.pricePerDriver ? Number(subscription.pricePerDriver) : null,
+      source: inferPaymentSource(p.notes),
+      notes: p.notes,
+    };
+  });
 
   return NextResponse.json({
     logs,

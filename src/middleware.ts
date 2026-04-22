@@ -91,7 +91,8 @@ export async function middleware(request: NextRequest) {
             { headers: { Cookie: request.headers.get('cookie') || '' } }
           );
           if (subRes.ok) {
-            const sub = await subRes.json();
+            const data = await subRes.json();
+            const sub = data?.subscription ?? null;
             if (sub && sub.status === 'CANCELLED' && isGracePeriodExpired(sub)) {
               return NextResponse.json(
                 { error: 'Subscription cancelled and grace period expired. Account locked.', code: 'ACCOUNT_LOCKED' },
@@ -104,6 +105,11 @@ export async function middleware(request: NextRequest) {
                 { status: 403 }
               );
             }
+          } else {
+            return NextResponse.json(
+              { error: 'Unable to verify subscription status', code: 'CHECK_FAILED' },
+              { status: 503 }
+            );
           }
         } catch (error) {
           // Fail closed: reject write if subscription check fails

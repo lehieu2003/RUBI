@@ -30,9 +30,7 @@ const menuMetadata = {
   '/inventory': { icon: Snowflake, label: 'Kho lạnh' },
   '/vehicles': { icon: Truck, label: 'Đội xe' },
   '/dashboard/map': { icon: Truck, label: 'Bản đồ' },
-  '/settings/billing': { icon: Settings, label: 'Thanh toán' },
   '/settings': { icon: Settings, label: 'Cài đặt' },
-  '/billing': { icon: Settings, label: 'Thanh toán' },
   '/config/prices': { icon: Package, label: 'Bảng giá' },
 };
 
@@ -52,7 +50,7 @@ export function Sidebar() {
         label: route.label,
       }),
     }))
-    .filter((item) => item.href !== '/billing' && item.href !== '/config/prices');
+    .filter((item) => item.href !== '/settings/billing' && item.href !== '/billing' && item.href !== '/config/prices');
 
   const handleSignOut = async () => {
     if (signingOut) return;
@@ -83,7 +81,7 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 space-y-1 px-3 py-4">
         {menuItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || (item.href === '/settings' && pathname.startsWith('/settings/'));
           return (
             <Link
               key={item.label}

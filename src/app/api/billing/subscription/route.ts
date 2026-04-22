@@ -1,20 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth/helpers';
 
 // GET /api/billing/subscription
-// Returns the subscription for the current logged-in factory (ADMIN user)
+// Returns the subscription for the current logged-in factory.
+// All tenant roles can read this because middleware uses it for write enforcement.
 export async function GET() {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const session = await requireRole(['ADMIN', 'ACCOUNTANT', 'STAFF']);
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
-    }
-    if (session.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const factoryId = session.factoryId;
@@ -30,6 +25,7 @@ export async function GET() {
 
     return NextResponse.json({ subscription, driverCount });
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('[GET /api/billing/subscription]', error);
     return NextResponse.json({ error: 'Failed to fetch subscription' }, { status: 500 });
   }

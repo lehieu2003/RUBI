@@ -17,34 +17,34 @@ export function VietQRCode({ amount, factoryName = 'KHACH HANG', monthYear }: Vi
     amount > 0 ? new Intl.NumberFormat('vi-VN').format(amount) : '0';
 
   return (
-    <div className="bg-white rounded-lg border p-4">
-      <h2 className="text-lg font-semibold mb-4">Thanh toán qua chuyển khoản</h2>
+    <div className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur">
+      <h2 className="mb-4 text-lg font-semibold text-white">Thanh toán qua chuyển khoản</h2>
 
       <div className="space-y-3">
         <div className="flex items-center gap-2 text-sm">
-          <span className="w-36 text-gray-600">Ngân hàng:</span>
-          <span className="font-medium">Vietcombank</span>
+          <span className="w-36 text-slate-400">Ngân hàng:</span>
+          <span className="font-medium text-white">Vietcombank</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <span className="w-36 text-gray-600">Số tài khoản:</span>
-          <span className="font-medium font-mono">1234567890</span>
+          <span className="w-36 text-slate-400">Số tài khoản:</span>
+          <span className="font-mono font-medium text-white">1234567890</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <span className="w-36 text-gray-600">Tên tài khoản:</span>
-          <span className="font-medium">CTY TNHH ICEFLOW</span>
+          <span className="w-36 text-slate-400">Tên tài khoản:</span>
+          <span className="font-medium text-white">CTY TNHH ICEFLOW</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <span className="w-36 text-gray-600">Số tiền:</span>
-          <span className="font-medium text-blue-600">{formattedAmount} VND</span>
+          <span className="w-36 text-slate-400">Số tiền:</span>
+          <span className="font-medium text-blue-400">{formattedAmount} VND</span>
         </div>
 
-        <div className="border rounded p-3 bg-gray-50">
-          <p className="text-xs text-gray-500 mb-1">Nội dung chuyển khoản (copy):</p>
-          <code className="text-sm break-all text-gray-800 select-all">{content}</code>
+        <div className="rounded border border-white/10 bg-slate-950/40 p-3">
+          <p className="mb-1 text-xs text-slate-400">Nội dung chuyển khoản (copy):</p>
+          <code className="select-all break-all text-sm text-slate-100">{content}</code>
         </div>
       </div>
 
-      <p className="text-xs text-gray-500 mt-4">
+      <p className="mt-4 text-xs text-slate-400">
         Quý khách vui lòng chuyển khoản với nội dung bên trên và nhấn &quot;Xác nhận thanh
         toán&quot; sau khi hoàn tất.
       </p>

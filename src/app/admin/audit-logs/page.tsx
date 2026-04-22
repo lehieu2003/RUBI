@@ -1,6 +1,7 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
-import { Loader2, Download, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+
+import { useCallback, useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight, Download, Filter, Loader2 } from 'lucide-react';
 
 interface Factory {
   id: string;
@@ -13,7 +14,10 @@ interface AuditLog {
   amount: number;
   adminName: string;
   factoryName: string;
-  driverCount: number;
+  driverCount: number | null;
+  pricePerDriver: number | null;
+  source: string;
+  notes: string | null;
 }
 
 interface LogsResponse {
@@ -23,24 +27,33 @@ interface LogsResponse {
   totalPages: number;
 }
 
+function formatDate(value: string) {
+  return new Date(value).toLocaleString('vi-VN');
+}
+
+function formatCurrency(value: number) {
+  return `${new Intl.NumberFormat('vi-VN').format(value)} đ`;
+}
+
 export default function AuditLogsPage() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [factories, setFactories] = useState<Factory[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
-  const [factoryError, setFactoryError] = useState<string>('');
-
-  // Filters
-  const [selectedFactory, setSelectedFactory] = useState<string>('');
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
-
-  // Pagination
+  const [selectedFactory, setSelectedFactory] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
 
-  // Build query string for API calls
+  useEffect(() => {
+    fetch('/api/admin/factories')
+      .then(response => response.json())
+      .then(data => setFactories(data.factories ?? []))
+      .catch(() => setFactories([]));
+  }, []);
+
   const buildQuery = useCallback((pageNum: number) => {
     const params = new URLSearchParams();
     params.set('page', String(pageNum));
@@ -49,31 +62,14 @@ export default function AuditLogsPage() {
     if (startDate) params.set('startDate', startDate);
     if (endDate) params.set('endDate', endDate);
     return params.toString();
-  }, [selectedFactory, startDate, endDate]);
+  }, [endDate, selectedFactory, startDate]);
 
-  // Fetch factories for dropdown
-  useEffect(() => {
-    fetch('/api/admin/factories')
-      .then(r => {
-        if (!r.ok) throw new Error('Failed to load factories');
-        return r.json();
-      })
-      .then(data => {
-        setFactories(data.factories ?? []);
-      })
-      .catch(err => {
-        setFactoryError(err.message);
-      });
-  }, []);
-
-  // Fetch logs
   const fetchLogs = useCallback(async (pageNum: number) => {
     setLoading(true);
     try {
-      const query = buildQuery(pageNum);
-      const res = await fetch(`/api/admin/audit-logs?${query}`);
-      if (res.ok) {
-        const data: LogsResponse = await res.json();
+      const response = await fetch(`/api/admin/audit-logs?${buildQuery(pageNum)}`);
+      if (response.ok) {
+        const data: LogsResponse = await response.json();
         setLogs(data.logs);
         setPage(data.page);
         setTotalPages(data.totalPages);
@@ -88,13 +84,6 @@ export default function AuditLogsPage() {
     fetchLogs(page);
   }, [fetchLogs, page]);
 
-  // Handle filter submit
-  const handleFilter = () => {
-    setPage(1);
-    fetchLogs(1);
-  };
-
-  // Export CSV
   const handleExport = async () => {
     setExporting(true);
     try {
@@ -103,16 +92,16 @@ export default function AuditLogsPage() {
       if (startDate) params.set('startDate', startDate);
       if (endDate) params.set('endDate', endDate);
 
-      const res = await fetch(`/api/admin/audit-logs/export?${params.toString()}`);
-      if (res.ok) {
-        const blob = await res.blob();
+      const response = await fetch(`/api/admin/audit-logs/export?${params.toString()}`);
+      if (response.ok) {
+        const blob = await response.blob();
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `audit-logs-${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `payment-audit-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         URL.revokeObjectURL(url);
       }
     } finally {
@@ -120,193 +109,134 @@ export default function AuditLogsPage() {
     }
   };
 
-  // Format date as DD/MM/YYYY HH:mm
-  const formatDate = (isoString: string) => {
-    const date = new Date(isoString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${day}/${month}/${year} ${hours}:${minutes}`;
-  };
-
-  // Format amount as VND
-  const formatVND = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
-  };
-
   return (
-    <div className="min-h-screen bg-slate-900">
-      {/* Header */}
-      <div className="max-w-7xl mx-auto px-4 pt-6 pb-4">
-        <h1 className="text-2xl font-black text-slate-50">Audit Log</h1>
-        <p className="text-sm text-slate-400 mt-1">
-          Lịch sử thanh toán subscription
+    <div>
+      <div className="mb-8">
+        <p className="text-sm font-medium text-blue-400">Super Admin</p>
+        <h1 className="mt-1 text-3xl font-black text-white">Payment Audit Log</h1>
+        <p className="mt-2 text-slate-400">
+          Lịch sử payment subscription đã được ghi nhận trong 12 tháng gần nhất.
         </p>
       </div>
 
-      {/* Filters */}
-      <div className="max-w-7xl mx-auto px-4 pb-4">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <div className="flex flex-wrap gap-3 items-end">
-            {/* Factory dropdown */}
-            <div className="flex flex-col gap-1.5 min-w-[200px]">
-              <label className="text-xs text-slate-400">Nhà máy</label>
-              <select
-                value={selectedFactory}
-                onChange={e => setSelectedFactory(e.target.value)}
-                className="px-3 py-2 text-sm bg-white/5 border border-white/20 rounded-lg text-slate-50 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="">Tất cả</option>
-                {factories.map(f => (
-                  <option key={f.id} value={f.id}>{f.name}</option>
-                ))}
-              </select>
-              {factoryError && (
-                <p className="text-xs text-red-400">{factoryError}</p>
-              )}
-            </div>
-
-            {/* Start date */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-slate-400">Từ ngày</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={e => setStartDate(e.target.value)}
-                className="px-3 py-2 text-sm bg-white/5 border border-white/20 rounded-lg text-slate-50 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* End date */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-slate-400">Đến ngày</label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={e => setEndDate(e.target.value)}
-                className="px-3 py-2 text-sm bg-white/5 border border-white/20 rounded-lg text-slate-50 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Filter button */}
-            <button
-              onClick={handleFilter}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+      <div className="mb-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="flex min-w-56 flex-col gap-1.5 text-xs text-slate-400">
+            Nhà máy
+            <select
+              value={selectedFactory}
+              onChange={event => setSelectedFactory(event.target.value)}
+              className="rounded-lg border border-white/20 bg-slate-900 px-3 py-2 text-sm text-white"
             >
-              <Filter className="w-4 h-4" />
-              Lọc
-            </button>
-
-            {/* Export button */}
-            <button
-              onClick={handleExport}
-              disabled={exporting}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
-            >
-              {exporting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Download className="w-4 h-4" />
-              )}
-              Export CSV
-            </button>
-          </div>
+              <option value="">Tất cả</option>
+              {factories.map(factory => (
+                <option key={factory.id} value={factory.id}>{factory.name}</option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1.5 text-xs text-slate-400">
+            Từ ngày
+            <input
+              type="date"
+              value={startDate}
+              onChange={event => setStartDate(event.target.value)}
+              className="rounded-lg border border-white/20 bg-slate-900 px-3 py-2 text-sm text-white"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-xs text-slate-400">
+            Đến ngày
+            <input
+              type="date"
+              value={endDate}
+              onChange={event => setEndDate(event.target.value)}
+              className="rounded-lg border border-white/20 bg-slate-900 px-3 py-2 text-sm text-white"
+            />
+          </label>
+          <button
+            onClick={() => {
+              setPage(1);
+              fetchLogs(1);
+            }}
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            <Filter className="h-4 w-4" />
+            Lọc
+          </button>
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+          >
+            {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            Export CSV
+          </button>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="max-w-7xl mx-auto px-4 pb-4">
-        <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
-            </div>
-          ) : logs.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-slate-400 text-lg">Không có log nào</p>
-              <p className="text-slate-500 text-sm mt-2">
-                Thử thay đổi bộ lọc hoặc chờ thanh toán mới.
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-white/10">
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">
-                      Date
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">
-                      Admin
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">
-                      Factory
-                    </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-slate-400">
-                      Amount
-                    </th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-slate-400">
-                      Driver Count
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {logs.map(log => (
-                    <tr
-                      key={log.id}
-                      className="border-b border-white/10 hover:bg-white/10 transition-colors"
-                    >
-                      <td className="px-4 py-3 text-sm text-slate-50">
-                        {formatDate(log.confirmedAt)}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-slate-300">
-                        {log.adminName}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-slate-300">
-                        {log.factoryName}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right font-medium text-emerald-400">
-                        {formatVND(log.amount)}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-center text-slate-300">
-                        {log.driverCount}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Pagination */}
-        {!loading && totalPages > 0 && (
-          <div className="flex items-center justify-between mt-4">
-            <p className="text-sm text-slate-400">
-              Trang {page} / {totalPages} — {total} kết quả
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page <= 1}
-                className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white/5 border border-white/20 rounded-lg text-slate-50 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Trước
-              </button>
-              <button
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages}
-                className="flex items-center gap-1 px-3 py-1.5 text-sm bg-white/5 border border-white/20 rounded-lg text-slate-50 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Sau
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+      <div className="overflow-x-auto rounded-2xl border border-white/10 bg-white/5">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
           </div>
+        ) : (
+          <table className="w-full min-w-[1100px]">
+            <thead>
+              <tr className="border-b border-white/10">
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">Date</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">Admin</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">Factory</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-slate-400">Amount</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-slate-400">Drivers</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-slate-400">Price/Driver</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">Source</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {logs.map(log => (
+                <tr key={log.id} className="border-b border-white/10 hover:bg-white/5">
+                  <td className="px-4 py-3 text-sm text-slate-300">{formatDate(log.confirmedAt)}</td>
+                  <td className="px-4 py-3 text-sm text-slate-300">{log.adminName}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-white">{log.factoryName}</td>
+                  <td className="px-4 py-3 text-right text-sm font-medium text-emerald-400">{formatCurrency(log.amount)}</td>
+                  <td className="px-4 py-3 text-center text-sm text-slate-300">{log.driverCount ?? '-'}</td>
+                  <td className="px-4 py-3 text-right text-sm text-slate-300">
+                    {log.pricePerDriver !== null ? formatCurrency(log.pricePerDriver) : '-'}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-blue-300">{log.source}</td>
+                  <td className="px-4 py-3 text-sm text-slate-400">{log.notes ?? '-'}</td>
+                </tr>
+              ))}
+              {logs.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="px-4 py-10 text-center text-slate-400">Không có log nào.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         )}
+      </div>
+
+      <div className="mt-4 flex items-center justify-between text-sm text-slate-400">
+        <span>Trang {page} / {Math.max(1, totalPages)} · {total} kết quả</span>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setPage(current => Math.max(1, current - 1))}
+            disabled={page <= 1}
+            className="inline-flex items-center gap-1 rounded-lg bg-white/5 px-3 py-2 disabled:opacity-50"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Trước
+          </button>
+          <button
+            onClick={() => setPage(current => Math.min(totalPages, current + 1))}
+            disabled={page >= totalPages}
+            className="inline-flex items-center gap-1 rounded-lg bg-white/5 px-3 py-2 disabled:opacity-50"
+          >
+            Sau
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
       </div>
     </div>
   );

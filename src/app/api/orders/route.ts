@@ -1,21 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth/helpers';
 
 // GET /api/orders - List orders with filters (D-06)
 // Supports: customerId, status, date
 export async function GET(request: NextRequest) {
   try {
     // --- Session auth ---
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const session = await requireRole(['ADMIN', 'ACCOUNTANT', 'STAFF']);
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
-    }
-    if (session.role !== 'ACCOUNTANT' && session.role !== 'ADMIN' && session.role !== 'STAFF') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -62,6 +56,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(serialized);
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('[GET /api/orders]', error);
     return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
   }
