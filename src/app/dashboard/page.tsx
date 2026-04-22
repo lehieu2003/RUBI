@@ -1,9 +1,10 @@
-import { prisma } from '@/lib/db';
+import { prisma, prismaAuth } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { setTenantContext } from '@/lib/tenant';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
 
 async function getFactory(factoryId: string) {
-  return prisma.factory.findUnique({
+  return prismaAuth.factory.findUnique({
     where: { id: factoryId },
     select: { onboardingCompleted: true },
   });
@@ -37,11 +38,17 @@ async function getOrders() {
 }
 
 export default async function DashboardPage() {
-  const [customers, products, orders, session] = await Promise.all([
+  const session = await getSession();
+
+  // Set tenant context for this request (propagates to Prisma $extends hooks)
+  if (session) {
+    setTenantContext(session.factoryId ?? null, session.role as 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'SUPER_ADMIN' | null);
+  }
+
+  const [customers, products, orders] = await Promise.all([
     getCustomers(),
     getProducts(),
     getOrders(),
-    getSession(),
   ]);
 
   let showOnboardingPrompt = false;
