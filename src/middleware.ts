@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyJWT } from '@/lib/auth';
+import { canAccessPath, isTenantAppPath } from '@/lib/rbac/permissions';
 import { isSubscriptionActive, isGracePeriodExpired } from '@/lib/subscription-status';
 import { setTenantContext, TenantContext } from '@/lib/tenant';
 
@@ -28,17 +29,6 @@ async function isImpersonating(request: NextRequest): Promise<{ active: boolean;
   return { active: false };
 }
 
-// Routes accessible by role (SUPER_ADMIN only accesses /admin/*)
-const roleRoutes: Record<string, UserRole[]> = {
-  '/dashboard': ['ADMIN', 'ACCOUNTANT', 'STAFF'],
-  '/orders': ['ADMIN', 'ACCOUNTANT', 'STAFF'],
-  '/customers': ['ADMIN', 'ACCOUNTANT', 'STAFF'],
-  '/settle': ['ADMIN', 'ACCOUNTANT'],
-  '/inventory': ['ADMIN', 'ACCOUNTANT'],
-  '/vehicles': ['ADMIN', 'ACCOUNTANT'],
-  '/settings': ['ADMIN'],
-};
-
 export async function middleware(request: NextRequest) {
   const token = request.cookies.get('auth_token')?.value;
   const session = token ? await verifyJWT(token) : null;
@@ -53,15 +43,8 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Protect all app routes (require auth)
-  const isAppRoute =
-    pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/orders') ||
-    pathname.startsWith('/customers') ||
-    pathname.startsWith('/settle') ||
-    pathname.startsWith('/inventory') ||
-    pathname.startsWith('/vehicles') ||
-    pathname.startsWith('/settings');
+  // Protect all tenant app routes (require auth)
+  const isAppRoute = isTenantAppPath(pathname);
 
   // Redirect unauthenticated users to login
   if (isAppRoute && !session) {
@@ -78,32 +61,11 @@ export async function middleware(request: NextRequest) {
   // Check role-based access
   if (session) {
     const userRole = (session as { role?: UserRole }).role as UserRole | undefined;
-    const allowedRoles = roleRoutes[pathname] || roleRoutes[pathname.split('/')[2] + '/'] || ['ADMIN', 'ACCOUNTANT', 'STAFF', 'SUPER_ADMIN'];
-
-    // Check exact pathname match first
-    if (roleRoutes[pathname] && userRole && !roleRoutes[pathname].includes(userRole)) {
-      if (pathname.startsWith('/api/')) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
+    if (isAppRoute && !canAccessPath(userRole, pathname)) {
       const url = request.nextUrl.clone();
-      url.pathname = '/dashboard';
+      url.pathname = userRole === 'SUPER_ADMIN' ? '/admin/dashboard' : '/dashboard';
       url.searchParams.set('error', 'unauthorized');
       return NextResponse.redirect(url);
-    }
-
-    // Check parent segment (e.g. /settings/*)
-    const segments = pathname.split('/').filter(Boolean);
-    if (segments.length >= 2) {
-      const parentPath = '/' + segments.slice(0, 2).join('/');
-      if (roleRoutes[parentPath] && userRole && !roleRoutes[parentPath].includes(userRole)) {
-        if (pathname.startsWith('/api/')) {
-          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-        const url = request.nextUrl.clone();
-        url.pathname = '/dashboard';
-        url.searchParams.set('error', 'unauthorized');
-        return NextResponse.redirect(url);
-      }
     }
 
     // Impersonation enforcement: block writes while impersonating

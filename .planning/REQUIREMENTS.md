@@ -23,8 +23,8 @@ Requirements for v3.0 Security Hardening + SaaS Readiness. Each maps to roadmap 
 - [ ] **AUTH-02**: Shared `requireFactoryId()` helper — extracts factoryId from session or throws 400 Bad Request
 - [ ] **AUTH-03**: Shared `requireRole(roles[])` helper — checks session role against allowed roles or throws 403 Forbidden
 - [ ] **AUTH-04**: Shared `requireActiveSubscription()` helper — verifies subscription is ACTIVE/PAID or throws 403 Subscription Required
-- [ ] **AUTH-05**: Auth helpers work across API Route Handlers and Server Actions
-- [ ] **AUTH-06**: All write API endpoints use auth helpers before processing requests
+- [x] **AUTH-05**: Auth helpers work across API Route Handlers and Server Actions
+- [x] **AUTH-06**: All write API endpoints use auth helpers before processing requests
 
 ### Input Validation (VALI)
 
@@ -64,17 +64,17 @@ Requirements for v3.0 Security Hardening + SaaS Readiness. Each maps to roadmap 
 
 ### Security Hardening (SEC)
 
-- [ ] **SEC-01**: JWT_SECRET env var is required — app fails to start if missing in production
-- [ ] **SEC-02**: No seed scripts print SUPER_ADMIN JWT tokens to console
-- [ ] **SEC-03**: No hardcoded JWT secret fallbacks in production code
+- [x] **SEC-01**: JWT_SECRET env var is required — app fails to start if missing in production
+- [x] **SEC-02**: No seed scripts print SUPER_ADMIN JWT tokens to console
+- [x] **SEC-03**: No hardcoded JWT secret fallbacks in production code
 
 ### Role-Based Access Control (RBAC)
 
-- [ ] **RBAC-01**: Route middleware correctly enforces ADMIN/ACCOUNTANT/STAFF role access patterns
-- [ ] **RBAC-02**: Route middleware redirects unauthorized access to `/dashboard?error=unauthorized`
-- [ ] **RBAC-03**: Adaptive sidebar filters menu items by role (STAFF sees minimal menu)
-- [ ] **RBAC-04**: SUPER_ADMIN bypasses factoryId filter only on explicitly needed operations
-- [ ] **RBAC-05**: All write API endpoints enforce role checks via auth helpers
+- [x] **RBAC-01**: Route middleware correctly enforces ADMIN/ACCOUNTANT/STAFF role access patterns
+- [x] **RBAC-02**: Route middleware redirects unauthorized access to `/dashboard?error=unauthorized`
+- [x] **RBAC-03**: Adaptive sidebar filters menu items by role (STAFF sees minimal menu)
+- [x] **RBAC-04**: SUPER_ADMIN bypasses factoryId filter only on explicitly needed operations
+- [x] **RBAC-05**: All write API endpoints enforce role checks via auth helpers
 
 ---
 
@@ -184,8 +184,8 @@ Requirements for v3.0 Security Hardening + SaaS Readiness. Each maps to roadmap 
 | AUTH-02 | Phase 7 | Pending |
 | AUTH-03 | Phase 7 | Pending |
 | AUTH-04 | Phase 7 | Pending |
-| AUTH-05 | Phase 7B | Pending |
-| AUTH-06 | Phase 7B | Pending |
+| AUTH-05 | Phase 7B | Complete |
+| AUTH-06 | Phase 7B | Complete |
 | VALI-01 | Phase 7 | Pending |
 | VALI-02 | Phase 7 | Pending |
 | VALI-03 | Phase 7 | Pending |
@@ -207,14 +207,14 @@ Requirements for v3.0 Security Hardening + SaaS Readiness. Each maps to roadmap 
 | SUBS-01 | Phase 8 | Pending |
 | SUBS-02 | Phase 8 | Pending |
 | SUBS-03 | Phase 8 | Pending |
-| SEC-01 | Phase 6 | Pending |
-| SEC-02 | Phase 6 | Pending |
-| SEC-03 | Phase 6 | Pending |
-| RBAC-01 | Phase 7B | Pending |
-| RBAC-02 | Phase 7B | Pending |
-| RBAC-03 | Phase 7B | Pending |
-| RBAC-04 | Phase 7B | Pending |
-| RBAC-05 | Phase 7B | Pending |
+| SEC-01 | Phase 6 / validated Phase 7B | Complete |
+| SEC-02 | Phase 6 / validated Phase 7B | Complete |
+| SEC-03 | Phase 6 / validated Phase 7B | Complete |
+| RBAC-01 | Phase 7B | Complete |
+| RBAC-02 | Phase 7B | Complete |
+| RBAC-03 | Phase 7B | Complete |
+| RBAC-04 | Phase 7B | Complete |
+| RBAC-05 | Phase 7B | Complete |
 | FACT-01 | Phase 7 | Pending |
 | FACT-02 | Phase 7 | Pending |
 | FACT-04 | Phase 8 | Pending |
@@ -240,4 +240,4 @@ Requirements for v3.0 Security Hardening + SaaS Readiness. Each maps to roadmap 
 
 ---
 *Requirements defined: 2026-04-22*
-*Last updated: 2026-04-22 after v3.0 roadmap creation*
+*Last updated: 2026-04-22 after Phase 7B verification*

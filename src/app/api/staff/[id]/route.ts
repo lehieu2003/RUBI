@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import bcrypt from 'bcryptjs';
-import { getSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth/helpers';
 
 // PATCH /api/staff/[id] — Update user (ADMIN only)
 export async function PATCH(
@@ -9,15 +9,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
-    }
-    if (session.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Admin only' }, { status: 403 });
     }
 
     const { id } = await params;
@@ -76,6 +70,7 @@ export async function PATCH(
 
     return NextResponse.json({ user });
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('[PATCH /api/staff/[id]]', error);
     return NextResponse.json({ error: 'Failed to update staff' }, { status: 500 });
   }
@@ -87,15 +82,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
-    }
-    if (session.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Admin only' }, { status: 403 });
     }
 
     const { id } = await params;
@@ -119,6 +108,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('[DELETE /api/staff/[id]]', error);
     return NextResponse.json({ error: 'Failed to delete staff' }, { status: 500 });
   }

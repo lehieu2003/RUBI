@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth/helpers';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
@@ -25,15 +26,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const session = await requireRole(['ADMIN']);
   if (!session.factoryId) {
     return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
-  }
-  if (session.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Admin only' }, { status: 403 });
   }
 
   const { id } = await params;

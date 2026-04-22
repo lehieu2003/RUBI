@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth/helpers';
 import { z } from 'zod';
 
 const ShellDepositSchema = z.object({
@@ -12,15 +12,9 @@ const ShellDepositSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
-    }
-    if (session.role !== 'ACCOUNTANT' && session.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const customers = await prisma.customer.findMany({
@@ -53,6 +47,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(deposits);
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('[GET /api/deposits/shells]', error);
     return NextResponse.json({ error: 'Failed to fetch deposit data' }, { status: 500 });
   }
@@ -60,15 +55,9 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
-    }
-    if (session.role !== 'ACCOUNTANT' && session.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -108,6 +97,7 @@ export async function PATCH(request: NextRequest) {
       shellsIn: shellsIn ?? 0,
     });
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('[PATCH /api/deposits/shells]', error);
     return NextResponse.json({ error: 'Failed to update deposit' }, { status: 500 });
   }

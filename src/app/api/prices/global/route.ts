@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
+import { requireRole } from '@/lib/auth/helpers';
 
 const SetGlobalPriceSchema = z.object({
   productId: z.string().min(1),
@@ -10,6 +11,8 @@ const SetGlobalPriceSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    await requireRole(['ADMIN']);
+
     const body = await request.json();
     const parsed = SetGlobalPriceSchema.safeParse(body);
 
@@ -35,6 +38,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('Error setting global price:', error);
     return NextResponse.json(
       { error: 'Internal server error' },

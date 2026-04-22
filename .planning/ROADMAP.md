@@ -14,7 +14,7 @@ v3.0 fixes critical tenant data leaks, locks down API auth, hardens registration
 
 - [ ] **Phase 6: Data Layer Hardening** - Explicit factoryId on all queries, Prisma $extends fail-closed, security baseline
 - [ ] **Phase 7: Auth Infrastructure + Registration** - Auth helpers, Zod validation, email normalization, password policy, rate limiting
-- [ ] **Phase 7B: RBAC Enforcement** - Role-based access control middleware correctness, route-level enforcement, SUPER_ADMIN bypass audit
+- [x] **Phase 7B: RBAC Enforcement** - Role-based access control middleware correctness, route-level enforcement, SUPER_ADMIN bypass audit (completed 2026-04-22)
 - [ ] **Phase 8: API Route Hardening + Subscription Enforcement** - All API routes use auth helpers, subscription enforcement on writes
 - [ ] **Phase 9: Super Admin + Integration** - Super Admin dashboard, all v1.0 entities factory-scoped
 - [ ] **Phase 10: Build Correctness** - TypeScript clean, build passing, Decimal serialization, seed scripts, React Compiler
@@ -53,7 +53,7 @@ v3.0 fixes critical tenant data leaks, locks down API auth, hardens registration
 ### Phase 7B: RBAC Enforcement
 **Goal**: Correct RBAC middleware behavior; route-level enforcement for ADMIN/ACCOUNTANT/STAFF; SUPER_ADMIN bypass correctness
 **Depends on**: Phase 7
-**Requirements**: AUTH-05, AUTH-06, SEC-01, SEC-02, SEC-03
+**Requirements**: AUTH-05, AUTH-06, SEC-01, SEC-02, SEC-03, RBAC-01, RBAC-02, RBAC-03, RBAC-04, RBAC-05
 **Success Criteria** (what must be TRUE):
 
   1. All write API endpoints use auth helpers before processing requests
@@ -64,7 +64,11 @@ v3.0 fixes critical tenant data leaks, locks down API auth, hardens registration
   6. Route middleware correctly redirects unauthorized access to /dashboard?error=unauthorized
   7. Adaptive sidebar correctly filters menu items by role
 
-**Plans**: TBD
+**Plans**: 3/3 complete
+- [07B-01: Shared Route Permissions](phases/07B-rbac-enforcement/07B-01-PLAN.md) - shared tenant route matrix, middleware enforcement, sidebar filtering
+- [07B-02: Write Route Helper Migration](phases/07B-rbac-enforcement/07B-02-PLAN.md) - shared role helper enforcement on in-scope write APIs
+- [07B-03: RBAC Edge Cases and Regression Tests](phases/07B-rbac-enforcement/07B-03-PLAN.md) - STAFF order reads, SUPER_ADMIN boundaries, regression tests
+- [Verification](phases/07B-rbac-enforcement/07B-VERIFICATION.md) - passed with Phase 10 build debt noted
 
 ---
 
@@ -112,7 +116,7 @@ v3.0 fixes critical tenant data leaks, locks down API auth, hardens registration
 |-------|----------------|--------|-----------|
 | 6. Data Layer Hardening | 0/TBD | Not started | - |
 | 7. Auth Infrastructure + Registration | 0/TBD | Not started | - |
-| 7B. RBAC Enforcement | 0/TBD | Not started | - |
+| 7B. RBAC Enforcement | 3/3 | Complete | 2026-04-22 |
 | 8. API Route Hardening + Subscription | 0/TBD | Not started | - |
 | 9. Super Admin + Integration | 0/TBD | Not started | - |
 | 10. Build Correctness | 0/TBD | Not started | - |

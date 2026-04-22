@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { isSubscriptionActive } from '@/lib/subscription-status';
-import { getSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth/helpers';
 
 // PATCH /api/orders/bulk-assign
 // Body: { orderIds: string[], driverId: string }
@@ -14,15 +14,9 @@ const BulkAssignSchema = z.object({
 
 export async function PATCH(request: NextRequest) {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
-    }
-    if (session.role !== 'ACCOUNTANT' && session.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -91,6 +85,7 @@ export async function PATCH(request: NextRequest) {
       driver: { id: driver.id, name: driver.name },
     });
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('[PATCH /api/orders/bulk-assign]', error);
     return NextResponse.json({ error: 'Bulk assign failed' }, { status: 500 });
   }

@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
     }
-    if (session.role !== 'ACCOUNTANT' && session.role !== 'ADMIN') {
+    if (session.role !== 'ACCOUNTANT' && session.role !== 'ADMIN' && session.role !== 'STAFF') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

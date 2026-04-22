@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth/helpers';
 import { z } from 'zod';
 
 const ReconcileSchema = z.object({
@@ -16,12 +16,9 @@ export async function PATCH(
 ) {
   try {
     // --- Session auth ---
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    if (session.role !== 'ACCOUNTANT' && session.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
+    if (!session.factoryId) {
+      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
     }
 
     const { id } = await params;
@@ -34,8 +31,8 @@ export async function PATCH(
     // --- Atomic transaction: reconcile + inventory deduction + debt entry ---
     await prisma.$transaction(async (tx) => {
       // 0. Fetch order within transaction scope for atomicity
-      const order = await tx.order.findUnique({
-        where: { id },
+      const order = await tx.order.findFirst({
+        where: { id, factoryId: session.factoryId },
         include: { orderItems: true, customer: true },
       });
       if (!order) {
@@ -108,6 +105,7 @@ export async function PATCH(
       status: 'COMPLETED',
     });
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('[PATCH /api/orders/[id]/reconcile]', error);
     return NextResponse.json({ error: 'Reconciliation failed' }, { status: 500 });
   }

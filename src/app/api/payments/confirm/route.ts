@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth/helpers';
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
-    }
-    if (session.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Admin only' }, { status: 403 });
     }
 
     const body = await req.json();
@@ -48,6 +42,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, subscription: updatedSubscription });
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('[POST /api/payments/confirm]', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

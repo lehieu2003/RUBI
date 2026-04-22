@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
-import { getSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth/helpers';
 
 // PATCH /api/orders/[id]/status - Update order status (D-05)
 // Valid statuses: PENDING, SHIPPING, DELIVERED, COMPLETED, CANCELLED
@@ -18,15 +18,9 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
 
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
-    }
-    if (session.role !== 'ACCOUNTANT' && session.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const parsed = StatusSchema.safeParse(body);
@@ -66,6 +60,7 @@ export async function PATCH(
 
     return NextResponse.json(order);
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('[PATCH /api/orders/[id]/status]', error);
     return NextResponse.json({ error: 'Update failed' }, { status: 500 });
   }

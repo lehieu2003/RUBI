@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
+import { getSession, setSessionCookie, signJWT } from '@/lib/auth';
 import { getDaysRemaining } from '@/lib/subscription-status';
 import { getFactorySubscription } from '@/lib/subscription-queries';
 
@@ -15,16 +15,35 @@ export async function GET() {
 
   const user = await prismaAuth.user.findUnique({
     where: { id: session.userId },
-    select: { id: true, email: true, name: true, role: true, isActive: true },
+    select: { id: true, email: true, name: true, role: true, factoryId: true, isActive: true },
   });
 
   if (!user) {
     return NextResponse.json({ user: null, subscription: null }, { status: 401 });
   }
 
+  const factoryId = session.factoryId ?? user.factoryId ?? undefined;
+  if (user.role !== 'SUPER_ADMIN' && !factoryId) {
+    return NextResponse.json(
+      { user: null, subscription: null, error: 'Tài khoản chưa được gán nhà máy' },
+      { status: 403 }
+    );
+  }
+
+  if (!session.factoryId && factoryId) {
+    const token = await signJWT({
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      factoryId,
+    });
+    await setSessionCookie(token);
+  }
+
   // Get subscription status for this factory
-  const subscription = session.factoryId
-    ? await getFactorySubscription(session.factoryId)
+  const subscription = factoryId
+    ? await getFactorySubscription(factoryId)
     : null;
 
   const daysRemaining = getDaysRemaining(subscription);
@@ -35,7 +54,7 @@ export async function GET() {
       email: user.email,
       name: user.name,
       role: user.role,
-      factoryId: session.factoryId,
+      factoryId,
     },
     subscription: subscription ? {
       id: subscription.id,

@@ -1,20 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma, prismaAuth } from '@/lib/db';
 import bcrypt from 'bcryptjs';
-import { getSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth/helpers';
 
 // GET /api/staff — List all users (ADMIN only)
 export async function GET(request: NextRequest) {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
-    }
-    if (session.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Admin only' }, { status: 403 });
     }
 
     const users = await prisma.user.findMany({
@@ -32,6 +26,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ users });
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('[GET /api/staff]', error);
     return NextResponse.json({ error: 'Failed to fetch staff' }, { status: 500 });
   }
@@ -40,15 +35,9 @@ export async function GET(request: NextRequest) {
 // POST /api/staff — Create new staff user (ADMIN only)
 export async function POST(request: NextRequest) {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
-    }
-    if (session.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Admin only' }, { status: 403 });
     }
 
     const { name, email, password, role } = await request.json();
@@ -93,6 +82,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ user }, { status: 201 });
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('[POST /api/staff]', error);
     return NextResponse.json({ error: 'Failed to create staff' }, { status: 500 });
   }

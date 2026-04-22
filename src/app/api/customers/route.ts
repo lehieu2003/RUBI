@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth/helpers';
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,15 +35,9 @@ export async function GET(request: NextRequest) {
 // POST /api/customers - Add new customer (ADMIN only, allows inactive)
 export async function POST(request: NextRequest) {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
-    }
-    if (session.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -58,6 +53,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(customer, { status: 201 });
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('[POST /api/customers]', error);
     return NextResponse.json({ error: 'Failed to create customer' }, { status: 500 });
   }

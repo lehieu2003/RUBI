@@ -41,6 +41,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Tài khoản đã bị vô hiệu hóa' }, { status: 403 });
     }
 
+    if (user.role !== 'SUPER_ADMIN' && !user.factoryId) {
+      return NextResponse.json(
+        { error: 'Tài khoản chưa được gán nhà máy. Vui lòng liên hệ admin.' },
+        { status: 403 }
+      );
+    }
+
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
       return NextResponse.json({ error: 'Email hoặc mật khẩu không đúng' }, { status: 401 });
@@ -61,6 +68,7 @@ export async function POST(req: NextRequest) {
         email: user.email,
         name: user.name,
         role: user.role,
+        factoryId: user.factoryId,
       },
     });
   } catch (error) {

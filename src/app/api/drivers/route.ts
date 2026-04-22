@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth/helpers';
 
 // GET /api/drivers
 // Returns all active drivers.
@@ -48,15 +49,9 @@ export async function GET(request: NextRequest) {
 // POST /api/drivers - Add new driver (ADMIN only, allows inactive)
 export async function POST(request: NextRequest) {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
       return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
-    }
-    if (session.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -88,6 +83,7 @@ export async function POST(request: NextRequest) {
       token: driver.token,
     }, { status: 201 });
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('[POST /api/drivers]', error);
     return NextResponse.json({ error: 'Failed to create driver' }, { status: 500 });
   }

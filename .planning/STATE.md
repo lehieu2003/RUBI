@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: milestone
-status: ready_to_plan
-stopped_at: Phase 7 context gathered
-last_updated: "2026-04-22T04:23:31.241Z"
-last_activity: 2026-04-22
+status: ready_to_discuss
+stopped_at: Phase 7B execution complete
+last_updated: "2026-04-22T08:55:00.000Z"
+last_activity: 2026-04-22 -- Phase 7B login regression hotfixed
 progress:
   total_phases: 6
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 2
-  percent: 33
+  completed_phases: 3
+  total_plans: 7
+  completed_plans: 7
+  percent: 100
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-22)
 **Current milestone:** v3.0 Security Hardening + SaaS Readiness
 **Core value:** Speed over everything — staff must enter orders faster than writing by hand (30 seconds), or they reject the system and return to pen-and-paper.
-**Next phase:** Phase 6 (Data Layer Hardening)
+**Next phase:** Phase 8 (API Route Hardening + Subscription Enforcement)
 
 ## Current Position
 
-Phase: 7B
+Phase: 8
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-04-22
+Status: Ready to discuss
+Last activity: 2026-04-22 -- Phase 7B login regression hotfixed
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -50,6 +50,7 @@ Progress: [░░░░░░░░░░] 0%
 | 03 | 3/3 | - |
 | 03x | 3/3 | - |
 | 04 | 3/3 | - |
+| 7B | 3/3 | 2026-04-22 |
 
 *Updated after each plan completion*
 
@@ -80,13 +81,14 @@ None.
 
 ### Blockers/Concerns
 
-None yet.
+- `npx tsc --noEmit -p tsconfig.json` still fails on Phase 10 build-correctness debt in `src/app/dashboard/page.tsx`, `src/components/dashboard/dashboard-client.tsx`, and `src/db/seed.ts`.
+- STAFF/ACCOUNTANT login regression after Phase 7B was fixed: orphan local tenant users were backfilled to `Phương Loan`, and auth routes now reject/repair missing factoryId sessions.
 
 ## Session Continuity
 
-Last session: --stopped-at
-Stopped at: Phase 7 context gathered
-Resume from: /gsd-plan-phase 6
+Last session: 2026-04-22T08:55:00.000Z
+Stopped at: Phase 7B login regression hotfixed
+Resume from: /gsd-discuss-phase 8
 
 ## Milestone Archive
 
@@ -101,6 +103,8 @@ Resume from: /gsd-plan-phase 6
 
 ---
 
-*Last updated: 2026-04-22 after v3.0 roadmap creation*
+*Last updated: 2026-04-22 after Phase 7B login hotfix*
 
-**Planned Phase:** 7 (Auth Infrastructure + Registration) — 2 plans — 2026-04-22T04:23:31.232Z
+**Completed Phase:** 7B (RBAC Enforcement) — 3/3 plans — verification passed 2026-04-22
+
+**Next Recommended:** `/gsd-discuss-phase 8`
