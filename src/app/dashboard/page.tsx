@@ -2,6 +2,13 @@ import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
 
+async function getFactory(factoryId: string) {
+  return prisma.factory.findUnique({
+    where: { id: factoryId },
+    select: { onboardingCompleted: true },
+  });
+}
+
 async function getCustomers() {
   return prisma.customer.findMany({
     where: { isActive: true },
@@ -37,8 +44,11 @@ export default async function DashboardPage() {
     getSession(),
   ]);
 
-  const showOnboardingPrompt =
-    session?.role === 'ADMIN' && customers.length === 0;
+  let showOnboardingPrompt = false;
+  if (session?.role === 'ADMIN' && session.factoryId) {
+    const factory = await getFactory(session.factoryId);
+    showOnboardingPrompt = factory?.onboardingCompleted === false;
+  }
 
   return (
     <DashboardClient
