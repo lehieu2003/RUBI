@@ -1,245 +1,252 @@
-# Multi-tenant Factory Architecture — Feature Research
+# Feature Landscape: v3.0 Security Hardening + SaaS Readiness
 
-**Research date:** 2026-04-17
-**Scope:** Factory onboarding, trial subscriptions, Super Admin dashboard, tenant management
-**Downstream consumer:** gsd-planner — feature table stakes vs differentiators, complexity, dependencies on existing v1.0 order/customer/product system
+**Domain:** SaaS tenant management with security hardening
+**Researched:** 2026-04-22
+**Overall confidence:** MEDIUM-HIGH
 
----
+## Executive Summary
 
-## Category 1: Factory Management
-
-### Feature 1.1: Factory Registration Flow
-**Complexity:** MEDIUM
-**Dependencies:** Auth system, Subscription model, User (ADMIN)
-
-**Table stakes behavior (must have):**
-- Registration form: Phone + Factory Name + Email + Password (phone/factory-name first per D-01)
-- Creates User record with role=ADMIN, isFactoryOwner=true
-- Creates Subscription record atomically (TRIAL plan, 14-day endDate, ACTIVE status)
-- Factory identified by ADMIN user id (factoryId on User)
-
-**Differentiators (IceFlow-specific):**
-- Phone-first UX to feel "business registration" not "personal signup"
-- No credit card required for trial (D-01)
-- Trial starts on registration date, not first login (D-03)
-
-**Edge cases:**
-- Duplicate phone / email → clear error, no partial state
-- Registration creates User + Subscription in single Prisma transaction (D-02)
+The v3.0 milestone addresses critical gaps in API security (no centralized auth helpers), registration validation (manual instead of Zod), email/password handling (no normalization or strength rules), and onboarding state (no completion tracking). These are standard SaaS patterns that the codebase currently handles inconsistently. Implementing centralized `requireSession`/`requireFactoryId`/`requireRole` helpers will eliminate repeated auth boilerplate and reduce the attack surface for tenant data leaks.
 
 ---
 
-### Feature 1.2: Tenant Activation / Deactivation
-**Complexity:** LOW
-**Dependencies:** Subscription model, User.role, middleware
+## 1. Auth Helper Pattern (requireSession / requireFactoryId / requireRole)
 
-**Table stakes behavior:**
-- Tenant active when Subscription.status = ACTIVE and (planType = PAID OR (planType = TRIAL AND endDate > now))
-- Deactivation = Subscription.status set to CANCELLED or EXPIRED
-- All write operations blocked when inactive (middleware + per-route check)
+### Current State
 
-**Differentiators:**
-- 7-day grace period after cancel (read-only access continues, writes blocked) (D-15)
-- Yellow/orange persistent banner on ALL pages during grace / warning period (D-05, D-06)
-- 3-day warning modal on login for Admin only (non-dismissible) (D-06)
+Each API route independently calls `getSession()` and validates roles via ad-hoc checks:
 
-**Edge cases:**
-- Cannot deactivate via UI in v1 — direct DB only
-- Cancel triggered by user confirms → data export → 7-day grace → auto-lock
+```typescript
+// Current pattern (repeated in every route)
+const session = await getSession();
+if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+if (session.role !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+```
 
----
+The codebase has ~50 API routes with no centralized auth helpers. Some check `session`, some check `session.role`, some call `prisma.user.findUnique` to double-check. This inconsistency is the root cause of DATA-01 and DATA-02 tenant leaks referenced in v3.0 goals.
 
-### Feature 1.3: Per-customer Pricing (existing, v1.0)
-**Complexity:** LOW
-**Dependencies:** Customer, Product, CustomerPriceOverride, GlobalPrice
+### Recommended Pattern
 
-**Existing behavior:**
-- GlobalPrice: default price per product across all customers
-- CustomerPriceOverride: per-customer, per-product price (takes precedence)
-- Order entry reads price per customer dynamically (not stored on Order)
+```typescript
+// src/lib/auth-helpers.ts
+import { getSession } from './auth';
 
-**Integration note for multi-tenant:** CustomerPriceOverride and GlobalPrice are per-factory-scoped via customer.fatoryId link. Need factoryId on Customer model or scope queries by ADMIN factory.
+export class AuthError extends Error {
+  constructor(
+    public status: number,
+    public message: string,
+    public code?: string
+  ) { super(message); }
+  static unauthorized() { return new AuthError(401, 'Unauthorized'); }
+  static forbidden(msg = 'Forbidden') { return new AuthError(403, msg, 'FORBIDDEN'); }
+}
 
----
+export type UserRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'SUPER_ADMIN';
 
-## Category 2: Subscription Management
+export async function requireSession() {
+  const session = await getSession();
+  if (!session) throw AuthError.unauthorized();
+  return session;
+}
 
-### Feature 2.1: Trial Subscription Creation
-**Complexity:** LOW
-**Dependencies:** Subscription model (already in schema.prisma), User, registration flow
+export async function requireRole(...roles: UserRole[]) {
+  const session = await requireSession();
+  if (!roles.includes(session.role as UserRole)) throw AuthError.forbidden();
+  return session;
+}
 
-**Table stakes behavior:**
-- Created atomically with User on registration
-- planType = TRIAL, status = ACTIVE, endDate = now + 14 days
-- No payment info collected
+export async function requireFactoryId(session: JWTPayload): Promise<string> {
+  if (!session.factoryId) throw AuthError.forbidden('Factory context required');
+  return session.factoryId;
+}
+```
 
-**Implementation notes:**
-- Subscription.factoryId = ADMIN User.id
-- Subscription.driverCount = 0 initially
-- Subscription.pricePerDriver = null until PAID plan set
+**Usage in API routes:**
+```typescript
+export async function POST(req: NextRequest) {
+  try {
+    const session = await requireRole('ADMIN', 'ACCOUNTANT');
+    const factoryId = await requireFactoryId(session);
+    // ... proceed with factoryId-scoped logic
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message, code: e.code }, { status: e.status });
+    throw e;
+  }
+}
+```
 
----
+**Complexity:** Low. Pattern is well-established. Refactors ~50 route handlers.
 
-### Feature 2.2: Subscription Plan Management (Basic / Premium)
-**Complexity:** MEDIUM
-**Dependencies:** Subscription model, SubscriptionPlan/SubscriptionStatus enums, Driver model
-
-**Table stakes behavior:**
-- Plan types: TRIAL (14-day), PAID (monthly)
-- PAID plan has: driverCount (active drivers), pricePerDriver (monthly rate)
-- Per-driver pricing: 1 admin always free, charge only for drivers (D-08, D-09)
-- Single price per driver/month — no tier complexity (D-10)
-
-**Differentiators:**
-- Payment recording: Admin manually confirms payment to extend subscription +30 days (D-11)
-- VietQR content template: `THANH TOAN ICEFLOW [FACTORY_NAME] [MONTH/YEAR]`
-- No actual payment gateway integration in v1 — manual confirmation only
-
-**Edge cases:**
-- Driver count changes mid-period → recalculate at next billing cycle
-- Trial expires → all writes blocked, read-only banner shown
-- Subscription unique by factoryId (one active subscription per factory at a time)
+**Dependencies:** None (pure refactor, no new deps).
 
 ---
 
-### Feature 2.3: Subscription Status Transitions
-**Complexity:** MEDIUM
-**Dependencies:** Subscription model, middleware, read-only enforcement
+## 2. Zod Input Validation on Registration
 
-**Valid transitions:**
-- TRIAL (ACTIVE) → PAID (ACTIVE): on payment confirmation
-- TRIAL (ACTIVE) → EXPIRED: trial endDate passed, no payment
-- PAID (ACTIVE) → CANCELLED: user-initiated cancel
-- CANCELLED → (grace period) → locked: 7 days read-only, then account locked
+### Current State
 
-**Implementation requirements:**
-- Middleware checks subscription on every write request → 403 if inactive
-- Per-route subscription check as defense-in-depth (D-04)
-- Subscription status helpers: isSubscriptionActive(), getDaysRemaining()
+`/api/auth/register` uses manual if-length checks for validation (lines 20-42). No Zod usage. No schema reuse across login/register endpoints.
 
----
+```typescript
+// Current manual validation
+if (email.length < registerSchema.email.minLength || email.length > registerSchema.email.maxLength) {
+  return NextResponse.json({ error: 'Email không hợp lệ' }, { status: 400 });
+}
+```
 
-## Category 3: Super Admin Dashboard
+### Recommended Pattern
 
-### Feature 3.1: Super Admin Role
-**Complexity:** LOW
-**Dependencies:** User model, UserRole enum
+```typescript
+// src/lib/schemas/auth.ts
+import { z } from 'zod';
 
-**Table stakes behavior:**
-- New role: SUPER_ADMIN (above ADMIN) — system-wide access
-- Can view all factories, all tenants
-- Can activate/deactivate any tenant's subscription
+export const RegisterSchema = z.object({
+  email: z.string().email().max(100),
+  password: z.string().min(8).max(100)
+    .regex(/[A-Z]/, 'Must contain uppercase')
+    .regex(/[a-z]/, 'Must contain lowercase')
+    .regex(/[0-9]/, 'Must contain number')
+    .regex(/[^a-zA-Z0-9]/, 'Must contain special character'),
+  name: z.string().min(2).max(100),
+  phone: z.string().min(9).max(15).regex(/^[0-9+\-\s]+$/),
+  factoryName: z.string().min(2).max(100),
+});
 
-**Differentiators:**
-- IceFlow is solo-dev; Super Admin = developer operations only
-- Not a user-facing role in v1 — backend-only for tenant management
+export const LoginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+```
 
-**Schema implications:**
-- UserRole enum needs SUPER_ADMIN value added
-- Middleware checks: SUPER_ADMIN bypasses factory-scoped access controls
+**Usage:**
+```typescript
+const parsed = RegisterSchema.safeParse(req.json());
+if (!parsed.success) return NextResponse.json({ error: parsed.error.message }, { status: 400 });
+```
 
----
+**Complexity:** Low-Medium. Zod is already in use (`src/lib/actions/orders.ts`, order status routes). Adding schemas is straightforward.
 
-### Feature 3.2: Tenant Management Dashboard
-**Complexity:** HIGH
-**Dependencies:** Subscription, User, Customer, Order, Driver, Super Admin role
-
-**Table stakes behavior:**
-- List all factories (Tenant list with: factory name, subscription status, plan, days remaining/expired, driver count, created date)
-- View per-tenant: order volume, revenue (if PAID), usage stats
-- Activate / deactivate tenant subscription
-- Extend trial or subscription period (admin override)
-- View all users per tenant
-
-**Differentiators:**
-- Factory owner info linked via isFactoryOwner=true, role=ADMIN User
-- Subscription status banner per tenant (active trial, active paid, grace period, expired)
-- Per-tenant QuickBooks-style usage dashboard
-
-**Edge cases:**
-- Tenant with no Subscription record (orphaned) → show warning
-- Tenant with cancelled subscription attempting to login → show grace period or locked
+**Dependencies:** `zod` already installed.
 
 ---
 
-### Feature 3.3: Subscription Plan Management (Super Admin)
-**Complexity:** MEDIUM
-**Dependencies:** SubscriptionPlan, SubscriptionStatus enums, pricing config
+## 3. Email Normalization
 
-**Table stakes behavior:**
-- Set/change pricing: pricePerDriver per month
-- Define plan types (Basic, Premium — though IceFlow may use single PAID tier)
-- View payment history per tenant (manual payment records)
+### Current State
 
-**Differentiators:**
-- Manual payment confirmation: Admin records payment → subscription extended +30 days
-- VietQR content displayed on billing page for tenant to scan
-- No automatic payment collection in v1
+Registration accepts email as-is. No case folding, no whitespace trimming, no domain standardization.
 
----
+### Recommended Pattern
 
-## Cross-Cutting Concerns
+```typescript
+// src/lib/utils/email.ts
+export function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase().replace(/\.\+/g, '.');
+}
+```
 
-### Factory Scoping
-**All existing v1.0 entities must be factory-scoped:**
-- Customer: needs factoryId field (or scoped by ADMIN User)
-- Order: scoped via customer.factoryId
-- Product: may be global or factory-scoped (TBD — if ice bag sizes are universal, global is fine)
-- Driver: needs factoryId field
-- User: already has factoryId field
+Also handle Vietnamese input edge cases:
+```typescript
+email.trim().toLowerCase().normalize('NFC').replace(/[​-‍﻿]/g, '')
+```
 
-**Current schema gap:** Customer, Order, Driver, Product do NOT have factoryId. They are currently shared across all tenants (single-tenant). Multi-tenant requires:
-- Add factoryId to Customer, Order, Driver (User already has it)
-- Add factoryId to Product (if per-factory products)
-- Scope ALL queries by factoryId
+**Usage in register/login:** `const email = normalizeEmail(body.email);`
 
-### RBAC (existing v1.0)
-- ADMIN, ACCOUNTANT, STAFF within a factory
-- SUPER_ADMIN for system-wide operations
-- Middleware + adaptive sidebar already implemented
-
-### Dependencies on Existing v1.0 Features
-
-| Existing Feature | Multi-tenant Dependency | Change Required |
-|-----------------|------------------------|-----------------|
-| Order entry | Orders must be factory-scoped | Add factoryId to Order, scope queries |
-| Customer management | Customers must be factory-scoped | Add factoryId to Customer, scope queries |
-| Per-customer pricing | CustomerPriceOverride scoped correctly | Scope by customer.factoryId |
-| Driver assignment | Drivers must be factory-scoped | Add factoryId to Driver, scope queries |
-| Delivery slips | Must filter by factory | Already filtered via order.customer.factoryId |
-| Inventory | May be factory-scoped | Add factoryId to Inventory or keep global |
-| RBAC (middleware, sidebar) | Super Admin role needs adding | Add SUPER_ADMIN to UserRole enum |
+**Complexity:** Low. A single utility function.
 
 ---
 
-## Complexity Summary
+## 4. Password Strength Validation
 
-| Feature | Complexity | Reason |
-|---------|------------|--------|
-| Factory registration flow | MEDIUM | Atomic User + Subscription creation, phone-first UX |
-| Tenant activation/deactivation | LOW | Status flag + middleware |
-| Trial subscription creation | LOW | Schema already has Subscription model |
-| Subscription plan management | MEDIUM | Per-driver pricing, manual payment recording |
-| Subscription status transitions | MEDIUM | Middleware + per-route enforcement |
-| Super Admin role | LOW | New enum value + middleware bypass |
-| Tenant management dashboard | HIGH | Full CRUD on all tenants, usage stats |
-| Super Admin plan management | MEDIUM | Pricing config, payment records |
-| Factory scoping (all entities) | HIGH | Cross-cutting schema change on 5+ models |
+### Current State
+
+Registration only checks `password.length < 6`. No complexity requirements.
+
+### Recommended Pattern
+
+Enforced via Zod `RegisterSchema` (above): 8+ chars with uppercase, lowercase, number, special character.
+
+**Complexity:** Low. Enforced at schema level.
 
 ---
 
-## Key Findings
+## 5. Onboarding State Tracking
 
-1. **Schema changes required for multi-tenancy:** Customer, Order, Driver need factoryId. Product may need factoryId. All queries must be factory-scoped.
+### Current State
 
-2. **Subscription model already exists** with planType (TRIAL/PAID), status (ACTIVE/CANCELLED/EXPIRED), startDate, endDate, driverCount, pricePerDriver — sufficient for v1.
+`/onboarding` page (CSV customer import) exists but has no completion tracking. A factory that registers but never visits `/onboarding` has no record of being "incomplete."
 
-3. **Read-only enforcement** uses dual-layer: middleware blocks writes on inactive subscriptions + per-route defense-in-depth checks.
+### Recommended Pattern (Soft Banner)
 
-4. **Super Admin is backend-only** in v1 — not user-facing, used for operational tenant management.
+```typescript
+// 1. Add field to Factory model via migration
+// onboardingCompleted: boolean @default(false)
+// onboardingCompletedAt: DateTime?
 
-5. **No payment gateway integration** in v1 — manual payment confirmation extends subscription +30 days. VietQR displayed as payment reference string.
+// 2. On successful CSV import, update flag
+await prisma.factory.update({
+  where: { id: factoryId },
+  data: { onboardingCompleted: true, onboardingCompletedAt: new Date() }
+});
 
-6. **Trial expiration → 7-day grace period → locked** (not immediate deletion).
+// 3. Dashboard shows banner if !factory.onboardingCompleted
+// (Non-blocking: speed over onboarding enforcement)
+```
 
-7. **Excel export on cancel** — two-sheet (customer debt + order history) via xlsx library — already researched in Phase 6.
+**Option B (Full Gate):** Redirect to `/onboarding` until completed. Not recommended — blocks office staff during peak season, contradicts "Speed over everything" core value.
+
+**Complexity:** Medium. One DB field + one update call.
+
+---
+
+## Feature Summary Table
+
+| Feature | Category | Complexity | Notes |
+|---------|----------|------------|-------|
+| requireSession / requireRole helpers | Table stakes | Low | Eliminates auth inconsistency across ~50 routes |
+| requireFactoryId helper | Table stakes | Low | Prevents tenant data leaks |
+| Zod schemas for all auth endpoints | Table stakes | Low | Consistent input validation |
+| Email normalization utility | Table stakes | Low | Prevents account takeover via whitespace/case |
+| Password strength enforcement | Table stakes | Low | Basic security requirement |
+| Onboarding state (Factory.onboardingCompleted) | Table stakes | Medium | Enables follow-up with incomplete factories |
+
+---
+
+## Feature Dependencies
+
+```
+Auth helpers (requireSession)
+    └── requireRole helper (uses requireSession internally)
+    └── requireFactoryId helper (uses requireSession internally)
+
+Zod schemas (auth)
+    └── Email normalization utility (shared between register/login)
+
+Onboarding state
+    └── Factory model migration (add onboardingCompleted field)
+    └── /onboarding route: set flag after CSV import success
+```
+
+---
+
+## MVP Priority Order
+
+1. **Auth helpers** — highest impact on security, lowest complexity. Refactors existing boilerplate across ~50 routes.
+2. **Zod schemas** — eliminates manual validation in register/login endpoints.
+3. **Email normalization** — one utility function, applied at every auth entry point.
+4. **Password strength** — Zod schema change only, minimal effort.
+5. **Onboarding flag** — one DB field + one update call.
+
+**Defer:** Onboarding gate (blocks staff, contradicts "speed over everything")
+
+---
+
+## Sources
+
+- Context7: `zod` library (schema validation patterns)
+- Codebase: `src/app/api/auth/register/route.ts` (manual validation — needs Zod)
+- Codebase: `src/app/api/auth/login/route.ts` (manual validation — needs Zod)
+- Codebase: `src/lib/actions/orders.ts` (Zod usage example, MEDIUM confidence)
+- Codebase: `src/app/api/orders/[id]/status/route.ts` (Zod usage example)
+- Codebase: `src/middleware.ts` (session verification pattern — getSession, verifyJWT)
+- Codebase: `src/lib/tenant.ts` (AsyncLocalStorage tenant context)

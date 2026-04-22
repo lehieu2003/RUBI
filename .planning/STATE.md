@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Multi-tenant Factory Architecture
-status: milestone_complete
-stopped_at: Milestone v2.0 complete — archived and tagged
-last_updated: "2026-04-22T01:30:00Z"
-last_activity: 2026-04-22 — Milestone v2.0 completion
+milestone: v3.0
+milestone_name: Security Hardening + SaaS Readiness
+status: milestone_planning
+stopped_at: Phase 6 ready to plan
+last_updated: "2026-04-22T02:30:00Z"
+last_activity: 2026-04-22 — v3.0 roadmap created (Phases 6-10)
 progress:
   total_phases: 5
-  completed_phases: 5
-  total_plans: 13
-  completed_plans: 13
-  percent: 100
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -19,16 +19,18 @@ progress:
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-04-22)
-**Current milestone:** v2.0 complete — archive phase
+**Current milestone:** v3.0 Security Hardening + SaaS Readiness
 **Core value:** Speed over everything — staff must enter orders faster than writing by hand (30 seconds), or they reject the system and return to pen-and-paper.
-**Next milestone:** v3.0 (not yet planned)
+**Next phase:** Phase 6 (Data Layer Hardening)
 
 ## Current Position
 
-Milestone: v2.0 Multi-tenant Factory Architecture
-Status: Milestone complete
-All 5 phases finished: 01 (Foundation), 02 (Factory Reg), 03 (Super Admin), 03x (Extensions), 04 (Integration)
-Last activity: 2026-04-22 — Milestone v2.0 archived
+Phase: 6 of 5 (Phase 6: Data Layer Hardening)
+Plan: 0 of TBD — ready to plan
+Status: Roadmap created, awaiting plan-phase
+Last activity: 2026-04-22 — v3.0 roadmap created
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -43,11 +45,13 @@ Last activity: 2026-04-22 — Milestone v2.0 archived
 
 | Phase | Plans | Complete |
 |-------|-------|----------|
-| 01 | 2/2 | ✓ |
-| 02 | 2/2 | ✓ |
-| 03 | 3/3 | ✓ |
-| 03x | 3/3 | ✓ |
-| 04 | 3/3 | ✓ |
+| 01 | 2/2 | - |
+| 02 | 2/2 | - |
+| 03 | 3/3 | - |
+| 03x | 3/3 | - |
+| 04 | 3/3 | - |
+
+*Updated after each plan completion*
 
 ## Accumulated Context
 
@@ -63,18 +67,26 @@ Key decisions from v2.0 affecting current work:
 - 7-day grace period via isGracePeriodExpired middleware
 - $transaction for atomic factory+user+subscription creation
 
+v3.0 decisions:
+
+- Prisma $extends fails-closed when ctx.factoryId is absent (not silent all-tenant queries)
+- Explicit `where: { factoryId }` as primary defense-in-depth
+- Zod v4 for input validation (already installed)
+- In-memory rate limiting (no new dependency)
+
 ### Pending Todos
 
 None.
 
-### Quick Tasks Completed
+### Blockers/Concerns
 
-(Total: 32+ completed)
+None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-22T01:30:00Z
-Stopped at: Milestone v2.0 complete, archived, tagged
+Last session: 2026-04-22T02:30:00Z
+Stopped at: v3.0 roadmap created, Phase 6 ready to plan
+Resume from: /gsd-plan-phase 6
 
 ## Milestone Archive
 
@@ -89,4 +101,4 @@ Stopped at: Milestone v2.0 complete, archived, tagged
 
 ---
 
-*Last updated: 2026-04-22 after v2.0 milestone completion*
+*Last updated: 2026-04-22 after v3.0 roadmap creation*

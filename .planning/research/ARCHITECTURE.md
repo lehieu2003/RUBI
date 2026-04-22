@@ -1,360 +1,378 @@
-# Architecture: Multi-tenant Factory System
+# Architecture: Security Hardening + SaaS Readiness
 
-## Context
+**Domain:** Multi-tenant ice factory SaaS — v3.0 hardening milestone
+**Researched:** 2026-04-22
+**Confidence:** MEDIUM-HIGH
 
-Adding multi-tenant factory architecture to IceFlow SaaS. Existing system has:
-- Next.js 15 App Router, Supabase PostgreSQL, Prisma ORM
-- JWT auth with factoryId in token payload
-- Factory owner = ADMIN user with `isFactoryOwner: true` and `factoryId = self.id`
-- Subscription model tracks factory billing (factoryId → subscription)
-- Existing models: User, Order, Customer, Product, Driver, OrderItem, Inventory, etc.
+## Executive Summary
 
-**Current gap**: No `factoryId` on Order, Customer, Product, Driver, or any operational models. All data is currently single-tenant (one factory's data). Multi-tenancy requires factory_id scoping on every operational query.
+The existing architecture uses AsyncLocalStorage + Prisma `$extends` to auto-inject `factoryId` filters. This works silently — queries succeed even when `factoryId` is null, which is the root cause of tenant data leaks. For v3.0 hardening, the recommended approach is:
+
+1. **Fail-closed explicit queries**: Add shared auth helpers that enforce `factoryId` presence, use explicit `where: { factoryId }` on all tenant-scoped operations, and let `$extends` be a safety net (not the primary filter).
+2. **Auth helpers in `src/lib/auth-helpers.ts`**: `requireSession()`, `requireFactoryId()`, `requireRole()`, `requireActiveSubscription()` as thin wrappers returning typed payloads (not throwing for legitimate 401/403 cases).
+3. **Onboarding state on `Factory` model**: Add `onboardingCompleted: boolean` and `setupStep: string?` fields — more appropriate than a separate table for this single-per-factory, non-temporal state.
 
 ---
 
-## 1. Database Schema Changes
+## 1. Explicit factoryId-Filtered Queries + AsyncLocalStorage + $extends
 
-### New Model: Factory
+### Current State
+
+`src/lib/db.ts` exports a `$extends`-augmented Prisma client. The extension intercepts `findMany`/`findFirst`/`findUnique` and injects `factoryId` filter if `ctx.role !== 'SUPER_ADMIN'`. This is invisible to callers — `prisma.customer.findMany()` automatically gets `factoryId` filter.
+
+**Problem**: When `ctx.factoryId` is `null` (no session, expired token), `$extends` still runs but injects no filter. A `findMany` with `where: {}` returns all customers across all factories — tenant data leak.
+
+### Integration Strategy: Two-Layer Defense
+
+| Layer | Purpose | Behavior |
+|-------|---------|----------|
+| **Auth helpers (primary)** | Enforce session + factoryId presence before any operation | Callers MUST invoke `requireSession()` etc. — these return the session payload or throw 401/403 |
+| **Prisma $extends (safety net)** | Catch accidental queries missing explicit filter | SUPER_ADMIN bypasses; regular users get factoryId injection |
+| **Explicit `where: { factoryId }` (defense-in-depth)** | Make factory scoping visible in query code | All `prisma.X.findMany({ where: { factoryId } })` calls are self-documenting |
+
+### How They Work Together
+
+```typescript
+// src/app/api/customers/route.ts — AFTER (hardened)
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import { requireSession, requireFactoryId, requireRole } from '@/lib/auth-helpers';
+
+// POST — create customer
+export async function POST(request: NextRequest) {
+  // Layer 1: Auth helpers enforce session + role + factoryId presence
+  const session = await requireSession();        // throws 401 if no session
+  requireRole(session, ['ADMIN']);                // throws 403 if wrong role
+  const factoryId = await requireFactoryId(session); // throws 400 if no factoryId
+
+  const body = await request.json();
+  const { code, name, address, phone, isActive = true } = body;
+
+  if (!code || !name) {
+    return NextResponse.json({ error: 'code and name are required' }, { status: 400 });
+  }
+
+  // Layer 2: Explicit factoryId in query (self-documenting, defense-in-depth)
+  // $extends will inject factoryId again, but explicit is the primary contract
+  const customer = await prisma.customer.create({
+    data: { code, name, address: address || '', phone: phone || '', isActive, factoryId },
+  });
+
+  return NextResponse.json(customer, { status: 201 });
+}
+```
+
+```typescript
+// src/lib/auth-helpers.ts — NEW FILE (hardening milestone)
+import { NextResponse } from 'next/server';
+import { getSession } from './auth';
+import type { JWTPayload } from './auth';
+import { isSubscriptionActive, isGracePeriodExpired } from './subscription-status';
+import { prisma } from './db';
+
+export type AuthorizedPayload = JWTPayload & { factoryId: string };
+
+/**
+ * requireSession — enforces authenticated user.
+ * Throws 401 JSON response if unauthenticated.
+ * Returns the session payload on success.
+ */
+export async function requireSession(): Promise<AuthorizedPayload> {
+  const session = await getSession();
+  if (!session) {
+    throw new AuthError('Unauthorized', 401);
+  }
+  return session as AuthorizedPayload;
+}
+
+/**
+ * requireFactoryId — enforces factoryId presence on session.
+ * Call this AFTER requireSession in write-path functions.
+ * Throws 400 JSON response if factoryId is missing (indicates programming error).
+ */
+export async function requireFactoryId(session: JWTPayload): Promise<string> {
+  if (!session.factoryId) {
+    throw new AuthError('Missing factory context', 400);
+  }
+  return session.factoryId;
+}
+
+/**
+ * requireRole — enforces role membership.
+ * Throws 403 JSON response if user role is not in allowedRoles.
+ */
+export function requireRole(session: JWTPayload, allowedRoles: string[]): void {
+  if (!session.role || !allowedRoles.includes(session.role)) {
+    throw new AuthError('Forbidden', 403);
+  }
+}
+
+/**
+ * AuthError — carries HTTP response data for route-level catch.
+ * Using NextResponse here would tie helpers to Next.js, so we throw and catch in routes.
+ */
+export class AuthError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public code?: string
+  ) {
+    super(message);
+    this.name = 'AuthError';
+  }
+}
+
+/**
+ * requireActiveSubscription — checks subscription status for write operations.
+ * Call in POST/PUT/PATCH/DELETE handlers after auth checks.
+ * Throws 403 JSON response if subscription is cancelled/expired beyond grace.
+ */
+export async function requireActiveSubscription(factoryId: string): Promise<void> {
+  const subscription = await prisma.subscription.findFirst({
+    where: { factoryId },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  if (!subscription) {
+    throw new AuthError('No subscription found', 403, 'NO_SUBSCRIPTION');
+  }
+  if (!isSubscriptionActive(subscription)) {
+    throw new AuthError('Subscription inactive. System is read-only.', 403, 'SUBSCRIPTION_INACTIVE');
+  }
+  if (subscription.status === 'CANCELLED' && isGracePeriodExpired(subscription)) {
+    throw new AuthError('Subscription cancelled and grace period expired.', 403, 'ACCOUNT_LOCKED');
+  }
+}
+```
+
+### Catching Auth Errors in Route Handlers
+
+Route handlers wrap auth helper calls in try/catch:
+
+```typescript
+export async function POST(request: NextRequest) {
+  try {
+    const session = await requireSession();
+    requireRole(session, ['ADMIN']);
+    const factoryId = await requireFactoryId(session);
+    // ... business logic
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: error.status }
+      );
+    }
+    console.error('[POST /api/customers]', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+```
+
+### SUPER_ADMIN Bypass Behavior
+
+SUPER_ADMIN routes like `/api/admin/*` intentionally bypass the `$extends` factoryId filter and should use `basePrisma` (unscoped client). The new `basePrisma` is already used in `src/app/api/admin/factories/route.ts`:
+
+```typescript
+// src/lib/db.ts already exports basePrisma for internal operations
+const basePrisma = globalForPrisma.prisma ?? new PrismaClient({...});
+const extendedPrisma = basePrisma.$extends({...});
+// extendedPrisma used for normal app operations
+// basePrisma available for SUPER_ADMIN/internal work
+```
+
+For SUPER_ADMIN routes that need cross-factory visibility, create a `prismaAsAdmin()` helper:
+
+```typescript
+// In src/lib/db.ts or a new src/lib/db-admin.ts
+export const basePrisma = globalForPrisma.prisma ?? new PrismaClient({...});
+```
+
+---
+
+## 2. Onboarding State: Factory Model Field vs Separate Table
+
+### Decision: Factory Model Field
+
+Add `onboardingCompleted: boolean` and `setupStep: string?` to the `Factory` model.
+
+**Rationale:**
+
+- Onboarding is a **single-per-tenant, non-temporal state** — one factory, one onboarding status. A separate table introduces unnecessary join complexity.
+- The `Factory` model already has `isSystem`, `createdAt`, `updatedAt` — adding two more fields is consistent.
+- Subscription already links to Factory, and onboarding state logically belongs to the factory entity (the tenant).
+- The onboarding wizard updates state via `Factory.update` — no new model needed.
+
+### Schema Changes
 
 ```prisma
+// prisma/schema.prisma — Factory model additions
 model Factory {
-  id        String   @id @default(cuid())
-  name      String
-  phone     String?
-  address   String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  users         User[]
-  customers     Customer[]
-  products      Product[]
-  drivers       Driver[]
-  orders        Order[]
-  // inventory and other factory-scoped data
-
-  @@map("factories")
+  id                   String   @id @default(cuid())
+  name                 String
+  phone                String?
+  address              String?
+  isSystem             Boolean  @default(false) @map("is_system")
+  onboardingCompleted  Boolean  @default(false) @map("onboarding_completed")
+  setupStep            String?  @map("setup_step")  // e.g., 'uploaded-customers', 'added-products'
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+  // ... existing relations
 }
 ```
 
-### Schema Changes to Existing Models
+### Setup Step Values
 
-| Model | Change | Rationale |
-|-------|--------|-----------|
-| `User` | `factoryId` becomes non-nullable FK to Factory | All users belong to a factory |
-| `Customer` | Add `factoryId` FK to Factory | Each customer belongs to a factory |
-| `Product` | Add `factoryId` FK to Factory | Factory sets its own products/pricing |
-| `Driver` | Add `factoryId` FK to Factory | Factory manages its own drivers |
-| `Order` | Add `factoryId` FK to Factory | Orders belong to factory (current is implicit) |
-| `OrderItem` | No change | Scoped via Order |
-| `Inventory` | Add `factoryId` FK to Factory | Per-factory inventory tracking |
-| `GlobalPrice` | Add `factoryId` FK to Factory | Per-factory global pricing |
-| `CustomerPriceOverride` | Add `factoryId` FK to Factory | Per-factory price overrides |
-| `CustomerDebtLedger` | Add `factoryId` FK to Factory | Per-factory debt tracking |
-| `CustomerShellDeposit` | Add `factoryId` FK to Factory | Per-factory shell deposits |
+| Value | Meaning | Triggers |
+|-------|---------|----------|
+| `null` | Not started | Fresh registration |
+| `'customers-imported'` | Customer CSV imported | `/onboarding` step 4 success |
+| `'products-added'` | At least one product exists | Product creation |
+| `'completed'` | All critical setup done | Dashboard banner dismissed |
 
-### Migration Sequence
+### Onboarding Flow with State
 
-1. Add `Factory` table
-2. Migrate existing `factoryId` in User to FK
-3. Add `factoryId` to Customer, Product, Driver, Order, Inventory, GlobalPrice, CustomerPriceOverride, CustomerDebtLedger, CustomerShellDeposit
-4. Backfill factoryId for existing records using admin user's factoryId (self-referencing)
+1. Registration creates Factory with `onboardingCompleted: false`, `setupStep: null`.
+2. `POST /api/auth/register` returns `nextUrl: '/onboarding'` (see update.md requirement).
+3. Admin completes `/onboarding` wizard (customer CSV import).
+4. On import success, server action updates Factory: `onboardingCompleted: true` OR `setupStep: 'customers-imported'`.
+5. Dashboard reads `onboardingCompleted` from Factory to show/dismiss the "setup prompt" banner.
+6. When `session.role === 'ADMIN' && factory.onboardingCompleted === false`, show onboarding nudge.
 
-**Note**: Subscription already has factoryId. After migration, Factory becomes the canonical factory entity and Subscription links to it (1:1).
+### Alternative: Separate OnboardingState Table
+
+Consider only if:
+- Onboarding has **multiple sessions** (not the case — one ADMIN per factory).
+- Onboarding state is **temporal/auditable** (not the case — just a flag).
+- Onboarding involves **multiple steps tracked independently** (possible future: import history).
+
+For v3.0, separate table is over-engineered.
 
 ---
 
-## 2. Tenant Context Propagation
+## 3. Integration Points: New vs Modified
 
-### 2.1 Auth Flow (unchanged, already has factoryId)
+### New Files
 
-JWT payload already contains `factoryId`. Register/login returns factoryId in token.
+| File | Purpose |
+|------|---------|
+| `src/lib/auth-helpers.ts` | `requireSession`, `requireFactoryId`, `requireRole`, `requireActiveSubscription`, `AuthError` |
+| `src/lib/db-admin.ts` (or export `basePrisma`) | SUPER_ADMIN-only Prisma client without $extends tenant filter |
+| Database migration | Add `onboardingCompleted`/`setupStep` to Factory model |
 
-### 2.2 Middleware Enhancement
+### Modified Files
 
-Current middleware handles auth and subscription. **No new middleware layer needed** — factory context is already in the JWT.
+| File | Change | Priority |
+|------|--------|----------|
+| `src/lib/auth.ts` | No changes | — |
+| `src/lib/tenant.ts` | No changes (works as-is) | — |
+| `src/lib/db.ts` | Export `basePrisma` for SUPER_ADMIN use | P0 |
+| `src/lib/subscription-status.ts` | Already correct | — |
+| `src/app/api/auth/register/route.ts` | Add `nextUrl` to response, use Zod, normalize email | P1 |
+| `src/app/api/customers/route.ts` | Apply auth helpers, explicit factoryId | P1 |
+| `src/app/api/orders/route.ts` | Apply auth helpers, explicit factoryId | P1 |
+| `src/app/api/prices/global/route.ts` | Add auth/role checks | P1 |
+| `src/app/api/prices/customer/override/route.ts` | Add auth/role checks | P1 |
+| `src/app/api/orders/bulk-assign/route.ts` | Add auth/role/factory checks | P1 |
+| `src/app/api/customers/import/route.ts` | Update onboarding state on success | P2 |
+| `src/app/dashboard/page.tsx` | Read `onboardingCompleted` from Factory to show prompt | P2 |
+| `src/app/onboarding/page.tsx` | Update Factory state on import success | P2 |
+| `src/middleware.ts` | Read `data.subscription` (not top-level `sub`) for subscription response parsing | P1 |
+| `prisma/schema.prisma` | Add `onboardingCompleted`/`setupStep` to Factory | P0 |
+| `prisma/seed-*.ts` | Add factoryId where missing | P1 |
 
-However, **route structure must change** to support Super Admin:
+### Build Order
 
 ```
-/admin                    Super Admin only (manage factories, view all)
-  /factories              List all factories
-  /factories/[id]         Factory detail
-  /factories/[id]/users   Factory users
-  /factories/[id]/data    Factory operational data
-
-/app                      Factory-scoped routes (current structure)
-  /dashboard
-  /orders
-  /customers
-  /settle
-  /inventory
-  /vehicles
-  /settings
+1. prisma/schema.prisma       — Add onboarding fields to Factory (migration)
+2. src/lib/db.ts              — Export basePrisma for SUPER_ADMIN
+3. src/lib/auth-helpers.ts    — NEW: auth helpers (no deps)
+4. src/lib/db-admin.ts        — (optional if basePrisma export is enough)
+5. src/middleware.ts         — Fix subscription response parsing
+6. API routes (auth helpers)  — Apply to all write endpoints
+7. Registration route         — Add nextUrl, Zod, email normalization
+8. Onboarding state update    — Factory.update on import success
+9. Dashboard prompt           — Use onboardingCompleted flag
+10. Seed scripts              — Fix factoryId references
 ```
 
-### 2.3 Server-Side Factory Context Extraction
+### Depency Order for Auth Helpers
 
-Create a utility to extract factory context from session:
+`auth-helpers.ts` has these dependencies (forward only):
+- `getSession` from `auth.ts` — no DB call, safe
+- `prisma` from `db.ts` — uses extended Prisma (safe)
+- `subscription-status.ts` — pure functions, safe
 
-```typescript
-// src/lib/factory-context.ts
-import { getSession } from '@/lib/auth';
-import { cookies } from 'next/headers';
+Auth helpers are safe to build before DB migration. API routes using auth helpers depend on the helpers existing first.
 
-export async function getFactoryContext() {
-  const session = await getSession();
-  if (!session?.factoryId) {
-    throw new Error('No factory context');
-  }
-  return { factoryId: session.factoryId };
-}
+---
+
+## 4. Component Boundaries
+
+### Auth Helper Scope
+
+```
+src/lib/auth-helpers.ts
+  getSession() from auth.ts
+  prisma from db.ts
+  isSubscriptionActive(), isGracePeriodExpired() from subscription-status.ts
+  NextResponse (used via AuthError catching in routes)
 ```
 
-Use in Server Components and Server Actions:
+Auth helpers are **server-only** (no client import). Export `AuthorizedPayload` type for use in route handlers.
 
-```typescript
-// In a Server Action
-async function createOrder(data: OrderInput) {
-  const { factoryId } = await getFactoryContext();
-  return prisma.order.create({
-    data: { ...data, factoryId }
-  });
-}
+### SUPER_ADMIN vs Tenant Route Separation
+
+| Route Prefix | Client | Factory Filter |
+|--------------|--------|----------------|
+| `/api/admin/*` | `basePrisma` (unscoped) | None — SUPER_ADMIN has system-wide access |
+| `/api/*` | `prisma` (extended, auto-filtered) | `$extends` auto-injects `factoryId` |
+
+### Onboarding State Flow
+
 ```
-
-### 2.4 Prisma Client Enhancement for Automatic Factory Scoping
-
-Add a thin Prisma wrapper that injects `factoryId` into queries:
-
-```typescript
-// src/lib/db-tenant.ts
-import { prisma } from './db';
-import { getSession } from './auth';
-
-export async function prismaWithTenant() {
-  const session = await getSession();
-  if (!session?.factoryId) {
-    throw new Error('No factory context');
-  }
-
-  // Return a prisma client instance with factory context
-  // This is a wrapper, not a new Prisma client instance
-  return {
-    order: {
-      findMany: (args) => prisma.order.findMany({ ...args, where: { ...args.where, factoryId: session.factoryId } }),
-      findUnique: (args) => prisma.order.findUnique({ ...args, where: { ...args.where, factoryId: session.factoryId } }),
-      create: (args) => prisma.order.create({ ...args, data: { ...args.data, factoryId: session.factoryId } }),
-      // ... extend as needed
-    },
-    // ... other models
-  };
-}
-```
-
-**Alternative (simpler, recommended)**: Add a `prisma` singleton with no automatic injection. Require every query to explicitly include `factoryId` via shared helper:
-
-```typescript
-// src/lib/queries.ts
-import { prisma } from './db';
-import { getSession } from './auth';
-
-export async function withFactoryContext<T>(fn: (factoryId: string) => Promise<T>): Promise<T> {
-  const session = await getSession();
-  if (!session?.factoryId) throw new Error('Unauthorized');
-  return fn(session.factoryId);
-}
-
-// Usage
-const orders = await withFactoryContext(factoryId =>
-  prisma.order.findMany({ where: { status: 'PENDING' } })
-);
+Registration → Factory created (onboardingCompleted=false, setupStep=null)
+     ↓
+NextUrl: '/onboarding' in register response
+     ↓
+/admin or /onboarding wizard → CSV import
+     ↓
+POST /api/customers/import → updates Factory (setupStep='customers-imported')
+     ↓
+Dashboard reads Factory → shows/dismisses onboarding prompt
+     ↓
+Onboarding complete → setupStep='completed' OR onboardingCompleted=true
 ```
 
 ---
 
-## 3. Data Seeding Per Factory
-
-### 3.1 Factory Provisioning on Registration
-
-Current registration creates User + Subscription. **After migration, registration must**:
-
-1. Create Factory record
-2. Create admin User linked to Factory
-3. Create Subscription linked to Factory
-4. Seed default Product data (optional, factory can add later)
-
-```typescript
-// Registration flow (updated)
-async function registerFactory(data: RegisterInput) {
-  return prisma.$transaction(async (tx) => {
-    // 1. Create factory
-    const factory = await tx.factory.create({ data: { name: data.factoryName } });
-
-    // 2. Create admin user linked to factory
-    const user = await tx.user.create({
-      data: {
-        email: data.email,
-        password: hashedPassword,
-        name: data.name,
-        phone: data.phone,
-        role: 'ADMIN',
-        factoryId: factory.id,
-        isFactoryOwner: true,
-      }
-    });
-
-    // 3. Create trial subscription
-    await tx.subscription.create({
-      data: {
-        factoryId: factory.id,
-        planType: 'TRIAL',
-        startDate: new Date(),
-        endDate: trialEndDate,
-        status: 'ACTIVE',
-      }
-    });
-
-    // 4. Seed default products (optional)
-    await tx.product.createMany({
-      data: defaultProducts.map(p => ({ ...p, factoryId: factory.id }))
-    });
-
-    return { factory, user };
-  });
-}
-```
-
-### 3.2 Super Admin Factory Management
-
-Super Admin needs API to:
-- List all factories
-- View factory details (user count, order count, subscription status)
-- Suspend/reactivate factory
-- Access factory data directly (for support)
-
----
-
-## 4. API Route Changes
-
-### 4.1 Factory-scoped Routes (most routes)
-
-All `/api/*` routes inside `/app/api/` are factory-scoped. Every handler must:
-- Extract factoryId from session (JWT cookie)
-- Include factoryId in all Prisma queries
-
-```typescript
-// Pattern for all factory-scoped handlers
-export async function GET(req: NextRequest) {
-  const session = await getSession();
-  if (!session?.factoryId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const orders = await prisma.order.findMany({
-    where: { factoryId: session.factoryId }
-  });
-  return NextResponse.json(orders);
-}
-```
-
-### 4.2 Super Admin Routes
-
-New routes under `/api/admin/`:
-- `GET /api/admin/factories` — list all factories
-- `GET /api/admin/factories/[id]` — factory details
-- `GET /api/admin/factories/[id]/users` — factory users
-- `POST /api/admin/factories/[id]/suspend` — suspend factory
-- `POST /api/admin/factories/[id]/activate` — reactivate factory
-
----
-
-## 5. Integration Points
-
-### 5.1 Auth (unchanged)
-- JWT already has factoryId
-- Login/register routes already set factoryId
-
-### 5.2 Middleware (minimal change)
-- Add route group for `/admin` (Super Admin only)
-- Existing `/dashboard`, `/orders`, etc. remain factory-scoped
-- Middleware checks role for admin routes, factoryId presence for all app routes
-
-### 5.3 Prisma Client
-- Add factoryId to all operational models
-- No new Prisma client needed
-- Every query must include factoryId in where clause
-- Consider shared query helper to avoid repetition
-
-### 5.4 TanStack Query
-- No changes needed; query factory context comes from server
-- Server Actions handle factory scoping
-
----
-
-## 6. New vs Modified Components
-
-### New Components
-
-| Component | Purpose |
-|-----------|---------|
-| `Factory` model + migration | Core tenant entity |
-| `prisma-tenant.ts` / `queries.ts` | Factory context helper |
-| `/admin/*` routes | Super Admin management |
-| Factory provisioning in register | Creates factory on signup |
-
-### Modified Components
-
-| Component | Change |
-|-----------|--------|
-| `prisma/schema.prisma` | Add factoryId FK to 9+ models, add Factory model |
-| `middleware.ts` | Add admin route group, role check for super admin |
-| `src/lib/auth.ts` | No change (already has factoryId) |
-| `src/app/api/auth/register/route.ts` | Create Factory, seed products |
-| `src/app/api/auth/login/route.ts` | No change needed |
-| All `src/app/api/*/route.ts` | Add factoryId to queries |
-
----
-
-## 7. Suggested Build Order
-
-### Phase 1: Database Foundation
-1. Add Factory model and migrate schema
-2. Add factoryId to all operational models
-3. Write migration script to backfill factoryId for existing data
-4. Update register route to create Factory entity
-
-### Phase 2: Query Scoping
-5. Create `withFactoryContext` helper
-6. Update all API routes to use factory context
-7. Verify no orphan records (queries without factoryId)
-
-### Phase 3: Super Admin
-8. Add `/admin/*` routes
-9. Update middleware for admin route group
-10. Factory management UI (list, detail, suspend)
-
-### Phase 4: Validation & Cleanup
-11. Add unique constraints (factoryId + entity unique where needed)
-12. Indexes on factoryId + common query patterns
-13. Test multi-factory isolation
-
----
-
-## 8. Key Risks & Mitigations
+## 5. Risks & Mitigations
 
 | Risk | Mitigation |
 |------|------------|
-| Forgetting factoryId in a query (data leak) | Shared query helper + lint rule |
-| Existing data has no factoryId | Migration with admin's self-referencing factoryId |
-| Super Admin routes accidentally factory-scoped | Separate route group with explicit middleware |
-| Subscription → Factory relationship | 1:1 after migration; update subscription.factoryId → FK |
+| Developer skips `requireSession()` and relies on silent `$extends` filter | Lint rule or code review checklist; make explicit `factoryId` part of code review |
+| Onboarding state left in inconsistent state if import partially fails | Transaction wrapping in import handler; Factory.update only on full success |
+| SUPER_ADMIN routes accidentally get `$extends` filter | Use explicit `basePrisma` in `/api/admin/*` routes |
+| Middleware subscription check fails (network) causing 503 | Fail-closed for writes; reads can proceed |
+| Hardcoded `JWT_SECRET` fallback in production | Fail startup if env var missing; remove fallback |
+| Seed scripts still using unscoped Prisma | Audit all seed files, update to create/use a factory |
 
 ---
 
-## 9. Out of Scope
+## 6. Out of Scope
 
-- Tenant isolation at database level (Row Level Security) — PostgreSQL RLS adds complexity; application-level scoping sufficient for v1
-- Tenant-specific subdomain routing — all factory access via same domain, distinguished by auth
-- Migrating existing single-tenant data to multi-tenant — backfill uses admin's self-factoryId (no real multi-tenant data exists yet)
+- Row-level security (RLS) at PostgreSQL level — application-level scoping is sufficient for ice factory scale
+- Multi-subdomain routing — all factory access via same domain, distinguished by auth
+- Onboarding history/audit log — not needed for v3.0
+- Staff invite flow — separate milestone (factory member registration)
+
+---
+
+## Confidence Assessment
+
+| Area | Confidence | Notes |
+|------|------------|-------|
+| Auth helpers structure | HIGH | Pattern is standard for Next.js API routes; no novel tech |
+| $extends + explicit query integration | HIGH | Both can coexist; explicit is primary, $extends is safety net |
+| Onboarding state location | MEDIUM | Factory field is logical, but separate table possible if requirements expand |
+| Build order | MEDIUM | Actual migration dependency order needs Prisma migration verification |

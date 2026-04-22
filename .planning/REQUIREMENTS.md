@@ -1,51 +1,76 @@
-# Requirements: IceFlow SaaS
+# Requirements: IceFlow SaaS v3.0
 
-**Defined:** 2026-04-14
+**Defined:** 2026-04-22
 **Core Value:** Speed over everything — staff must enter orders faster than writing by hand (30 seconds), or they reject the system and return to pen-and-paper.
 
 ---
 
-## v1 Requirements (Shipped in v1.0)
+## v3.0 Requirements
 
-### Order Entry
+Requirements for v3.0 Security Hardening + SaaS Readiness. Each maps to roadmap phases.
 
-- [x] **ORD-01**: Office staff can look up wholesale customer by code and see name instantly — Phase 1
-- [x] **ORD-02**: Office staff can add products (ice bags by size) to an order with minimal keystrokes — Phase 1
-- [x] **ORD-03**: Order total calculates automatically using customer's negotiated price list — Phase 1
-- [x] **ORD-04**: Office staff can save and retrieve orders by customer or date — Phase 1
+### Tenant Isolation (DATA)
 
-### Delivery
+- [ ] **DATA-01**: All tenant-scoped queries explicitly filter by `session.factoryId` — no reliance on AsyncLocalStorage auto-injection as sole mechanism
+- [ ] **DATA-02**: Dashboard page reads only `factoryId`-scoped data — customers, products, orders, drivers all filtered by session.factoryId
+- [ ] **DATA-03**: All customer/order/product/driver API GET routes filter by `factoryId` from session
+- [ ] **DATA-04**: All customer/order/product/driver API POST/PATCH/DELETE routes set `factoryId` from session on created/updated entities
+- [ ] **DATA-05**: Prisma $extends auto-inject fails-closed when `ctx.factoryId` is absent (no silent all-tenant queries)
 
-- [x] **DLVR-01**: Office staff can print a delivery slip from any order with one click — Phase 2
-- [x] **DLVR-02**: Printed slip shows customer name, address, products, quantities, and total — Phase 2
-- [x] **DLVR-03**: Printed slip includes a signature line for customer acknowledgment — Phase 2
-- [x] **DLVR-04**: Slip prints correctly on A5 paper and thermal printers (80mm) — Phase 2
-- [x] **DLVR-05**: Driver can open a URL on their phone and see today's delivery list — Phase 3
-- [x] **DLVR-06**: Driver delivery list shows customer name, address, products, quantities — Phase 3
-- [x] **DLVR-07**: Driver delivery list updates as new orders are added (refresh-based) — Phase 3
-- [x] **DLVR-08**: Interface is dead simple — suitable for drivers with minimal tech literacy — Phase 3
+### Auth Infrastructure (AUTH)
 
-### Inventory & Debt
+- [ ] **AUTH-01**: Shared `requireSession()` helper — returns session or throws 401 Unauthorized
+- [ ] **AUTH-02**: Shared `requireFactoryId()` helper — extracts factoryId from session or throws 400 Bad Request
+- [ ] **AUTH-03**: Shared `requireRole(roles[])` helper — checks session role against allowed roles or throws 403 Forbidden
+- [ ] **AUTH-04**: Shared `requireActiveSubscription()` helper — verifies subscription is ACTIVE/PAID or throws 403 Subscription Required
+- [ ] **AUTH-05**: Auth helpers work across API Route Handlers and Server Actions
+- [ ] **AUTH-06**: All write API endpoints use auth helpers before processing requests
 
-- [x] **INVD-01**: Accountant can view a list of delivered slips returned by drivers at day end — Phase 5
-- [x] **INVD-02**: Accountant can enter actual delivered quantity for each line item (handwritten notes from driver) — Phase 5
-- [x] **INVD-03**: System auto-deducts confirmed quantities from cold inventory after confirmation — Phase 5
-- [x] **INVD-04**: Customer debt balance updates automatically after delivery confirmation — Phase 5
-- [x] **INVD-05**: Owner can view daily debt report showing all outstanding customer balances — Phase 5
-- [x] **INVD-06**: System tracks shell/bag deposits owed by each customer separately — Phase 5
-- [x] **INVD-07**: Owner can see which customers owe deposits and how much — Phase 5
+### Input Validation (VALI)
 
-### Configuration
+- [ ] **VALI-01**: Registration endpoint validates input with Zod v4 schema (name, phone, managerName, email, password)
+- [ ] **VALI-02**: Email is normalized: `trim().toLowerCase()` before storage
+- [ ] **VALI-03**: Password strength enforced: minimum 8 characters
+- [ ] **VALI-04**: Login endpoint validates input with Zod v4 schema
+- [ ] **VALI-05**: All API endpoints return 400 with Zod validation errors on invalid input
 
-- [x] **CFG-01**: Products (ice types and bag sizes) can be configured in the system — Phase 1
-- [x] **CFG-02**: Each customer has a price list with negotiated rates per product — Phase 1
-- [x] **CFG-03**: Customer records include name, code, address, phone, and price list reference — Phase 1
+### Registration + Onboarding (REG)
+
+- [ ] **REG-01**: Registration API returns `nextUrl` in response body (e.g., `/onboarding` for new factory owners)
+- [ ] **REG-02**: Registration client redirects to `nextUrl` from response instead of hardcoded `/dashboard`
+- [ ] **REG-03**: Factory model has `onboardingCompleted: boolean` field
+- [ ] **REG-04**: Onboarding state updated to `onboardingCompleted: true` when CSV import succeeds
+- [ ] **REG-05**: Dashboard shows onboarding prompt for ADMIN users when `onboardingCompleted === false`
+
+### Rate Limiting (RATEL)
+
+- [ ] **RATEL-01**: Login endpoint enforces rate limit: 5 attempts per IP per minute
+- [ ] **RATEL-02**: Registration endpoint enforces rate limit: 3 attempts per IP per minute
+- [ ] **RATEL-03**: Rate limit exceeded returns 429 Too Many Requests with retry-after header
+
+### Build Correctness (BUILD)
+
+- [ ] **BUILD-01**: `npx tsc --noEmit -p tsconfig.json` passes with no errors
+- [ ] **BUILD-02**: `npm run build` completes successfully
+- [ ] **BUILD-03**: Prisma Decimal fields serialized to string before passing to client components
+- [ ] **BUILD-04**: Seed scripts create entities with proper `factoryId` field values
+- [ ] **BUILD-05**: `tenant-table.tsx` SortIcon moved out of render (no React Compiler errors)
+
+### Subscription Enforcement (SUBS)
+
+- [ ] **SUBS-01**: Middleware reads `data.subscription` correctly from `/api/billing/subscription` response
+- [ ] **SUBS-02**: Middleware fails closed (blocks request) when subscription endpoint returns non-OK
+- [ ] **SUBS-03**: Subscription enforcement available as route-level helper for write operations
+
+### Security Hardening (SEC)
+
+- [ ] **SEC-01**: JWT_SECRET env var is required — app fails to start if missing in production
+- [ ] **SEC-02**: No seed scripts print SUPER_ADMIN JWT tokens to console
+- [ ] **SEC-03**: No hardcoded JWT secret fallbacks in production code
 
 ---
 
-## v2 Requirements (Multi-tenant Factory Architecture — v2.0)
-
-Requirements for milestone v2.0 — Multi-tenant Factory Architecture.
+## v2.0 Requirements (from previous milestone — in progress)
 
 ### Factory Management
 
@@ -59,7 +84,7 @@ Requirements for milestone v2.0 — Multi-tenant Factory Architecture.
 - [ ] **SUB-01**: Trial subscription auto-created on factory registration (14 days)
 - [ ] **SUB-02**: Subscription enforcement — write operations blocked when TRIAL expired or PAID cancelled
 - [ ] **SUB-03**: Per-driver pricing — 1 admin free, paid per driver per month
-- [ ] **SUB-04**: Manual payment confirmation — Admin records payment → extends +30 days
+- [ ] **SUB-04**: Manual payment confirmation — Admin records payment extends +30 days
 - [ ] **SUB-05**: VietQR content template for payment reference
 
 ### Super Admin
@@ -76,46 +101,53 @@ Requirements for milestone v2.0 — Multi-tenant Factory Architecture.
 - [x] **DATA-02**: Prisma tenant middleware auto-injects factoryId into all queries via `$extends` + AsyncLocalStorage
 - [x] **DATA-03**: Super Admin queries bypass factoryId filter (SUPER_ADMIN role flag)
 - [x] **DATA-04**: Middleware enforces subscription status on every write request (403 if inactive)
-- [x] **DATA-05**: Unique constraints are factory-scoped — e.g. Customer.code is unique only within a Factory (use `@@unique([code, factoryId])` in Prisma). Factory A's KH01 and Factory B's KH01 are distinct records.
+- [x] **DATA-05**: Unique constraints are factory-scoped — e.g. Customer.code is unique only within a Factory
 
 ### Integration (v1.0 existing features)
 
 - [ ] **INT-01**: All v1.0 entities (Customer, Order, Driver, Product) properly factory-scoped
-- [ ] **INT-02**: Per-customer pricing works within factory scope (CustomerPriceOverride scoped via customer.factoryId)
+- [ ] **INT-02**: Per-customer pricing works within factory scope
 - [ ] **INT-03**: RBAC middleware extended with SUPER_ADMIN bypass
 - [ ] **INT-04**: Delivery slips filtered by factory (via order.factoryId)
 - [ ] **INT-05**: Driver web-view scoped to factory (via driver.factoryId)
 
 ---
 
-## v2 Future (Deferred)
+## v1.0 Requirements (Shipped)
 
-### Employee Management
+### Order Entry
 
-- **EMP-01**: Employee records (drivers, factory workers) with contact info
-- **EMP-02**: Work shift scheduling and assignment
-- **EMP-03**: Daily production input (bags packed per shift per worker)
-- **EMP-04**: Performance tracking (deliveries completed, bags packed per person)
+- [x] **ORD-01**: Office staff can look up wholesale customer by code and see name instantly
+- [x] **ORD-02**: Office staff can add products (ice bags by size) to an order with minimal keystrokes
+- [x] **ORD-03**: Order total calculates automatically using customer's negotiated price list
+- [x] **ORD-04**: Office staff can save and retrieve orders by customer or date
 
-### Vehicle & Asset
+### Delivery
 
-- **VEH-01**: Vehicle records with fuel log
-- **VEH-02**: Maintenance scheduling and reminders
-- **VEH-03**: Daily electricity consumption tracking for cold storage
-- **VEH-04**: Consumables inventory (packaging materials, ties, cleaning chemicals)
+- [x] **DLVR-01**: Office staff can print a delivery slip from any order with one click
+- [x] **DLVR-02**: Printed slip shows customer name, address, products, quantities, and total
+- [x] **DLVR-03**: Printed slip includes a signature line for customer acknowledgment
+- [x] **DLVR-04**: Slip prints correctly on A5 paper and thermal printers (80mm)
+- [x] **DLVR-05**: Driver can open a URL on their phone and see today's delivery list
+- [x] **DLVR-06**: Driver delivery list shows customer name, address, products, quantities
+- [x] **DLVR-07**: Driver delivery list updates as new orders are added (refresh-based)
+- [x] **DLVR-08**: Interface is dead simple — suitable for drivers with minimal tech literacy
 
-### Financial
+### Inventory & Debt
 
-- **FIN-01**: Cash flow tracking (daily collections by driver)
-- **FIN-02**: P&L report (revenue - cost of goods - operating expenses = profit)
-- **FIN-03**: Monthly profit analysis by product category
-- **FIN-04**: Seasonal sales comparison (year-over-year, weather correlation)
+- [x] **INVD-01**: Accountant can view a list of delivered slips returned by drivers at day end
+- [x] **INVD-02**: Accountant can enter actual delivered quantity for each line item
+- [x] **INVD-03**: System auto-deducts confirmed quantities from cold inventory after confirmation
+- [x] **INVD-04**: Customer debt balance updates automatically after delivery confirmation
+- [x] **INVD-05**: Owner can view daily debt report showing all outstanding customer balances
+- [x] **INVD-06**: System tracks shell/bag deposits owed by each customer separately
+- [x] **INVD-07**: Owner can see which customers owe deposits and how much
 
-### Customer Management
+### Configuration
 
-- **CUST-01**: Customer-level sales history and analytics
-- **CUST-02**: Automatic debt reminder notifications
-- **CUST-03**: Customer credit limit and overdue lockout
+- [x] **CFG-01**: Products (ice types and bag sizes) can be configured in the system
+- [x] **CFG-02**: Each customer has a price list with negotiated rates per product
+- [x] **CFG-03**: Customer records include name, code, address, phone, and price list reference
 
 ---
 
@@ -123,54 +155,76 @@ Requirements for milestone v2.0 — Multi-tenant Factory Architecture.
 
 | Feature | Reason |
 |---------|--------|
+| Onboarding gate (redirect to /onboarding until completed) | Blocks staff during peak season, contradicts "Speed over everything" core value |
+| Staff invite flow | Separate milestone — requires invitation email system |
+| RLS at PostgreSQL level | Application-layer scoping sufficient for ice factory scale |
+| Real-time GPS tracking | Out of scope per PROJECT.md |
+| Cost/asset management | Phase 2+ |
+| P&L reports | Phase 2+ |
 | Payment gateway integration (Stripe, VNPay, etc.) | Manual payment confirmation sufficient for v2.0 |
-| Automatic billing or subscription renewal | Admin manually records payment and extends |
-| Multi-warehouse support | Single factory, single warehouse |
-| Real-time GPS tracking | Not required for delivery workflow |
-| Native mobile apps | Web-only sufficient for drivers |
-| Schema-per-tenant database | Operational complexity too high for solo dev |
-| Native mobile app (iOS/Android) | Web-only sufficient for driver web-view; solo dev can't maintain multiple codebases |
-| Real-time GPS tracking of trucks | Not required for v1; adds complexity without solving core problems |
-| Offline support | Always-online operation is acceptable; ice factories have stable power/internet |
-| Hot inventory tracking | Refrigerated inventory only; non-refrigerated supplies in v2 |
-| Automatic reorder suggestions | Staff can manually decide when to produce more |
-| Employee timekeeping/payroll | Separate from core order flow; defer to v2 |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FACT-01 | 02 | Pending |
-| FACT-02 | 02 | Pending |
-| FACT-03 | 01 | Complete |
-| FACT-04 | 04 | Pending |
-| SUB-01 | 02 | Pending |
-| SUB-02 | 02 | Pending |
-| SUB-03 | 02 | Pending |
-| SUB-04 | 03 | Pending |
-| SUB-05 | 03 | Pending |
-| SADM-01 | 01 | Complete |
-| SADM-02 | 03 | Pending |
-| SADM-03 | 03 | Pending |
-| SADM-04 | 03 | Pending |
-| SADM-05 | 03 | Pending |
-| DATA-01 | 01 | Complete |
-| DATA-02 | 01 | Complete |
-| DATA-03 | 01 | Complete |
-| DATA-04 | 01 | Complete |
-| DATA-05 | 01 | Complete |
-| INT-01 | 04 | Pending |
-| INT-02 | 04 | Pending |
-| INT-03 | 04 | Pending |
-| INT-04 | 04 | Pending |
-| INT-05 | 04 | Pending |
+| DATA-01 | Phase 6 | Pending |
+| DATA-02 | Phase 6 | Pending |
+| DATA-03 | Phase 6 | Pending |
+| DATA-04 | Phase 6 | Pending |
+| DATA-05 | Phase 6 | Pending |
+| AUTH-01 | Phase 7 | Pending |
+| AUTH-02 | Phase 7 | Pending |
+| AUTH-03 | Phase 7 | Pending |
+| AUTH-04 | Phase 7 | Pending |
+| AUTH-05 | Phase 7 | Pending |
+| AUTH-06 | Phase 7 | Pending |
+| VALI-01 | Phase 7 | Pending |
+| VALI-02 | Phase 7 | Pending |
+| VALI-03 | Phase 7 | Pending |
+| VALI-04 | Phase 7 | Pending |
+| VALI-05 | Phase 7 | Pending |
+| REG-01 | Phase 7 | Pending |
+| REG-02 | Phase 7 | Pending |
+| REG-03 | Phase 6 | Pending |
+| REG-04 | Phase 7 | Pending |
+| REG-05 | Phase 7 | Pending |
+| RATEL-01 | Phase 7 | Pending |
+| RATEL-02 | Phase 7 | Pending |
+| RATEL-03 | Phase 7 | Pending |
+| BUILD-01 | Phase 10 | Pending |
+| BUILD-02 | Phase 10 | Pending |
+| BUILD-03 | Phase 10 | Pending |
+| BUILD-04 | Phase 6 | Pending |
+| BUILD-05 | Phase 10 | Pending |
+| SUBS-01 | Phase 8 | Pending |
+| SUBS-02 | Phase 8 | Pending |
+| SUBS-03 | Phase 8 | Pending |
+| SEC-01 | Phase 6 | Pending |
+| SEC-02 | Phase 6 | Pending |
+| SEC-03 | Phase 6 | Pending |
+| FACT-01 | Phase 7 | Pending |
+| FACT-02 | Phase 7 | Pending |
+| FACT-04 | Phase 8 | Pending |
+| SUB-01 | Phase 7 | Pending |
+| SUB-02 | Phase 8 | Pending |
+| SUB-03 | Phase 8 | Pending |
+| SUB-04 | Phase 8 | Pending |
+| SUB-05 | Phase 8 | Pending |
+| SADM-02 | Phase 9 | Pending |
+| SADM-03 | Phase 9 | Pending |
+| SADM-04 | Phase 9 | Pending |
+| SADM-05 | Phase 9 | Pending |
+| INT-01 | Phase 9 | Pending |
+| INT-02 | Phase 9 | Pending |
+| INT-03 | Phase 9 | Pending |
+| INT-04 | Phase 9 | Pending |
+| INT-05 | Phase 9 | Pending |
 
 **Coverage:**
-
-- v1 requirements: 20 total — all mapped, all complete
-- v2 requirements: 24 total — all mapped to phases 01–04
+- v3.0 requirements: 35 total — all mapped (Phases 6-10)
+- v2.0 in-progress: 19 total — all mapped (Phases 6-9)
+- v1.0 complete: 20 total
 
 ---
-
-*Requirements defined: 2026-04-14*
-*Last updated: 2026-04-17 after v2.0 milestone definition (multi-tenant)*
+*Requirements defined: 2026-04-22*
+*Last updated: 2026-04-22 after v3.0 roadmap creation*

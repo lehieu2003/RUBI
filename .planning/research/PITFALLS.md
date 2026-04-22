@@ -1,15 +1,15 @@
-# Multi-tenant Architecture Pitfalls — IceFlow SaaS
+# Multi-tenant Architecture Pitfalls - IceFlow SaaS
 
 **Research Date:** 2026-04-17
 **Context:** Adding multi-tenant factory architecture to IceFlow SaaS (Phases 7+)
 **Confidence:** HIGH (based on schema analysis + known SaaS failure patterns)
-**Downstream:** gsd-planner — warning signs, prevention strategies, phase assignments
+**Downstream:** gsd-planner - warning signs, prevention strategies, phase assignments
 
 ---
 
 ## Overview
 
-IceFlow currently operates as a **single-tenant system** — all data for all factories flows through the same database tables with no tenant isolation. Phase 6 introduced `Subscription.factoryId` as a tenant identifier, but enforcement is incomplete. Adding proper multi-tenancy means retrofitting isolation across all layers: database, API, middleware, and RLS.
+IceFlow currently operates as a **single-tenant system** - all data for all factories flows through the same database tables with no tenant isolation. Phase 6 introduced `Subscription.factoryId` as a tenant identifier, but enforcement is incomplete. Adding proper multi-tenancy means retrofitting isolation across all layers: database, API, middleware, and RLS.
 
 This document covers **common pitfalls when retrofitting multi-tenancy onto a system that wasn't designed for it from day one**.
 
@@ -39,7 +39,7 @@ This document covers **common pitfalls when retrofitting multi-tenancy onto a sy
 ```prisma
 model Order {
   id          String      @id @default(cuid())
-  customerId  String      // No factoryId — tenant resolved via Customer -> Admin
+  customerId  String      // No factoryId - tenant resolved via Customer -> Admin
   status      OrderStatus @default(PENDING)
   // ... tenant isolation via customer.customerId chain
 }
@@ -47,7 +47,7 @@ model Order {
 model Customer {
   id       String @id @default(cuid())
   code     String @unique
-  // No factoryId — belongs to factory via admin user relationship
+  // No factoryId - belongs to factory via admin user relationship
 }
 ```
 
@@ -85,7 +85,7 @@ const orders = await prisma.order.findMany({
 
 3. **Add ESLint rule or codemod** to detect unfiltered Prisma queries in API routes
 
-**Phase assignment:** Phase 1 (Data Layer) — this is foundational and must be done before any multi-tenant feature work.
+**Phase assignment:** Phase 1 (Data Layer) - this is foundational and must be done before any multi-tenant feature work.
 
 ---
 
@@ -95,10 +95,10 @@ const orders = await prisma.order.findMany({
 
 **Why it happens:** RLS policies are often written once and never tested against cross-tenant access attempts. Common mistakes:
 
-1. **Using `auth.uid()` instead of `factoryId` context** — Supabase Auth user ID != factoryId in IceFlow's model
-2. **Policy applies to SELECT but not UPDATE/INSERT** — read-only leak is still a leak
-3. **`is_owner` or `belongs_to` checks using wrong column** — e.g., checking `customerId` instead of `factoryId` on orders
-4. **Bypass via direct SQL** — RLS doesn't apply to server-side operations using service role key
+1. **Using `auth.uid()` instead of `factoryId` context** - Supabase Auth user ID != factoryId in IceFlow's model
+2. **Policy applies to SELECT but not UPDATE/INSERT** - read-only leak is still a leak
+3. **`is_owner` or `belongs_to` checks using wrong column** - e.g., checking `customerId` instead of `factoryId` on orders
+4. **Bypass via direct SQL** - RLS doesn't apply to server-side operations using service role key
 
 **Current state:** IceFlow uses Prisma directly (not Supabase client), so RLS is **not currently enforced at the database level**. The `/api/*` routes rely entirely on session checks in middleware. This is a gap.
 
@@ -109,9 +109,9 @@ const orders = await prisma.order.findMany({
 
 **Prevention strategy:**
 
-1. **Define RLS policies BEFORE enabling them** — never enable RLS on a table without first writing and testing policies
-2. **Use `factoryId` consistently** — every policy references the same tenant column, never user ID
-3. **Test cross-tenant access** — write integration test that attempts to read Factory B's orders using Factory A's session token
+1. **Define RLS policies BEFORE enabling them** - never enable RLS on a table without first writing and testing policies
+2. **Use `factoryId` consistently** - every policy references the same tenant column, never user ID
+3. **Test cross-tenant access** - write integration test that attempts to read Factory B's orders using Factory A's session token
 4. **Use Prisma middleware for tenant enforcement** as fallback:
 
 ```typescript
@@ -119,16 +119,16 @@ const orders = await prisma.order.findMany({
 prisma.$use(async (params, next) => {
   if (params.model && ['Order', 'Customer', 'Driver'].includes(params.model)) {
     if (params.action === 'findMany' || params.action === 'findFirst') {
-      // Inject factoryId filter — fail if not present in where clause
+      // Inject factoryId filter - fail if not present in where clause
     }
   }
   return next(params);
 });
 ```
 
-5. **Never use service role key in API handlers** — it bypasses all RLS
+5. **Never use service role key in API handlers** - it bypasses all RLS
 
-**Phase assignment:** Phase 1 (Data Layer) — alongside schema changes.
+**Phase assignment:** Phase 1 (Data Layer) - alongside schema changes.
 
 ---
 
@@ -141,7 +141,7 @@ prisma.$use(async (params, next) => {
 **Current middleware enforcement (partial coverage):**
 
 ```typescript
-// src/middleware.ts — only blocks write operations on /api/* routes
+// src/middleware.ts - only blocks write operations on /api/* routes
 if (request.method !== 'GET' && pathname.startsWith('/api/')) {
   const factoryId = (session as { factoryId?: string }).factoryId;
   if (factoryId) {
@@ -155,31 +155,31 @@ if (request.method !== 'GET' && pathname.startsWith('/api/')) {
 
 | Gap | File | Impact |
 |-----|------|--------|
-| `GET /api/drivers` | `src/app/api/drivers/route.ts` | No `factoryId` filter — returns ALL active drivers across all factories |
-| `GET /api/customers` | `src/app/api/customers/route.ts` | No `factoryId` filter — returns ALL customers |
-| `GET /api/orders` | `src/app/api/orders/route.ts` | No `factoryId` filter — returns ALL orders |
-| `POST /api/drivers` | `src/app/api/drivers/route.ts` | Creates driver without `factoryId` — no tenant association |
+| `GET /api/drivers` | `src/app/api/drivers/route.ts` | No `factoryId` filter - returns ALL active drivers across all factories |
+| `GET /api/customers` | `src/app/api/customers/route.ts` | No `factoryId` filter - returns ALL customers |
+| `GET /api/orders` | `src/app/api/orders/route.ts` | No `factoryId` filter - returns ALL orders |
+| `POST /api/drivers` | `src/app/api/drivers/route.ts` | Creates driver without `factoryId` - no tenant association |
 | `POST /api/customers` | `src/app/api/customers/route.ts` | Creates customer without `factoryId` |
 
 **Confirmed missing factoryId enforcement (code review):**
 
 ```typescript
-// src/app/api/drivers/route.ts:23-31 — NO factoryId filter
+// src/app/api/drivers/route.ts:23-31 - NO factoryId filter
 const drivers = await prisma.driver.findMany({
-  where: { isActive: true }, // ← Missing factoryId
+  where: { isActive: true }, // <- Missing factoryId
   select: { id: true, name: true, phone: true },
 });
 
-// src/app/api/orders/route.ts:40 — NO factoryId on findMany
+// src/app/api/orders/route.ts:40 - NO factoryId on findMany
 const orders = await prisma.order.findMany({
-  where, // ← where has customerId/status/date but no factoryId chain
+  where, // <- where has customerId/status/date but no factoryId chain
   include: { customer: true, orderItems: { include: { product: true } } },
 });
 ```
 
 **Prevention strategy:**
 
-1. **Codify factoryId as required in all Prisma queries** — add `factoryId: string` parameter to every data access function
+1. **Codify factoryId as required in all Prisma queries** - add `factoryId: string` parameter to every data access function
 2. **Create Prisma extension or middleware** that errors if a query on tenant-scoped models doesn't include factoryId:
 
 ```typescript
@@ -197,13 +197,13 @@ prisma.order.findMany({ where: { ...requireTenant(factoryId), customerId } });
 ```
 
 3. **Add integration test suite** for cross-tenant isolation:
-   - Login as Factory A → query should only return Factory A data
-   - Login as Factory B → query should only return Factory B data
-   - Direct DB query with Factory A's driver token → should be rejected
+   - Login as Factory A -> query should only return Factory A data
+   - Login as Factory B -> query should only return Factory B data
+   - Direct DB query with Factory A's driver token -> should be rejected
 
-4. **Document tenant model** — every new route must include factoryId filter; this is a code review gate
+4. **Document tenant model** - every new route must include factoryId filter; this is a code review gate
 
-**Phase assignment:** Phase 1 (Data Layer) — foundational, must be done before Phase 2.
+**Phase assignment:** Phase 1 (Data Layer) - foundational, must be done before Phase 2.
 
 ---
 
@@ -216,12 +216,12 @@ prisma.order.findMany({ where: { ...requireTenant(factoryId), customerId } });
 ```typescript
 // Example of dangerous pattern:
 if (session.role === 'SUPER_ADMIN') {
-  // Bypass all tenant checks — no factoryId filter applied
+  // Bypass all tenant checks - no factoryId filter applied
   return await prisma.order.findMany();
 }
 ```
 
-In IceFlow, the current roles are `ADMIN | ACCOUNTANT | STAFF` — no super admin exists yet. But when adding multi-tenancy, the temptation is to add a system-level role for:
+In IceFlow, the current roles are `ADMIN | ACCOUNTANT | STAFF` - no super admin exists yet. But when adding multi-tenancy, the temptation is to add a system-level role for:
 - Cross-factory reporting
 - Platform-level debugging
 - Migration scripts
@@ -235,13 +235,13 @@ In IceFlow, the current roles are `ADMIN | ACCOUNTANT | STAFF` — no super admi
 
 **Prevention strategy:**
 
-1. **Never add SUPER_ADMIN role that bypasses tenant checks** — if a cross-factory role is needed, it should use explicit `factoryId` parameter selection (e.g., "view factory X data" not "view all factories")
+1. **Never add SUPER_ADMIN role that bypasses tenant checks** - if a cross-factory role is needed, it should use explicit `factoryId` parameter selection (e.g., "view factory X data" not "view all factories")
 2. **Separate system operations from tenant operations:**
    - System operations (migrations, cross-factory reports) run as separate processes with explicit factoryId list, not as API routes with session
    - Support access uses `_impersonateFactory(factoryId)` that creates a time-limited session scoped to one factory
-3. **Audit all bypass points quarterly** — search codebase for `role.*ADMIN` and `BYPASS` patterns
+3. **Audit all bypass points quarterly** - search codebase for `role.*ADMIN` and `BYPASS` patterns
 
-**Phase assignment:** Phase 1 (Auth Layer) — establish policy before any cross-factory feature is added.
+**Phase assignment:** Phase 1 (Auth Layer) - establish policy before any cross-factory feature is added.
 
 ---
 
@@ -250,9 +250,9 @@ In IceFlow, the current roles are `ADMIN | ACCOUNTANT | STAFF` — no super admi
 **What goes wrong:** Expired/cancelled subscriptions still allow write operations because the middleware check only runs on routes that pass through `middleware.ts`.
 
 **Why it happens:** Next.js middleware doesn't catch:
-1. **Server Actions** (if added in future) — these execute on the server without going through Edge middleware
-2. **Background jobs / cron** — direct Prisma calls with no HTTP request context
-3. **Direct DB access from migration scripts** — bypasses all application-layer checks
+1. **Server Actions** (if added in future) - these execute on the server without going through Edge middleware
+2. **Background jobs / cron** - direct Prisma calls with no HTTP request context
+3. **Direct DB access from migration scripts** - bypasses all application-layer checks
 4. **Third-party webhooks** calling internal APIs with service tokens
 
 **Current enforcement gap:**
@@ -265,7 +265,7 @@ The Phase 6 implementation uses `fetch` from Edge middleware to an internal API 
 **Known incomplete enforcement in current code:**
 
 ```typescript
-// src/app/api/orders/[id]/reconcile/route.ts — No subscription check
+// src/app/api/orders/[id]/reconcile/route.ts - No subscription check
 // Only role check (ACCOUNTANT or ADMIN), no subscription status check
 if (session.role !== 'ACCOUNTANT' && session.role !== 'ADMIN') {
   return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -277,16 +277,16 @@ if (session.role !== 'ACCOUNTANT' && session.role !== 'ADMIN') {
 
 1. **Defense in depth: two-layer enforcement**
 
-Layer 1 — Edge Middleware (blocks HTTP requests):
+Layer 1 - Edge Middleware (blocks HTTP requests):
 ```typescript
-// src/middleware.ts — existing, catches HTTP writes
+// src/middleware.ts - existing, catches HTTP writes
 if (request.method !== 'GET' && pathname.startsWith('/api/')) {
   const subRes = await fetch(new URL('/api/billing/subscription', ...));
   // blocks inactive subscription
 }
 ```
 
-Layer 2 — Per-route subscription guard (called inside each write handler):
+Layer 2 - Per-route subscription guard (called inside each write handler):
 ```typescript
 // src/lib/subscription-guard.ts
 export async function requireWritableSubscription(session: JWTPayload) {
@@ -300,12 +300,12 @@ export async function requireWritableSubscription(session: JWTPayload) {
 // Usage in every write route:
 export async function PATCH(req: NextRequest) {
   const session = await getSession();
-  await requireWritableSubscription(session); // ← Throws if inactive
+  await requireWritableSubscription(session); // <- Throws if inactive
   // ... rest of handler
 }
 ```
 
-2. **Prisma middleware for subscription enforcement** — blocks all writes at ORM level:
+2. **Prisma middleware for subscription enforcement** - blocks all writes at ORM level:
 ```typescript
 prisma.$use(async (params, next) => {
   const writeActions = ['create', 'update', 'upsert', 'delete'];
@@ -317,9 +317,9 @@ prisma.$use(async (params, next) => {
 });
 ```
 
-3. **Separate subscription check from auth** — the subscription guard should be independent of role checks, applied to every write operation
+3. **Separate subscription check from auth** - the subscription guard should be independent of role checks, applied to every write operation
 
-**Phase assignment:** Phase 2 (Subscription) — extends Phase 6 enforcement to cover all write paths.
+**Phase assignment:** Phase 2 (Subscription) - extends Phase 6 enforcement to cover all write paths.
 
 ---
 
@@ -348,8 +348,8 @@ prisma.$use(async (params, next) => {
 
 **Prevention strategy:**
 
-1. **Onboarding progress stored in Subscription model** — add `onboardingCompleted: boolean` flag so partially-completed onboarding can resume
-2. **Trial extension trigger** — when admin enters onboarding wizard, auto-extend trial by 3 days (via `Subscription.update`)
+1. **Onboarding progress stored in Subscription model** - add `onboardingCompleted: boolean` flag so partially-completed onboarding can resume
+2. **Trial extension trigger** - when admin enters onboarding wizard, auto-extend trial by 3 days (via `Subscription.update`)
 3. **Chunked import with checkpointing:**
 ```typescript
 // src/lib/csv-import.ts
@@ -379,7 +379,7 @@ export async function importCustomersChunked(
    - Check for duplicate codes (list all duplicates before starting)
    - Check factoryId is set on all records before commit
 
-**Phase assignment:** Phase 2 (Onboarding) — extends Phase 6 import work.
+**Phase assignment:** Phase 2 (Onboarding) - extends Phase 6 import work.
 
 ---
 
@@ -389,26 +389,26 @@ export async function importCustomersChunked(
 
 **Why it happens:** When using Prisma with Supabase, there are two connection modes:
 
-1. **Client-level connection** (`postgresql://[user]:[pass]@host/db`) — respects RLS policies
-2. **Service role / direct connection** (`postgresql://postgres:[pass]@host/db`) — bypasses RLS
+1. **Client-level connection** (`postgresql://[user]:[pass]@host/db`) - respects RLS policies
+2. **Service role / direct connection** (`postgresql://postgres:[pass]@host/db`) - bypasses RLS
 
 If `DIRECT_URL` in `schema.prisma` uses the service role or admin credentials:
 ```prisma
 datasource db {
   provider = "postgresql"
-  url      = env("DIRECT_URL") // ← If this is service role, RLS is bypassed
+  url      = env("DIRECT_URL") // <- If this is service role, RLS is bypassed
 }
 ```
 
 **Current IceFlow state:**
 - `prisma/schema.prisma` uses `DIRECT_URL`
-- `.env.example` not reviewed — unknown if this is service role or user-level
-- All API routes use `prisma` from `src/lib/db.ts` — no Supabase client
+- `.env.example` not reviewed - unknown if this is service role or user-level
+- All API routes use `prisma` from `src/lib/db.ts` - no Supabase client
 
 **Checklist for Phase 1:**
 - [ ] Verify `DIRECT_URL` is a user-level credential, not service role
 - [ ] If using Supabase, verify RLS policies exist on all tenant-scoped tables
-- [ ] Add test: query DB with service role vs user role — ensure different results
+- [ ] Add test: query DB with service role vs user role - ensure different results
 - [ ] Never commit service role credentials to `.env`
 
 ---
@@ -431,7 +431,7 @@ datasource db {
 
 When the multi-tenant phase is complete, verify:
 
-- [ ] `prisma.order.findMany()` always includes `factoryId` filter — search all API routes
+- [ ] `prisma.order.findMany()` always includes `factoryId` filter - search all API routes
 - [ ] `prisma.driver.findMany()` always includes `factoryId` filter
 - [ ] `prisma.customer.findMany()` always includes `factoryId` filter
 - [ ] No raw SQL queries that could bypass factoryId filter
@@ -447,13 +447,13 @@ When the multi-tenant phase is complete, verify:
 
 | Source | Verification |
 |--------|--------------|
-| `prisma/schema.prisma` | Verified — no `factoryId` on `Order`, `Customer`, `Driver`, `Product`, `Inventory` |
-| `src/middleware.ts` | Verified — partial subscription enforcement only on write methods |
-| `src/app/api/drivers/route.ts` | Verified — no `factoryId` filter on `GET /api/drivers` |
-| `src/app/api/orders/route.ts` | Verified — no `factoryId` filter on `GET /api/orders` |
-| `src/app/api/customers/route.ts` | Verified — no `factoryId` filter on `GET /api/customers` |
-| `src/app/api/orders/[id]/reconcile/route.ts` | Verified — no subscription check before write |
-| Phase 6 research (06-RESEARCH.md) | Verified — subscription enforcement described but implementation gaps remain |
+| `prisma/schema.prisma` | Verified - no `factoryId` on `Order`, `Customer`, `Driver`, `Product`, `Inventory` |
+| `src/middleware.ts` | Verified - partial subscription enforcement only on write methods |
+| `src/app/api/drivers/route.ts` | Verified - no `factoryId` filter on `GET /api/drivers` |
+| `src/app/api/orders/route.ts` | Verified - no `factoryId` filter on `GET /api/orders` |
+| `src/app/api/customers/route.ts` | Verified - no `factoryId` filter on `GET /api/customers` |
+| `src/app/api/orders/[id]/reconcile/route.ts` | Verified - no subscription check before write |
+| Phase 6 research (06-RESEARCH.md) | Verified - subscription enforcement described but implementation gaps remain |
 
 ---
 
