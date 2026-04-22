@@ -16,6 +16,7 @@ v3.0 fixes critical tenant data leaks, locks down API auth, hardens registration
 - [ ] **Phase 7: Auth Infrastructure + Registration** - Auth helpers, Zod validation, email normalization, password policy, rate limiting
 - [x] **Phase 7B: RBAC Enforcement** - Role-based access control middleware correctness, route-level enforcement, SUPER_ADMIN bypass audit (completed 2026-04-22)
 - [ ] **Phase 8: API Route Hardening + Subscription Enforcement** - All API routes use auth helpers, subscription enforcement on writes
+- [ ] **Phase 8B: Staff and Driver Scheduling** - Shift scheduling for staff and drivers with paidDriverLimit enforcement
 - [ ] **Phase 9: Super Admin + Integration** - Super Admin dashboard, all v1.0 entities factory-scoped
 - [ ] **Phase 10: Build Correctness** - TypeScript clean, build passing, Decimal serialization, seed scripts, React Compiler
 
@@ -98,6 +99,20 @@ v3.0 fixes critical tenant data leaks, locks down API auth, hardens registration
 - [x] 08-04-PLAN.md — payment confirm: add Payment record creation for audit log
 - [x] 08-05-PLAN.md — VietQR template utility + billing/subscription ACCOUNTANT access
 
+### Phase 8B: Staff and Driver Scheduling
+
+**Goal**: Shift scheduling for staff and drivers with paidDriverLimit enforcement
+**Depends on**: Phase 8
+**Success Criteria** (what must be TRUE):
+
+1. Staff can be assigned to morning/afternoon shifts for accountability tracking
+2. Drivers can be scheduled with shift assignments
+3. paidDriverLimit is enforced — cannot schedule more drivers than subscription allows
+4. Scheduling view shows current shift coverage per day
+   **Plans**: 1/1 planned
+
+- [08B-01-PLAN.md](phases/08B-staff-and-driver-scheduling/08B-01-PLAN.md) — Driver shift scheduling: schema, API route, calendar UI, sidebar menu
+
 ### Phase 9: Super Admin + Integration
 
 **Goal**: Super Admin can manage all factories; all v1.0 entities properly factory-scoped
@@ -136,6 +151,7 @@ v3.0 fixes critical tenant data leaks, locks down API auth, hardens registration
 | 7. Auth Infrastructure + Registration | 0/TBD          | Not started | -          |
 | 7B. RBAC Enforcement                  | 3/3            | Complete    | 2026-04-22 |
 | 8. API Route Hardening + Subscription | 5/5            | Verification pending | -          |
+| 8B. Staff and Driver Scheduling      | 1/1            | Planned     | -          |
 | 9. Super Admin + Integration          | 0/TBD          | Not started | -          |
 | 10. Build Correctness                 | 0/TBD          | Not started | -          |
 
