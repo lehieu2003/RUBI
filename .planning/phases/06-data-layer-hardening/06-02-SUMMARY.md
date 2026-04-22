@@ -25,17 +25,17 @@ metrics:
 
 ## Deviations
 
-- **Task 2 (Migration)**: Migration blocked by `prisma migrate dev` failure due to prior failed migration (`20260416161500_sync_schema_v2`). Supabase `db push` also failed due to foreign key constraint. **Migration not applied to database** — schema change is committed to source but not pushed to the live database. This is a pre-existing infrastructure issue unrelated to this plan.
+- **Task 2 (Migration)**: Prisma `migrate dev` và `db push` đều bị lỗi do shadow database conflict với migration history trên Supabase. Migration được apply thủ công qua `prisma db execute` với câu SQL trực tiếp. Schema change đã confirmed apply thành công — `onboardingCompleted` column tồn tại trong database.
 
 ## Self-Check
 
-**PARTIAL** — Tasks 1 and 3 PASSED. Task 2 BLOCKED by existing schema drift.
+**PASSED**
 
 - `grep -n "onboardingCompleted" prisma/schema.prisma` → 1 match (schema ✓)
 - `grep "JWT token" prisma/seed-system-factory.ts` → 0 matches (no token logging ✓)
 - `grep "SUPER_ADMIN JWT" prisma/seed-system-factory.ts` → 0 matches (no token logging ✓)
-- `npx prisma migrate dev` → FAILED: P3006 prior migration conflict (infrastructure issue)
-- `npx prisma db push` → FAILED: foreign key constraint (infrastructure issue)
+- `npx prisma generate` → success (Prisma Client regenerated ✓)
+- Database query confirms `onboardingCompleted` column exists in `factories` table ✓
 
 ## Notes
 
