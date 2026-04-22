@@ -68,6 +68,14 @@ Requirements for v3.0 Security Hardening + SaaS Readiness. Each maps to roadmap 
 - [ ] **SEC-02**: No seed scripts print SUPER_ADMIN JWT tokens to console
 - [ ] **SEC-03**: No hardcoded JWT secret fallbacks in production code
 
+### Role-Based Access Control (RBAC)
+
+- [ ] **RBAC-01**: Route middleware correctly enforces ADMIN/ACCOUNTANT/STAFF role access patterns
+- [ ] **RBAC-02**: Route middleware redirects unauthorized access to `/dashboard?error=unauthorized`
+- [ ] **RBAC-03**: Adaptive sidebar filters menu items by role (STAFF sees minimal menu)
+- [ ] **RBAC-04**: SUPER_ADMIN bypasses factoryId filter only on explicitly needed operations
+- [ ] **RBAC-05**: All write API endpoints enforce role checks via auth helpers
+
 ---
 
 ## v2.0 Requirements (from previous milestone — in progress)
@@ -176,8 +184,8 @@ Requirements for v3.0 Security Hardening + SaaS Readiness. Each maps to roadmap 
 | AUTH-02 | Phase 7 | Pending |
 | AUTH-03 | Phase 7 | Pending |
 | AUTH-04 | Phase 7 | Pending |
-| AUTH-05 | Phase 7 | Pending |
-| AUTH-06 | Phase 7 | Pending |
+| AUTH-05 | Phase 7B | Pending |
+| AUTH-06 | Phase 7B | Pending |
 | VALI-01 | Phase 7 | Pending |
 | VALI-02 | Phase 7 | Pending |
 | VALI-03 | Phase 7 | Pending |
@@ -202,6 +210,11 @@ Requirements for v3.0 Security Hardening + SaaS Readiness. Each maps to roadmap 
 | SEC-01 | Phase 6 | Pending |
 | SEC-02 | Phase 6 | Pending |
 | SEC-03 | Phase 6 | Pending |
+| RBAC-01 | Phase 7B | Pending |
+| RBAC-02 | Phase 7B | Pending |
+| RBAC-03 | Phase 7B | Pending |
+| RBAC-04 | Phase 7B | Pending |
+| RBAC-05 | Phase 7B | Pending |
 | FACT-01 | Phase 7 | Pending |
 | FACT-02 | Phase 7 | Pending |
 | FACT-04 | Phase 8 | Pending |
@@ -221,7 +234,7 @@ Requirements for v3.0 Security Hardening + SaaS Readiness. Each maps to roadmap 
 | INT-05 | Phase 9 | Pending |
 
 **Coverage:**
-- v3.0 requirements: 35 total — all mapped (Phases 6-10)
+- v3.0 requirements: 40 total — all mapped (Phases 6-10)
 - v2.0 in-progress: 19 total — all mapped (Phases 6-9)
 - v1.0 complete: 20 total
 

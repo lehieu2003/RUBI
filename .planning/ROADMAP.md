@@ -14,6 +14,7 @@ v3.0 fixes critical tenant data leaks, locks down API auth, hardens registration
 
 - [ ] **Phase 6: Data Layer Hardening** - Explicit factoryId on all queries, Prisma $extends fail-closed, security baseline
 - [ ] **Phase 7: Auth Infrastructure + Registration** - Auth helpers, Zod validation, email normalization, password policy, rate limiting
+- [ ] **Phase 7B: RBAC Enforcement** - Role-based access control middleware correctness, route-level enforcement, SUPER_ADMIN bypass audit
 - [ ] **Phase 8: API Route Hardening + Subscription Enforcement** - All API routes use auth helpers, subscription enforcement on writes
 - [ ] **Phase 9: Super Admin + Integration** - Super Admin dashboard, all v1.0 entities factory-scoped
 - [ ] **Phase 10: Build Correctness** - TypeScript clean, build passing, Decimal serialization, seed scripts, React Compiler
@@ -48,6 +49,24 @@ v3.0 fixes critical tenant data leaks, locks down API auth, hardens registration
   8. requireActiveSubscription() helper returns OK or throws 403 Subscription Required
   9. Registration response includes nextUrl (e.g., "/onboarding")
 **Plans**: TBD
+
+### Phase 7B: RBAC Enforcement
+**Goal**: Correct RBAC middleware behavior; route-level enforcement for ADMIN/ACCOUNTANT/STAFF; SUPER_ADMIN bypass correctness
+**Depends on**: Phase 7
+**Requirements**: AUTH-05, AUTH-06, SEC-01, SEC-02, SEC-03
+**Success Criteria** (what must be TRUE):
+
+  1. All write API endpoints use auth helpers before processing requests
+  2. STAFF users can only access /orders and /customers (order entry focus)
+  3. ACCOUNTANT users can access /dashboard, /orders, /customers, /settle, /inventory, /vehicles
+  4. ADMIN users have full access to /settings
+  5. SUPER_ADMIN bypasses factoryId filter only where explicitly needed
+  6. Route middleware correctly redirects unauthorized access to /dashboard?error=unauthorized
+  7. Adaptive sidebar correctly filters menu items by role
+
+**Plans**: TBD
+
+---
 
 ### Phase 8: API Route Hardening + Subscription Enforcement
 **Goal**: All write API endpoints use auth helpers; subscription enforcement blocks writes when inactive
@@ -93,6 +112,7 @@ v3.0 fixes critical tenant data leaks, locks down API auth, hardens registration
 |-------|----------------|--------|-----------|
 | 6. Data Layer Hardening | 0/TBD | Not started | - |
 | 7. Auth Infrastructure + Registration | 0/TBD | Not started | - |
+| 7B. RBAC Enforcement | 0/TBD | Not started | - |
 | 8. API Route Hardening + Subscription | 0/TBD | Not started | - |
 | 9. Super Admin + Integration | 0/TBD | Not started | - |
 | 10. Build Correctness | 0/TBD | Not started | - |
