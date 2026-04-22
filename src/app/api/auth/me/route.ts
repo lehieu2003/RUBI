@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { getFactorySubscription, getDaysRemaining } from '@/lib/subscription-status';
+
+// Use basePrisma for global user lookups (no tenant filtering)
+import { prisma as basePrisma } from '@/lib/db';
+const prismaAuth = basePrisma;
 
 export async function GET() {
   const session = await getSession();
@@ -10,7 +13,7 @@ export async function GET() {
     return NextResponse.json({ user: null, subscription: null }, { status: 401 });
   }
 
-  const user = await prisma.user.findUnique({
+  const user = await prismaAuth.user.findUnique({
     where: { id: session.userId },
     select: { id: true, email: true, name: true, role: true, isActive: true },
   });
