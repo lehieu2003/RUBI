@@ -1,47 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { signJWT, setSessionCookie } from '@/lib/auth';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/db';
+import { loginSchema } from '@/lib/schemas/auth';
+import { rateLimit, getIpFromRequest } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
-  try {
-    const { email, password } = await req.json();
+  // RATEL-01: Login rate limit - 5 per IP per minute
+  const ip = getIpFromRequest(req);
+  const limit = rateLimit(ip, 5, 60 * 1000);
+  if (!limit.success) {
+    return NextResponse.json(
+      { error: 'Too Many Requests' },
+      { status: 429, headers: { 'Retry-After': String(limit.retryAfter) } }
+    );
+  }
 
-    if (!email || !password) {
+  try {
+    const body = await req.json();
+    const parseResult = loginSchema.safeParse(body);
+    if (!parseResult.success) {
       return NextResponse.json(
-        { error: 'Thiếu email hoặc mật khẩu' },
+        { errors: parseResult.error.flatten() },
         { status: 400 }
       );
     }
 
-    // Find user
+    const { email, password } = parseResult.data;
+
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return NextResponse.json(
-        { error: 'Email hoặc mật khẩu không đúng' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Email hoặc mật khẩu không đúng' }, { status: 401 });
     }
 
     if (!user.isActive) {
-      return NextResponse.json(
-        { error: 'Tài khoản đã bị vô hiệu hóa' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Tài khoản đã bị vô hiệu hóa' }, { status: 403 });
     }
 
-    // Verify password
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
-      return NextResponse.json(
-        { error: 'Email hoặc mật khẩu không đúng' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Email hoặc mật khẩu không đúng' }, { status: 401 });
     }
 
-    // Generate JWT with factoryId
     const token = await signJWT({
       userId: user.id,
       email: user.email,
@@ -49,8 +49,6 @@ export async function POST(req: NextRequest) {
       role: user.role,
       factoryId: (user as { factoryId?: string }).factoryId ?? undefined,
     });
-
-    // Set cookie
     await setSessionCookie(token);
 
     return NextResponse.json({
@@ -63,9 +61,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error('Login error:', error);
-    return NextResponse.json(
-      { error: 'Lỗi server' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
   }
 }
