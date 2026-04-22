@@ -3,10 +3,10 @@
 import { CreditCard } from 'lucide-react';
 import { StatCard } from './stat-card';
 import { getDaysRemaining, isSubscriptionActive, isWithinWarningPeriod } from '@/lib/subscription-status';
-import type { Subscription } from '@prisma/client';
+import type { SubscriptionLike } from '@/lib/subscription-status';
 
 interface SubscriptionStatusCardProps {
-  subscription: Subscription | null;
+  subscription: SubscriptionLike | null;
   driverCount: number;
   isAdmin: boolean;
 }

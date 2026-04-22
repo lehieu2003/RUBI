@@ -9,8 +9,8 @@ import { VietQRCode } from '@/components/billing/VietQRCode';
 interface SubscriptionData {
   subscription: {
     id: string;
-    planType: string;
-    status: string;
+    planType: 'TRIAL' | 'PAID';
+    status: 'ACTIVE' | 'CANCELLED' | 'EXPIRED';
     endDate: string;
     driverCount: number;
     pricePerDriver: number;

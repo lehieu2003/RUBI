@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient, Prisma } from '@prisma/client';
 import { getSession } from '@/lib/auth';
+import { prismaAuth } from '@/lib/db';
 
-const basePrisma = new PrismaClient();
+const basePrisma = prismaAuth;
 
 export async function GET() {
   const session = await getSession();

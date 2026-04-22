@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { prisma, prismaAuth } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import { getSession } from '@/lib/auth';
 
@@ -10,14 +10,10 @@ export async function GET(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    // Check admin role
-    const admin = await prisma.user.findUnique({
-      where: { id: session.userId },
-      select: { role: true },
-    });
-
-    if (admin?.role !== 'ADMIN') {
+    if (!session.factoryId) {
+      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+    }
+    if (session.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Admin only' }, { status: 403 });
     }
 
@@ -48,13 +44,10 @@ export async function POST(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const admin = await prisma.user.findUnique({
-      where: { id: session.userId },
-      select: { role: true },
-    });
-
-    if (admin?.role !== 'ADMIN') {
+    if (!session.factoryId) {
+      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+    }
+    if (session.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Admin only' }, { status: 403 });
     }
 
@@ -73,7 +66,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if email exists
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const existing = await prismaAuth.user.findUnique({ where: { email } });
     if (existing) {
       return NextResponse.json({ error: 'Email đã được đăng ký' }, { status: 409 });
     }

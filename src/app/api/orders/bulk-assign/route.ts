@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { isSubscriptionActive } from '@/lib/subscription-status';
+import { getSession } from '@/lib/auth';
 
 // PATCH /api/orders/bulk-assign
 // Body: { orderIds: string[], driverId: string }
@@ -13,6 +14,17 @@ const BulkAssignSchema = z.object({
 
 export async function PATCH(request: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!session.factoryId) {
+      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+    }
+    if (session.role !== 'ACCOUNTANT' && session.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const body = await request.json();
     const parsed = BulkAssignSchema.safeParse(body);
 
@@ -26,8 +38,8 @@ export async function PATCH(request: NextRequest) {
     const { orderIds, driverId } = parsed.data;
 
     // Verify driver exists
-    const driver = await prisma.driver.findUnique({
-      where: { id: driverId },
+    const driver = await prisma.driver.findFirst({
+      where: { id: driverId, factoryId: session.factoryId },
     });
 
     if (!driver) {
@@ -64,6 +76,7 @@ export async function PATCH(request: NextRequest) {
     // Only updates orders that are in SHIPPING status (driver loaded, ready for delivery)
     const result = await prisma.order.updateMany({
       where: {
+        factoryId: session.factoryId,
         id: { in: orderIds },
         status: 'SHIPPING', // Only assign to SHIPPING orders
       },

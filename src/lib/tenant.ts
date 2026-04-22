@@ -1,18 +1,19 @@
-import { AsyncLocalStorage } from 'async_hooks';
-
 export interface TenantContext {
   factoryId: string | null;
   role: 'SUPER_ADMIN' | 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | null;
 }
 
-const tenantStorage = new AsyncLocalStorage<TenantContext>();
+const emptyTenantContext: TenantContext = { factoryId: null, role: null };
 
-// Set tenant context for current async operation (called per request in middleware)
+// Kept for compatibility with existing callers. Tenant scoping must be explicit
+// in Prisma where clauses; Next middleware/client bundles cannot use async_hooks.
 export function setTenantContext(factoryId: string | null, role: TenantContext['role']): void {
-  tenantStorage.enterWith({ factoryId, role });
+  void factoryId;
+  void role;
 }
 
-// Get current tenant context (called in Prisma $extends hooks)
+// Prisma $extends guard calls this as a fallback only. Returning an empty context
+// forces tenant-owned queries to pass an explicit factoryId filter.
 export function getTenantContext(): TenantContext {
-  return tenantStorage.getStore() ?? { factoryId: null, role: null };
+  return emptyTenantContext;
 }

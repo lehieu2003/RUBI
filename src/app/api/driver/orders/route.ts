@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { prisma, prismaAuth } from '@/lib/db';
 
 // GET /api/driver/orders?token=xxx&date=YYYY-MM-DD
 // Returns orders for authenticated driver filtered by today's date
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Look up driver by token
-    const driver = await prisma.driver.findUnique({
+    const driver = await prismaAuth.driver.findUnique({
       where: { token },
     });
 
@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
     // Fetch orders for this driver with SHIPPING or DELIVERED status
     const orders = await prisma.order.findMany({
       where: {
+        factoryId: driver.factoryId,
         driverId: driver.id,
         status: { in: ['SHIPPING', 'DELIVERED'] },
         createdAt: { gte: startOfDay, lte: endOfDay },

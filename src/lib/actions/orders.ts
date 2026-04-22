@@ -67,6 +67,7 @@ async function saveOrderInternal(
   if (!session?.factoryId) {
     throw new Error('Factory context required');
   }
+  const factoryId = session.factoryId;
 
   const validItems = lineItems.filter((item) => item.quantity > 0);
   const total = validItems.reduce(
@@ -80,7 +81,7 @@ async function saveOrderInternal(
         customerId,
         status: 'PENDING',
         total: total,
-        factoryId: session.factoryId,
+        factoryId,
         orderItems: {
           create: validItems.map((item) => ({
             productId: item.productId,

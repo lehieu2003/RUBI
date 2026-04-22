@@ -8,6 +8,9 @@ export async function POST(req: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (!session.factoryId) {
+      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+    }
     if (session.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Admin only' }, { status: 403 });
     }
@@ -20,9 +23,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify subscription belongs to this factory
-    const factoryId = session.factoryId || session.userId;
-    const subscription = await prisma.subscription.findUnique({
-      where: { id: subscriptionId },
+    const factoryId = session.factoryId;
+    const subscription = await prisma.subscription.findFirst({
+      where: { id: subscriptionId, factoryId },
     });
 
     if (!subscription) {

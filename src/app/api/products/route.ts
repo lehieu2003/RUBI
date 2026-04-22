@@ -8,6 +8,9 @@ export async function GET() {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (!session.factoryId) {
+      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+    }
 
     const products = await prisma.product.findMany({
       where: { isActive: true, factoryId: session.factoryId },

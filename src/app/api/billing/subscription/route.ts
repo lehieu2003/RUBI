@@ -10,11 +10,14 @@ export async function GET() {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (!session.factoryId) {
+      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+    }
     if (session.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const factoryId = session.factoryId || session.userId;
+    const factoryId = session.factoryId;
 
     const subscription = await prisma.subscription.findFirst({
       where: { factoryId },

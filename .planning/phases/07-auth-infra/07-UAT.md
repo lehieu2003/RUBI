@@ -9,27 +9,26 @@ note: Onboarding page removed - registration redirects to /dashboard. Tests 6 an
 
 ## Current Test
 
-number: 2
-name: Login with registered account
+number: 3
+name: Rate limiting on registration
 expected: |
-  Use the registered email and password to log in. Should receive a valid session cookie and land on the dashboard.
+  Attempt registration 4 times rapidly from the same IP. The 4th attempt should be rejected with 429 Too Many Requests and a Retry-After header.
 awaiting: user response
 
 ## Tests
 
 ### 1. Register new account
 expected: Fill in the registration form with valid data. Submit should create a new factory + user account atomically, start a 14-day TRIAL subscription, and redirect to /dashboard.
-result: issue
-reported: "TENANT_ACCESS_DENIED error + client password min 6 vs server min 8 + missing phone duplicate check"
-severity: blocker
+result: passed
 fix: |
   Committed fixes:
   - 1d68460: prismaAuth separate client for auth endpoints (no tenant $extends)
   - 0b78871: client password min 6→8 + phone duplicate check added
+  - b845aed: set tenant context in dashboard server component before prisma queries
 
 ### 2. Login with registered account
 expected: Use the registered email and password to log in. Should receive a valid session cookie and land on the dashboard.
-result: pending
+result: passed
 
 ### 3. Rate limiting on registration
 expected: Attempt registration 4 times rapidly from the same IP. The 4th attempt should be rejected with 429 Too Many Requests and a Retry-After header.
@@ -60,9 +59,9 @@ result: pending
 ## Summary
 
 total: 8
-passed: 0
+passed: 2
 issues: 1
-pending: 5
+pending: 3
 skipped: 2
 
 ## Gaps

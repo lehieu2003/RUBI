@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prismaAuth } from '@/lib/db';
 
-const basePrisma = new PrismaClient();
+const basePrisma = prismaAuth;
 
 export async function GET(request: NextRequest) {
   const token = request.cookies.get('impersonate_token')?.value;

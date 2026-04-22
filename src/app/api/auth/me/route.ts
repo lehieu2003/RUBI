@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { getFactorySubscription, getDaysRemaining } from '@/lib/subscription-status';
+import { getDaysRemaining } from '@/lib/subscription-status';
+import { getFactorySubscription } from '@/lib/subscription-queries';
 
 // Use prismaAuth for global user lookups (no tenant filtering)
 import { prismaAuth } from '@/lib/db';

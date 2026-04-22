@@ -16,9 +16,8 @@ export async function GET() {
       return NextResponse.json({ error: 'Factory not found' }, { status: 400 });
     }
 
-    // Fetch active customers (isActive: true) - schema doesn't have factoryId on customers
     const customers = await prisma.customer.findMany({
-      where: { isActive: true },
+      where: { isActive: true, factoryId },
       orderBy: { name: 'asc' },
       include: {
         debtLedger: true,
@@ -35,6 +34,7 @@ export async function GET() {
 
     const orders = await prisma.order.findMany({
       where: {
+        factoryId,
         customerId: { in: customerIds },
         createdAt: { gte: sixMonthsAgo },
       },

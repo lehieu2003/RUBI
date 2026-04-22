@@ -1,10 +1,17 @@
 import { prisma } from '@/lib/db';
+import { getSession } from '@/lib/auth';
 import { GlobalPricesTable } from '@/components/pricing/global-prices-table';
+import { redirect } from 'next/navigation';
 
 export default async function GlobalPricesPage() {
+  const session = await getSession();
+  if (!session?.factoryId) {
+    redirect('/login');
+  }
+
   // Fetch all active products
   const products = await prisma.product.findMany({
-    where: { isActive: true },
+    where: { isActive: true, factoryId: session.factoryId },
     orderBy: [{ name: 'asc' }, { sizeKg: 'asc' }],
   });
 

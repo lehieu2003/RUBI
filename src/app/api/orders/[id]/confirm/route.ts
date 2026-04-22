@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { prisma, prismaAuth } from '@/lib/db';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 
@@ -27,7 +27,7 @@ export async function PATCH(
     }
     const token = authHeader.slice(7);
 
-    const driver = await prisma.driver.findUnique({
+    const driver = await prismaAuth.driver.findUnique({
       where: { token },
     });
     if (!driver) {
@@ -46,7 +46,9 @@ export async function PATCH(
     }
 
     // --- Order ownership check ---
-    const order = await prisma.order.findUnique({ where: { id } });
+    const order = await prisma.order.findFirst({
+      where: { id, factoryId: driver.factoryId },
+    });
     if (!order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }

@@ -1,10 +1,10 @@
 'use client';
 
-import type { Subscription } from '@prisma/client';
+import type { SubscriptionLike } from '@/lib/subscription-status';
 import { useState } from 'react';
 
 interface PaymentRecorderProps {
-  subscription: Subscription;
+  subscription: SubscriptionLike | null;
   driverCount: number;
   onPaymentConfirmed?: () => void;
 }
@@ -24,6 +24,11 @@ export function PaymentRecorder({
   const expectedAmount = Math.max(0, driverCount - 1) * 150000;
 
   const handleConfirm = async () => {
+    if (!subscription?.id) {
+      setMessage({ type: 'error', text: 'Không tìm thấy đăng ký' });
+      return;
+    }
+
     setLoading(true);
     setMessage(null);
 

@@ -13,13 +13,10 @@ export async function PATCH(
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const admin = await prisma.user.findUnique({
-      where: { id: session.userId },
-      select: { role: true },
-    });
-
-    if (admin?.role !== 'ADMIN') {
+    if (!session.factoryId) {
+      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+    }
+    if (session.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Admin only' }, { status: 403 });
     }
 
@@ -29,6 +26,14 @@ export async function PATCH(
     // Prevent admin from modifying themselves
     if (id === session.userId) {
       return NextResponse.json({ error: 'Không thể tự sửa tài khoản' }, { status: 400 });
+    }
+
+    const existing = await prisma.user.findFirst({
+      where: { id, factoryId: session.factoryId },
+      select: { id: true },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: 'Staff not found' }, { status: 404 });
     }
 
     const updateData: Record<string, unknown> = {};
@@ -86,13 +91,10 @@ export async function DELETE(
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const admin = await prisma.user.findUnique({
-      where: { id: session.userId },
-      select: { role: true },
-    });
-
-    if (admin?.role !== 'ADMIN') {
+    if (!session.factoryId) {
+      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+    }
+    if (session.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Admin only' }, { status: 403 });
     }
 
@@ -100,6 +102,14 @@ export async function DELETE(
 
     if (id === session.userId) {
       return NextResponse.json({ error: 'Không thể tự xóa tài khoản' }, { status: 400 });
+    }
+
+    const existing = await prisma.user.findFirst({
+      where: { id, factoryId: session.factoryId },
+      select: { id: true },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: 'Staff not found' }, { status: 404 });
     }
 
     await prisma.user.update({

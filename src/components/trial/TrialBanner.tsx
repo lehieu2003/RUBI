@@ -1,9 +1,10 @@
 'use client';
 
 import { useAuth } from '@/lib/auth-provider';
-import { getFactorySubscription, getDaysRemaining, isSubscriptionActive, isGracePeriodExpired, isWithinWarningPeriod } from '@/lib/subscription-status';
+import { getDaysRemaining, isSubscriptionActive, isGracePeriodExpired, isWithinWarningPeriod } from '@/lib/subscription-status';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import type { Subscription } from '@prisma/client';
 
 export function TrialBanner() {
   const { user } = useAuth();
@@ -15,36 +16,49 @@ export function TrialBanner() {
   useEffect(() => {
     if (!user?.factoryId) return;
 
-    getFactorySubscription(user.factoryId).then(sub => {
-      if (!sub || (isSubscriptionActive(sub) && sub.planType === 'PAID')) {
+    fetch('/api/auth/me')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        const sub = data?.subscription
+          ? {
+              ...data.subscription,
+              startDate: new Date(data.subscription.startDate),
+              endDate: new Date(data.subscription.endDate),
+            } as Subscription
+          : null;
+
+        if (!sub || (isSubscriptionActive(sub) && sub.planType === 'PAID')) {
+          setBannerData({ type: null, daysRemaining: 0 });
+          return;
+        }
+
+        if (sub.status === 'CANCELLED' && isGracePeriodExpired(sub)) {
+          setBannerData({ type: 'cancelled', daysRemaining: 0 });
+          return;
+        }
+
+        if (sub.status === 'CANCELLED') {
+          setBannerData({ type: 'grace', daysRemaining: getDaysRemaining(sub) });
+          return;
+        }
+
+        if (!isSubscriptionActive(sub)) {
+          setBannerData({ type: 'expired', daysRemaining: 0 });
+          return;
+        }
+
+        // Only show trial banner when within warning period (≤3 days remaining)
+        if (sub.planType === 'TRIAL' && isWithinWarningPeriod(sub)) {
+          setBannerData({ type: 'trial', daysRemaining: getDaysRemaining(sub) });
+          return;
+        }
+
+        // Trial active but not in warning period — no banner shown
         setBannerData({ type: null, daysRemaining: 0 });
-        return;
-      }
-
-      if (sub.status === 'CANCELLED' && isGracePeriodExpired(sub)) {
-        setBannerData({ type: 'cancelled', daysRemaining: 0 });
-        return;
-      }
-
-      if (sub.status === 'CANCELLED') {
-        setBannerData({ type: 'grace', daysRemaining: getDaysRemaining(sub) });
-        return;
-      }
-
-      if (!isSubscriptionActive(sub)) {
-        setBannerData({ type: 'expired', daysRemaining: 0 });
-        return;
-      }
-
-      // Only show trial banner when within warning period (≤3 days remaining)
-      if (sub.planType === 'TRIAL' && isWithinWarningPeriod(sub)) {
-        setBannerData({ type: 'trial', daysRemaining: getDaysRemaining(sub) });
-        return;
-      }
-
-      // Trial active but not in warning period — no banner shown
-      setBannerData({ type: null, daysRemaining: 0 });
-    });
+      })
+      .catch(() => {
+        setBannerData({ type: null, daysRemaining: 0 });
+      });
   }, [user]);
 
   if (!bannerData.type) return null;

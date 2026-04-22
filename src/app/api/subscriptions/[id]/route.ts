@@ -1,22 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-
-const prisma = new PrismaClient();
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  if (!session.factoryId) {
+    return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+  }
 
   const { id } = await params;
 
-  const subscription = await prisma.subscription.findUnique({
-    where: { id },
+  const subscription = await prisma.subscription.findFirst({
+    where: { id, factoryId: session.factoryId },
   });
 
-  if (!subscription || subscription.factoryId !== session.factoryId) {
+  if (!subscription) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
@@ -28,17 +29,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  if (!session.factoryId) {
+    return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+  }
   if (session.role !== 'ADMIN') {
     return NextResponse.json({ error: 'Admin only' }, { status: 403 });
   }
 
   const { id } = await params;
 
-  const subscription = await prisma.subscription.findUnique({
-    where: { id },
+  const subscription = await prisma.subscription.findFirst({
+    where: { id, factoryId: session.factoryId },
   });
 
-  if (!subscription || subscription.factoryId !== session.factoryId) {
+  if (!subscription) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 

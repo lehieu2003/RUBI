@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-
-const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!session.factoryId) {
+      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
     }
     if (session.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Admin only' }, { status: 403 });
@@ -21,11 +22,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify subscription belongs to this factory
-    const subscription = await prisma.subscription.findUnique({
-      where: { id: subscriptionId },
+    const subscription = await prisma.subscription.findFirst({
+      where: { id: subscriptionId, factoryId: session.factoryId },
     });
 
-    if (!subscription || subscription.factoryId !== session.factoryId) {
+    if (!subscription) {
       return NextResponse.json({ error: 'Subscription not found' }, { status: 404 });
     }
 

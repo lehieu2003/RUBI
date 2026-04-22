@@ -16,11 +16,15 @@ export async function GET(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (!session.factoryId) {
+      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+    }
     if (session.role !== 'ACCOUNTANT' && session.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const customers = await prisma.customer.findMany({
+      where: { factoryId: session.factoryId },
       include: {
         shellDeposit: true,
       },
@@ -60,6 +64,9 @@ export async function PATCH(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (!session.factoryId) {
+      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+    }
     if (session.role !== 'ACCOUNTANT' && session.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
@@ -73,7 +80,9 @@ export async function PATCH(request: NextRequest) {
     const { customerId, shellsOut, shellsIn } = parsed.data;
 
     // Verify customer exists
-    const customer = await prisma.customer.findUnique({ where: { id: customerId } });
+    const customer = await prisma.customer.findFirst({
+      where: { id: customerId, factoryId: session.factoryId },
+    });
     if (!customer) {
       return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
     }

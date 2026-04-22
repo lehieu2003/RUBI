@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db';
-import { notFound } from 'next/navigation';
+import { getSession } from '@/lib/auth';
+import { notFound, redirect } from 'next/navigation';
 import { CustomerPriceForm } from '@/components/pricing/customer-price-form';
 
 interface CustomerDetailPageProps {
@@ -8,10 +9,14 @@ interface CustomerDetailPageProps {
 
 export default async function CustomerDetailPage({ params }: CustomerDetailPageProps) {
   const { id } = await params;
+  const session = await getSession();
+  if (!session?.factoryId) {
+    redirect('/login');
+  }
 
   // Fetch customer
-  const customer = await prisma.customer.findUnique({
-    where: { id },
+  const customer = await prisma.customer.findFirst({
+    where: { id, factoryId: session.factoryId },
   });
 
   if (!customer) {
@@ -20,7 +25,7 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
 
   // Fetch all active products
   const products = await prisma.product.findMany({
-    where: { isActive: true },
+    where: { isActive: true, factoryId: session.factoryId },
     orderBy: [{ name: 'asc' }, { sizeKg: 'asc' }],
   });
 

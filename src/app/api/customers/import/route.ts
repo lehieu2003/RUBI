@@ -15,6 +15,9 @@ export async function POST(req: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (!session.factoryId) {
+      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+    }
     if (session.role !== 'ADMIN' && session.role !== 'ACCOUNTANT') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
