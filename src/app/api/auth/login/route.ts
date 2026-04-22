@@ -30,6 +30,8 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
+      // Perform dummy bcrypt comparison to prevent timing leak attack
+      await bcrypt.compare(password, '$2b$12$placeholder.hash.that.is.valid.for.timing');
       return NextResponse.json({ error: 'Email hoặc mật khẩu không đúng' }, { status: 401 });
     }
 
