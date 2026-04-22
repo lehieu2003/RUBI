@@ -37,6 +37,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Email đã được đăng ký' }, { status: 409 });
     }
 
+    // Check existing phone (globally, for ADMIN users - prevent duplicate factory registration)
+    const existingPhone = await prismaAuth.user.findFirst({
+      where: { phone, role: 'ADMIN' },
+    });
+    if (existingPhone) {
+      return NextResponse.json({ error: 'Số điện thoại đã được sử dụng' }, { status: 409 });
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
