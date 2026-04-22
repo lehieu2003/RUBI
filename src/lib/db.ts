@@ -65,4 +65,10 @@ const extendedPrisma = basePrisma.$extends({
 
 export const prisma = extendedPrisma;
 
+// Separate Prisma instance WITHOUT tenant filtering — for use in auth endpoints
+// that need global user lookups before tenant context is established
+export const prismaAuth = new PrismaClient({
+  log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+});
+
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = basePrisma;

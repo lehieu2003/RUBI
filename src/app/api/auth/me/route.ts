@@ -2,9 +2,8 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { getFactorySubscription, getDaysRemaining } from '@/lib/subscription-status';
 
-// Use basePrisma for global user lookups (no tenant filtering)
-import { prisma as basePrisma } from '@/lib/db';
-const prismaAuth = basePrisma;
+// Use prismaAuth for global user lookups (no tenant filtering)
+import { prismaAuth } from '@/lib/db';
 
 export async function GET() {
   const session = await getSession();

@@ -4,9 +4,8 @@ import { signJWT, setSessionCookie } from '@/lib/auth';
 import { loginSchema } from '@/lib/schemas/auth';
 import { rateLimit, getIpFromRequest } from '@/lib/rate-limit';
 
-// Use basePrisma for global auth queries (no tenant filtering)
-import { prisma as basePrisma } from '@/lib/db';
-const prismaAuth = basePrisma;
+// Use prismaAuth for global auth queries (no tenant filtering)
+import { prismaAuth } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
   // RATEL-01: Login rate limit - 5 per IP per minute

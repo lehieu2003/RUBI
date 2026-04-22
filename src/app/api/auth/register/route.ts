@@ -4,10 +4,8 @@ import { signJWT, setSessionCookie } from '@/lib/auth';
 import { registerSchema } from '@/lib/schemas/auth';
 import { rateLimit, getIpFromRequest } from '@/lib/rate-limit';
 
-// Use basePrisma for global auth queries (no tenant filtering)
-// Registration creates factory-scoped records but needs global user lookup
-import { prisma as basePrisma } from '@/lib/db';
-const prismaAuth = basePrisma;
+// Use prismaAuth for global auth queries (no tenant filtering)
+import { prismaAuth } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
   // RATEL-02: Registration rate limit - 3 per IP per minute
