@@ -2,65 +2,48 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { signJWT, setSessionCookie } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-
-// Validation schema
-const registerSchema = {
-  email: { minLength: 5, maxLength: 100 },
-  password: { minLength: 6, maxLength: 100 },
-  name: { minLength: 2, maxLength: 100 },
-  phone: { minLength: 9, maxLength: 15 },
-  factoryName: { minLength: 2, maxLength: 100 },
-};
+import { registerSchema } from '@/lib/schemas/auth';
+import { rateLimit, getIpFromRequest } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
-  try {
-    const { email, password, name, phone, factoryName } = await req.json();
+  // RATEL-02: Registration rate limit - 3 per IP per minute
+  const ip = getIpFromRequest(req);
+  const limit = rateLimit(ip, 3, 60 * 1000);
+  if (!limit.success) {
+    return NextResponse.json(
+      { error: 'Too Many Requests' },
+      { status: 429, headers: { 'Retry-After': String(limit.retryAfter) } }
+    );
+  }
 
-    // Validate required fields
-    if (!email || !password || !name || !phone || !factoryName) {
+  try {
+    const body = await req.json();
+    const parseResult = registerSchema.safeParse(body);
+    if (!parseResult.success) {
       return NextResponse.json(
-        { error: 'Thiếu thông tin bắt buộc' },
+        { errors: parseResult.error.flatten() },
         { status: 400 }
       );
     }
 
-    // Validate field lengths
-    if (email.length < registerSchema.email.minLength || email.length > registerSchema.email.maxLength) {
-      return NextResponse.json({ error: 'Email không hợp lệ' }, { status: 400 });
-    }
-    if (password.length < registerSchema.password.minLength) {
-      return NextResponse.json({ error: 'Mật khẩu phải có ít nhất 6 ký tự' }, { status: 400 });
-    }
-    if (name.length < registerSchema.name.minLength || name.length > registerSchema.name.maxLength) {
-      return NextResponse.json({ error: 'Tên phải có ít nhất 2 ký tự' }, { status: 400 });
-    }
-    if (phone.length < registerSchema.phone.minLength || phone.length > registerSchema.phone.maxLength) {
-      return NextResponse.json({ error: 'Số điện thoại không hợp lệ' }, { status: 400 });
-    }
-    if (factoryName.length < registerSchema.factoryName.minLength || factoryName.length > registerSchema.factoryName.maxLength) {
-      return NextResponse.json({ error: 'Tên xưởng phải có ít nhất 2 ký tự' }, { status: 400 });
-    }
+    const { email, password, name, phone, factoryName } = parseResult.data;
+    // VALI-02: Email already normalized by Zod transform (trim + lowercase)
 
-    // Check if user exists (SUPER_ADMIN bypass handled by prisma $extends)
+    // Check existing user (globally unique email)
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      return NextResponse.json(
-        { error: 'Email đã được đăng ký' },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: 'Email đã được đăng ký' }, { status: 409 });
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create factory, user, and subscription atomically
+    // FACT-02 + SUB-01: Atomic factory + user + subscription creation
     const trialEndDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
     const [factory, user, subscription] = await prisma.$transaction(async (tx) => {
-      // Create factory first
       const factory = await tx.factory.create({
         data: { name: factoryName, phone },
       });
-      // Create user linked to factory
       const user = await tx.user.create({
         data: {
           email,
@@ -72,7 +55,6 @@ export async function POST(req: NextRequest) {
           factoryId: factory.id,
         },
       });
-      // Create TRIAL subscription
       const subscription = await tx.subscription.create({
         data: {
           factoryId: factory.id,
@@ -86,7 +68,7 @@ export async function POST(req: NextRequest) {
       return [factory, user, subscription];
     });
 
-    // Generate JWT with factoryId
+    // Generate JWT
     const token = await signJWT({
       userId: user.id,
       email: user.email,
@@ -94,10 +76,9 @@ export async function POST(req: NextRequest) {
       role: 'ADMIN',
       factoryId: factory.id,
     });
-
-    // Set cookie
     await setSessionCookie(token);
 
+    // REG-01: nextUrl in response body
     return NextResponse.json({
       user: {
         id: user.id,
@@ -113,12 +94,10 @@ export async function POST(req: NextRequest) {
         endDate: subscription.endDate,
         status: subscription.status,
       },
+      nextUrl: '/onboarding',
     });
   } catch (error) {
     console.error('Register error:', error);
-    return NextResponse.json(
-      { error: 'Lỗi server' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
   }
 }
