@@ -1,5 +1,5 @@
 ---
-status: testing
+status: complete
 phase: 07-auth-infra
 source: [.planning/phases/07-auth-infra/07-01-SUMMARY.md, .planning/phases/07-auth-infra/07-02-SUMMARY.md]
 started: 2026-04-22
@@ -9,11 +9,7 @@ note: Onboarding page removed - registration redirects to /dashboard. Tests 6 an
 
 ## Current Test
 
-number: 3
-name: Rate limiting on registration
-expected: |
-  Attempt registration 4 times rapidly from the same IP. The 4th attempt should be rejected with 429 Too Many Requests and a Retry-After header.
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -32,15 +28,15 @@ result: passed
 
 ### 3. Rate limiting on registration
 expected: Attempt registration 4 times rapidly from the same IP. The 4th attempt should be rejected with 429 Too Many Requests and a Retry-After header.
-result: pending
+result: passed
 
 ### 4. Rate limiting on login
 expected: Attempt login 6 times rapidly from the same IP. The 6th attempt should be rejected with 429 Too Many Requests.
-result: pending
+result: passed
 
 ### 5. Registration input validation
 expected: Submit registration with an invalid email (e.g., "not-an-email") or password shorter than 8 characters. Should receive a 400 error with Zod validation errors showing which fields are invalid.
-result: pending
+result: passed
 
 ### 6. Complete onboarding flow
 expected: After registering, fill in customer data and complete the onboarding. Upon successful CSV import, the system should call PATCH /api/factory/onboarding to mark onboarding as complete, then show the done state.
@@ -54,20 +50,20 @@ reason: Onboarding page removed - no longer needed
 
 ### 8. Email normalization in registration
 expected: Register with email "  Test@Example.COM  ". The stored email should be "test@example.com" (lowercase, trimmed).
-result: pending
+result: passed
 
 ## Summary
 
 total: 8
-passed: 2
-issues: 1
-pending: 3
+passed: 6
+issues: 0
+pending: 0
 skipped: 2
 
 ## Gaps
 
 - truth: "Registration endpoint creates factory + user atomically and returns nextUrl: '/onboarding'"
-  status: failed
+  status: resolved
   reason: "TENANT_ACCESS_DENIED - auth endpoints used extended prisma with tenant filtering, no context set during registration. Also: client password min was 6 not 8, no phone duplicate check."
   severity: blocker
   test: 1
