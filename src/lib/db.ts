@@ -16,14 +16,16 @@ const extendedPrisma = basePrisma.$extends({
     $allModels: {
       async findMany({ model, args, query }) {
         const ctx = getTenantContext();
-        // SUPER_ADMIN bypasses factoryId filter (SADM-01, DATA-03)
         if (ctx.role === 'SUPER_ADMIN') return query(args);
-        // Apply factoryId filter for tenant-scoped models
         const factoryIdModels = ['Customer', 'Driver', 'Order', 'Product', 'User', 'Subscription'];
         if (factoryIdModels.includes(model)) {
-          if (ctx.factoryId) {
-            args.where = { ...args.where, factoryId: ctx.factoryId };
+          if (!ctx.factoryId) {
+            throw new Error(
+              `TENANT_ACCESS_DENIED: ${model} query requires factoryId context. ` +
+              `Ensure setTenantContext() was called in middleware.`
+            );
           }
+          args.where = { ...args.where, factoryId: ctx.factoryId };
         }
         return query(args);
       },
@@ -31,7 +33,13 @@ const extendedPrisma = basePrisma.$extends({
         const ctx = getTenantContext();
         if (ctx.role === 'SUPER_ADMIN') return query(args);
         const factoryIdModels = ['Customer', 'Driver', 'Order', 'Product', 'User', 'Subscription'];
-        if (factoryIdModels.includes(model) && ctx.factoryId) {
+        if (factoryIdModels.includes(model)) {
+          if (!ctx.factoryId) {
+            throw new Error(
+              `TENANT_ACCESS_DENIED: ${model} query requires factoryId context. ` +
+              `Ensure setTenantContext() was called in middleware.`
+            );
+          }
           args.where = { ...args.where, factoryId: ctx.factoryId };
         }
         return query(args);
@@ -40,7 +48,13 @@ const extendedPrisma = basePrisma.$extends({
         const ctx = getTenantContext();
         if (ctx.role === 'SUPER_ADMIN') return query(args);
         const factoryIdModels = ['Customer', 'Driver', 'Order', 'Product', 'User', 'Subscription'];
-        if (factoryIdModels.includes(model) && ctx.factoryId) {
+        if (factoryIdModels.includes(model)) {
+          if (!ctx.factoryId) {
+            throw new Error(
+              `TENANT_ACCESS_DENIED: ${model} query requires factoryId context. ` +
+              `Ensure setTenantContext() was called in middleware.`
+            );
+          }
           args.where = { ...args.where, factoryId: ctx.factoryId };
         }
         return query(args);

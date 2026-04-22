@@ -1,8 +1,16 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
+// At module scope — throws immediately in production if JWT_SECRET is not configured
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  throw new Error(
+    'FATAL: JWT_SECRET environment variable is required in production. ' +
+    'Set it to a cryptographically random string of at least 32 characters.'
+  );
+}
+
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'iceflow-secret-key-change-in-production'
+  process.env.JWT_SECRET // no hardcoded fallback
 );
 
 export interface JWTPayload {
