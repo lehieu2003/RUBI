@@ -51,6 +51,19 @@ function StatusBadge({ status }: { status: string }) {
   return <span className={`inline-flex rounded px-2 py-1 text-xs font-medium ${c.bg} ${c.text}`}>{c.label}</span>;
 }
 
+function SortIcon({
+  activeField,
+  sortDir,
+  field,
+}: {
+  activeField: SortField;
+  sortDir: 'asc' | 'desc';
+  field: SortField;
+}) {
+  if (activeField !== field) return null;
+  return sortDir === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />;
+}
+
 function ActionModal({
   factory,
   action,
@@ -248,11 +261,6 @@ export function TenantTable({ onError }: TenantTableProps) {
     }
   };
 
-  const renderSortIcon = (field: SortField) => {
-    if (sortField !== field) return null;
-    return sortDir === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />;
-  };
-
   const handleCreateTrial = async (factory: Factory) => {
     setRowLoading(factory.id);
     try {
@@ -342,7 +350,8 @@ export function TenantTable({ onError }: TenantTableProps) {
                   className="cursor-pointer px-4 py-3 text-left text-xs font-medium text-slate-400 hover:text-white"
                 >
                   <span className="inline-flex items-center gap-1">
-                    {label} {renderSortIcon(field as SortField)}
+                    {label}{' '}
+                    <SortIcon activeField={sortField} sortDir={sortDir} field={field as SortField} />
                   </span>
                 </th>
               ))}
