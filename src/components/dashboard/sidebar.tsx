@@ -16,6 +16,7 @@ import {
   Receipt,
   BarChart3,
   Package,
+  Calendar,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-provider';
 import { getVisibleTenantRoutes, type TenantRole } from '@/lib/rbac/permissions';
@@ -29,6 +30,7 @@ const menuMetadata = {
   '/deposits/shells': { icon: Package, label: 'Vỏ bao' },
   '/inventory': { icon: Snowflake, label: 'Kho lạnh' },
   '/vehicles': { icon: Truck, label: 'Đội xe' },
+  '/schedule': { icon: Calendar, label: 'Lịch trình' },
   '/dashboard/map': { icon: Truck, label: 'Bản đồ' },
   '/settings': { icon: Settings, label: 'Cài đặt' },
   '/config/prices': { icon: Package, label: 'Bảng giá' },

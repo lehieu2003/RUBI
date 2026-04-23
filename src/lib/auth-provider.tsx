@@ -15,7 +15,7 @@ interface User {
   id: string;
   email: string;
   name: string;
-  role?: 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'SUPER_ADMIN';
+  role?: 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'DRIVER' | 'SUPER_ADMIN';
   factoryId?: string;
   subscription?: SubscriptionInfo | null;
 }

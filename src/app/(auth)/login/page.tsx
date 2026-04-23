@@ -52,6 +52,8 @@ export default function LoginPage() {
       const meData = await meRes.json();
       if (meData.user?.role === 'SUPER_ADMIN') {
         router.push('/admin/dashboard');
+      } else if (meData.user?.role === 'DRIVER') {
+        router.push('/driver');
       } else {
         router.push('/dashboard');
       }

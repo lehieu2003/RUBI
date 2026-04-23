@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { User, Bell, Database, Shield, Palette, Save, Users, Key, Plus, X, CreditCard } from 'lucide-react';
 
-type UserRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF';
+type UserRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'DRIVER';
 
 interface StaffUser {
   id: string;
@@ -289,7 +289,7 @@ export default function SettingsPage() {
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors"
                     >
                       <Plus className="h-4 w-4" />
-                      Thêm nhân viên
+                      Thêm nhân sự
                     </button>
                   </div>
 
@@ -315,9 +315,11 @@ export default function SettingsPage() {
                                   ? 'bg-purple-500/20 text-purple-400'
                                   : staff.role === 'ACCOUNTANT'
                                   ? 'bg-amber-500/20 text-amber-400'
+                                  : staff.role === 'DRIVER'
+                                  ? 'bg-emerald-500/20 text-emerald-400'
                                   : 'bg-blue-500/20 text-blue-400'
                               }`}>
-                                {staff.role === 'ADMIN' ? 'Admin' : staff.role === 'ACCOUNTANT' ? 'Kế toán' : 'Nhân viên'}
+                                {staff.role === 'ADMIN' ? 'Admin' : staff.role === 'ACCOUNTANT' ? 'Kế toán' : staff.role === 'DRIVER' ? 'Tài xế' : 'Nhân viên'}
                               </span>
                             </td>
                             <td className="py-3 px-4 text-slate-400 text-sm">{staff.email}</td>
@@ -369,7 +371,7 @@ export default function SettingsPage() {
                         {staffUsers.length === 0 && (
                           <tr>
                             <td colSpan={5} className="py-8 text-center text-slate-500">
-                              Chưa có nhân viên nào
+                              Chưa có nhân sự nào
                             </td>
                           </tr>
                         )}
@@ -384,7 +386,7 @@ export default function SettingsPage() {
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
                   <div className="rounded-2xl border border-white/10 bg-slate-900 p-6 w-full max-w-md">
                     <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-lg font-bold text-white">Thêm nhân viên</h3>
+                      <h3 className="text-lg font-bold text-white">Thêm nhân sự</h3>
                       <button
                         onClick={() => {
                           setShowCreateModal(false);
@@ -434,6 +436,7 @@ export default function SettingsPage() {
                           className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
                         >
                           <option value="STAFF">Nhân viên</option>
+                          <option value="DRIVER">Tài xế</option>
                           <option value="ACCOUNTANT">Kế toán</option>
                           <option value="ADMIN">Admin</option>
                         </select>
@@ -459,7 +462,7 @@ export default function SettingsPage() {
                         }}
                         className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
                       >
-                        Tạo nhân viên
+                        Tạo nhân sự
                       </button>
                     </div>
                   </div>
