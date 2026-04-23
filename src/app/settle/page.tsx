@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { CheckCircle2, Clock, Truck, DollarSign, Package, Search, XCircle } from 'lucide-react';
+import { toast } from '@/components/dashboard/toast';
 
 // Types for API response
 interface OrderItemWithProduct {
@@ -57,7 +58,6 @@ export default function SettlePage() {
   const [reconcileOrder, setReconcileOrder] = useState<OrderFromAPI | null>(null);
   const [reconcileItems, setReconcileItems] = useState<Record<string, number>>({});
   const [reconcileLoading, setReconcileLoading] = useState(false);
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Compute today string for default date filter
   const today = new Date();
@@ -78,12 +78,6 @@ export default function SettlePage() {
     }
     fetchOrders();
   }, [todayStr]);
-
-  // Show toast message
-  const showToast = (type: 'success' | 'error', message: string) => {
-    setToast({ type, message });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   // Map API orders to display format
   const mappedOrders = orders.map((order) => ({
@@ -137,9 +131,13 @@ export default function SettlePage() {
       const ordersData = await ordersRes.json();
       setOrders(ordersData);
       setReconcileOrder(null);
-      showToast('success', 'Đã chốt đơn thành công');
+      toast({ type: 'success', title: 'Đã chốt đơn thành công' });
     } catch (err) {
-      showToast('error', err instanceof Error ? err.message : 'Reconciliation failed');
+      toast({
+        type: 'error',
+        title: 'Chốt đơn thất bại',
+        message: err instanceof Error ? err.message : 'Reconciliation failed',
+      });
     } finally {
       setReconcileLoading(false);
     }
@@ -166,15 +164,6 @@ export default function SettlePage() {
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-blue-600/10 to-violet-600/10 rounded-full blur-3xl" />
       </div>
-
-      {/* Toast notification */}
-      {toast && (
-        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl border backdrop-blur-xl shadow-2xl ${
-          toast.type === 'success' ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : 'bg-red-500/20 border-red-500/30 text-red-400'
-        }`}>
-          {toast.message}
-        </div>
-      )}
 
       <Sidebar />
 

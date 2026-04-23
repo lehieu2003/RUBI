@@ -5,6 +5,7 @@ import { Phone, MapPin, CheckCircle2, Clock, Snowflake, RefreshCw } from 'lucide
 import DeliveryCard from '@/components/driver/DeliveryCard';
 import EmptyState from '@/components/driver/EmptyState';
 import DriverMap from '@/components/driver/DriverMap';
+import { toast } from '@/components/dashboard/toast';
 
 interface DriverInfo {
   id: string;
@@ -124,7 +125,11 @@ export default function DriverViewPage({
       setOrders((prev) =>
         prev.map((o) => (o.id === orderId ? { ...o, status: 'SHIPPING' as const } : o))
       );
-      alert(err instanceof Error ? err.message : 'Đã xảy ra lỗi');
+      toast({
+        type: 'error',
+        title: 'Không thể xác nhận đơn hàng',
+        message: err instanceof Error ? err.message : 'Đã xảy ra lỗi',
+      });
     }
   }, [token]);
 

@@ -6,6 +6,7 @@ import DeliveryCard from '@/components/driver/DeliveryCard';
 import DriverMap from '@/components/driver/DriverMap';
 import EmptyState from '@/components/driver/EmptyState';
 import { useAuth } from '@/lib/auth-provider';
+import { toast } from '@/components/dashboard/toast';
 
 interface DriverInfo {
   id: string;
@@ -93,7 +94,11 @@ export default function DriverPage() {
       setOrders((previous) =>
         previous.map((order) => (order.id === orderId ? { ...order, status: 'SHIPPING' as const } : order))
       );
-      alert(err instanceof Error ? err.message : 'Đã xảy ra lỗi');
+      toast({
+        type: 'error',
+        title: 'Không thể xác nhận đơn hàng',
+        message: err instanceof Error ? err.message : 'Đã xảy ra lỗi',
+      });
     }
   }, []);
 

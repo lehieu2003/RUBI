@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { Subscription } from '@prisma/client';
 import { exportCustomerDebtExcel } from '@/lib/export-excel';
 import { useRouter } from 'next/navigation';
+import { toast } from '@/components/dashboard/toast';
 
 interface CancelSubscriptionFlowProps {
   subscription: Subscription;
@@ -43,13 +44,17 @@ export function CancelSubscriptionFlow({ subscription, factoryId }: CancelSubscr
       if (cancelRes.ok) {
         router.refresh();
         setShowModal(false);
-        alert('Đã hủy dịch vụ. Dữ liệu đã được xuất file Excel.');
+        toast({
+          type: 'success',
+          title: 'Đã hủy dịch vụ',
+          message: 'Dữ liệu đã được xuất file Excel.',
+        });
       } else {
-        alert('Có lỗi xảy ra khi hủy dịch vụ.');
+        toast({ type: 'error', title: 'Có lỗi xảy ra khi hủy dịch vụ.' });
       }
     } catch (error) {
       console.error('Cancel error:', error);
-      alert('Có lỗi xảy ra khi hủy dịch vụ.');
+      toast({ type: 'error', title: 'Có lỗi xảy ra khi hủy dịch vụ.' });
     } finally {
       setCancelling(false);
     }
