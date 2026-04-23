@@ -1,0 +1,9 @@
+import './auth/tenant-session.test';
+import './rbac/api-guards.test';
+import './rbac/permissions.test';
+import './api/schedule/assignments.test';
+import './api/staff.test';
+import './app/vehicles.test';
+import './components/schedule/calendar-grid.test';
+import './components/sidebar.test';
+import './lib/subscription.test';

@@ -9,7 +9,6 @@ const adminWriteRoutes = [
   'src/app/api/staff/[id]/route.ts',
   'src/app/api/subscriptions/[id]/route.ts',
   'src/app/api/subscriptions/cancel/route.ts',
-  'src/app/api/payments/confirm/route.ts',
   'src/app/api/prices/global/route.ts',
   'src/app/api/prices/customer/override/route.ts',
 ];
@@ -20,6 +19,7 @@ const operationalWriteRoutes = [
   'src/app/api/orders/[id]/status/route.ts',
   'src/app/api/orders/[id]/reconcile/route.ts',
   'src/app/api/orders/bulk-assign/route.ts',
+  'src/app/api/schedule/assignments/route.ts',
 ];
 
 function read(path: string): string {
@@ -47,8 +47,15 @@ describe('RBAC API guard source checks', () => {
 
   it('allows STAFF to read orders without changing factory scoping', () => {
     const source = read('src/app/api/orders/route.ts');
-    assert.match(source, /session\.role !== 'STAFF'/);
+    assert.match(source, /requireRole\(\['ADMIN', 'ACCOUNTANT', 'STAFF'\]\)/);
     assert.match(source, /factoryId: session\.factoryId/);
+  });
+
+  it('keeps payment confirmation scoped for tenant admin and super admin flows', () => {
+    const source = read('src/app/api/payments/confirm/route.ts');
+    assert.match(source, /session\.role !== 'ADMIN' && session\.role !== 'SUPER_ADMIN'/);
+    assert.match(source, /factoryId: session\.factoryId/);
+    assert.match(source, /prismaAuth\.payment\.create/);
   });
 
   it('keeps impersonation writes read-only in middleware', () => {
@@ -59,7 +66,7 @@ describe('RBAC API guard source checks', () => {
 
   it('redirects unauthorized SUPER_ADMIN tenant navigation back to admin surface', () => {
     const source = read('src/middleware.ts');
-    assert.match(source, /userRole === 'SUPER_ADMIN' \? '\/admin\/dashboard' : '\/dashboard'/);
+    assert.match(source, /userRole === 'SUPER_ADMIN' \? '\/admin\/dashboard' : userRole === 'DRIVER' \? '\/driver' : '\/dashboard'/);
   });
 
   it('keeps JWT production secret baseline hardened', () => {

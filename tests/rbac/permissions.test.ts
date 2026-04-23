@@ -8,9 +8,11 @@ const tenantRoutes = [
   '/orders/123',
   '/customers',
   '/customers/123',
+  '/driver',
   '/settle',
   '/inventory',
   '/vehicles',
+  '/schedule',
   '/reports/debt',
   '/deposits/shells',
   '/dashboard/map',
@@ -35,7 +37,12 @@ function assertDenied(role: TenantRole | 'SUPER_ADMIN', paths: string[]) {
 describe('RBAC route permissions', () => {
   it('allows STAFF only order-entry routes', () => {
     assertAllowed('STAFF', ['/dashboard', '/orders', '/orders/123', '/customers', '/customers/123']);
-    assertDenied('STAFF', ['/settle', '/inventory', '/vehicles', '/settings', '/reports/debt', '/deposits/shells']);
+    assertDenied('STAFF', ['/settle', '/inventory', '/vehicles', '/schedule', '/settings', '/reports/debt', '/deposits/shells']);
+  });
+
+  it('allows DRIVER only driver route', () => {
+    assertAllowed('DRIVER', ['/driver']);
+    assertDenied('DRIVER', tenantRoutes.filter((path) => path !== '/driver'));
   });
 
   it('allows ACCOUNTANT operational routes but denies admin routes', () => {
@@ -46,15 +53,20 @@ describe('RBAC route permissions', () => {
       '/settle',
       '/inventory',
       '/vehicles',
+      '/schedule',
       '/reports/debt',
       '/deposits/shells',
       '/dashboard/map',
+      '/settings',
+      '/settings/billing',
+      '/billing',
     ]);
-    assertDenied('ACCOUNTANT', ['/settings', '/settings/billing', '/billing', '/config/prices']);
+    assertDenied('ACCOUNTANT', ['/config/prices']);
   });
 
   it('allows ADMIN every tenant route in the matrix', () => {
-    assertAllowed('ADMIN', tenantRoutes);
+    assertAllowed('ADMIN', tenantRoutes.filter((path) => path !== '/driver'));
+    assertDenied('ADMIN', ['/driver']);
   });
 
   it('denies SUPER_ADMIN direct tenant app route access', () => {
@@ -65,8 +77,11 @@ describe('RBAC route permissions', () => {
     const staffRoutes = getVisibleTenantRoutes('STAFF').map((route) => route.href);
     assert.deepEqual(staffRoutes, ['/dashboard', '/orders', '/customers']);
 
+    const driverRoutes = getVisibleTenantRoutes('DRIVER').map((route) => route.href);
+    assert.deepEqual(driverRoutes, ['/driver']);
+
     const accountantRoutes = getVisibleTenantRoutes('ACCOUNTANT').map((route) => route.href);
-    assert.equal(accountantRoutes.includes('/settings'), false);
+    assert.equal(accountantRoutes.includes('/schedule'), true);
     assert.equal(accountantRoutes.includes('/settle'), true);
   });
 });
