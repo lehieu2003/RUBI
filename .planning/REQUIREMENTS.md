@@ -114,7 +114,7 @@ Requirements for v3.0 Security Hardening + SaaS Readiness. Each maps to roadmap 
 ### Integration (v1.0 existing features)
 
 - [x] **INT-01**: All v1.0 entities (Customer, Order, Driver, Product) properly factory-scoped
-- [x] **INT-02**: Per-customer pricing works within factory scope
+- [ ] **INT-02**: Per-customer pricing works within factory scope
 - [x] **INT-03**: RBAC middleware extended with SUPER_ADMIN bypass
 - [x] **INT-04**: Delivery slips filtered by factory (via order.factoryId)
 - [x] **INT-05**: Driver web-view scoped to factory (via driver.factoryId)
@@ -228,7 +228,7 @@ Requirements for v3.0 Security Hardening + SaaS Readiness. Each maps to roadmap 
 | SADM-04 | Phase 9 | Complete |
 | SADM-05 | Phase 9 | Complete |
 | INT-01 | Phase 9 | Complete |
-| INT-02 | Phase 9 | Complete |
+| INT-02 | Phase 9 | Gap found |
 | INT-03 | Phase 9 | Complete |
 | INT-04 | Phase 9 | Complete |
 | INT-05 | Phase 9 | Complete |
