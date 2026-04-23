@@ -98,10 +98,10 @@ Requirements for v3.0 Security Hardening + SaaS Readiness. Each maps to roadmap 
 ### Super Admin
 
 - [x] **SADM-01**: SUPER_ADMIN role above ADMIN — system-wide access, no factory filter
-- [ ] **SADM-02**: Tenant list dashboard — all factories, subscription status, driver count, days remaining
-- [ ] **SADM-03**: Activate/deactivate tenant subscription from dashboard
-- [ ] **SADM-04**: Extend trial or subscription period (admin override)
-- [ ] **SADM-05**: Set price per driver
+- [x] **SADM-02**: Tenant list dashboard — all factories, subscription status, driver count, days remaining
+- [x] **SADM-03**: Activate/deactivate tenant subscription from dashboard
+- [x] **SADM-04**: Extend trial or subscription period (admin override)
+- [x] **SADM-05**: Set price per driver
 
 ### Data Layer (Cross-cutting)
 
@@ -113,11 +113,11 @@ Requirements for v3.0 Security Hardening + SaaS Readiness. Each maps to roadmap 
 
 ### Integration (v1.0 existing features)
 
-- [ ] **INT-01**: All v1.0 entities (Customer, Order, Driver, Product) properly factory-scoped
-- [ ] **INT-02**: Per-customer pricing works within factory scope
-- [ ] **INT-03**: RBAC middleware extended with SUPER_ADMIN bypass
-- [ ] **INT-04**: Delivery slips filtered by factory (via order.factoryId)
-- [ ] **INT-05**: Driver web-view scoped to factory (via driver.factoryId)
+- [x] **INT-01**: All v1.0 entities (Customer, Order, Driver, Product) properly factory-scoped
+- [x] **INT-02**: Per-customer pricing works within factory scope
+- [x] **INT-03**: RBAC middleware extended with SUPER_ADMIN bypass
+- [x] **INT-04**: Delivery slips filtered by factory (via order.factoryId)
+- [x] **INT-05**: Driver web-view scoped to factory (via driver.factoryId)
 
 ---
 
@@ -223,15 +223,15 @@ Requirements for v3.0 Security Hardening + SaaS Readiness. Each maps to roadmap 
 | SUB-03 | Phase 8 | Pending |
 | SUB-04 | Phase 8 | Pending |
 | SUB-05 | Phase 8 | Pending |
-| SADM-02 | Phase 9 | Pending |
-| SADM-03 | Phase 9 | Pending |
-| SADM-04 | Phase 9 | Pending |
-| SADM-05 | Phase 9 | Pending |
-| INT-01 | Phase 9 | Pending |
-| INT-02 | Phase 9 | Pending |
-| INT-03 | Phase 9 | Pending |
-| INT-04 | Phase 9 | Pending |
-| INT-05 | Phase 9 | Pending |
+| SADM-02 | Phase 9 | Complete |
+| SADM-03 | Phase 9 | Complete |
+| SADM-04 | Phase 9 | Complete |
+| SADM-05 | Phase 9 | Complete |
+| INT-01 | Phase 9 | Complete |
+| INT-02 | Phase 9 | Complete |
+| INT-03 | Phase 9 | Complete |
+| INT-04 | Phase 9 | Complete |
+| INT-05 | Phase 9 | Complete |
 
 **Coverage:**
 - v3.0 requirements: 40 total — all mapped (Phases 6-10)

@@ -17,7 +17,7 @@ v3.0 fixes critical tenant data leaks, locks down API auth, hardens registration
 - [x] **Phase 7B: RBAC Enforcement** - Role-based access control middleware correctness, route-level enforcement, SUPER_ADMIN bypass audit (completed 2026-04-22)
 - [ ] **Phase 8: API Route Hardening + Subscription Enforcement** - All API routes use auth helpers, subscription enforcement on writes
 - [ ] **Phase 8B: Staff and Driver Scheduling** - Shift scheduling for staff and drivers with paidDriverLimit enforcement
-- [ ] **Phase 9: Super Admin + Integration** - Super Admin dashboard, all v1.0 entities factory-scoped
+- [x] **Phase 9: Super Admin + Integration** - Super Admin dashboard, all v1.0 entities factory-scoped (completed 2026-04-23)
 - [ ] **Phase 10: Build Correctness** - TypeScript clean, build passing, Decimal serialization, seed scripts, React Compiler
 
 ## Phase Details
@@ -35,7 +35,9 @@ v3.0 fixes critical tenant data leaks, locks down API auth, hardens registration
 4. POST /api/customers sets factoryId from session on created entity
 5. Prisma $extends returns zero records (not all records) when ctx.factoryId is absent
 6. JWT_SECRET env var is required — app fails to start if missing in production
-   **Plans**: TBD
+   **Plans**: 1/1 complete
+
+- [x] [09-PLAN.md](phases/09-super-admin-integration/09-PLAN.md) - Super Admin + Integration verification and BUILD-05 SortIcon fix
 
 ### Phase 7: Auth Infrastructure + Registration
 
@@ -152,7 +154,7 @@ v3.0 fixes critical tenant data leaks, locks down API auth, hardens registration
 | 7B. RBAC Enforcement                  | 3/3            | Complete    | 2026-04-22 |
 | 8. API Route Hardening + Subscription | 5/5            | Verification pending | -          |
 | 8B. Staff and Driver Scheduling      | 1/1            | Verification pending | -          |
-| 9. Super Admin + Integration          | 0/TBD          | Not started | -          |
+| 9. Super Admin + Integration          | 1/1            | Complete    | 2026-04-23 |
 | 10. Build Correctness                 | 0/TBD          | Not started | -          |
 
 ---
