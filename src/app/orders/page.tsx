@@ -8,6 +8,7 @@ import { OrderEntryDrawer } from '@/components/order/order-entry-drawer';
 import { Drawer } from '@/components/ui/drawer';
 import { PrintSlip } from '@/components/order/print-slip';
 import type { Customer, Product } from '@prisma/client';
+import { toast } from '@/components/dashboard/toast';
 
 // Types for API response
 interface OrderItemWithProduct {
@@ -207,7 +208,8 @@ export default function OrdersPage() {
           cancellationReason: reason,
         }),
       });
-      if (!res.ok) throw new Error('Failed to update status');
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(result.error ?? 'Failed to update status');
       // Refresh orders
       const ordersRes = await fetch('/api/orders');
       const ordersData = await ordersRes.json();
@@ -215,8 +217,14 @@ export default function OrdersPage() {
       setShowConfirmDialog(false);
       setShowCancelDialog(false);
       setCancelReason('');
+      toast({ type: 'success', title: 'Đã cập nhật trạng thái đơn hàng' });
     } catch (err) {
       console.error('Failed to update status:', err);
+      toast({
+        type: 'error',
+        title: 'Cập nhật thất bại',
+        message: err instanceof Error ? err.message : 'Không thể cập nhật trạng thái đơn hàng',
+      });
     } finally {
       setUpdatingStatus(false);
     }
@@ -235,15 +243,22 @@ export default function OrdersPage() {
           driverId: bulkAssignDriverId,
         }),
       });
-      if (!res.ok) throw new Error('Failed to assign orders');
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(result.error ?? 'Failed to assign orders');
       // Refresh orders
       const ordersRes = await fetch('/api/orders');
       const ordersData = await ordersRes.json();
       setOrders(ordersData);
       setSelectedOrderIds(new Set());
       setBulkAssignDriverId('');
+      toast({ type: 'success', title: 'Đã giao đơn cho tài xế' });
     } catch (err) {
       console.error('Failed to bulk assign:', err);
+      toast({
+        type: 'error',
+        title: 'Giao đơn thất bại',
+        message: err instanceof Error ? err.message : 'Không thể giao đơn',
+      });
     } finally {
       setBulkAssigning(false);
     }

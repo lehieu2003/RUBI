@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Customer, Product } from '@prisma/client';
+import { toast } from '@/components/dashboard/toast';
 
 type PriceMap = Map<string, number>;
 
@@ -67,9 +68,11 @@ export function CustomerPriceForm({
         body: JSON.stringify({ customerId: customer.id, productId, price: newPrice }),
       });
       if (!response.ok) throw new Error('Failed to save');
+      toast({ type: 'success', title: 'Đã lưu giá riêng' });
     } catch {
       // Revert on error
       setLocalOverrides(overridePrices);
+      toast({ type: 'error', title: 'Lưu thất bại', message: 'Không thể lưu giá riêng' });
     } finally {
       setSaving(null);
     }
@@ -92,9 +95,11 @@ export function CustomerPriceForm({
         { method: 'DELETE' }
       );
       if (!response.ok) throw new Error('Failed to remove');
+      toast({ type: 'success', title: 'Đã xóa giá riêng' });
     } catch {
       // Revert on error
       setLocalOverrides(previousOverrides);
+      toast({ type: 'error', title: 'Xóa thất bại', message: 'Không thể xóa giá riêng' });
     } finally {
       setRemoving(null);
     }

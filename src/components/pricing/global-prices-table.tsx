@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Product } from '@prisma/client';
+import { toast } from '@/components/dashboard/toast';
 
 type GlobalPricesMap = Map<string, number>;
 
@@ -50,9 +51,11 @@ export function GlobalPricesTable({ products, globalPrices }: GlobalPricesTableP
         body: JSON.stringify({ productId, price: newPrice }),
       });
       if (!response.ok) throw new Error('Failed to save');
+      toast({ type: 'success', title: 'Đã cập nhật giá cơ bản' });
     } catch {
       // Revert on error
       setPrices(globalPrices);
+      toast({ type: 'error', title: 'Lưu thất bại', message: 'Không thể cập nhật giá cơ bản' });
     } finally {
       setSaving(null);
     }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { CreditCard, Loader2, Users } from 'lucide-react';
+import { toast } from '@/components/dashboard/toast';
 
 interface TenantDetail {
   factory: {
@@ -102,12 +103,17 @@ export default function AdminTenantDetailPage() {
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError(result.error ?? 'Không thể cập nhật subscription');
+        const message = result.error ?? 'Không thể cập nhật subscription';
+        setError(message);
+        toast({ type: 'error', title: 'Cập nhật thất bại', message });
         return;
       }
+      toast({ type: 'success', title: 'Đã cập nhật subscription' });
       await loadTenant();
     } catch {
-      setError('Network error - please try again');
+      const message = 'Network error - please try again';
+      setError(message);
+      toast({ type: 'error', title: 'Cập nhật thất bại', message });
     } finally {
       setActionLoading(false);
     }
@@ -115,11 +121,20 @@ export default function AdminTenantDetailPage() {
 
   const impersonate = async () => {
     if (!data) return;
-    const response = await fetch(`/api/admin/impersonate/${data.factory.id}`, { method: 'POST' });
-    if (response.ok) {
-      const result = await response.json();
+    try {
+      const response = await fetch(`/api/admin/impersonate/${data.factory.id}`, { method: 'POST' });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.error ?? 'Không thể impersonate');
+      }
       window.location.href =
         `/admin/tenants/${encodeURIComponent(data.factory.id)}?impersonating=${encodeURIComponent(result.factoryName)}&factoryId=${encodeURIComponent(result.factoryId)}`;
+    } catch (err) {
+      toast({
+        type: 'error',
+        title: 'Thao tác thất bại',
+        message: err instanceof Error ? err.message : 'Không thể impersonate',
+      });
     }
   };
 

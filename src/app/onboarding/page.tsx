@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Papa from 'papaparse';
+import { toast } from '@/components/dashboard/toast';
 
 type Step = 'upload' | 'mapping' | 'preview' | 'importing' | 'done';
 
@@ -78,17 +79,29 @@ export default function OnboardingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customers }),
       });
-      const result = await res.json();
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(result.error ?? 'Không thể import khách hàng');
       setImportResult({
         imported: result.imported ?? 0,
         skipped: result.skipped ?? 0,
       });
 
       // REG-04: Mark onboarding complete after successful import
-      await fetch('/api/factory/onboarding', {
+      const onboardingRes = await fetch('/api/factory/onboarding', {
         method: 'PATCH',
       });
-    } catch {
+      if (!onboardingRes.ok) throw new Error('Đã import nhưng không thể cập nhật onboarding');
+      toast({
+        type: 'success',
+        title: 'Import thành công',
+        message: `Đã nhập ${result.imported ?? 0} khách hàng`,
+      });
+    } catch (err) {
+      toast({
+        type: 'error',
+        title: 'Import thất bại',
+        message: err instanceof Error ? err.message : 'Không thể nhập dữ liệu khách hàng',
+      });
       setImportResult({ imported: 0, skipped: customers.length });
     }
     setStep('done');

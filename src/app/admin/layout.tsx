@@ -11,6 +11,7 @@ import {
   Snowflake,
 } from 'lucide-react';
 import { ImpersonationDrawer } from '@/components/admin/impersonation-drawer';
+import { toast } from '@/components/dashboard/toast';
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Tổng quan', icon: BarChart3 },
@@ -27,7 +28,17 @@ function ImpersonatingWrapper({ children }: { children: React.ReactNode }) {
   const hasImpersonating = factoryName && factoryId;
 
   const handleEndImpersonation = async () => {
-    await fetch('/api/admin/impersonate/end', { method: 'POST' });
+    try {
+      const res = await fetch('/api/admin/impersonate/end', { method: 'POST' });
+      if (!res.ok) throw new Error('Không thể kết thúc impersonate');
+      toast({ type: 'success', title: 'Đã thoát impersonate' });
+    } catch (err) {
+      toast({
+        type: 'error',
+        title: 'Thao tác thất bại',
+        message: err instanceof Error ? err.message : 'Không thể kết thúc impersonate',
+      });
+    }
   };
 
   return (

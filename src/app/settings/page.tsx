@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { User, Bell, Database, Shield, Palette, Save, Users, Key, Plus, X, CreditCard } from 'lucide-react';
+import { toast } from '@/components/dashboard/toast';
 
 type UserRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'DRIVER';
 
@@ -344,16 +345,26 @@ export default function SettingsPage() {
                                 <button
                                   onClick={async () => {
                                     try {
-                                      await fetch(`/api/staff/${staff.id}`, {
+                                      const res = await fetch(`/api/staff/${staff.id}`, {
                                         method: 'PATCH',
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({ isActive: !staff.isActive }),
                                       });
+                                      if (!res.ok) throw new Error('Không thể cập nhật trạng thái nhân sự');
                                       setStaffUsers(prev =>
                                         prev.map(s => s.id === staff.id ? { ...s, isActive: !s.isActive } : s)
                                       );
+                                      toast({
+                                        type: 'success',
+                                        title: staff.isActive ? 'Đã khóa nhân sự' : 'Đã mở khóa nhân sự',
+                                      });
                                     } catch (err) {
                                       console.error('Failed to toggle active', err);
+                                      toast({
+                                        type: 'error',
+                                        title: 'Thao tác thất bại',
+                                        message: err instanceof Error ? err.message : 'Không thể cập nhật trạng thái nhân sự',
+                                      });
                                     }
                                   }}
                                   className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
@@ -443,21 +454,37 @@ export default function SettingsPage() {
                       </div>
                       <button
                         onClick={async () => {
-                          if (!newName || !newEmail || !newPassword) return;
+                          if (!newName || !newEmail || !newPassword) {
+                            toast({
+                              type: 'error',
+                              title: 'Thiếu thông tin',
+                              message: 'Vui lòng nhập họ tên, email và mật khẩu',
+                            });
+                            return;
+                          }
                           try {
                             const res = await fetch('/api/staff', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ name: newName, email: newEmail, password: newPassword, role: newRole }),
                             });
-                            const data = await res.json();
+                            const data = await res.json().catch(() => ({}));
+                            if (!res.ok) {
+                              throw new Error(data.error ?? 'Không thể tạo nhân sự');
+                            }
                             if (data.user) {
                               setStaffUsers(prev => [data.user, ...prev]);
                               setShowCreateModal(false);
                               setNewName(''); setNewEmail(''); setNewPassword(''); setNewRole('STAFF');
+                              toast({ type: 'success', title: 'Đã tạo nhân sự' });
                             }
                           } catch (err) {
                             console.error('Failed to create staff', err);
+                            toast({
+                              type: 'error',
+                              title: 'Tạo nhân sự thất bại',
+                              message: err instanceof Error ? err.message : 'Không thể tạo nhân sự',
+                            });
                           }
                         }}
                         className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
@@ -495,17 +522,34 @@ export default function SettingsPage() {
                       </div>
                       <button
                         onClick={async () => {
-                          if (!passwordInput || passwordInput.length < 6) return;
+                          if (!passwordInput || passwordInput.length < 6) {
+                            toast({
+                              type: 'error',
+                              title: 'Mật khẩu không hợp lệ',
+                              message: 'Mật khẩu phải có ít nhất 6 ký tự',
+                            });
+                            return;
+                          }
                           try {
-                            await fetch(`/api/staff/${showPasswordModal}`, {
+                            const res = await fetch(`/api/staff/${showPasswordModal}`, {
                               method: 'PATCH',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ password: passwordInput }),
                             });
+                            const data = await res.json().catch(() => ({}));
+                            if (!res.ok) {
+                              throw new Error(data.error ?? 'Không thể cập nhật mật khẩu');
+                            }
                             setShowPasswordModal(null);
                             setPasswordInput('');
+                            toast({ type: 'success', title: 'Đã cập nhật mật khẩu' });
                           } catch (err) {
                             console.error('Failed to reset password', err);
+                            toast({
+                              type: 'error',
+                              title: 'Đổi mật khẩu thất bại',
+                              message: err instanceof Error ? err.message : 'Không thể cập nhật mật khẩu',
+                            });
                           }
                         }}
                         className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"

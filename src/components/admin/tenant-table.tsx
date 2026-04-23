@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ChevronDown, ChevronUp, Eye, Loader2 } from 'lucide-react';
+import { toast } from '@/components/dashboard/toast';
 
 interface Factory {
   id: string;
@@ -88,7 +89,9 @@ function ActionModal({
 
       const result = await response.json().catch(() => ({}));
       if (!response.ok) {
-        onError?.(result.error ?? 'Không thể cập nhật subscription');
+        const message = result.error ?? 'Không thể cập nhật subscription';
+        onError?.(message);
+        toast({ type: 'error', title: 'Cập nhật thất bại', message });
         return;
       }
 
@@ -111,9 +114,12 @@ function ActionModal({
         monthlyAmount,
         daysRemaining,
       });
+      toast({ type: 'success', title: 'Đã cập nhật subscription' });
       onClose();
     } catch {
-      onError?.('Network error - please try again');
+      const message = 'Network error - please try again';
+      onError?.(message);
+      toast({ type: 'error', title: 'Cập nhật thất bại', message });
     } finally {
       setLoading(false);
     }
@@ -253,7 +259,9 @@ export function TenantTable({ onError }: TenantTableProps) {
       const response = await fetch(`/api/admin/factories/${factory.id}`, { method: 'POST' });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) {
-        onError?.(result.error ?? 'Không thể tạo trial');
+        const message = result.error ?? 'Không thể tạo trial';
+        onError?.(message);
+        toast({ type: 'error', title: 'Tạo trial thất bại', message });
         return;
       }
       setFactories(current =>
@@ -272,8 +280,11 @@ export function TenantTable({ onError }: TenantTableProps) {
             : item
         )
       );
+      toast({ type: 'success', title: 'Đã tạo trial thành công' });
     } catch {
-      onError?.('Network error - please try again');
+      const message = 'Network error - please try again';
+      onError?.(message);
+      toast({ type: 'error', title: 'Tạo trial thất bại', message });
     } finally {
       setRowLoading(null);
     }
@@ -283,16 +294,21 @@ export function TenantTable({ onError }: TenantTableProps) {
     setRowLoading(factory.id);
     try {
       const response = await fetch(`/api/admin/impersonate/${factory.id}`, { method: 'POST' });
-      if (response.ok) {
-        const data = await response.json();
-        window.location.href =
-          '/admin/tenants/' +
-          encodeURIComponent(factory.id) +
-          '?impersonating=' +
-          encodeURIComponent(data.factoryName) +
-          '&factoryId=' +
-          encodeURIComponent(data.factoryId);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error ?? 'Không thể impersonate tenant');
       }
+      window.location.href =
+        '/admin/tenants/' +
+        encodeURIComponent(factory.id) +
+        '?impersonating=' +
+        encodeURIComponent(data.factoryName) +
+        '&factoryId=' +
+        encodeURIComponent(data.factoryId);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Không thể impersonate tenant';
+      onError?.(message);
+      toast({ type: 'error', title: 'Thao tác thất bại', message });
     } finally {
       setRowLoading(null);
     }

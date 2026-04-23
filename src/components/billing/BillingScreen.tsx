@@ -7,6 +7,7 @@ import { SubscriptionStatusCard } from '@/components/dashboard/subscription-stat
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { VietQRCode } from '@/components/billing/VietQRCode';
 import { PricingDisplay } from '@/components/billing/PricingDisplay';
+import { toast } from '@/components/dashboard/toast';
 
 interface SubscriptionData {
   subscription: {
@@ -115,7 +116,9 @@ export function BillingScreen() {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setPaymentError(result.error ?? 'Không thể nâng cấp gói. Vui lòng thử lại.');
+        const message = result.error ?? 'Không thể nâng cấp gói. Vui lòng thử lại.';
+        setPaymentError(message);
+        toast({ type: 'error', title: 'Nâng cấp thất bại', message });
         return;
       }
 
@@ -123,8 +126,11 @@ export function BillingScreen() {
         ? { ...current, subscription: result.subscription }
         : current);
       setPaymentMessage('Đã nâng cấp gói thành công. Thuê bao được gia hạn thêm 30 ngày.');
+      toast({ type: 'success', title: 'Đã nâng cấp gói thành công' });
     } catch {
-      setPaymentError('Không thể kết nối máy chủ. Vui lòng thử lại.');
+      const message = 'Không thể kết nối máy chủ. Vui lòng thử lại.';
+      setPaymentError(message);
+      toast({ type: 'error', title: 'Nâng cấp thất bại', message });
     } finally {
       setConfirmingPayment(false);
     }

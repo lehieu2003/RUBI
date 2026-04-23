@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { toast } from '@/components/dashboard/toast';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -19,12 +20,16 @@ export default function RegisterPage() {
     setError('');
 
     if (password.length < 8) {
-      setError('Mật khẩu phải có ít nhất 8 ký tự');
+      const message = 'Mật khẩu phải có ít nhất 8 ký tự';
+      setError(message);
+      toast({ type: 'error', title: 'Đăng ký thất bại', message });
       return;
     }
 
     if (phone.length < 9 || phone.length > 15) {
-      setError('Số điện thoại không hợp lệ');
+      const message = 'Số điện thoại không hợp lệ';
+      setError(message);
+      toast({ type: 'error', title: 'Đăng ký thất bại', message });
       return;
     }
 
@@ -38,13 +43,17 @@ export default function RegisterPage() {
       const data = await res.json();
       if (data.error) {
         setError(data.error);
+        toast({ type: 'error', title: 'Đăng ký thất bại', message: data.error });
         setLoading(false);
         return;
       }
+      toast({ type: 'success', title: 'Đăng ký thành công' });
       // REG-02: Redirect to nextUrl from response instead of hardcoded /dashboard
       router.push(data.nextUrl || '/dashboard');
     } catch {
-      setError('Lỗi kết nối');
+      const message = 'Lỗi kết nối';
+      setError(message);
+      toast({ type: 'error', title: 'Đăng ký thất bại', message });
       setLoading(false);
     }
   };

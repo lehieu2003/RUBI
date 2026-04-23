@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { toast } from '@/components/dashboard/toast';
 
 interface SubscriptionInfo {
   id: string;
@@ -58,10 +59,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
-      if (data.error) return { error: data.error };
+      if (data.error) {
+        toast({ type: 'error', title: 'Đăng nhập thất bại', message: data.error });
+        return { error: data.error };
+      }
       await checkAuth();
+      toast({ type: 'success', title: 'Đăng nhập thành công' });
       return { error: null };
     } catch {
+      toast({ type: 'error', title: 'Đăng nhập thất bại', message: 'Lỗi kết nối' });
       return { error: 'Lỗi kết nối' };
     }
   };
@@ -74,20 +80,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, password, name, factoryName, phone }),
       });
       const data = await res.json();
-      if (data.error) return { error: data.error };
+      if (data.error) {
+        toast({ type: 'error', title: 'Đăng ký thất bại', message: data.error });
+        return { error: data.error };
+      }
       setUser(data.user);
+      toast({ type: 'success', title: 'Đăng ký thành công' });
       return { error: null };
     } catch {
+      toast({ type: 'error', title: 'Đăng ký thất bại', message: 'Lỗi kết nối' });
       return { error: 'Lỗi kết nối' };
     }
   };
 
   const signOut = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      const res = await fetch('/api/auth/logout', { method: 'POST' });
+      if (!res.ok) throw new Error('Không thể đăng xuất');
       setUser(null);
+      toast({ type: 'success', title: 'Đã đăng xuất' });
     } catch {
-      // Ignore error
+      toast({ type: 'error', title: 'Đăng xuất thất bại', message: 'Vui lòng thử lại' });
     }
   };
 
