@@ -3,6 +3,19 @@ import { prisma } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
 
+const STAFF_ROLES = ['ADMIN', 'ACCOUNTANT', 'STAFF', 'DRIVER'] as const;
+
+function createDriverSlug(name: string): string {
+  const base = name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/^-+|-+$/g, '');
+  return `${base || 'driver'}-${Date.now().toString(36)}`;
+}
+
 // PATCH /api/staff/[id] — Update user (ADMIN only)
 export async function PATCH(
   request: NextRequest,
@@ -25,7 +38,7 @@ export async function PATCH(
 
     const existing = await prisma.user.findFirst({
       where: { id, factoryId: session.factoryId },
-      select: { id: true },
+      select: { id: true, name: true, role: true, isActive: true, driverProfile: { select: { id: true } } },
     });
     if (!existing) {
       return NextResponse.json({ error: 'Staff not found' }, { status: 404 });
@@ -47,7 +60,7 @@ export async function PATCH(
     }
 
     // Update role
-    if (body.role && ['ADMIN', 'ACCOUNTANT', 'STAFF'].includes(body.role)) {
+    if (body.role && STAFF_ROLES.includes(body.role)) {
       updateData.role = body.role;
     }
 
@@ -56,17 +69,51 @@ export async function PATCH(
       updateData.name = body.name;
     }
 
-    const user = await prisma.user.update({
-      where: { id },
-      data: updateData,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        isActive: true,
-        createdAt: true,
-      },
+    const user = await prisma.$transaction(async (tx) => {
+      const updatedUser = await tx.user.update({
+        where: { id },
+        data: updateData,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          isActive: true,
+          createdAt: true,
+        },
+      });
+
+      if (updatedUser.role === 'DRIVER') {
+        const driver = await tx.driver.findUnique({
+          where: { userId: updatedUser.id },
+          select: { id: true },
+        });
+
+        if (driver) {
+          await tx.driver.update({
+            where: { id: driver.id },
+            data: { name: updatedUser.name, isActive: updatedUser.isActive },
+          });
+        } else {
+          await tx.driver.create({
+            data: {
+              name: updatedUser.name,
+              slug: createDriverSlug(updatedUser.name),
+              phone: null,
+              isActive: updatedUser.isActive,
+              factoryId: session.factoryId!,
+              userId: updatedUser.id,
+            },
+          });
+        }
+      } else if (existing.driverProfile) {
+        await tx.driver.update({
+          where: { id: existing.driverProfile.id },
+          data: { isActive: false },
+        });
+      }
+
+      return updatedUser;
     });
 
     return NextResponse.json({ user });

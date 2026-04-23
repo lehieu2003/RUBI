@@ -1,0 +1,208 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/db';
+import { requireActiveSubscription, requireRole } from '@/lib/auth/helpers';
+
+const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const SHIFTS = [
+  'SLOT_00_03',
+  'SLOT_03_06',
+  'SLOT_06_09',
+  'SLOT_09_12',
+  'SLOT_12_15',
+  'SLOT_15_18',
+  'SLOT_18_21',
+  'SLOT_21_24',
+] as const;
+
+const ShiftAssignmentSchema = z.object({
+  userId: z.string().min(1),
+  shift: z.enum(SHIFTS).nullable(),
+  removeShift: z.enum(SHIFTS).optional(),
+  shiftDate: z.string().regex(DATE_ONLY_PATTERN),
+});
+
+function parseDateOnly(value: string | null): Date | null {
+  if (!value || !DATE_ONLY_PATTERN.test(value)) return null;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function addDays(date: Date, days: number): Date {
+  const next = new Date(date);
+  next.setUTCDate(next.getUTCDate() + days);
+  return next;
+}
+
+async function ensureFactoryExists(factoryId: string): Promise<boolean> {
+  const factory = await prisma.factory.findUnique({
+    where: { id: factoryId },
+    select: { id: true },
+  });
+  return Boolean(factory);
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
+    if (!session.factoryId) {
+      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+    }
+    if (!(await ensureFactoryExists(session.factoryId))) {
+      return NextResponse.json(
+        { error: 'Factory mapping is invalid. Please relink this account to a valid factory.' },
+        { status: 409 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const weekStart = parseDateOnly(searchParams.get('week'));
+    if (!weekStart) {
+      return NextResponse.json({ error: 'Invalid week. Expected YYYY-MM-DD' }, { status: 400 });
+    }
+
+    const weekEnd = addDays(weekStart, 7);
+    const people = await prisma.user.findMany({
+      where: {
+        factoryId: session.factoryId,
+        isActive: true,
+        role: { in: ['STAFF', 'DRIVER'] },
+      },
+      include: {
+        scheduleAssignments: {
+          where: {
+            factoryId: session.factoryId,
+            shiftDate: { gte: weekStart, lt: weekEnd },
+          },
+          orderBy: { shiftDate: 'asc' },
+        },
+      },
+      orderBy: [{ role: 'asc' }, { name: 'asc' }],
+    });
+
+    return NextResponse.json(
+      people.map((person) => ({
+        id: person.id,
+        name: person.name,
+        role: person.role,
+        shifts: person.scheduleAssignments.map((assignment) => ({
+          shiftDate: assignment.shiftDate.toISOString().slice(0, 10),
+          shift: assignment.shift,
+        })),
+      }))
+    );
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    console.error('[GET /api/schedule/assignments]', error);
+    return NextResponse.json({ error: 'Schedule fetch failed' }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
+    await requireActiveSubscription();
+    if (!session.factoryId) {
+      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+    }
+    if (!(await ensureFactoryExists(session.factoryId))) {
+      return NextResponse.json(
+        { error: 'Factory mapping is invalid. Please relink this account to a valid factory.' },
+        { status: 409 }
+      );
+    }
+
+    const body = await request.json();
+    const parsed = ShiftAssignmentSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid request. Required: userId, shift, shiftDate' },
+        { status: 400 }
+      );
+    }
+
+    const { userId, shift } = parsed.data;
+    const shiftDate = parseDateOnly(parsed.data.shiftDate);
+    if (!shiftDate) {
+      return NextResponse.json({ error: 'Invalid shiftDate. Expected YYYY-MM-DD' }, { status: 400 });
+    }
+
+    const person = await prisma.user.findFirst({
+      where: {
+        id: userId,
+        factoryId: session.factoryId,
+        isActive: true,
+        role: { in: ['STAFF', 'DRIVER'] },
+      },
+      select: { id: true, role: true },
+    });
+    if (!person) {
+      return NextResponse.json({ error: 'Staff or driver not found' }, { status: 404 });
+    }
+
+    if (shift === null) {
+      if (!parsed.data.removeShift) {
+        return NextResponse.json(
+          { error: 'Invalid request. removeShift is required when shift is null' },
+          { status: 400 }
+        );
+      }
+      await prisma.scheduleAssignment.deleteMany({
+        where: { factoryId: session.factoryId, userId, shiftDate, shift: parsed.data.removeShift },
+      });
+      return NextResponse.json({
+        success: true,
+        assignment: { userId, shift: null, removeShift: parsed.data.removeShift, shiftDate: parsed.data.shiftDate },
+      });
+    }
+
+    if (person.role === 'DRIVER') {
+      const subscription = await prisma.subscription.findFirst({
+        where: { factoryId: session.factoryId },
+        orderBy: { createdAt: 'desc' },
+      });
+      const maxDrivers = 1 + (subscription?.driverCount ?? 0);
+      const scheduledDrivers = await prisma.scheduleAssignment.findMany({
+        where: {
+          factoryId: session.factoryId,
+          shiftDate,
+          NOT: { userId },
+          user: { role: 'DRIVER', isActive: true },
+        },
+        select: { userId: true },
+        distinct: ['userId'],
+      });
+
+      if (scheduledDrivers.length >= maxDrivers) {
+        return NextResponse.json(
+          { error: 'Cần nâng cấp subscription để thêm driver', code: 'DRIVER_LIMIT_EXCEEDED' },
+          { status: 403 }
+        );
+      }
+    }
+
+    const assignment = await prisma.scheduleAssignment.upsert({
+      where: { userId_shiftDate_shift: { userId, shiftDate, shift } },
+      create: {
+        factoryId: session.factoryId,
+        userId,
+        shiftDate,
+        shift,
+      },
+      update: { shift, factoryId: session.factoryId },
+    });
+
+    return NextResponse.json({
+      success: true,
+      assignment: {
+        userId: assignment.userId,
+        shift: assignment.shift,
+        shiftDate: assignment.shiftDate.toISOString().slice(0, 10),
+      },
+    });
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    console.error('[PATCH /api/schedule/assignments]', error);
+    return NextResponse.json({ error: 'Schedule update failed' }, { status: 500 });
+  }
+}

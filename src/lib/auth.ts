@@ -46,7 +46,7 @@ export async function getSession(): Promise<JWTPayload | null> {
   const session = await verifyJWT(token);
   if (session) {
     // Propagate tenant context so Prisma $extends hooks work in API route handlers
-    setTenantContext(session.factoryId ?? null, session.role as 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'SUPER_ADMIN' | null);
+    setTenantContext(session.factoryId ?? null, session.role as 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'DRIVER' | 'SUPER_ADMIN' | null);
   }
   return session;
 }

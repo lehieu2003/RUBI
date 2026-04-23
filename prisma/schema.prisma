@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Factory {
@@ -24,6 +25,7 @@ model Factory {
   products      Product[]
   payments      Payment[]
   impersonationLogs ImpersonationLog[]
+  scheduleAssignments ScheduleAssignment[]
 
   @@map("factories")
 }
@@ -44,6 +46,8 @@ model User {
   assignedOrders Order[]  @relation("OrderAssigner")
   payments       Payment[]
   impersonationLogs ImpersonationLog[]
+  driverProfile  Driver?  @relation("DriverUser")
+  scheduleAssignments ScheduleAssignment[]
 
   @@index([factoryId])
   @@map("users")
@@ -122,12 +126,31 @@ model Driver {
   updatedAt DateTime @updatedAt @map("updated_at")
   phone     String?
   factoryId String   @map("factory_id")
+  userId    String?  @unique @map("user_id")
   factory   Factory  @relation(fields: [factoryId], references: [id])
+  user      User?    @relation("DriverUser", fields: [userId], references: [id])
   orders    Order[]
 
   @@unique([phone, factoryId])
   @@index([factoryId])
   @@map("drivers")
+}
+
+model ScheduleAssignment {
+  id        String   @id @default(cuid())
+  factoryId String   @map("factory_id")
+  userId    String   @map("user_id")
+  shiftDate DateTime @map("shift_date") @db.Date
+  shift     Shift
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  factory   Factory  @relation(fields: [factoryId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, shiftDate, shift])
+  @@index([factoryId, shiftDate])
+  @@index([userId])
+  @@map("schedule_assignments")
 }
 
 model Order {
@@ -244,6 +267,7 @@ enum UserRole {
   ADMIN
   ACCOUNTANT
   STAFF
+  DRIVER
   SUPER_ADMIN
 }
 
@@ -281,6 +305,17 @@ enum OrderStatus {
   DELIVERED
   COMPLETED
   CANCELLED
+}
+
+enum Shift {
+  SLOT_00_03
+  SLOT_03_06
+  SLOT_06_09
+  SLOT_09_12
+  SLOT_12_15
+  SLOT_15_18
+  SLOT_18_21
+  SLOT_21_24
 }
 
 enum LedgerType {

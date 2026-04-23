@@ -1,4 +1,4 @@
-export type TenantRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF';
+export type TenantRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'DRIVER';
 export type AppRole = TenantRole | 'SUPER_ADMIN';
 
 export type AppRoutePermission = {
@@ -15,9 +15,11 @@ export const tenantRoutePermissions: AppRoutePermission[] = [
   { href: '/dashboard', label: 'Tong quan', roles: allTenantRoles, match: 'exact' },
   { href: '/orders', label: 'Don hang', roles: allTenantRoles, match: 'prefix' },
   { href: '/customers', label: 'Khach hang', roles: allTenantRoles, match: 'prefix' },
+  { href: '/driver', label: 'Tai xe', roles: ['DRIVER'], match: 'prefix' },
   { href: '/settle', label: 'Doi soat', roles: opsRoles, match: 'prefix' },
   { href: '/inventory', label: 'Kho lanh', roles: opsRoles, match: 'prefix' },
   { href: '/vehicles', label: 'Doi xe', roles: opsRoles, match: 'prefix' },
+  { href: '/schedule', label: 'Lich trinh', roles: opsRoles, match: 'prefix' },
   { href: '/reports/debt', label: 'Bao cao no', roles: opsRoles, match: 'prefix' },
   { href: '/deposits/shells', label: 'Vo bao', roles: opsRoles, match: 'prefix' },
   { href: '/dashboard/map', label: 'Ban do', roles: opsRoles, match: 'prefix' },

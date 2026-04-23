@@ -3,6 +3,19 @@ import { prisma, prismaAuth } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
 
+const STAFF_ROLES = ['ADMIN', 'ACCOUNTANT', 'STAFF', 'DRIVER'] as const;
+
+function createDriverSlug(name: string): string {
+  const base = name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/^-+|-+$/g, '');
+  return `${base || 'driver'}-${Date.now().toString(36)}`;
+}
+
 // GET /api/staff — List all users (ADMIN only)
 export async function GET(request: NextRequest) {
   try {
@@ -51,7 +64,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Mật khẩu phải có ít nhất 6 ký tự' }, { status: 400 });
     }
 
-    if (!['ADMIN', 'ACCOUNTANT', 'STAFF'].includes(role)) {
+    if (!STAFF_ROLES.includes(role)) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
     }
 
@@ -63,22 +76,39 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        role,
-        factoryId: session.factoryId,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        isActive: true,
-        createdAt: true,
-      },
+    const user = await prisma.$transaction(async (tx) => {
+      const createdUser = await tx.user.create({
+        data: {
+          name,
+          email,
+          password: hashedPassword,
+          role,
+          factoryId: session.factoryId,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          isActive: true,
+          createdAt: true,
+        },
+      });
+
+      if (role === 'DRIVER') {
+        await tx.driver.create({
+          data: {
+            name,
+            slug: createDriverSlug(name),
+            phone: null,
+            isActive: true,
+            factoryId: session.factoryId!,
+            userId: createdUser.id,
+          },
+        });
+      }
+
+      return createdUser;
     });
 
     return NextResponse.json({ user }, { status: 201 });

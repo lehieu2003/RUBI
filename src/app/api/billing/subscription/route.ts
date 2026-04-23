@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
 
+export const runtime = 'nodejs';
+
 // GET /api/billing/subscription
 // Returns the subscription for the current logged-in factory.
 // All tenant roles can read this because middleware uses it for write enforcement.

@@ -4,7 +4,7 @@ import { canAccessPath, isTenantAppPath } from '@/lib/rbac/permissions';
 import { isSubscriptionActive, isGracePeriodExpired } from '@/lib/subscription-status';
 import { setTenantContext, TenantContext } from '@/lib/tenant';
 
-type UserRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'SUPER_ADMIN';
+type UserRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'DRIVER' | 'SUPER_ADMIN';
 
 // Check if impersonation token is valid (not expired, not ended)
 async function isImpersonating(request: NextRequest): Promise<{ active: boolean; factoryId?: string }> {
@@ -63,7 +63,7 @@ export async function middleware(request: NextRequest) {
     const userRole = (session as { role?: UserRole }).role as UserRole | undefined;
     if (isAppRoute && !canAccessPath(userRole, pathname)) {
       const url = request.nextUrl.clone();
-      url.pathname = userRole === 'SUPER_ADMIN' ? '/admin/dashboard' : '/dashboard';
+      url.pathname = userRole === 'SUPER_ADMIN' ? '/admin/dashboard' : userRole === 'DRIVER' ? '/driver' : '/dashboard';
       url.searchParams.set('error', 'unauthorized');
       return NextResponse.redirect(url);
     }

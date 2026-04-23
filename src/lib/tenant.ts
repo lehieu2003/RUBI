@@ -1,6 +1,6 @@
 export interface TenantContext {
   factoryId: string | null;
-  role: 'SUPER_ADMIN' | 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | null;
+  role: 'SUPER_ADMIN' | 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'DRIVER' | null;
 }
 
 const emptyTenantContext: TenantContext = { factoryId: null, role: null };

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma, prismaAuth } from '@/lib/db';
+import { requireRole } from '@/lib/auth/helpers';
 
 // GET /api/driver/orders?token=xxx&date=YYYY-MM-DD
 // Returns orders for authenticated driver filtered by today's date
@@ -10,17 +11,12 @@ export async function GET(request: NextRequest) {
     const token = searchParams.get('token');
     const dateParam = searchParams.get('date');
 
-    if (!token) {
-      return NextResponse.json({ error: 'Token required' }, { status: 401 });
-    }
-
-    // Look up driver by token
-    const driver = await prismaAuth.driver.findUnique({
-      where: { token },
-    });
+    const driver = token
+      ? await prismaAuth.driver.findUnique({ where: { token } })
+      : await getSessionDriver();
 
     if (!driver) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+      return NextResponse.json({ error: token ? 'Invalid token' : 'Driver profile not found' }, { status: 401 });
     }
 
     // Get today's date range
@@ -62,7 +58,22 @@ export async function GET(request: NextRequest) {
       orders: serialized,
     });
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('[GET /api/driver/orders]', error);
     return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
   }
+}
+
+async function getSessionDriver() {
+  const session = await requireRole(['DRIVER']);
+  if (!session.factoryId) return null;
+
+  return prismaAuth.driver.findFirst({
+    where: {
+      userId: session.userId,
+      factoryId: session.factoryId,
+      isActive: true,
+      user: { role: 'DRIVER', isActive: true },
+    },
+  });
 }

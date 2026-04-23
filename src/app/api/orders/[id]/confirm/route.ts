@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma, prismaAuth } from '@/lib/db';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
+import { requireRole } from '@/lib/auth/helpers';
 
 // PATCH /api/orders/[id]/confirm
 // Body: { gps: { lat: number, lng: number } | null }
@@ -20,21 +21,6 @@ export async function PATCH(
   try {
     const { id } = await params;
 
-    // --- Bearer token auth check ---
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Missing or invalid Authorization header' }, { status: 401 });
-    }
-    const token = authHeader.slice(7);
-
-    const driver = await prismaAuth.driver.findUnique({
-      where: { token },
-    });
-    if (!driver) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
-    // --- Request body parsing ---
     const body = await request.json();
     const parsed = ConfirmSchema.safeParse(body);
 
@@ -43,6 +29,17 @@ export async function PATCH(
         { error: 'Invalid request. Required: gps { lat, lng } or gps: null' },
         { status: 400 }
       );
+    }
+
+    const authHeader = request.headers.get('authorization');
+    const bodyToken = typeof body?.token === 'string' ? body.token : null;
+    const driver = authHeader?.startsWith('Bearer ')
+      ? await prismaAuth.driver.findUnique({ where: { token: authHeader.slice(7) } })
+      : bodyToken
+      ? await prismaAuth.driver.findUnique({ where: { token: bodyToken } })
+      : await getSessionDriver();
+    if (!driver) {
+      return NextResponse.json({ error: 'Invalid driver credentials' }, { status: 401 });
     }
 
     // --- Order ownership check ---
@@ -73,6 +70,7 @@ export async function PATCH(
       deliveryGps: updated.deliveryGps,
     });
   } catch (error) {
+    if (error instanceof Response) throw error;
     // Handle Prisma not found error specifically
     if (error instanceof Error && error.name === 'NotFoundError') {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
@@ -80,4 +78,18 @@ export async function PATCH(
     console.error('[PATCH /api/orders/[id]/confirm]', error);
     return NextResponse.json({ error: 'Confirmation failed' }, { status: 500 });
   }
+}
+
+async function getSessionDriver() {
+  const session = await requireRole(['DRIVER']);
+  if (!session.factoryId) return null;
+
+  return prismaAuth.driver.findFirst({
+    where: {
+      userId: session.userId,
+      factoryId: session.factoryId,
+      isActive: true,
+      user: { role: 'DRIVER', isActive: true },
+    },
+  });
 }

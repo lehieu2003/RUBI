@@ -1,7 +1,15 @@
 import { PrismaClient } from '@prisma/client';
 import { getTenantContext } from './tenant';
 
-const factoryIdModels = ['Customer', 'Driver', 'Order', 'Product', 'User', 'Subscription'];
+const factoryIdModels = [
+  'Customer',
+  'Driver',
+  'Order',
+  'Product',
+  'ScheduleAssignment',
+  'User',
+  'Subscription',
+];
 
 type TenantScopedArgs = {
   where?: {

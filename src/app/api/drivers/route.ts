@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
 
 // GET /api/drivers
-// Returns all active drivers.
+// Returns active driver profiles backed by DRIVER user accounts.
 // Supports ?active=true to return {count, drivers} for billing use.
 export async function GET(request: NextRequest) {
   try {
@@ -18,7 +18,11 @@ export async function GET(request: NextRequest) {
     // Billing count mode: ?active=true returns { count, drivers }
     if (activeParam === 'true') {
       const drivers = await prisma.driver.findMany({
-        where: { isActive: true, factoryId: session.factoryId },
+        where: {
+          isActive: true,
+          factoryId: session.factoryId,
+          user: { role: 'DRIVER', isActive: true },
+        },
         select: { id: true, name: true, phone: true },
         orderBy: { name: 'asc' },
       });
@@ -26,11 +30,18 @@ export async function GET(request: NextRequest) {
     }
 
     const drivers = await prisma.driver.findMany({
-      where: { isActive: true, factoryId: session.factoryId },
+      where: {
+        isActive: true,
+        factoryId: session.factoryId,
+        user: { role: 'DRIVER', isActive: true },
+      },
       select: {
         id: true,
         name: true,
         phone: true,
+        slug: true,
+        token: true,
+        isActive: true,
       },
       orderBy: { name: 'asc' },
     });
@@ -43,43 +54,15 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/drivers - Add new driver (ADMIN only, allows inactive)
-export async function POST(request: NextRequest) {
+// POST /api/drivers - disabled; create DRIVER accounts from /settings staff management.
+export async function POST() {
   try {
-    const session = await requireRole(['ADMIN']);
+    await requireRole(['ADMIN']);
     await requireActiveSubscription();
-    if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
-    }
-
-    const body = await request.json();
-    const { name, phone, isActive = true } = body;
-
-    if (!name) {
-      return NextResponse.json({ error: 'name is required' }, { status: 400 });
-    }
-
-    // Generate slug from name
-    const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') + '-' + Date.now().toString(36);
-
-    const driver = await prisma.driver.create({
-      data: {
-        name,
-        slug,
-        phone: phone || null,
-        isActive,
-        factoryId: session.factoryId,
-      },
-    });
-
-    return NextResponse.json({
-      id: driver.id,
-      name: driver.name,
-      phone: driver.phone,
-      slug: driver.slug,
-      isActive: driver.isActive,
-      token: driver.token,
-    }, { status: 201 });
+    return NextResponse.json(
+      { error: 'Tạo tài xế trong phần Nhân sự bằng role Tài xế', code: 'DRIVER_CREATE_FROM_STAFF' },
+      { status: 405 }
+    );
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('[POST /api/drivers]', error);
