@@ -101,17 +101,17 @@ v3.0 fixes critical tenant data leaks, locks down API auth, hardens registration
 
 ### Phase 8B: Staff and Driver Scheduling
 
-**Goal**: Shift scheduling for staff and drivers with paidDriverLimit enforcement
+**Goal**: Account-based staff and driver shift scheduling with paidDriverLimit enforcement for scheduled drivers
 **Depends on**: Phase 8
 **Success Criteria** (what must be TRUE):
 
-1. Staff can be assigned to morning/afternoon shifts for accountability tracking
-2. Drivers can be scheduled with shift assignments
-3. paidDriverLimit is enforced — cannot schedule more drivers than subscription allows
-4. Scheduling view shows current shift coverage per day
-   **Plans**: 1/1 planned
+1. Driver accounts are created from Nhân sự with role `DRIVER`; Đội xe only lists linked driver profiles
+2. Staff and drivers can be scheduled with Sáng/Trưa/Chiều/Tối assignments per date
+3. paidDriverLimit is enforced per date for distinct scheduled `DRIVER` accounts only
+4. Scheduling view shows current shift coverage per day across a weekly grid
+   **Plans**: 1/1 executed
 
-- [08B-01-PLAN.md](phases/08B-staff-and-driver-scheduling/08B-01-PLAN.md) — Driver shift scheduling: schema, API route, calendar UI, sidebar menu
+- [x] [08B-01-PLAN.md](phases/08B-staff-and-driver-scheduling/08B-01-PLAN.md) — Account-based staff and driver scheduling: schema, API route, calendar UI, sidebar menu
 
 ### Phase 9: Super Admin + Integration
 
@@ -151,7 +151,7 @@ v3.0 fixes critical tenant data leaks, locks down API auth, hardens registration
 | 7. Auth Infrastructure + Registration | 0/TBD          | Not started | -          |
 | 7B. RBAC Enforcement                  | 3/3            | Complete    | 2026-04-22 |
 | 8. API Route Hardening + Subscription | 5/5            | Verification pending | -          |
-| 8B. Staff and Driver Scheduling      | 1/1            | Planned     | -          |
+| 8B. Staff and Driver Scheduling      | 1/1            | Verification pending | -          |
 | 9. Super Admin + Integration          | 0/TBD          | Not started | -          |
 | 10. Build Correctness                 | 0/TBD          | Not started | -          |
 

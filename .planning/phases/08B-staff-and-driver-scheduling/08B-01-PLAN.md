@@ -6,12 +6,22 @@ wave: 1
 depends_on: []
 files_modified:
   - prisma/schema.prisma
-  - src/app/api/schedule/drivers/route.ts
+  - src/app/api/schedule/assignments/route.ts
+  - src/app/api/staff/route.ts
+  - src/app/api/staff/[id]/route.ts
+  - src/app/api/drivers/route.ts
+  - src/app/driver/page.tsx
+  - src/app/vehicles/page.tsx
   - src/app/schedule/page.tsx
   - src/app/schedule/loading.tsx
   - src/components/schedule/calendar-grid.tsx
   - src/components/dashboard/sidebar.tsx
+  - src/lib/auth.ts
+  - src/lib/auth-provider.tsx
+  - src/lib/db.ts
   - src/lib/rbac/permissions.ts
+  - src/lib/tenant.ts
+  - src/middleware.ts
 autonomous: false
 requirements:
   - REQ-01
@@ -24,12 +34,12 @@ must_haves:
     - "Admin can assign a driver to MORNING/AFTERNOON/NIGHT shift on any date"
     - "Admin can view a weekly calendar grid showing all drivers and their shift assignments"
     - "Admin can remove a driver shift assignment"
-    - "System enforces paidDriverLimit when assigning shifts"
+    - "System enforces paidDriverLimit per date when assigning shifts"
     - "Admin/Accountant can access /schedule via sidebar menu"
   artifacts:
     - path: "prisma/schema.prisma"
-      provides: "Driver shift fields (shift, shiftDate) and Shift enum"
-      contains: "enum Shift"
+      provides: "Shift enum and DriverShiftAssignment model"
+      contains: "enum Shift, model DriverShiftAssignment"
     - path: "src/app/api/schedule/drivers/route.ts"
       provides: "GET/PATCH shift assignments, paidDriverLimit enforcement"
       exports: "GET, PATCH"
@@ -47,18 +57,20 @@ must_haves:
       via: "fetch GET for shift data"
       pattern: "fetch.*api/schedule/drivers"
     - from: "src/app/api/schedule/drivers/route.ts"
-      to: "prisma.driver"
-      via: "Prisma query with factoryId filter"
-      pattern: "prisma\\.driver\\.(findMany|update)"
+      to: "prisma.driverShiftAssignment"
+      via: "Prisma query with factoryId filter and driverId+shiftDate upsert/delete"
+      pattern: "prisma\\.driverShiftAssignment\\.(findMany|upsert|deleteMany)"
 ---
+
+> Revision 2026-04-23: This plan was implemented with the user-approved account-based revision. Driver scheduling moved from `DriverShiftAssignment` at `/api/schedule/drivers` to user-based `ScheduleAssignment` at `/api/schedule/assignments`; `DRIVER` is now a `UserRole`; Đội xe is read-only; Nhân sự creates driver accounts; and `/schedule` assigns both `STAFF` and `DRIVER` users.
 
 <objective>
 Implement driver shift scheduling with weekly calendar grid UI and paidDriverLimit enforcement.
 
-Purpose: Allow ADMIN/ACCOUNTANT to assign drivers to MORNING/AFTERNOON/NIGHT shifts per day, view shift coverage, and enforce subscription driver limits.
+Purpose: Allow ADMIN/ACCOUNTANT to assign drivers to MORNING/AFTERNOON/NIGHT shifts per day, view shift coverage across a week, and enforce subscription driver limits per date.
 
 Output:
-- Prisma schema with Shift enum and driver shift/shiftDate fields
+- Prisma schema with Shift enum and DriverShiftAssignment model
 - `/api/schedule/drivers` route for GET/PATCH shift assignments
 - `/schedule` page with weekly calendar grid UI
 - Sidebar "Lịch trình" menu item for ADMIN/ACCOUNTANT
@@ -79,17 +91,23 @@ Output:
 
 # Existing patterns to reuse
 
-## paidDriverLimit enforcement (bulk-assign route.ts lines 49-60)
+## paidDriverLimit enforcement (subscription lookup/error shape from bulk-assign)
 ```typescript
 const subscription = await prisma.subscription.findFirst({
   where: { factoryId: session.factoryId },
   orderBy: { createdAt: 'desc' },
 });
 const maxDrivers = 1 + (subscription?.driverCount ?? 0);
-const currentDriverCount = await prisma.driver.count({
-  where: { factoryId: session.factoryId, isActive: true },
+const scheduledDrivers = await prisma.driverShiftAssignment.findMany({
+  where: {
+    factoryId: session.factoryId,
+    shiftDate,
+    NOT: { driverId },
+  },
+  select: { driverId: true },
+  distinct: ['driverId'],
 });
-if (currentDriverCount >= maxDrivers) {
+if (scheduledDrivers.length >= maxDrivers) {
   return NextResponse.json(
     { error: 'Cần nâng cấp subscription để thêm driver', code: 'DRIVER_LIMIT_EXCEEDED' },
     { status: 403 }
@@ -132,7 +150,7 @@ model Driver {
 <tasks>
 
 <task type="auto">
-  <name>Task 1: Update Prisma schema with Shift enum and Driver shift fields</name>
+  <name>Task 1: Update Prisma schema with Shift enum and DriverShiftAssignment model</name>
   <read_first>
     - prisma/schema.prisma (full Driver model, existing Subscription model with driverCount)
   </read_first>
@@ -148,30 +166,43 @@ enum Shift {
 }
 ```
 
-2. **Driver model fields** (add after `factoryId` field):
-```prisma
-shift     Shift?    @map("shift") @db.VarChar(20)
-shiftDate DateTime? @map("shift_date") @db.Date
-```
+2. **Relations**:
+- Add `driverShiftAssignments DriverShiftAssignment[]` to Factory model.
+- Add `shiftAssignments DriverShiftAssignment[]` to Driver model.
 
-3. **Add indexes** for shift queries:
+3. **DriverShiftAssignment model**:
 ```prisma
-@@index([shiftDate])
+model DriverShiftAssignment {
+  id        String   @id @default(cuid())
+  factoryId String   @map("factory_id")
+  driverId  String   @map("driver_id")
+  shiftDate DateTime @map("shift_date") @db.Date
+  shift     Shift
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  factory   Factory  @relation(fields: [factoryId], references: [id])
+  driver    Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  @@unique([driverId, shiftDate])
+  @@index([factoryId, shiftDate])
+  @@index([driverId])
+  @@map("driver_shift_assignments")
+}
 ```
 
 The Driver model final state should have:
 - Existing: id, name, slug, token, isActive, createdAt, updatedAt, phone, factoryId, factory, orders
-- New: shift (Shift?, optional), shiftDate (DateTime?, optional, @db.Date)
+- New: shiftAssignments relation only; do not add shift/shiftDate scalar fields directly to Driver
 - Existing indexes: @@unique([phone, factoryId]), @@index([factoryId])
-- New index: @@index([shiftDate])
 </action>
   <verify>
-    <automated>grep -n "enum Shift" prisma/schema.prisma && grep -n "shift.*Shift" prisma/schema.prisma && grep -n "shiftDate.*DateTime" prisma/schema.prisma</automated>
+    <automated>grep -n "enum Shift" prisma/schema.prisma && grep -n "model DriverShiftAssignment" prisma/schema.prisma && grep -n "@@unique(\\[driverId, shiftDate\\])" prisma/schema.prisma && npx prisma validate</automated>
   </verify>
   <done>
     - Prisma schema updated with Shift enum (MORNING, AFTERNOON, NIGHT)
-    - Driver model has shift (Shift?, nullable) and shiftDate (DateTime?, @db.Date, nullable) fields
-    - Index on shiftDate added
+    - DriverShiftAssignment model stores one shift per driver per date
+    - Unique constraint on driverId + shiftDate prevents duplicate assignments
+    - Index on factoryId + shiftDate supports weekly tenant queries
     - Run `npx prisma validate` confirms schema is valid
   </done>
 </task>
@@ -179,44 +210,51 @@ The Driver model final state should have:
 <task type="auto">
   <name>Task 2: Create /api/schedule/drivers API route with GET and PATCH handlers</name>
   <read_first>
-    - src/app/api/orders/bulk-assign/route.ts (paidDriverLimit enforcement pattern)
+    - src/app/api/orders/bulk-assign/route.ts (subscription lookup and DRIVER_LIMIT_EXCEEDED error shape)
     - src/lib/auth/helpers.ts (requireRole, requireActiveSubscription)
     - src/lib/db.ts (prisma export)
   </read_first>
   <action>
     Create file: src/app/api/schedule/drivers/route.ts
 
-**GET handler** — Returns all drivers with their current shift/shiftDate for a given week:
+**GET handler** — Returns all drivers with their shift assignments for a given week:
 - Accept `?week=2026-04-20` query param (Monday of target week)
-- Query all drivers where factoryId matches session.factoryId
-- Return array: { id, name, shift, shiftDate } for each driver
+- Query all drivers where factoryId matches session.factoryId, plus assignments where `shiftDate >= weekStart` and `< weekStart + 7 days`
+- Return array: { id, name, shifts: [{ shiftDate, shift }] } for each driver
 - Use requireRole(['ADMIN', 'ACCOUNTANT'])
 
 **PATCH handler** — Assign or remove a driver's shift:
 - Accept body: { driverId: string, shift: "MORNING"|"AFTERNOON"|"NIGHT"|null, shiftDate: string }
 - Validate inputs with Zod schema
 - Check driver exists and belongs to session.factoryId
-- **Enforce paidDriverLimit** (reuse bulk-assign pattern exactly):
+- **Enforce paidDriverLimit for the target date**:
   - Get subscription, compute maxDrivers = 1 + driverCount
-  - Count active drivers
-  - If currentActive >= maxDrivers and the driver being assigned is not already active, return 403 with error "Cần nâng cấp subscription để thêm driver"
-- If shift is null, clear shift and shiftDate (unassign)
-- Otherwise set shift and shiftDate on the driver record
-- Return { success: true, driver: { id, name, shift, shiftDate } }
+  - If assigning a non-null shift, count distinct `driverId` values in DriverShiftAssignment for the same factoryId and shiftDate, excluding the current driver
+  - If scheduledDistinctDrivers >= maxDrivers, return 403 with error "Cần nâng cấp subscription để thêm driver"
+  - Do not use `driver.isActive` for scheduling eligibility; D-09 allows inactive drivers to be scheduled
+- If shift is null, delete the DriverShiftAssignment row for driverId + shiftDate
+- Otherwise upsert DriverShiftAssignment by driverId + shiftDate
+- Return { success: true, assignment: { driverId, shift, shiftDate } }
 
 **Import path for prisma:** `@/lib/db`
 
-Use the exact paidDriverLimit pattern from bulk-assign (lines 49-60):
+Use the subscription lookup and error shape from bulk-assign, but count scheduled drivers for the target date:
 ```typescript
 const subscription = await prisma.subscription.findFirst({
   where: { factoryId: session.factoryId },
   orderBy: { createdAt: 'desc' },
 });
 const maxDrivers = 1 + (subscription?.driverCount ?? 0);
-const currentDriverCount = await prisma.driver.count({
-  where: { factoryId: session.factoryId, isActive: true },
+const scheduledDrivers = await prisma.driverShiftAssignment.findMany({
+  where: {
+    factoryId: session.factoryId,
+    shiftDate,
+    NOT: { driverId },
+  },
+  select: { driverId: true },
+  distinct: ['driverId'],
 });
-if (currentDriverCount >= maxDrivers) {
+if (scheduledDrivers.length >= maxDrivers) {
   return NextResponse.json(
     { error: 'Cần nâng cấp subscription để thêm driver', code: 'DRIVER_LIMIT_EXCEEDED' },
     { status: 403 }
@@ -228,8 +266,8 @@ if (currentDriverCount >= maxDrivers) {
     <automated>grep -n "GET\|PATCH" src/app/api/schedule/drivers/route.ts && grep -n "requireRole\|requireActiveSubscription" src/app/api/schedule/drivers/route.ts && grep -n "DRIVER_LIMIT_EXCEEDED" src/app/api/schedule/drivers/route.ts</automated>
   </verify>
   <done>
-    - GET /api/schedule/drivers returns { id, name, shift, shiftDate }[] for all factory drivers
-    - PATCH /api/schedule/drivers assigns or removes shift with paidDriverLimit enforcement
+    - GET /api/schedule/drivers returns { id, name, shifts: [{ shiftDate, shift }] }[] for all factory drivers
+    - PATCH /api/schedule/drivers upserts or deletes assignment rows with paidDriverLimit enforcement
     - 403 returned with exact error message when limit exceeded
     - requireRole(['ADMIN', 'ACCOUNTANT']) enforced on both handlers
   </done>
@@ -240,12 +278,12 @@ if (currentDriverCount >= maxDrivers) {
     After Task 2 completes, the API route exists at src/app/api/schedule/drivers/route.ts with GET and PATCH handlers. The schema has been updated in Task 1.
   </what-built>
   <how-to-verify>
-    1. Ensure prisma/schema.prisma changes are committed (run `npx prisma migrate dev --name add_driver_shift` to generate migration and apply)
+    1. Ensure prisma/schema.prisma changes are committed (run `npx prisma migrate dev --name add_driver_shift_assignments` to generate migration and apply)
     2. Run `npm run dev` and test the API:
        - GET http://localhost:3000/api/schedule/drivers?week=2026-04-20 (as ADMIN)
        - PATCH with body { driverId: "...", shift: "MORNING", shiftDate: "2026-04-20" }
-    3. Expected: GET returns drivers array, PATCH updates shift
-    4. If paidDriverLimit exceeded: PATCH returns 403 with "Cần nâng cấp subscription để thêm driver"
+    3. Expected: GET returns drivers with per-day shifts array, PATCH upserts one assignment row
+    4. If paidDriverLimit is exceeded for that date: PATCH returns 403 with "Cần nâng cấp subscription để thêm driver"
   </how-to-verify>
   <resume-signal>Type "approved" or describe issues</resume-signal>
 </task>
@@ -266,7 +304,7 @@ if (currentDriverCount >= maxDrivers) {
 
 **Fetch data:**
 - On mount and on week change, fetch GET /api/schedule/drivers?week={monday}
-- Store drivers with their shift assignments in React state
+- Store drivers with their per-date `shifts` assignments in React state
 
 **Calendar grid structure:**
 - CSS Grid: `grid-cols-8` (1 col driver name + 7 cols for Mon-Sun)
@@ -286,7 +324,7 @@ if (currentDriverCount >= maxDrivers) {
 
 **Cell interaction:**
 - Click to cycle: M → A → N → empty (wraps around)
-- On cycle, PATCH /api/schedule/drivers with new shift value
+- On cycle, PATCH /api/schedule/drivers with `driverId`, `shiftDate`, and new shift value
 - Show brief loading state during PATCH
 
 **Save button:** "Lưu lịch trình" blue gradient primary CTA at bottom
@@ -353,17 +391,17 @@ Add entry:
 
 <verification>
 - Prisma schema: `npx prisma validate` passes
-- API route: GET returns drivers, PATCH updates shifts with limit enforcement
+- API route: GET returns drivers with assignment rows, PATCH upserts/deletes assignments with per-date limit enforcement
 - Calendar grid: Renders 8-column grid with M/A/N color coding
 - Sidebar: "Lịch trình" appears for ADMIN/ACCOUNTANT roles only
 - Run `npm test -- --run` to confirm no regressions
 </verification>
 
 <success_criteria>
-1. Driver model has shift (MORNING/AFTERNOON/NIGHT/null) and shiftDate (Date) fields in Prisma schema
-2. GET /api/schedule/drivers returns all drivers for the factory with their shift data
-3. PATCH /api/schedule/drivers assigns or removes shifts with paidDriverLimit enforcement
-4. paidDriverLimit enforcement returns 403 with "Cần nâng cấp subscription để thêm driver" when limit exceeded
+1. Prisma schema has Shift enum and DriverShiftAssignment model keyed by driverId + shiftDate
+2. GET /api/schedule/drivers returns all drivers for the factory with their shift assignments for the requested week
+3. PATCH /api/schedule/drivers assigns or removes one driver/date shift assignment with paidDriverLimit enforcement
+4. paidDriverLimit enforcement returns 403 with "Cần nâng cấp subscription để thêm driver" when the target date already has the maximum distinct scheduled drivers
 5. /schedule page renders weekly calendar grid with 8 columns (name + 7 days)
 6. Shift cells use correct color coding per UI spec (amber M, blue A, violet N)
 7. Clicking a cell cycles through M → A → N → empty

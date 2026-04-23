@@ -5,7 +5,7 @@ milestone_name: milestone
 status: verification_pending
 stopped_at: Phase 8 execution complete, verification pending
 last_updated: "2026-04-22T08:55:00.000Z"
-last_activity: 2026-04-22 -- Phase 8 API route hardening plans executed
+last_activity: 2026-04-23 -- Completed quick task 260423: Prisma datasource URL fix
 progress:
   total_phases: 6
   completed_phases: 3
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-22)
 Phase: 8
 Plan: 5/5 executed
 Status: Verification pending
-Last activity: 2026-04-22 -- Phase 8 API route hardening plans executed
+Last activity: 2026-04-23 -- Completed quick task 260423: Prisma datasource URL fix
 
 Progress: [██████████] 100% execution, verification pending
 
@@ -75,14 +75,20 @@ v3.0 decisions:
 - Zod v4 for input validation (already installed)
 - In-memory rate limiting (no new dependency)
 
-### Pending Todos
+### Roadmap Evolution
 
-None.
+- Phase 8B added: Staff and Driver Scheduling — shift scheduling with paidDriverLimit enforcement
 
 ### Blockers/Concerns
 
 - `npx tsc --noEmit -p tsconfig.json` still fails on Phase 10 build-correctness debt in `src/app/dashboard/page.tsx`, `src/components/dashboard/dashboard-client.tsx`, and `src/db/seed.ts`.
 - STAFF/ACCOUNTANT login regression after Phase 7B was fixed: orphan local tenant users were backfilled to `Phương Loan`, and auth routes now reject/repair missing factoryId sessions.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260423 | Prisma datasource URL fix | 2026-04-23 | uncommitted | [260423-prisma-datasource-url-fix](./quick/260423-prisma-datasource-url-fix/) |
 
 ## Session Continuity
 
