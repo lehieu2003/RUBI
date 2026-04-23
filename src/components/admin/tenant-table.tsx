@@ -40,6 +40,12 @@ function formatCurrency(value: number) {
   return `${new Intl.NumberFormat('vi-VN').format(value)} đ`;
 }
 
+function toNullableNumber(value: unknown): number | null {
+  if (value === null || value === undefined) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { bg: string; text: string; label: string }> = {
     ACTIVE: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', label: 'Hoạt động' },
@@ -111,9 +117,7 @@ function ActionModal({
       const updatedSubscription = {
         ...factory.subscription,
         ...result.subscription,
-        pricePerDriver: result.subscription.pricePerDriver
-          ? Number(result.subscription.pricePerDriver)
-          : null,
+        pricePerDriver: toNullableNumber(result.subscription.pricePerDriver),
       };
       const price = updatedSubscription.pricePerDriver ?? 0;
       const monthlyAmount = Math.max(0, updatedSubscription.driverCount - 1) * price;
@@ -212,16 +216,25 @@ export function TenantTable({ onError }: TenantTableProps) {
   const [rowLoading, setRowLoading] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/admin/factories')
-      .then(response => response.json())
-      .then(data => {
+    const loadFactories = async () => {
+      try {
+        const response = await fetch('/api/admin/factories');
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          onError?.(data.error ?? 'Không thể tải danh sách nhà máy');
+          setFactories([]);
+          return;
+        }
         setFactories(data.factories ?? []);
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
+      } catch {
         onError?.('Không thể tải danh sách nhà máy');
-      });
+        setFactories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadFactories();
   }, [onError]);
 
   const sortedFactories = useMemo(() => {
@@ -279,9 +292,7 @@ export function TenantTable({ onError }: TenantTableProps) {
                 ...item,
                 subscription: {
                   ...result.subscription,
-                  pricePerDriver: result.subscription.pricePerDriver
-                    ? Number(result.subscription.pricePerDriver)
-                    : null,
+                  pricePerDriver: toNullableNumber(result.subscription.pricePerDriver),
                 },
                 daysRemaining: 14,
               }
