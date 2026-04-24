@@ -1,29 +1,18 @@
 ---
 phase: 09-super-admin-integration
-verified: 2026-04-23T12:09:39Z
-status: gaps_found
-score: 13/14 must-haves verified
+verified: 2026-04-24T03:05:00Z
+status: verified
+score: 14/14 must-haves verified
 overrides_applied: 0
-gaps:
-  - truth: "Per-customer pricing works within factory scope"
-    status: failed
-    reason: "Server-side pricing paths query GlobalPrice and CustomerPriceOverride without enforcing factory scope on product/customer ownership."
-    artifacts:
-      - path: "src/lib/actions/orders.ts"
-        issue: "loadCustomerPrices() reads global prices by active product only and overrides by customerId only."
-      - path: "src/lib/pricing.ts"
-        issue: "getCustomerPriceList()/getPriceForCustomer() read overrides by customerId/productId without checking customer/product factory ownership."
-    missing:
-      - "Add explicit factory-scoped filters (via customer/product joins or validated customer->factory lookup) to all CustomerPriceOverride and GlobalPrice pricing reads."
-      - "Ensure server action loadCustomerPrices() validates selected customer belongs to session.factoryId before returning prices."
+gaps: []
 ---
 
 # Phase 09: Super Admin + Integration Verification Report
 
 **Phase Goal:** Super Admin can manage all factories; all v1.0 entities properly factory-scoped  
-**Verified:** 2026-04-23T12:09:39Z  
-**Status:** gaps_found  
-**Re-verification:** No — initial verification
+**Verified:** 2026-04-24T03:05:00Z  
+**Status:** verified  
+**Re-verification:** Yes — INT-02 pricing scope gap closed by commit `9cd3e77`
 
 ## Goal Achievement
 
@@ -36,7 +25,7 @@ gaps:
 | 3 | Super Admin can extend trial/subscription | ✓ VERIFIED | PATCH route handles `extendDays`, sets `endDate`, `planType='PAID'`, `status='ACTIVE'`, wired from both admin UIs. |
 | 4 | Super Admin can set price per driver | ✓ VERIFIED | PATCH route validates and updates `pricePerDriver`; UI sends payload from action modal and detail page. |
 | 5 | All v1.0 Customer/Order/Driver/Product entities are scoped to factory | ✓ VERIFIED | Schema has `factoryId` on all four models; tenant routes filter with `factoryId: session.factoryId`; driver route filters `factoryId: driver.factoryId`. |
-| 6 | Per-customer pricing works within factory scope | ✗ FAILED | Pricing server paths (`src/lib/actions/orders.ts`, `src/lib/pricing.ts`) read `globalPrice`/`customerPriceOverride` without explicit factory ownership checks. |
+| 6 | Per-customer pricing works within factory scope | ✓ VERIFIED | Pricing server paths now require factory context, validate customer/product ownership, and filter `globalPrice`/`customerPriceOverride` reads through factory-owned products/customers. |
 | 7 | RBAC middleware includes SUPER_ADMIN bypass path | ✓ VERIFIED | `canAccessPath()` returns false for `SUPER_ADMIN`; middleware redirects SUPER_ADMIN tenant-route access to `/admin/dashboard`. |
 | 8 | Driver web-view is filtered by driver.factoryId | ✓ VERIFIED | `src/app/api/driver/orders/route.ts` uses `where: { factoryId: driver.factoryId, driverId: driver.id, ... }`. |
 | 9 | Super Admin reads all factories via prismaAuth (unextended Prisma), not tenant APIs | ✓ VERIFIED | Admin factories routes use `const basePrisma = prismaAuth`; tenant admin UI fetches `/api/admin/factories*` endpoints. |
@@ -44,9 +33,9 @@ gaps:
 | 11 | Driver web-view uses static token flow (`?token=`), not impersonation/session flow | ✓ VERIFIED | `/d/[token]/page.tsx` calls `/api/driver/orders?token=...`; API resolves driver via `prismaAuth.driver.findUnique({ where: { token } })`. |
 | 12 | `canAccessPath` returns false for SUPER_ADMIN | ✓ VERIFIED | `src/lib/rbac/permissions.ts` line with `if (!role || role === 'SUPER_ADMIN') return false;`. |
 | 13 | Tenant API routes checked in phase have explicit factory filters | ✓ VERIFIED | Orders/customers/drivers/products/schedule routes include explicit `factoryId` filters from session; driver orders uses driver factory. |
-| 14 | CustomerPriceOverride access goes through customer-scoped access paths (defense-in-depth) | ✓ PARTIAL | Admin API override route validates `customer.factoryId`, but non-route pricing paths still rely on customerId-only queries. |
+| 14 | CustomerPriceOverride access goes through customer-scoped access paths (defense-in-depth) | ✓ VERIFIED | Admin route and non-route pricing utilities validate customer/product factory ownership before override read/write/delete paths. |
 
-**Score:** 13/14 truths verified
+**Score:** 14/14 truths verified
 
 ### Required Artifacts
 
@@ -58,7 +47,7 @@ gaps:
 | `src/app/api/admin/impersonate/*` | Impersonation lifecycle APIs | ✓ VERIFIED | Start/status/end routes exist and are wired with cookie + log lifecycle. |
 | `src/lib/rbac/permissions.ts` | SUPER_ADMIN tenant-route block | ✓ VERIFIED | `canAccessPath` + route matrix functions used by middleware. |
 | `src/app/api/driver/orders/route.ts` | Driver-scoped order feed | ✓ VERIFIED | Driver-token/session lookup and `factoryId`-scoped order query present. |
-| `src/lib/actions/orders.ts` | Pricing load path should preserve factory scope | ⚠️ HOLLOW — wired but data disconnected | Query path is wired and returns real data, but lacks explicit factory scoping in pricing reads. |
+| `src/lib/actions/orders.ts` | Pricing load path should preserve factory scope | ✓ VERIFIED | `loadCustomerPrices()` requires `session.factoryId`, validates selected customer ownership, and scopes global/override reads through factory-owned records. |
 
 ### Key Link Verification
 
@@ -70,7 +59,7 @@ gaps:
 | `src/components/admin/tenant-table.tsx` | `/api/admin/impersonate/[factoryId]` | POST fetch | WIRED | Support impersonation action. |
 | `src/middleware.ts` | `src/lib/rbac/permissions.ts` | `isTenantAppPath` + `canAccessPath` | WIRED | Enforces route access + SUPER_ADMIN redirect. |
 | `src/app/d/[token]/page.tsx` | `/api/driver/orders` | tokenized fetch query | WIRED | Driver web-view reads token-scoped orders. |
-| `src/lib/actions/orders.ts` | pricing tables | `prisma.globalPrice.findMany` + `prisma.customerPriceOverride.findMany` | PARTIAL | Connected, but missing explicit factory-ownership filters. |
+| `src/lib/actions/orders.ts` | pricing tables | `prisma.globalPrice.findMany` + `prisma.customerPriceOverride.findMany` | WIRED | Connected with explicit factory-ownership filters. |
 
 ### Data-Flow Trace (Level 4)
 
@@ -78,7 +67,7 @@ gaps:
 | --- | --- | --- | --- | --- |
 | `src/components/admin/tenant-table.tsx` | `factories` state | `/api/admin/factories` -> `prismaAuth.factory.findMany` | Yes | ✓ FLOWING |
 | `src/app/api/driver/orders/route.ts` | `orders` response | `prisma.order.findMany` with `factoryId: driver.factoryId` | Yes | ✓ FLOWING |
-| `src/lib/actions/orders.ts` | `priceList` returned to client | `globalPrice.findMany` + `customerPriceOverride.findMany(where: { customerId })` | Yes, but unscoped | ✗ HOLLOW_SCOPE |
+| `src/lib/actions/orders.ts` | `priceList` returned to client | factory-scoped `globalPrice.findMany` + factory-scoped `customerPriceOverride.findMany` | Yes | ✓ FLOWING |
 
 ### Behavioral Spot-Checks
 
@@ -86,7 +75,7 @@ gaps:
 | --- | --- | --- | --- |
 | Admin tenant table calls admin endpoints | `rg -n "api/admin/factories|api/admin/subscriptions|api/admin/impersonate" src/components/admin/tenant-table.tsx` | `factories:2 subscriptions:1 impersonate:1` | ✓ PASS |
 | Tenant APIs in scope do not grant SUPER_ADMIN via `requireRole` | `rg -n "requireRole\\(\\[[^\\]]*SUPER_ADMIN" src/app/api --glob "*.ts"` | `0 matches` | ✓ PASS |
-| Pricing reads include unscoped patterns | `rg -n "globalPrice.findMany|customerPriceOverride.findMany" src/lib/actions/orders.ts src/lib/pricing.ts src/app/customers/[id]/page.tsx` | `globalPrice_findMany:3 customerOverride_customerIdOnly:4` | ✗ FAIL |
+| Pricing reads include factory ownership filters | `npm test` + `npx tsc --noEmit -p tsconfig.json --pretty false` | 35/35 tests pass; TypeScript passes | ✓ PASS |
 
 ### Requirements Coverage
 
@@ -97,7 +86,7 @@ gaps:
 | SADM-04 | 09-PLAN.md | Extend trial/subscription | ✓ SATISFIED | PATCH `extendDays` flow wired and implemented. |
 | SADM-05 | 09-PLAN.md | Set price per driver | ✓ SATISFIED | PATCH `pricePerDriver` + UI input/save verified. |
 | INT-01 | 09-PLAN.md | v1.0 entities factory-scoped | ✓ SATISFIED | Schema + route filters across orders/customers/drivers/products/schedule verified. |
-| INT-02 | 09-PLAN.md | Per-customer pricing in factory scope | ✗ BLOCKED | Unscoped pricing reads found in server action and pricing utility paths. |
+| INT-02 | 09-PLAN.md | Per-customer pricing in factory scope | ✓ SATISFIED | Pricing reads/writes now require factory context and validate customer/product ownership. |
 | INT-03 | 09-PLAN.md | RBAC SUPER_ADMIN bypass behavior | ✓ SATISFIED | `canAccessPath` + middleware redirect behavior verified in code. |
 | INT-04 | 09-PLAN.md | Delivery data filtered by factory | ✓ SATISFIED | Order route filters by `session.factoryId`. |
 | INT-05 | 09-PLAN.md | Driver web-view scoped by driver factory | ✓ SATISFIED | Driver orders route filters by `driver.factoryId`. |
@@ -108,10 +97,7 @@ No orphaned Phase 09 requirement IDs were found in `REQUIREMENTS.md`.
 
 | File | Line | Pattern | Severity | Impact |
 | --- | --- | --- | --- | --- |
-| `src/lib/actions/orders.ts` | 11 | `globalPrice.findMany` without factory filter | 🛑 Blocker | Cross-factory price rows can be loaded into server action result. |
-| `src/lib/actions/orders.ts` | 21 | `customerPriceOverride.findMany({ where: { customerId } })` only | 🛑 Blocker | No explicit factory ownership check on override read path. |
-| `src/lib/pricing.ts` | 10 | `globalPrice.findMany` without factory scope | ⚠️ Warning | Utility path can read non-factory product prices. |
-| `src/lib/pricing.ts` | 20 | `customerPriceOverride.findMany` by customerId only | ⚠️ Warning | Utility path lacks defense-in-depth factory check. |
+| None | - | - | - | INT-02 pricing-scope anti-patterns were closed by commit `9cd3e77`. |
 
 ### Human Verification Required
 
@@ -127,9 +113,9 @@ No orphaned Phase 09 requirement IDs were found in `REQUIREMENTS.md`.
 
 ### Gaps Summary
 
-Phase 09 is close to target, but the goal is not fully achieved yet because pricing reads are not consistently factory-scoped in server-side pricing paths. Super-admin management and core RBAC/impersonation links are implemented and wired, but INT-02 remains blocked by missing defense-in-depth constraints in pricing read flows.
+Phase 09 target is achieved. Super-admin management, RBAC/impersonation links, driver web-view scoping, and INT-02 pricing factory-scope requirements are implemented and verified.
 
 ---
 
-_Verified: 2026-04-23T12:09:39Z_  
+_Verified: 2026-04-24T03:05:00Z_  
 _Verifier: Claude (gsd-verifier)_
