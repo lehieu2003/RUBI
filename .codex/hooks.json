@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node D:/IceFlow SaaS/.codex/hooks/gsd-check-update.js"
+          }
+        ]
+      }
+    ]
+  }
+}

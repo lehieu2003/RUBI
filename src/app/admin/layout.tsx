@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import {
   BarChart3,
@@ -21,7 +22,7 @@ const navItems = [
   { href: '/admin/support', label: 'Hỗ trợ', icon: Headphones },
 ];
 
-function ImpersonatingWrapper({ children }: { children: React.ReactNode }) {
+function ImpersonationOverlay() {
   const searchParams = useSearchParams();
   const factoryName = searchParams.get('impersonating');
   const factoryId = searchParams.get('factoryId');
@@ -41,17 +42,14 @@ function ImpersonatingWrapper({ children }: { children: React.ReactNode }) {
     }
   };
 
+  if (!hasImpersonating) return null;
+
   return (
-    <>
-      {hasImpersonating && (
-        <ImpersonationDrawer
-          factoryId={factoryId}
-          factoryName={factoryName}
-          onClose={handleEndImpersonation}
-        />
-      )}
-      {children}
-    </>
+    <ImpersonationDrawer
+      factoryId={factoryId}
+      factoryName={factoryName}
+      onClose={handleEndImpersonation}
+    />
   );
 }
 
@@ -59,7 +57,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
 
   return (
-    <ImpersonatingWrapper>
+    <>
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-900 text-white">
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-violet-600/10 blur-3xl" />
@@ -102,6 +100,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="p-8">{children}</div>
         </main>
       </div>
-    </ImpersonatingWrapper>
+      <Suspense fallback={null}>
+        <ImpersonationOverlay />
+      </Suspense>
+    </>
   );
 }

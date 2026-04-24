@@ -61,7 +61,7 @@ export default async function DashboardPage() {
     <DashboardClient
       customers={customers}
       products={products}
-      orders={orders}
+      orders={orders.map(order => ({ ...order, total: order.total.toString() }))}
       currentUser={session ? { id: session.userId, role: session.role, factoryId: session.factoryId } : null}
       showOnboardingPrompt={showOnboardingPrompt}
     />

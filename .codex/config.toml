@@ -135,9 +135,3 @@ config_file = "D:/IceFlow SaaS/.codex/agents/gsd-user-profiler.toml"
 [agents.gsd-verifier]
 description = "Verifies phase goal achievement through goal-backward analysis. Checks codebase delivers what phase promised, not just that tasks completed. Creates VERIFICATION.md report."
 config_file = "D:/IceFlow SaaS/.codex/agents/gsd-verifier.toml"
-
-
-# GSD Hooks
-[[hooks]]
-event = "SessionStart"
-command = "node D:/IceFlow SaaS/.codex/hooks/gsd-check-update.js"

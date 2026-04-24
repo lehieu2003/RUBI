@@ -102,7 +102,24 @@ async function clearData() {
   console.log('  - Customers deleted');
 }
 
-async function createProducts() {
+async function createSystemFactory() {
+  console.log('\nCreating system factory...');
+
+  const factory = await prisma.factory.upsert({
+    where: { id: 'system-factory' },
+    update: {},
+    create: {
+      id: 'system-factory',
+      name: 'System',
+      isSystem: true,
+    },
+  });
+
+  console.log(`  - System factory: ${factory.id}`);
+  return factory;
+}
+
+async function createProducts(systemFactoryId: string) {
   console.log('\nCreating 6 products...');
 
   const createdProducts = [];
@@ -114,6 +131,7 @@ async function createProducts() {
         sizeKg: product.sizeKg,
         unit: product.unit,
         isActive: true,
+        factoryId: systemFactoryId,
       },
     });
     createdProducts.push(created);
@@ -123,7 +141,7 @@ async function createProducts() {
   return createdProducts;
 }
 
-async function createCustomers() {
+async function createCustomers(systemFactoryId: string) {
   console.log('\nCreating 5 customers...');
 
   const createdCustomers = [];
@@ -136,6 +154,7 @@ async function createCustomers() {
         address: customer.address,
         phone: customer.phone,
         isActive: true,
+        factoryId: systemFactoryId,
       },
     });
     createdCustomers.push(created);
@@ -272,6 +291,7 @@ const SAMPLE_ORDERS: Array<{
 ];
 
 async function createOrders(
+  systemFactoryId: string,
   customers: Awaited<ReturnType<typeof createCustomers>>,
   products: Awaited<ReturnType<typeof createProducts>>
 ) {
@@ -335,6 +355,7 @@ async function createOrders(
         status: orderData.status,
         total: new Prisma.Decimal(orderTotal),
         notes: orderData.notes,
+        factoryId: systemFactoryId,
         orderItems: {
           create: orderItemsData,
         },
@@ -361,12 +382,15 @@ export async function seed() {
     // Clear existing data
     await clearData();
 
+    // Create system factory first
+    const systemFactory = await createSystemFactory();
+
     // Create data
-    const products = await createProducts();
-    const customers = await createCustomers();
+    const products = await createProducts(systemFactory.id);
+    const customers = await createCustomers(systemFactory.id);
     await createGlobalPrices(products);
     await createCustomerOverrides(customers, products);
-    await createOrders(customers, products);
+    await createOrders(systemFactory.id, customers, products);
 
     console.log('\n' + '='.repeat(50));
     console.log('Seed completed successfully!');

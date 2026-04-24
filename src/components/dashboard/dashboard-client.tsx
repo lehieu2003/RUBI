@@ -16,14 +16,17 @@ import {
 } from 'lucide-react';
 import type { Customer, Product, Order, Subscription } from '@prisma/client';
 
+type DashboardOrder = Omit<Order, 'total'> & {
+  total: string | number;
+  customer: { name: string; code: string };
+  orderItems: { product: { name: string; sizeKg: number }; quantity: number }[];
+};
+
 interface DashboardClientProps {
   customers: Customer[];
   products: Product[];
-  orders: (Order & {
-    customer: { name: string; code: string };
-    orderItems: { product: { name: string; sizeKg: number }; quantity: number }[];
-  })[];
-  currentUser: { id: string; role: string; factoryId: string | null } | null;
+  orders: DashboardOrder[];
+  currentUser: { id: string; role: string | undefined; factoryId: string | null } | null;
   showOnboardingPrompt?: boolean;
 }
 
