@@ -50,11 +50,11 @@ Requirements for v3.0 Security Hardening + SaaS Readiness. Each maps to roadmap 
 
 ### Build Correctness (BUILD)
 
-- [ ] **BUILD-01**: `npx tsc --noEmit -p tsconfig.json` passes with no errors
-- [ ] **BUILD-02**: `npm run build` completes successfully
-- [ ] **BUILD-03**: Prisma Decimal fields serialized to string before passing to client components
-- [ ] **BUILD-04**: Seed scripts create entities with proper `factoryId` field values
-- [ ] **BUILD-05**: `tenant-table.tsx` SortIcon moved out of render (no React Compiler errors)
+- [x] **BUILD-01**: `npx tsc --noEmit -p tsconfig.json` passes with no errors
+- [x] **BUILD-02**: `npm run build` completes successfully
+- [x] **BUILD-03**: Prisma Decimal fields serialized to string before passing to client components
+- [x] **BUILD-04**: Seed scripts create entities with proper `factoryId` field values
+- [x] **BUILD-05**: `tenant-table.tsx` SortIcon moved out of render (no React Compiler errors)
 
 ### Subscription Enforcement (SUBS)
 
@@ -199,11 +199,11 @@ Requirements for v3.0 Security Hardening + SaaS Readiness. Each maps to roadmap 
 | RATEL-01 | Phase 7 | Pending |
 | RATEL-02 | Phase 7 | Pending |
 | RATEL-03 | Phase 7 | Pending |
-| BUILD-01 | Phase 10 | Pending |
-| BUILD-02 | Phase 10 | Pending |
-| BUILD-03 | Phase 10 | Pending |
-| BUILD-04 | Phase 6 | Pending |
-| BUILD-05 | Phase 10 | Pending |
+| BUILD-01 | Phase 10 | Complete |
+| BUILD-02 | Phase 10 | Complete |
+| BUILD-03 | Phase 10 | Complete |
+| BUILD-04 | Phase 6 | Complete |
+| BUILD-05 | Phase 10 | Complete |
 | SUBS-01 | Phase 8 | Pending |
 | SUBS-02 | Phase 8 | Pending |
 | SUBS-03 | Phase 8 | Pending |

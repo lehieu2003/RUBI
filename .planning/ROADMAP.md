@@ -17,8 +17,8 @@ v3.0 fixes critical tenant data leaks, locks down API auth, hardens registration
 - [x] **Phase 7B: RBAC Enforcement** - Role-based access control middleware correctness, route-level enforcement, SUPER_ADMIN bypass audit (completed 2026-04-22)
 - [ ] **Phase 8: API Route Hardening + Subscription Enforcement** - All API routes use auth helpers, subscription enforcement on writes
 - [ ] **Phase 8B: Staff and Driver Scheduling** - Shift scheduling for staff and drivers with paidDriverLimit enforcement
-- [ ] **Phase 9: Super Admin + Integration** - Super Admin dashboard, all v1.0 entities factory-scoped (verification gaps remain)
-- [ ] **Phase 10: Build Correctness** - TypeScript clean, build passing, Decimal serialization, seed scripts, React Compiler
+- [x] **Phase 9: Super Admin + Integration** - Super Admin dashboard, all v1.0 entities factory-scoped (completed 2026-04-24)
+- [x] **Phase 10: Build Correctness** - TypeScript clean, build passing, Decimal serialization, seed scripts, React Compiler (completed 2026-04-24)
 
 ## Phase Details
 
@@ -154,8 +154,8 @@ v3.0 fixes critical tenant data leaks, locks down API auth, hardens registration
 | 7B. RBAC Enforcement                  | 3/3            | Complete    | 2026-04-22 |
 | 8. API Route Hardening + Subscription | 5/5            | Verification pending | -          |
 | 8B. Staff and Driver Scheduling      | 1/1            | Verification pending | -          |
-| 9. Super Admin + Integration          | 1/1            | Gaps found  | -          |
-| 10. Build Correctness                 | 0/TBD          | Not started | -          |
+| 9. Super Admin + Integration          | 1/1            | Complete    | 2026-04-24 |
+| 10. Build Correctness                 | 1/1 | Complete    | 2026-04-24 |
 
 ---
 
