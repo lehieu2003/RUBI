@@ -7,3 +7,4 @@ import './app/vehicles.test';
 import './components/schedule/calendar-grid.test';
 import './components/sidebar.test';
 import './lib/subscription.test';
+import './pricing/scope.test';

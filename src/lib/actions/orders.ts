@@ -7,9 +7,23 @@ import { getSession } from '@/lib/auth';
 
 // --- Price loading action ---
 export async function loadCustomerPrices(customerId: string): Promise<Record<string, number>> {
+  const session = await getSession();
+  if (!session?.factoryId) {
+    throw new Error('Factory context required');
+  }
+  const factoryId = session.factoryId;
+
+  const customer = await prisma.customer.findFirst({
+    where: { id: customerId, factoryId },
+    select: { id: true },
+  });
+  if (!customer) {
+    throw new Error('Customer not found');
+  }
+
   // Fetch global prices
   const globalPrices = await prisma.globalPrice.findMany({
-    where: { product: { isActive: true } },
+    where: { product: { isActive: true, factoryId } },
     include: { product: true },
   });
   const globalPriceMap = new Map<string, number>();
@@ -19,7 +33,7 @@ export async function loadCustomerPrices(customerId: string): Promise<Record<str
 
   // Fetch overrides
   const overrides = await prisma.customerPriceOverride.findMany({
-    where: { customerId },
+    where: { customerId, customer: { factoryId }, product: { factoryId } },
   });
   const overrideMap = new Map<string, number>();
   for (const ov of overrides) {

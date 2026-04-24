@@ -1,0 +1,51 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { describe, it } from 'node:test';
+
+function read(path: string): string {
+  return readFileSync(path, 'utf8');
+}
+
+describe('pricing factory scope source checks', () => {
+  it('requires factory context before loading order-entry customer prices', () => {
+    const source = read('src/lib/actions/orders.ts');
+    assert.match(source, /const session = await getSession\(\)/);
+    assert.match(source, /if \(!session\?\.factoryId\)/);
+    assert.match(source, /const factoryId = session\.factoryId/);
+    assert.match(source, /where: \{ id: customerId, factoryId \}/);
+  });
+
+  it('filters pricing reads through factory-owned products and customers', () => {
+    const actionSource = read('src/lib/actions/orders.ts');
+    const pricingSource = read('src/lib/pricing.ts');
+    const customerPageSource = read('src/app/customers/[id]/page.tsx');
+    const globalPageSource = read('src/app/config/prices/page.tsx');
+
+    for (const source of [actionSource, pricingSource]) {
+      assert.match(source, /product: \{ isActive: true, factoryId \}/);
+      assert.match(source, /customer: \{ factoryId \}/);
+      assert.match(source, /product: \{ factoryId \}/);
+    }
+
+    assert.match(customerPageSource, /product: \{ factoryId: session\.factoryId \}/);
+    assert.match(customerPageSource, /customer: \{ factoryId: session\.factoryId \}/);
+    assert.match(globalPageSource, /product: \{ factoryId: session\.factoryId \}/);
+  });
+
+  it('validates product ownership before global price writes', () => {
+    const source = read('src/app/api/prices/global/route.ts');
+    assert.match(source, /const session = await requireRole\(\['ADMIN'\]\)/);
+    assert.match(source, /where: \{ id: productId, factoryId: session\.factoryId \}/);
+    assert.match(source, /Product not found/);
+  });
+
+  it('validates customer and product ownership before customer override writes and deletes', () => {
+    const source = read('src/app/api/prices/customer/override/route.ts');
+    const customerChecks = source.match(/where: \{ id: customerId, factoryId: session\.factoryId \}/g) ?? [];
+    const productChecks = source.match(/where: \{ id: productId, factoryId: session\.factoryId \}/g) ?? [];
+
+    assert.equal(customerChecks.length, 2);
+    assert.equal(productChecks.length, 2);
+    assert.match(source, /Customer or product not found/);
+  });
+});

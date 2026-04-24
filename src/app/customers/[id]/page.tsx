@@ -30,7 +30,9 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
   });
 
   // Fetch global prices
-  const globalPrices = await prisma.globalPrice.findMany();
+  const globalPrices = await prisma.globalPrice.findMany({
+    where: { product: { factoryId: session.factoryId } },
+  });
   const globalPriceMap = new Map<string, number>();
   for (const gp of globalPrices) {
     globalPriceMap.set(gp.productId, Number(gp.pricePerUnit));
@@ -38,7 +40,11 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
 
   // Fetch customer's override prices
   const overridePrices = await prisma.customerPriceOverride.findMany({
-    where: { customerId: id },
+    where: {
+      customerId: id,
+      customer: { factoryId: session.factoryId },
+      product: { factoryId: session.factoryId },
+    },
   });
   const overrideMap = new Map<string, number>();
   for (const op of overridePrices) {

@@ -29,12 +29,18 @@ export async function POST(request: NextRequest) {
     }
 
     const { customerId, productId, price } = parsed.data;
-    const customer = await prisma.customer.findFirst({
-      where: { id: customerId, factoryId: session.factoryId },
-      select: { id: true },
-    });
-    if (!customer) {
-      return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
+    const [customer, product] = await Promise.all([
+      prisma.customer.findFirst({
+        where: { id: customerId, factoryId: session.factoryId },
+        select: { id: true },
+      }),
+      prisma.product.findFirst({
+        where: { id: productId, factoryId: session.factoryId },
+        select: { id: true },
+      }),
+    ]);
+    if (!customer || !product) {
+      return NextResponse.json({ error: 'Customer or product not found' }, { status: 404 });
     }
 
     await prisma.customerPriceOverride.upsert({
@@ -81,12 +87,18 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const customer = await prisma.customer.findFirst({
-      where: { id: customerId, factoryId: session.factoryId },
-      select: { id: true },
-    });
-    if (!customer) {
-      return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
+    const [customer, product] = await Promise.all([
+      prisma.customer.findFirst({
+        where: { id: customerId, factoryId: session.factoryId },
+        select: { id: true },
+      }),
+      prisma.product.findFirst({
+        where: { id: productId, factoryId: session.factoryId },
+        select: { id: true },
+      }),
+    ]);
+    if (!customer || !product) {
+      return NextResponse.json({ error: 'Customer or product not found' }, { status: 404 });
     }
 
     await prisma.customerPriceOverride.deleteMany({

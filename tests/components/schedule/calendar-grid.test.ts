@@ -11,15 +11,15 @@ describe('schedule calendar grid source checks', () => {
     assert.match(source, /CN/);
   });
 
-  it('renders operational shift slots for morning, noon, afternoon, and evening', () => {
-    assert.match(source, /'MORNING'/);
-    assert.match(source, /'NOON'/);
-    assert.match(source, /'AFTERNOON'/);
-    assert.match(source, /'EVENING'/);
-    assert.match(source, /Sáng/);
-    assert.match(source, /Trưa/);
-    assert.match(source, /Chiều/);
-    assert.match(source, /Tối/);
+  it('renders operational shift slots across the full 24-hour day', () => {
+    assert.match(source, /'SLOT_00_03'/);
+    assert.match(source, /'SLOT_06_09'/);
+    assert.match(source, /'SLOT_12_15'/);
+    assert.match(source, /'SLOT_21_24'/);
+    assert.match(source, /00:00-03:00/);
+    assert.match(source, /06:00-09:00/);
+    assert.match(source, /12:00-15:00/);
+    assert.match(source, /21:00-24:00/);
   });
 
   it('shows staff and driver role labels', () => {

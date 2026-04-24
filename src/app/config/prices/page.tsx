@@ -16,7 +16,9 @@ export default async function GlobalPricesPage() {
   });
 
   // Fetch all global prices
-  const globalPrices = await prisma.globalPrice.findMany();
+  const globalPrices = await prisma.globalPrice.findMany({
+    where: { product: { factoryId: session.factoryId } },
+  });
   const priceMap = new Map<string, number>();
   for (const gp of globalPrices) {
     priceMap.set(gp.productId, Number(gp.pricePerUnit));

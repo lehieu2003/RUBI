@@ -11,8 +11,11 @@ const SetGlobalPriceSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    await requireRole(['ADMIN']);
+    const session = await requireRole(['ADMIN']);
     await requireActiveSubscription();
+    if (!session.factoryId) {
+      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+    }
 
     const body = await request.json();
     const parsed = SetGlobalPriceSchema.safeParse(body);
@@ -25,6 +28,14 @@ export async function POST(request: NextRequest) {
     }
 
     const { productId, price } = parsed.data;
+
+    const product = await prisma.product.findFirst({
+      where: { id: productId, factoryId: session.factoryId },
+      select: { id: true },
+    });
+    if (!product) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    }
 
     await prisma.globalPrice.upsert({
       where: { productId },
