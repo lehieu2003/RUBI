@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node D:/IceFlow SaaS/.codex/hooks/gsd-check-update.js"
+            "command": "node \"D:/IceFlow SaaS/.codex/hooks/gsd-check-update.js\""
           }
         ]
       }
