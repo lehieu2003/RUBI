@@ -23,6 +23,27 @@ npm run dev
 
 Visit [http://localhost:3000](http://localhost:3000) to access the application.
 
+## Docker Development
+
+Run the app and a local PostgreSQL database with Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+The app runs at [http://localhost:3000](http://localhost:3000). The local database is available at:
+
+```text
+postgresql://iceflow:iceflow@localhost:5432/iceflow?schema=public
+```
+
+Run Prisma commands inside the app container when using Docker:
+
+```bash
+docker compose exec app npm run db:push
+docker compose exec app npm run db:seed
+```
+
 ## Tech Stack
 
 - **Frontend**: Next.js 15 (App Router), React 19, Tailwind CSS, shadcn/ui
@@ -77,6 +98,7 @@ Configure your `.env` file with the following Supabase credentials:
 |----------|-------------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anonymous key |
+| `DATABASE_URL` | PostgreSQL pooled/application connection URL |
 | `DIRECT_URL` | PostgreSQL direct connection URL (for Prisma) |
 
 ## Available Scripts
@@ -87,6 +109,7 @@ Configure your `.env` file with the following Supabase credentials:
 | `npm run build` | Build for production |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
+| `npm run typecheck` | Run TypeScript without emitting files |
 | `npm run db:generate` | Generate Prisma client |
 | `npm run db:push` | Push schema to database |
 | `npm run db:migrate` | Run database migrations |

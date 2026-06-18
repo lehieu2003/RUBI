@@ -1,0 +1,15 @@
+.env
+.env.*
+.agents
+.claude
+.codex
+.git
+.github
+.next
+.planning
+.vscode
+node_modules
+npm-debug.log*
+Dockerfile
+docker-compose.yml
+tsconfig.tsbuildinfo

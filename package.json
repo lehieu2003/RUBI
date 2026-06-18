@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "test": "tsx tests/run-tests.ts",
-    "lint": "next lint",
+    "lint": "eslint src tests prisma --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev --name auto",
@@ -39,7 +40,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
-    "@eslint/js": "^10.0.1",
+    "@eslint/js": "^9.39.4",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.0.0",
