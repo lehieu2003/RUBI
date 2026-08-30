@@ -21,8 +21,8 @@ import { getDaysRemaining } from '@/lib/subscription-status';
 
 type DashboardOrder = Omit<Order, 'total'> & {
   total: string | number;
-  customer: { name: string; code: string };
-  orderItems: { product: { name: string; sizeKg: number }; quantity: number }[];
+  customer: { id?: string; name: string; code: string; address?: string; phone?: string };
+  orderItems: { id?: string; product: { name: string; sizeKg: number }; quantity: number; unitPrice?: number | string; lineTotal?: number | string }[];
 };
 
 interface DashboardClientProps {

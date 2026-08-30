@@ -10,16 +10,22 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const order = await prisma.order.findUnique({
-    where: { id },
-    select: { code: true, customer: { select: { name: true } } },
+  const session = await getSession();
+
+  if (!session?.factoryId) {
+    return { title: 'Chi tiết đơn hàng | IceFlow SaaS' };
+  }
+
+  const order = await prisma.order.findFirst({
+    where: { id, factoryId: session.factoryId },
+    select: { id: true, customer: { select: { name: true } } },
   });
 
   if (!order) {
     return { title: 'Không tìm thấy đơn hàng | IceFlow SaaS' };
   }
 
-  const code = order.code || `DH-${id.slice(-6).toUpperCase()}`;
+  const code = `DH-${order.id.slice(-6).toUpperCase()}`;
   return {
     title: `Đơn hàng ${code} — ${order.customer.name}`,
     description: `Chi tiết và in phiếu giao hàng cho đơn ${code}`,

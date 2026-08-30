@@ -19,7 +19,7 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
 
-    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
+    const session = await requireRole(['ADMIN', 'ACCOUNTANT', 'STAFF']);
     await requireActiveSubscription();
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
