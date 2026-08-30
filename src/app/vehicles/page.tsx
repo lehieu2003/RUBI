@@ -21,9 +21,10 @@ export default function VehiclesPage() {
 
   useEffect(() => {
     fetch(API_ENDPOINTS.DRIVERS.BASE)
-      .then((response) => (response.ok ? response.json() : []))
-      .then((data) => {
-        setDrivers(data);
+      .then((response) => (response.ok ? response.json() : null))
+      .then((json) => {
+        const data = json?.data !== undefined ? json.data : json;
+        setDrivers(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch(() => {
