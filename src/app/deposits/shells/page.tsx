@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Sidebar } from '@/components/dashboard/sidebar';
-import { Package, Plus, ArrowDownToLine, ArrowUpFromLine, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
+import { Plus, ArrowDownToLine, ArrowUpFromLine, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
@@ -79,7 +79,10 @@ export default function ShellDepositsPage() {
       }
       // Refresh deposits
       const refreshRes = await fetch(API_ENDPOINTS.DEPOSITS.SHELLS);
-      if (refreshRes.ok) setDeposits(await refreshRes.json());
+      if (refreshRes.ok) {
+        const refreshJson = await refreshRes.json();
+        setDeposits(refreshJson?.data !== undefined ? refreshJson.data : refreshJson);
+      }
       setIsModalOpen(false);
       setSelectedCustomer('');
       setShellsOut('');
@@ -96,143 +99,133 @@ export default function ShellDepositsPage() {
   const totalOwedToCustomers = deposits.reduce((sum, d) => sum + Math.min(0, d.netDepositOwed), 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-amber-600/10 to-orange-600/10 rounded-full blur-3xl" />
-      </div>
-
-      <Sidebar />
-
-      <main className="pl-64">
-        <div className="relative p-8">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-black text-white">Theo dõi vỏ bao</h1>
-              <p className="text-slate-400 mt-1">
-                {deposits.length} khách hàng có giao dịch vỏ bao
-              </p>
-            </div>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl transition-colors"
-            >
-              <Plus className="h-5 w-5" />
-              Thêm giao dịch
-            </button>
+    <DashboardLayout>
+      <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px]">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4 mb-6">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Theo Dõi Vỏ Bao & Cọc Vỏ</h1>
+            <p className="text-xs text-[#424751] mt-1">
+              {deposits.length} khách hàng có ghi nhận giao dịch vỏ bao
+            </p>
           </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                  <ArrowUpFromLine className="h-5 w-5 text-amber-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-amber-400">Khách nợ vỏ</p>
-                  <p className="text-2xl font-black text-white">{totalOwedByCustomers.toLocaleString('vi-VN')}đ</p>
-                </div>
-              </div>
-            </div>
-            <div className="rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-5">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
-                  <ArrowDownToLine className="h-5 w-5 text-cyan-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-cyan-400">Nhà máy nợ khách</p>
-                  <p className="text-2xl font-black text-white">{Math.abs(totalOwedToCustomers).toLocaleString('vi-VN')}đ</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Deposits Table */}
-          {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="animate-spin h-8 w-8 border-2 border-amber-500 border-t-transparent rounded-full" />
-            </div>
-          ) : error ? (
-            <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-center">
-              <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-3" />
-              <p className="text-red-400 font-medium">Không thể tải dữ liệu</p>
-              <p className="text-slate-400 text-sm mt-1">Vui lòng thử lại sau</p>
-            </div>
-          ) : deposits.length === 0 ? (
-            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-6 text-center">
-              <CheckCircle2 className="h-12 w-12 text-emerald-400 mx-auto mb-3" />
-              <p className="text-emerald-400 font-medium">Chưa có giao dịch vỏ bao</p>
-              <p className="text-slate-400 text-sm mt-1">Bắt đầu bằng cách thêm giao dịch đầu tiên</p>
-            </div>
-          ) : (
-            <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-white/10 bg-white/5">
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-400">Khách hàng</th>
-                    <th className="px-6 py-4 text-right text-sm font-semibold text-slate-400">Vỏ trả ra</th>
-                    <th className="px-6 py-4 text-right text-sm font-semibold text-slate-400">Vỏ thu về</th>
-                    <th className="px-6 py-4 text-right text-sm font-semibold text-slate-400">Đơn giá</th>
-                    <th className="px-6 py-4 text-right text-sm font-semibold text-slate-400">Còn nợ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {deposits.map((deposit) => (
-                    <tr key={deposit.customerId} className="border-b border-white/5 last:border-0">
-                      <td className="px-6 py-4">
-                        <span className="text-white font-medium">{deposit.customerName}</span>
-                      </td>
-                      <td className="px-6 py-4 text-right text-amber-400 font-medium">
-                        {deposit.shellsOut > 0 ? deposit.shellsOut : '—'}
-                      </td>
-                      <td className="px-6 py-4 text-right text-cyan-400 font-medium">
-                        {deposit.shellsIn > 0 ? deposit.shellsIn : '—'}
-                      </td>
-                      <td className="px-6 py-4 text-right text-slate-400">
-                        {deposit.depositPerShell.toLocaleString('vi-VN')}đ
-                      </td>
-                      <td className={`px-6 py-4 text-right font-bold ${
-                        deposit.netDepositOwed > 0 ? 'text-amber-400' : deposit.netDepositOwed < 0 ? 'text-cyan-400' : 'text-slate-400'
-                      }`}>
-                        {Math.abs(deposit.netDepositOwed).toLocaleString('vi-VN')}đ
-                        {deposit.netDepositOwed > 0 ? ' (nợ)' : deposit.netDepositOwed < 0 ? ' (thừa)' : ''}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-all shadow-sm"
+          >
+            <Plus className="h-4 w-4" />
+            THÊM GIAO DỊCH VỎ
+          </button>
         </div>
-      </main>
+
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="rounded border border-[#7f3700]/30 bg-[#ffdcc2]/40 p-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded bg-[#7f3700] flex items-center justify-center text-white">
+                <ArrowUpFromLine className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#7f3700] uppercase">Tiền cọc khách còn nợ</p>
+                <p className="data-lg font-bold text-[#5c2500]">{totalOwedByCustomers.toLocaleString('vi-VN')}đ</p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded border border-[#004a99]/30 bg-[#dee8ff] p-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded bg-[#004a99] flex items-center justify-center text-white">
+                <ArrowDownToLine className="h-5 w-5 text-[#9bbdff]" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#00346f] uppercase">Tiền cọc nhà máy giữ thừa</p>
+                <p className="data-lg font-bold text-[#00346f]">{Math.abs(totalOwedToCustomers).toLocaleString('vi-VN')}đ</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Deposits Table */}
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-[#004a99]" />
+          </div>
+        ) : error ? (
+          <div className="rounded border border-[#ba1a1a]/30 bg-[#ffdad6]/50 p-6 text-center">
+            <AlertCircle className="h-8 w-8 text-[#ba1a1a] mx-auto mb-2" />
+            <p className="text-[#93000a] font-bold text-sm">Không thể tải dữ liệu</p>
+            <p className="text-[#424751] text-xs mt-1">Vui lòng thử lại sau</p>
+          </div>
+        ) : deposits.length === 0 ? (
+          <div className="rounded border border-[#1b6d24]/30 bg-[#a0f399]/20 p-6 text-center">
+            <CheckCircle2 className="h-8 w-8 text-[#1b6d24] mx-auto mb-2" />
+            <p className="text-[#1b6d24] font-bold text-sm">Chưa có giao dịch vỏ bao</p>
+            <p className="text-[#424751] text-xs mt-1">Bắt đầu bằng cách thêm giao dịch đầu tiên</p>
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded border border-[#c2c6d3] bg-white shadow-sm">
+            <table className="w-full text-left border-collapse table-industrial">
+              <thead>
+                <tr className="border-b border-[#c2c6d3] bg-[#f9f9ff] text-[12px] font-bold uppercase tracking-wider text-[#424751]">
+                  <th className="py-3 px-4">Khách hàng</th>
+                  <th className="py-3 px-4 text-right">Vỏ trả ra (Bao)</th>
+                  <th className="py-3 px-4 text-right">Vỏ thu về (Bao)</th>
+                  <th className="py-3 px-4 text-right">Đơn giá cọc</th>
+                  <th className="py-3 px-4 text-right">Dư nợ cọc</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#e7eeff] text-sm">
+                {deposits.map((deposit) => (
+                  <tr key={deposit.customerId} className="h-12 hover:bg-[#f0f3ff] transition-colors">
+                    <td className="py-3 px-4 font-bold text-[#111c2d]">{deposit.customerName}</td>
+                    <td className="py-3 px-4 text-right data-sm font-bold text-[#7f3700]">
+                      {deposit.shellsOut > 0 ? deposit.shellsOut : '—'}
+                    </td>
+                    <td className="py-3 px-4 text-right data-sm font-bold text-[#004a99]">
+                      {deposit.shellsIn > 0 ? deposit.shellsIn : '—'}
+                    </td>
+                    <td className="py-3 px-4 text-right data-sm text-[#737783]">
+                      {deposit.depositPerShell.toLocaleString('vi-VN')}đ
+                    </td>
+                    <td className="py-3 px-4 text-right data-md font-bold">
+                      <span className={deposit.netDepositOwed > 0 ? 'text-[#ba1a1a]' : deposit.netDepositOwed < 0 ? 'text-[#004a99]' : 'text-[#737783]'}>
+                        {Math.abs(deposit.netDepositOwed).toLocaleString('vi-VN')}đ
+                        {deposit.netDepositOwed > 0 ? ' (Nợ cọc)' : deposit.netDepositOwed < 0 ? ' (Thừa cọc)' : ''}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* Add Transaction Modal */}
       {isModalOpen && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-          <div className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-slate-900 border border-white/10 rounded-2xl shadow-2xl p-6">
-            <h3 className="text-xl font-bold text-white mb-1">Thêm giao dịch vỏ bao</h3>
-            <p className="text-slate-400 text-sm mb-6">Ghi nhận vỏ bao trả ra hoặc thu về</p>
+          <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs" onClick={() => setIsModalOpen(false)} />
+          <div className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white border border-[#c2c6d3] rounded shadow-xl p-6">
+            <h3 className="text-lg font-bold text-[#111c2d] mb-1">Thêm giao dịch vỏ bao</h3>
+            <p className="text-[#424751] text-xs mb-5">Ghi nhận số lượng vỏ trả ra hoặc thu về từ đại lý</p>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Khách hàng</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1.5">Khách hàng</label>
                 <select
                   value={selectedCustomer}
                   onChange={(e) => setSelectedCustomer(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-amber-500/50"
+                  className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99]"
                 >
-                  <option value="" className="bg-slate-900">Chọn khách hàng...</option>
+                  <option value="">Chọn khách hàng...</option>
                   {allCustomers.map((c) => (
-                    <option key={c.id} value={c.id} className="bg-slate-900">{c.name}</option>
+                    <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">
-                  <span className="flex items-center gap-1 text-amber-400">
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1.5">
+                  <span className="flex items-center gap-1 text-[#7f3700]">
                     <ArrowUpFromLine className="h-4 w-4" />
                     Vỏ trả ra (khách nợ nhà máy)
                   </span>
@@ -242,16 +235,16 @@ export default function ShellDepositsPage() {
                   min="0"
                   value={shellsOut}
                   onChange={(e) => setShellsOut(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-lg focus:outline-none focus:border-amber-500/50"
+                  className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99]"
                   placeholder="0"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">
-                  <span className="flex items-center gap-1 text-cyan-400">
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1.5">
+                  <span className="flex items-center gap-1 text-[#004a99]">
                     <ArrowDownToLine className="h-4 w-4" />
-                    Vỏ thu về (nhà máy nợ khách)
+                    Vỏ thu về (nhà máy thu hồi)
                   </span>
                 </label>
                 <input
@@ -259,30 +252,33 @@ export default function ShellDepositsPage() {
                   min="0"
                   value={shellsIn}
                   onChange={(e) => setShellsIn(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-lg focus:outline-none focus:border-cyan-500/50"
+                  className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99]"
                   placeholder="0"
                 />
               </div>
             </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-2.5 mt-6">
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="flex-1 py-3 border border-white/20 text-slate-400 font-semibold rounded-xl hover:bg-white/5 transition-colors"
+                className="flex-1 py-2.5 border border-[#c2c6d3] text-[#424751] font-bold text-xs rounded hover:bg-[#dee8ff] transition-colors"
               >
-                Hủy
+                HỦY
               </button>
               <button
+                type="button"
                 onClick={handleSubmit}
                 disabled={submitting || !selectedCustomer}
-                className="flex-1 py-3 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-600/50 text-white font-semibold rounded-xl transition-colors"
+                className="flex-1 py-2.5 bg-[#004a99] hover:bg-[#00346f] disabled:opacity-50 text-white font-bold text-xs rounded transition-colors shadow-sm inline-flex items-center justify-center gap-2"
               >
-                {submitting ? 'Đang lưu...' : 'Xác nhận'}
+                {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                XÁC NHẬN
               </button>
             </div>
           </div>
         </>
       )}
-    </div>
+    </DashboardLayout>
   );
 }

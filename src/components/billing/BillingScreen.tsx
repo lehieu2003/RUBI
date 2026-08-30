@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { SubscriptionStatusCard } from '@/components/dashboard/subscription-status-card';
-import { Sidebar } from '@/components/dashboard/sidebar';
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { VietQRCode } from '@/components/billing/VietQRCode';
 import { PricingDisplay } from '@/components/billing/PricingDisplay';
 import { toast } from '@/components/dashboard/toast';
@@ -26,23 +26,6 @@ interface Session {
   user: {
     role?: string;
   } | null;
-}
-
-function BillingLayout({ children }: { children: ReactNode }) {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-blue-500/10 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-violet-500/10 blur-3xl" />
-      </div>
-
-      <Sidebar />
-
-      <main className="pl-64">
-        <div className="relative p-8">{children}</div>
-      </main>
-    </div>
-  );
 }
 
 export function BillingScreen() {
@@ -79,11 +62,11 @@ export function BillingScreen() {
 
   if (loading) {
     return (
-      <BillingLayout>
+      <DashboardLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-slate-400">Loading...</div>
+          <Loader2 className="h-8 w-8 animate-spin text-[#004a99]" />
         </div>
-      </BillingLayout>
+      </DashboardLayout>
     );
   }
 
@@ -143,76 +126,75 @@ export function BillingScreen() {
   };
 
   return (
-    <BillingLayout>
-      <div className="mb-8">
-        <p className="text-sm font-medium text-blue-400">Cài đặt</p>
-        <h1 className="mt-1 text-3xl font-black text-white">Thanh toán</h1>
-        <p className="mt-2 text-slate-400">
-          Theo dõi thuê bao và thông tin chuyển khoản cho nhà máy.
-        </p>
-      </div>
-
-      <div className="max-w-2xl space-y-6">
-        <SubscriptionStatusCard
-          subscription={subscriptionForStatus}
-          driverCount={driverCount}
-          isAdmin={true}
-        />
-
-        <PricingDisplay driverCount={driverCount} pricePerDriver={pricePerDriver} />
-
-        {!subscription && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Chưa có hồ sơ thuê bao cho nhà máy này. Vui lòng liên hệ IceFlow để kích hoạt gói
-            trước khi thanh toán.
-          </div>
-        )}
-
-        <VietQRCode amount={transferAmount} />
-
-        {canSelfUpgrade && (
-          <div className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur">
-            <h2 className="text-lg font-semibold text-white">Nâng cấp gói</h2>
-            <p className="mt-2 text-sm text-slate-400">
-              Sau khi chuyển khoản đúng nội dung bên trên, nhấn nút này để kích hoạt gói trả phí
-              và gia hạn thuê bao thêm 30 ngày.
-            </p>
-
-            <button
-              type="button"
-              onClick={handleUpgrade}
-              disabled={!subscription || confirmingPayment}
-              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {confirmingPayment ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <CheckCircle2 className="h-4 w-4" />
-              )}
-              {confirmingPayment ? 'Đang nâng cấp...' : 'Tôi đã chuyển khoản - nâng cấp gói'}
-            </button>
-
-            {paymentMessage && (
-              <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
-                {paymentMessage}
-              </div>
-            )}
-
-            {paymentError && (
-              <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-                {paymentError}
-              </div>
-            )}
-          </div>
-        )}
-
-        {!canSelfUpgrade && (
-          <p className="text-sm text-slate-400">
-            Chỉ tài khoản ADMIN của nhà máy mới được nâng cấp gói. Tài khoản kế toán chỉ xem thông
-            tin thanh toán.
+    <DashboardLayout>
+      <div className="p-4 sm:p-6 lg:p-8 max-w-[1000px]">
+        <div className="mb-6 border-b border-[#c2c6d3] pb-4">
+          <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Thanh Toán & Thuê Bao</h1>
+          <p className="text-xs text-[#424751] mt-1">
+            Theo dõi trạng thái gói cước, số lượng tài xế và thông tin thanh toán cho nhà máy.
           </p>
-        )}
+        </div>
+
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <SubscriptionStatusCard
+              subscription={subscriptionForStatus}
+              driverCount={driverCount}
+              isAdmin={true}
+            />
+            <PricingDisplay driverCount={driverCount} pricePerDriver={pricePerDriver} />
+          </div>
+
+          {!subscription && (
+            <div className="rounded border border-[#7f3700]/30 bg-[#ffdcc2]/40 p-4 text-xs font-bold text-[#7f3700]">
+              Chưa có hồ sơ thuê bao cho nhà máy này. Vui lòng liên hệ IceFlow để kích hoạt gói trước khi thanh toán.
+            </div>
+          )}
+
+          <VietQRCode amount={transferAmount} />
+
+          {canSelfUpgrade && (
+            <div className="rounded border border-[#c2c6d3] bg-white p-5 shadow-sm">
+              <h2 className="text-base font-bold text-[#111c2d]">Kích Hoạt Nâng Cấp Gói</h2>
+              <p className="mt-1 text-xs text-[#424751]">
+                Sau khi chuyển khoản đúng số tiền và nội dung bên trên, nhấn nút xác nhận bên dưới để hệ thống kích hoạt gói trả phí và gia hạn thêm 30 ngày.
+              </p>
+
+              <button
+                type="button"
+                onClick={handleUpgrade}
+                disabled={!subscription || confirmingPayment}
+                className="mt-4 inline-flex items-center justify-center gap-2 rounded bg-[#004a99] hover:bg-[#00346f] px-5 py-3 text-xs font-bold text-white transition-all shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {confirmingPayment ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4" />
+                )}
+                {confirmingPayment ? 'Đang kích hoạt...' : 'TÔI ĐÃ CHUYỂN KHOẢN — NÂNG CẤP GÓI'}
+              </button>
+
+              {paymentMessage && (
+                <div className="mt-3 rounded border border-[#1b6d24]/30 bg-[#a0f399]/30 p-3 text-xs font-bold text-[#1b6d24]">
+                  {paymentMessage}
+                </div>
+              )}
+
+              {paymentError && (
+                <div className="mt-3 rounded border border-[#ba1a1a]/30 bg-[#ffdad6]/60 p-3 text-xs font-bold text-[#93000a]">
+                  {paymentError}
+                </div>
+              )}
+            </div>
+          )}
+
+          {!canSelfUpgrade && (
+            <p className="text-xs text-[#737783]">
+              Chỉ tài khoản Quản lý (ADMIN) của nhà máy mới được thực hiện nâng cấp gói.
+            </p>
+          )}
+        </div>
       </div>
-    </BillingLayout>
+    </DashboardLayout>
   );
 }

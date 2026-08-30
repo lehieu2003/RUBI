@@ -62,89 +62,88 @@ export default function AdminDashboardPage() {
 
   return (
     <div>
-      <div className='mb-8'>
-        <p className='text-sm font-medium text-blue-400'>Super Admin</p>
-        <h1 className='mt-1 text-3xl font-black text-white'>
-          Tổng quan hệ thống
+      <div className="mb-6 border-b border-[#c2c6d3] pb-4">
+        <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">
+          Tổng Quan Toàn Hệ Thống
         </h1>
-        <p className='mt-2 text-slate-400'>
-          Theo dõi tình trạng tenant, subscription và doanh thu dự kiến.
+        <p className="text-xs text-[#424751] mt-1">
+          Theo dõi tình trạng nhà máy (tenants), gói thuê bao và doanh thu toàn nền tảng.
         </p>
       </div>
 
       {error && (
-        <div className='mb-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300'>
+        <div className="mb-6 rounded border border-[#ba1a1a]/30 bg-[#ffdad6]/50 p-4 text-xs font-bold text-[#93000a]">
           {error}
         </div>
       )}
 
-      <div className='grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4'>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          title='Tổng tenant'
+          title="Tổng nhà máy"
           value={loading ? '...' : String(stats?.totalFactoryCount ?? 0)}
-          subValue='Nhà máy đã đăng ký'
+          subValue="Nhà máy đã đăng ký"
           icon={Building2}
-          iconColor='text-blue-400'
-          iconBg='bg-blue-500/20'
+          iconColor="text-[#004a99]"
+          iconBg="bg-[#dee8ff]"
         />
         <StatCard
-          title='Tenant active'
+          title="Nhà máy Active"
           value={loading ? '...' : String(stats?.activeFactoryCount ?? 0)}
-          subValue='Subscription còn hiệu lực'
+          subValue="Thuê bao còn hiệu lực"
           icon={Snowflake}
-          iconColor='text-emerald-400'
-          iconBg='bg-emerald-500/20'
+          iconColor="text-[#1b6d24]"
+          iconBg="bg-[#a0f399]/40"
         />
         <StatCard
-          title='Đang trial'
+          title="Đang dùng thử (Trial)"
           value={loading ? '...' : String(stats?.trialFactoryCount ?? 0)}
-          subValue='Tenant trial active'
+          subValue="Gói trial đang hoạt động"
           icon={Timer}
-          iconColor='text-amber-400'
-          iconBg='bg-amber-500/20'
+          iconColor="text-[#7f3700]"
+          iconBg="bg-[#ffdcc2]/50"
         />
         <StatCard
-          title='Hết hạn/cancelled'
+          title="Hết hạn / Tạm dừng"
           value={loading ? '...' : String(stats?.expiredFactoryCount ?? 0)}
-          subValue='Cần hỗ trợ hoặc gia hạn'
+          subValue="Cần hỗ trợ hoặc gia hạn"
           icon={AlertTriangle}
-          iconColor='text-red-400'
-          iconBg='bg-red-500/20'
+          iconColor="text-[#ba1a1a]"
+          iconBg="bg-[#ffdad6]"
           warning={(stats?.expiredFactoryCount ?? 0) > 0}
         />
         <StatCard
-          title='Tài xế active'
+          title="Tài xế đang chạy"
           value={loading ? '...' : String(stats?.activeDriverCount ?? 0)}
-          subValue='Toàn hệ thống'
+          subValue="Toàn hệ thống"
           icon={Truck}
-          iconColor='text-cyan-400'
-          iconBg='bg-cyan-500/20'
+          iconColor="text-[#004a99]"
+          iconBg="bg-[#dee8ff]"
         />
         <StatCard
-          title='Doanh thu dự kiến'
-          value={loading ? '...' : formatCurrency(stats?.monthlyRevenue ?? 0)}
-          subValue='Theo subscription active'
+          title="Doanh thu dự kiến"
+          value={loading ? '...' : `${formatCurrency(stats?.monthlyRevenue ?? 0)} đ`}
+          subValue="Theo thuê bao active"
           icon={CreditCard}
-          iconColor='text-violet-400'
-          iconBg='bg-violet-500/20'
+          iconColor="text-[#1b6d24]"
+          iconBg="bg-[#a0f399]/40"
         />
         <StatCard
-          title='Payment tháng này'
+          title="Thực thu tháng này"
           value={
-            loading ? '...' : formatCurrency(stats?.monthlyPaymentTotal ?? 0)
+            loading ? '...' : `${formatCurrency(stats?.monthlyPaymentTotal ?? 0)} đ`
           }
-          subValue='Đã ghi nhận'
+          subValue="Đã xác nhận thanh toán"
           icon={CreditCard}
-          iconColor='text-emerald-400'
-          iconBg='bg-emerald-500/20'
+          iconColor="text-[#004a99]"
+          iconBg="bg-[#dee8ff]"
         />
         <StatCard
-          title='Sắp hết hạn'
+          title="Sắp hết hạn"
           value={loading ? '...' : String(stats?.nearExpiryCount ?? 0)}
-          subValue='Trong 7 ngày tới'
+          subValue="Trong 7 ngày tới"
           icon={AlertTriangle}
-          iconColor='text-orange-400'
-          iconBg='bg-orange-500/20'
+          iconColor="text-[#7f3700]"
+          iconBg="bg-[#ffdcc2]/50"
           warning={(stats?.nearExpiryCount ?? 0) > 0}
         />
       </div>

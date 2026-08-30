@@ -110,8 +110,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await fetch(API_ENDPOINTS.AUTH.LOGOUT, { method: 'POST' });
       setUser(null);
       toast({ type: 'info', title: 'Đã đăng xuất' });
+      window.location.href = '/';
     } catch {
-      // Ignore logout error
+      window.location.href = '/';
     }
   };
 

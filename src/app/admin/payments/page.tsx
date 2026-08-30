@@ -4,77 +4,72 @@ import { useCallback, useEffect, useState } from 'react';
 import { Filter, Loader2 } from 'lucide-react';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
-interface Factory {
-  id: string;
-  name: string;
-}
-
 interface Payment {
   id: string;
-  confirmedAt: string;
   amount: number;
-  adminName: string;
-  factoryName: string;
-  subscriptionId: string | null;
+  confirmedAt: string;
   driverCount: number | null;
-  pricePerDriver: number | null;
   source: string;
   notes: string | null;
+  factoryName: string;
+  adminName: string;
 }
 
-interface PaymentsResponse {
-  payments: Payment[];
-  total: number;
-  page: number;
-  totalPages: number;
-}
-
-function formatCurrency(value: number) {
-  return `${new Intl.NumberFormat('vi-VN').format(value)} đ`;
+interface FactoryOption {
+  id: string;
+  name: string;
 }
 
 function formatDate(value: string) {
   return new Date(value).toLocaleString('vi-VN');
 }
 
+function formatCurrency(value: number) {
+  return `${new Intl.NumberFormat('vi-VN').format(value)} đ`;
+}
+
 export default function AdminPaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
-  const [factories, setFactories] = useState<Factory[]>([]);
+  const [factories, setFactories] = useState<FactoryOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [selectedFactory, setSelectedFactory] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(API_ENDPOINTS.ADMIN.FACTORIES)
-      .then(response => response.json())
-      .then(json => {
-        const payload = json?.data !== undefined ? json.data : json;
-        setFactories(payload?.factories ?? []);
-      })
-      .catch(() => setFactories([]));
+    const loadFactories = async () => {
+      try {
+        const response = await fetch(API_ENDPOINTS.ADMIN.FACTORIES);
+        const json = await response.json().catch(() => ({}));
+        const data = json?.data !== undefined ? json.data : json;
+        const factoryList = Array.isArray(data?.factories) ? data.factories : [];
+        setFactories(factoryList.map((item: { id: string; name: string }) => ({ id: item.id, name: item.name })));
+      } catch {
+        setFactories([]);
+      }
+    };
+    void loadFactories();
   }, []);
 
-  const fetchPayments = useCallback(async (pageNum: number) => {
+  const fetchPayments = useCallback(async (targetPage = 1) => {
     setLoading(true);
-    const params = new URLSearchParams();
-    params.set('page', String(pageNum));
-    params.set('limit', '20');
-    if (selectedFactory) params.set('factoryId', selectedFactory);
-    if (startDate) params.set('startDate', startDate);
-    if (endDate) params.set('endDate', endDate);
-
     try {
+      const params = new URLSearchParams();
+      params.set('page', String(targetPage));
+      params.set('limit', '20');
+      if (selectedFactory) params.set('factoryId', selectedFactory);
+      if (startDate) params.set('startDate', startDate);
+      if (endDate) params.set('endDate', endDate);
+
       const response = await fetch(`${API_ENDPOINTS.ADMIN.PAYMENTS}?${params.toString()}`);
-      if (response.ok) {
-        const json = await response.json();
-        const data: PaymentsResponse = json?.data !== undefined ? json.data : json;
-        setPayments(data?.payments ?? []);
-        setPage(data?.page ?? 1);
-        setTotalPages(data?.totalPages ?? 1);
-      }
+      const json = await response.json().catch(() => ({}));
+      const data = json?.data !== undefined ? json.data : json;
+      setPayments(Array.isArray(data?.payments) ? data.payments : []);
+      setTotalPages(data?.pagination?.totalPages ?? 1);
+    } catch {
+      setPayments([]);
     } finally {
       setLoading(false);
     }
@@ -86,45 +81,44 @@ export default function AdminPaymentsPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <p className="text-sm font-medium text-blue-400">Super Admin</p>
-        <h1 className="mt-1 text-3xl font-black text-white">Thanh toán</h1>
-        <p className="mt-2 text-slate-400">
-          Lịch sử payment đã ghi nhận từ tenant self-upgrade và override của Super Admin.
+      <div className="mb-6 border-b border-[#c2c6d3] pb-4">
+        <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Lịch Sử Giao Dịch & Thanh Toán</h1>
+        <p className="text-xs text-[#424751] mt-1">
+          Nhật ký thanh toán phí duy trì gói từ các nhà máy và ghi nhận thủ công của Super Admin.
         </p>
       </div>
 
-      <div className="mb-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+      <div className="mb-6 rounded border border-[#c2c6d3] bg-white p-4 shadow-2xs">
         <div className="flex flex-wrap items-end gap-3">
-          <label className="flex min-w-56 flex-col gap-1.5 text-xs text-slate-400">
+          <label className="flex min-w-56 flex-col gap-1 text-xs font-bold uppercase tracking-wider text-[#424751]">
             Nhà máy
             <select
               value={selectedFactory}
               onChange={event => setSelectedFactory(event.target.value)}
-              className="rounded-lg border border-white/20 bg-slate-900 px-3 py-2 text-sm text-white"
+              className="rounded border border-[#c2c6d3] bg-white px-3 py-2 text-xs font-medium text-[#111c2d] focus:border-[#004a99] outline-none"
             >
-              <option value="">Tất cả</option>
+              <option value="">Tất cả nhà máy</option>
               {factories.map(factory => (
                 <option key={factory.id} value={factory.id}>{factory.name}</option>
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-1.5 text-xs text-slate-400">
+          <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-[#424751]">
             Từ ngày
             <input
               type="date"
               value={startDate}
               onChange={event => setStartDate(event.target.value)}
-              className="rounded-lg border border-white/20 bg-slate-900 px-3 py-2 text-sm text-white"
+              className="rounded border border-[#c2c6d3] bg-white px-3 py-2 text-xs font-medium text-[#111c2d] focus:border-[#004a99] outline-none"
             />
           </label>
-          <label className="flex flex-col gap-1.5 text-xs text-slate-400">
+          <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-[#424751]">
             Đến ngày
             <input
               type="date"
               value={endDate}
               onChange={event => setEndDate(event.target.value)}
-              className="rounded-lg border border-white/20 bg-slate-900 px-3 py-2 text-sm text-white"
+              className="rounded border border-[#c2c6d3] bg-white px-3 py-2 text-xs font-medium text-[#111c2d] focus:border-[#004a99] outline-none"
             />
           </label>
           <button
@@ -132,47 +126,47 @@ export default function AdminPaymentsPage() {
               setPage(1);
               fetchPayments(1);
             }}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="inline-flex items-center gap-1.5 rounded bg-[#004a99] hover:bg-[#00346f] px-4 py-2 text-xs font-bold text-white shadow-2xs transition-colors"
           >
-            <Filter className="h-4 w-4" />
-            Lọc
+            <Filter className="h-3.5 w-3.5" />
+            LỌC DỮ LIỆU
           </button>
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-white/10 bg-white/5">
+      <div className="overflow-x-auto rounded border border-[#c2c6d3] bg-white shadow-sm">
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-[#004a99]" />
           </div>
         ) : (
-          <table className="w-full min-w-[1000px]">
+          <table className="w-full min-w-[1000px] border-collapse table-industrial">
             <thead>
-              <tr className="border-b border-white/10">
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">Ngày</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">Nhà máy</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">Admin</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-slate-400">Amount</th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-slate-400">Drivers</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">Source</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">Notes</th>
+              <tr className="border-b border-[#c2c6d3] bg-[#f9f9ff] text-[12px] font-bold uppercase tracking-wider text-[#424751]">
+                <th className="px-4 py-3 text-left">Thời gian</th>
+                <th className="px-4 py-3 text-left">Nhà máy</th>
+                <th className="px-4 py-3 text-left">Người duyệt</th>
+                <th className="px-4 py-3 text-right">Số tiền</th>
+                <th className="px-4 py-3 text-center">Tài xế</th>
+                <th className="px-4 py-3 text-left">Nguồn</th>
+                <th className="px-4 py-3 text-left">Ghi chú</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-[#e7eeff] text-sm">
               {(payments ?? []).map(payment => (
-                <tr key={payment.id} className="border-b border-white/10 hover:bg-white/5">
-                  <td className="px-4 py-3 text-sm text-slate-300">{formatDate(payment.confirmedAt)}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-white">{payment.factoryName}</td>
-                  <td className="px-4 py-3 text-sm text-slate-300">{payment.adminName}</td>
-                  <td className="px-4 py-3 text-right text-sm font-medium text-emerald-400">{formatCurrency(payment.amount)}</td>
-                  <td className="px-4 py-3 text-center text-sm text-slate-300">{payment.driverCount ?? '-'}</td>
-                  <td className="px-4 py-3 text-sm text-blue-300">{payment.source}</td>
-                  <td className="px-4 py-3 text-sm text-slate-400">{payment.notes ?? '-'}</td>
+                <tr key={payment.id} className="h-12 hover:bg-[#f0f3ff] transition-colors">
+                  <td className="px-4 py-3 text-xs text-[#737783]">{formatDate(payment.confirmedAt)}</td>
+                  <td className="px-4 py-3 text-xs font-bold text-[#111c2d]">{payment.factoryName}</td>
+                  <td className="px-4 py-3 text-xs text-[#424751]">{payment.adminName}</td>
+                  <td className="px-4 py-3 text-right data-md font-bold text-[#1b6d24]">{formatCurrency(payment.amount)}</td>
+                  <td className="px-4 py-3 text-center data-sm font-bold text-[#004a99]">{payment.driverCount ?? '—'}</td>
+                  <td className="px-4 py-3 text-xs font-bold text-[#004a99]">{payment.source}</td>
+                  <td className="px-4 py-3 text-xs text-[#737783]">{payment.notes ?? '—'}</td>
                 </tr>
               ))}
               {(payments ?? []).length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-slate-400">Chưa có payment.</td>
+                  <td colSpan={7} className="px-4 py-12 text-center text-xs font-bold text-[#737783]">Chưa có lịch sử giao dịch.</td>
                 </tr>
               )}
             </tbody>
@@ -180,22 +174,22 @@ export default function AdminPaymentsPage() {
         )}
       </div>
 
-      <div className="mt-4 flex items-center justify-between text-sm text-slate-400">
+      <div className="mt-4 flex items-center justify-between text-xs text-[#424751]">
         <span>Trang {page} / {Math.max(1, totalPages)}</span>
         <div className="flex gap-2">
           <button
             onClick={() => setPage(current => Math.max(1, current - 1))}
             disabled={page <= 1}
-            className="rounded-lg bg-white/5 px-3 py-2 disabled:opacity-50"
+            className="rounded border border-[#c2c6d3] bg-white px-3 py-1.5 text-xs font-bold hover:bg-[#dee8ff] disabled:opacity-40"
           >
-            Trước
+            Trang trước
           </button>
           <button
             onClick={() => setPage(current => Math.min(totalPages, current + 1))}
             disabled={page >= totalPages}
-            className="rounded-lg bg-white/5 px-3 py-2 disabled:opacity-50"
+            className="rounded border border-[#c2c6d3] bg-white px-3 py-1.5 text-xs font-bold hover:bg-[#dee8ff] disabled:opacity-40"
           >
-            Sau
+            Trang sau
           </button>
         </div>
       </div>

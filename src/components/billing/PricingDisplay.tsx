@@ -10,43 +10,43 @@ export function PricingDisplay({ driverCount, pricePerDriver = 150000 }: Pricing
   const isFree = driverCount <= 1;
 
   return (
-    <div className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur">
-      <h2 className="mb-4 text-lg font-semibold text-white">Bảng giá</h2>
+    <div className="rounded border border-[#c2c6d3] bg-white p-5 shadow-sm">
+      <h2 className="mb-4 text-base font-bold text-[#111c2d]">Bảng Giá Dịch Vụ</h2>
 
-      <div className="space-y-2 text-sm text-slate-300">
+      <div className="space-y-2.5 text-sm">
         <div className="flex justify-between">
-          <span className="text-slate-400">Giá mỗi driver:</span>
-          <span className="font-medium text-white">
-            {pricePerDriver.toLocaleString('vi-VN')} VND / tháng
+          <span className="text-[#424751]">Giá mỗi tài xế:</span>
+          <span className="font-bold text-[#111c2d]">
+            {pricePerDriver.toLocaleString('vi-VN')} đ / tháng
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-slate-400">Tài khoản Admin:</span>
-          <span className="text-emerald-400">Miễn phí</span>
+          <span className="text-[#424751]">Tài khoản Quản lý (Admin):</span>
+          <span className="font-bold text-[#1b6d24]">Miễn phí</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-slate-400">Số lượng driver đang hoạt động:</span>
-          <span className="font-medium text-white">{driverCount}</span>
+          <span className="text-[#424751]">Số lượng tài xế đang hoạt động:</span>
+          <span className="font-bold text-[#004a99]">{driverCount}</span>
         </div>
-        <div className="mt-2 flex justify-between border-t border-white/10 pt-2 font-semibold text-white">
+        <div className="mt-3 flex justify-between border-t border-[#e7eeff] pt-3 font-bold text-[#111c2d]">
           <span>Tổng cộng hàng tháng:</span>
-          <span>
+          <span className="data-lg font-bold text-[#004a99]">
             {isFree
               ? 'Miễn phí'
-              : `${monthlyTotal.toLocaleString('vi-VN')} VND / tháng`}
+              : `${monthlyTotal.toLocaleString('vi-VN')} đ / tháng`}
           </span>
         </div>
       </div>
 
       {!isFree && (
-        <p className="mt-3 text-xs text-slate-400">
-          Bao gồm: 1 Admin (miễn phí) + {chargeableDrivers} Driver ×{' '}
-          {pricePerDriver.toLocaleString('vi-VN')} VND
+        <p className="mt-3 text-xs text-[#737783]">
+          Bao gồm: 1 Admin (miễn phí) + {chargeableDrivers} Tài xế ×{' '}
+          {pricePerDriver.toLocaleString('vi-VN')} đ
         </p>
       )}
       {isFree && (
-        <p className="mt-3 text-xs text-slate-400">
-          Gói của bạn hiện miễn phí (chưa có driver hoặc chỉ có Admin).
+        <p className="mt-3 text-xs text-[#737783]">
+          Gói của bạn hiện miễn phí (chưa có tài xế hoặc chỉ có 1 tài xế).
         </p>
       )}
     </div>

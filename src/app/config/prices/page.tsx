@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { GlobalPricesTable } from '@/components/pricing/global-prices-table';
 import { redirect } from 'next/navigation';
 
@@ -25,20 +26,19 @@ export default async function GlobalPricesPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto py-8 px-4">
-      <nav className="text-sm text-gray-500 mb-4">
-        <span>Trang chủ</span> › <span>Cấu hình</span> › <span className="text-gray-900">Giá cơ bản</span>
-      </nav>
+    <DashboardLayout>
+      <div className="p-4 sm:p-6 lg:p-8 max-w-[1000px]">
+        <div className="mb-6 border-b border-[#c2c6d3] pb-4">
+          <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Cấu Hình Bảng Giá Cơ Bản</h1>
+          <p className="text-xs text-[#424751] mt-1">
+            Giá cơ bản áp dụng chung cho tất cả khách hàng (đại lý có giá riêng sẽ áp dụng giá riêng).
+          </p>
+        </div>
 
-      <h1 className="text-2xl font-bold mb-6">Cấu hình giá cơ bản</h1>
-
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <p className="text-sm text-gray-600 mb-6">
-          Giá cơ bản áp dụng cho tất cả khách hàng. Khách hàng có mức giá riêng sẽ hiển thị giá đã đàm phán thay vì giá này.
-        </p>
-
-        <GlobalPricesTable products={products} globalPrices={priceMap} />
+        <div className="rounded border border-[#c2c6d3] bg-white p-6 shadow-sm">
+          <GlobalPricesTable products={products} globalPrices={priceMap} />
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

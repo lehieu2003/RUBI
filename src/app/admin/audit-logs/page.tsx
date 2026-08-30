@@ -98,17 +98,17 @@ export default function AuditLogsPage() {
       if (endDate) params.set('endDate', endDate);
 
       const response = await fetch(`${API_ENDPOINTS.ADMIN.AUDIT_LOGS_EXPORT}?${params.toString()}`);
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `payment-audit-${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      }
+      if (!response.ok) throw new Error('Export failed');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `payment-audit-logs-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.URL.revokeObjectURL(url);
     } finally {
       setExporting(false);
     }
@@ -116,105 +116,104 @@ export default function AuditLogsPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <p className="text-sm font-medium text-blue-400">Super Admin</p>
-        <h1 className="mt-1 text-3xl font-black text-white">Payment Audit Log</h1>
-        <p className="mt-2 text-slate-400">
-          Lịch sử payment subscription đã được ghi nhận trong 12 tháng gần nhất.
-        </p>
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Nhật Ký Hệ Thống (Audit Logs)</h1>
+          <p className="text-xs text-[#424751] mt-1">
+            Ghi nhận toàn bộ thao tác thanh toán, gia hạn và biến động trạng thái ({total} bản ghi)
+          </p>
+        </div>
+
+        <button
+          onClick={handleExport}
+          disabled={exporting}
+          className="inline-flex items-center gap-1.5 rounded border border-[#c2c6d3] bg-white hover:bg-[#dee8ff] px-4 py-2 text-xs font-bold text-[#00346f] transition-colors shadow-2xs disabled:opacity-50"
+        >
+          {exporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+          XUẤT FILE CSV
+        </button>
       </div>
 
-      <div className="mb-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+      <div className="mb-6 rounded border border-[#c2c6d3] bg-white p-4 shadow-2xs">
         <div className="flex flex-wrap items-end gap-3">
-          <label className="flex min-w-56 flex-col gap-1.5 text-xs text-slate-400">
+          <label className="flex min-w-56 flex-col gap-1 text-xs font-bold uppercase tracking-wider text-[#424751]">
             Nhà máy
             <select
               value={selectedFactory}
               onChange={event => setSelectedFactory(event.target.value)}
-              className="rounded-lg border border-white/20 bg-slate-900 px-3 py-2 text-sm text-white"
+              className="rounded border border-[#c2c6d3] bg-white px-3 py-2 text-xs font-medium text-[#111c2d] focus:border-[#004a99] outline-none"
             >
-              <option value="">Tất cả</option>
+              <option value="">Tất cả nhà máy</option>
               {factories.map(factory => (
                 <option key={factory.id} value={factory.id}>{factory.name}</option>
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-1.5 text-xs text-slate-400">
+          <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-[#424751]">
             Từ ngày
             <input
               type="date"
               value={startDate}
               onChange={event => setStartDate(event.target.value)}
-              className="rounded-lg border border-white/20 bg-slate-900 px-3 py-2 text-sm text-white"
+              className="rounded border border-[#c2c6d3] bg-white px-3 py-2 text-xs font-medium text-[#111c2d] focus:border-[#004a99] outline-none"
             />
           </label>
-          <label className="flex flex-col gap-1.5 text-xs text-slate-400">
+          <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-[#424751]">
             Đến ngày
             <input
               type="date"
               value={endDate}
               onChange={event => setEndDate(event.target.value)}
-              className="rounded-lg border border-white/20 bg-slate-900 px-3 py-2 text-sm text-white"
+              className="rounded border border-[#c2c6d3] bg-white px-3 py-2 text-xs font-medium text-[#111c2d] focus:border-[#004a99] outline-none"
             />
           </label>
           <button
-            onClick={() => {
-              setPage(1);
-              fetchLogs(1);
-            }}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            onClick={() => fetchLogs(1)}
+            className="inline-flex items-center gap-1.5 rounded bg-[#004a99] hover:bg-[#00346f] px-4 py-2 text-xs font-bold text-white shadow-2xs transition-colors"
           >
-            <Filter className="h-4 w-4" />
-            Lọc
-          </button>
-          <button
-            onClick={handleExport}
-            disabled={exporting}
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
-          >
-            {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            Export CSV
+            <Filter className="h-3.5 w-3.5" />
+            LỌC DỮ LIỆU
           </button>
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-white/10 bg-white/5">
+      <div className="overflow-x-auto rounded border border-[#c2c6d3] bg-white shadow-sm">
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-[#004a99]" />
           </div>
         ) : (
-          <table className="w-full min-w-[1100px]">
+          <table className="w-full min-w-[1100px] border-collapse table-industrial">
             <thead>
-              <tr className="border-b border-white/10">
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">Admin</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">Factory</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-slate-400">Amount</th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-slate-400">Drivers</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-slate-400">Price/Driver</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">Source</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400">Notes</th>
+              <tr className="border-b border-[#c2c6d3] bg-[#f9f9ff] text-[12px] font-bold uppercase tracking-wider text-[#424751]">
+                <th className="px-4 py-3 text-left">Thời gian</th>
+                <th className="px-4 py-3 text-left">Nhà máy</th>
+                <th className="px-4 py-3 text-left">Tài khoản thực hiện</th>
+                <th className="px-4 py-3 text-right">Số tiền</th>
+                <th className="px-4 py-3 text-center">Tài xế</th>
+                <th className="px-4 py-3 text-right">Đơn giá</th>
+                <th className="px-4 py-3 text-left">Nguồn</th>
+                <th className="px-4 py-3 text-left">Ghi chú</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-[#e7eeff] text-sm">
               {logs.map(log => (
-                <tr key={log.id} className="border-b border-white/10 hover:bg-white/5">
-                  <td className="px-4 py-3 text-sm text-slate-300">{formatDate(log.confirmedAt)}</td>
-                  <td className="px-4 py-3 text-sm text-slate-300">{log.adminName}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-white">{log.factoryName}</td>
-                  <td className="px-4 py-3 text-right text-sm font-medium text-emerald-400">{formatCurrency(log.amount)}</td>
-                  <td className="px-4 py-3 text-center text-sm text-slate-300">{log.driverCount ?? '-'}</td>
-                  <td className="px-4 py-3 text-right text-sm text-slate-300">
-                    {log.pricePerDriver !== null ? formatCurrency(log.pricePerDriver) : '-'}
+                <tr key={log.id} className="h-12 hover:bg-[#f0f3ff] transition-colors">
+                  <td className="px-4 py-3 text-xs text-[#737783]">{formatDate(log.confirmedAt)}</td>
+                  <td className="px-4 py-3 text-xs font-bold text-[#111c2d]">{log.factoryName}</td>
+                  <td className="px-4 py-3 text-xs text-[#424751]">{log.adminName}</td>
+                  <td className="px-4 py-3 text-right data-md font-bold text-[#1b6d24]">{formatCurrency(log.amount)}</td>
+                  <td className="px-4 py-3 text-center data-sm font-bold text-[#004a99]">{log.driverCount ?? '—'}</td>
+                  <td className="px-4 py-3 text-right data-sm text-[#737783]">
+                    {log.pricePerDriver ? formatCurrency(log.pricePerDriver) : '—'}
                   </td>
-                  <td className="px-4 py-3 text-sm text-blue-300">{log.source}</td>
-                  <td className="px-4 py-3 text-sm text-slate-400">{log.notes ?? '-'}</td>
+                  <td className="px-4 py-3 text-xs font-bold text-[#004a99]">{log.source}</td>
+                  <td className="px-4 py-3 text-xs text-[#737783]">{log.notes ?? '—'}</td>
                 </tr>
               ))}
               {logs.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-slate-400">Không có log nào.</td>
+                  <td colSpan={8} className="px-4 py-12 text-center text-xs font-bold text-[#737783]">Không có nhật ký phù hợp.</td>
                 </tr>
               )}
             </tbody>
@@ -222,24 +221,24 @@ export default function AuditLogsPage() {
         )}
       </div>
 
-      <div className="mt-4 flex items-center justify-between text-sm text-slate-400">
-        <span>Trang {page} / {Math.max(1, totalPages)} · {total} kết quả</span>
+      <div className="mt-4 flex items-center justify-between text-xs text-[#424751]">
+        <span>Trang {page} / {Math.max(1, totalPages)} (Tổng {total} logs)</span>
         <div className="flex gap-2">
           <button
-            onClick={() => setPage(current => Math.max(1, current - 1))}
+            onClick={() => fetchLogs(page - 1)}
             disabled={page <= 1}
-            className="inline-flex items-center gap-1 rounded-lg bg-white/5 px-3 py-2 disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded border border-[#c2c6d3] bg-white px-3 py-1.5 font-bold hover:bg-[#dee8ff] disabled:opacity-40"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-3.5 w-3.5" />
             Trước
           </button>
           <button
-            onClick={() => setPage(current => Math.min(totalPages, current + 1))}
+            onClick={() => fetchLogs(page + 1)}
             disabled={page >= totalPages}
-            className="inline-flex items-center gap-1 rounded-lg bg-white/5 px-3 py-2 disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded border border-[#c2c6d3] bg-white px-3 py-1.5 font-bold hover:bg-[#dee8ff] disabled:opacity-40"
           >
             Sau
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>

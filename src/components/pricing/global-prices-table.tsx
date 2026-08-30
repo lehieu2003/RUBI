@@ -51,7 +51,7 @@ export function GlobalPricesTable({ products, globalPrices }: GlobalPricesTableP
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productId, price: newPrice }),
       });
-      if (!response.ok) throw new Error('Failed to save');
+      if (!response.ok) throw new Error('Lỗi lưu giá');
       toast({ type: 'success', title: 'Đã cập nhật giá cơ bản' });
     } catch {
       // Revert on error
@@ -65,84 +65,89 @@ export function GlobalPricesTable({ products, globalPrices }: GlobalPricesTableP
   // Group products by type (Đá Bi, Đá Viên)
   const daBi = products.filter((p) => p.name === 'Đá Bi');
   const daVien = products.filter((p) => p.name === 'Đá Viên');
+  const other = products.filter((p) => p.name !== 'Đá Bi' && p.name !== 'Đá Viên');
+
+  const groups = [
+    { label: 'Đá Bi (Bao / Túi)', products: daBi },
+    { label: 'Đá Viên / Đá Cây', products: daVien },
+    ...(other.length > 0 ? [{ label: 'Sản phẩm khác', products: other }] : []),
+  ];
 
   return (
     <div className="space-y-6">
-      {[
-        { label: 'Đá Bi (Ice Block)', products: daBi },
-        { label: 'Đá Viên (Ice Cube)', products: daVien },
-      ].map(({ label, products: rowProducts }) => (
+      {groups.map(({ label, products: rowProducts }) => (
         <div key={label}>
-          <h3 className="text-sm font-medium text-gray-500 mb-3">{label}</h3>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-2 font-medium">Sản phẩm</th>
-                <th className="text-right py-2 font-medium">Giá hiện tại (VND)</th>
-                <th className="text-right py-2 font-medium">Giá mới (VND)</th>
-                <th className="w-20"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {rowProducts.map((product) => {
-                const currentPrice = prices.get(product.id) ?? 0;
-                const isEditing = editingId === product.id;
-                const isSavingNow = saving === product.id;
+          <h3 className="text-xs font-bold uppercase tracking-wider text-[#424751] mb-2">{label}</h3>
+          <div className="overflow-hidden rounded border border-[#c2c6d3] bg-white">
+            <table className="w-full text-left border-collapse table-industrial">
+              <thead>
+                <tr className="border-b border-[#c2c6d3] bg-[#f9f9ff] text-[12px] font-bold uppercase tracking-wider text-[#424751]">
+                  <th className="py-2.5 px-4">Quy cách</th>
+                  <th className="py-2.5 px-4 text-right">Giá niêm yết hiện tại</th>
+                  <th className="py-2.5 px-4 text-right">Nhập giá mới</th>
+                  <th className="py-2.5 px-4 text-center w-28">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#e7eeff] text-sm">
+                {rowProducts.map((product) => {
+                  const currentPrice = prices.get(product.id) ?? 0;
+                  const isEditing = editingId === product.id;
+                  const isSavingNow = saving === product.id;
 
-                return (
-                  <tr key={product.id} className="border-b border-gray-100">
-                    <td className="py-2">
-                      <span className="font-medium">{product.name}</span>
-                      <span className="text-gray-500 ml-1">{product.sizeKg}kg</span>
-                    </td>
-                    <td className="text-right py-2 text-gray-600">
-                      {currentPrice.toLocaleString('vi-VN')}
-                    </td>
-                    <td className="text-right py-2">
-                      {isEditing ? (
-                        <input
-                          type="number"
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                          className="w-28 text-right border border-gray-300 rounded px-2 py-1"
-                          autoFocus
-                          min="0"
-                        />
-                      ) : (
-                        <span className="text-gray-400 text-sm">—</span>
-                      )}
-                    </td>
-                    <td className="text-right py-2">
-                      {isEditing ? (
-                        <div className="flex gap-1 justify-end">
+                  return (
+                    <tr key={product.id} className="h-12 hover:bg-[#f0f3ff] transition-colors">
+                      <td className="py-2.5 px-4 font-bold text-[#111c2d]">
+                        {product.name} ({product.sizeKg}kg)
+                      </td>
+                      <td className="py-2.5 px-4 text-right data-md font-bold text-[#004a99]">
+                        {currentPrice.toLocaleString('vi-VN')} đ
+                      </td>
+                      <td className="py-2.5 px-4 text-right">
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            className="w-32 text-right border border-[#004a99] rounded px-2.5 py-1 text-sm font-bold text-[#111c2d] outline-none"
+                            autoFocus
+                            min="0"
+                          />
+                        ) : (
+                          <span className="text-[#737783] text-xs">—</span>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-4 text-center">
+                        {isEditing ? (
+                          <div className="flex gap-1.5 justify-center">
+                            <button
+                              onClick={() => handleSave(product.id)}
+                              disabled={isSavingNow}
+                              className="px-2.5 py-1 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-colors disabled:opacity-50"
+                            >
+                              {isSavingNow ? '...' : 'Lưu'}
+                            </button>
+                            <button
+                              onClick={handleCancelEdit}
+                              className="px-2.5 py-1 border border-[#c2c6d3] text-[#424751] font-bold text-xs rounded hover:bg-[#dee8ff] transition-colors"
+                            >
+                              Hủy
+                            </button>
+                          </div>
+                        ) : (
                           <button
-                            onClick={() => handleSave(product.id)}
-                            disabled={isSavingNow}
-                            className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 disabled:opacity-50"
+                            onClick={() => handleStartEdit(product.id, currentPrice)}
+                            className="px-3 py-1 text-xs font-bold text-[#004a99] bg-[#dee8ff] hover:bg-[#c2d7ff] rounded transition-colors"
                           >
-                            {isSavingNow ? '...' : 'Lưu'}
+                            Chỉnh sửa
                           </button>
-                          <button
-                            onClick={handleCancelEdit}
-                            className="px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded hover:bg-gray-300"
-                          >
-                            Hủy
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => handleStartEdit(product.id, currentPrice)}
-                          className="px-2 py-1 text-xs text-blue-600 hover:text-blue-800"
-                        >
-                          Sửa
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       ))}
     </div>

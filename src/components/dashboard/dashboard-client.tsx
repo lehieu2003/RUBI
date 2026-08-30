@@ -154,7 +154,7 @@ export function DashboardClient({
               </div>
               <a
                 href="/onboarding"
-                className="ml-4 shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold rounded-lg text-sm transition-colors"
+                className="ml-4 shrink-0 px-4 py-2 bg-[#004a99] hover:bg-[#00346f] text-white font-bold rounded text-xs transition-colors shadow-2xs"
               >
                 Nhập dữ liệu ngay
               </a>

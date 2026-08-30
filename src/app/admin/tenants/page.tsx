@@ -17,11 +17,10 @@ export default function AdminTenantsPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <p className="text-sm font-medium text-blue-400">Super Admin</p>
-        <h1 className="mt-1 text-3xl font-black text-white">Nhà máy</h1>
-        <p className="mt-2 text-slate-400">
-          Quản lý tenant, subscription, giá theo driver và hỗ trợ nhà máy.
+      <div className="mb-6 border-b border-[#c2c6d3] pb-4">
+        <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Quản Lý Nhà Máy (Tenants)</h1>
+        <p className="text-xs text-[#424751] mt-1">
+          Danh sách tenant, trạng thái thuê bao, cấu hình giá theo tài xế và công cụ hỗ trợ trực tiếp.
         </p>
       </div>
 

@@ -60,8 +60,6 @@ export function Sidebar() {
     if (signingOut) return;
     setSigningOut(true);
     await signOut();
-    router.replace('/login');
-    router.refresh();
   };
 
   return (

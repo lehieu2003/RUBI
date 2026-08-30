@@ -27,55 +27,64 @@ export const shiftSlots: Array<{
   value: Shift;
   label: string;
   time: string;
-  className: string;
+  headerBg: string;
+  headerText: string;
 }> = [
   {
     value: 'SLOT_00_03',
     label: 'Ca 1',
     time: '00:00-03:00',
-    className: 'border-sky-500/30 bg-sky-500/15 text-sky-300',
+    headerBg: 'bg-[#dee8ff]',
+    headerText: 'text-[#00346f]',
   },
   {
     value: 'SLOT_03_06',
     label: 'Ca 2',
     time: '03:00-06:00',
-    className: 'border-cyan-500/30 bg-cyan-500/15 text-cyan-300',
+    headerBg: 'bg-[#e7eeff]',
+    headerText: 'text-[#00346f]',
   },
   {
     value: 'SLOT_06_09',
     label: 'Ca 3',
     time: '06:00-09:00',
-    className: 'border-emerald-500/30 bg-emerald-500/15 text-emerald-300',
+    headerBg: 'bg-[#a0f399]/30',
+    headerText: 'text-[#1b6d24]',
   },
   {
     value: 'SLOT_09_12',
     label: 'Ca 4',
     time: '09:00-12:00',
-    className: 'border-lime-500/30 bg-lime-500/15 text-lime-300',
+    headerBg: 'bg-[#a0f399]/40',
+    headerText: 'text-[#1b6d24]',
   },
   {
     value: 'SLOT_12_15',
     label: 'Ca 5',
     time: '12:00-15:00',
-    className: 'border-amber-500/30 bg-amber-500/15 text-amber-300',
+    headerBg: 'bg-[#ffdcc2]/40',
+    headerText: 'text-[#7f3700]',
   },
   {
     value: 'SLOT_15_18',
     label: 'Ca 6',
     time: '15:00-18:00',
-    className: 'border-orange-500/30 bg-orange-500/15 text-orange-300',
+    headerBg: 'bg-[#ffdcc2]/60',
+    headerText: 'text-[#7f3700]',
   },
   {
     value: 'SLOT_18_21',
     label: 'Ca 7',
     time: '18:00-21:00',
-    className: 'border-blue-500/30 bg-blue-500/15 text-blue-300',
+    headerBg: 'bg-[#dee8ff]',
+    headerText: 'text-[#004a99]',
   },
   {
     value: 'SLOT_21_24',
     label: 'Ca 8',
     time: '21:00-24:00',
-    className: 'border-violet-500/30 bg-violet-500/15 text-violet-300',
+    headerBg: 'bg-[#d8e3fb]',
+    headerText: 'text-[#00346f]',
   },
 ];
 
@@ -89,26 +98,26 @@ type CalendarGridProps = {
 
 export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemove }: CalendarGridProps) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-white/10 bg-white/5">
+    <div className="overflow-x-auto rounded border border-[#c2c6d3] bg-white shadow-sm">
       <div className="grid min-w-[920px] grid-cols-8">
-        <div className="sticky left-0 z-10 border-b border-r border-white/10 bg-slate-900/95 p-3 text-xs font-semibold text-slate-400">
+        <div className="sticky left-0 z-10 border-b border-r border-[#c2c6d3] bg-[#f9f9ff] p-3 text-xs font-bold uppercase tracking-wider text-[#424751]">
           Khung giờ
         </div>
         {dayLabels.map((label, index) => (
           <div
             key={label}
-            className="border-b border-r border-white/10 bg-slate-900/80 p-3 text-center"
+            className="border-b border-r border-[#c2c6d3] bg-[#f9f9ff] p-3 text-center"
           >
-            <div className="text-xs font-semibold text-slate-300">{label}</div>
-            <div className="mt-1 text-[11px] text-slate-500">{formatShortDate(weekDates[index])}</div>
+            <div className="text-xs font-bold text-[#111c2d]">{label}</div>
+            <div className="mt-0.5 text-[11px] font-mono text-[#737783]">{formatShortDate(weekDates[index])}</div>
           </div>
         ))}
 
         {shiftSlots.map((slot) => (
           <div key={slot.value} className="contents">
-            <div className={`sticky left-0 z-10 flex min-h-28 flex-col justify-center border-r border-t p-3 ${slot.className}`}>
-              <span className="text-sm font-bold">{slot.label}</span>
-              <span className="mt-1 text-[11px] opacity-80">{slot.time}</span>
+            <div className={`sticky left-0 z-10 flex min-h-24 flex-col justify-center border-r border-t border-[#c2c6d3] p-3 ${slot.headerBg}`}>
+              <span className={`text-xs font-bold ${slot.headerText}`}>{slot.label}</span>
+              <span className="mt-0.5 text-[10px] font-mono text-[#424751]">{slot.time}</span>
             </div>
             {weekDates.map((shiftDate) => {
               const assignedPeople = people.filter((person) =>
@@ -123,17 +132,17 @@ export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemov
               return (
                 <div
                   key={shiftDate}
-                  className="min-h-28 border-r border-t border-white/10 bg-white/[0.03] p-2"
+                  className="min-h-24 border-r border-t border-[#e7eeff] bg-white p-1.5 hover:bg-[#f9f9ff] transition-colors"
                 >
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     {assignedPeople.map((person) => (
                       <div
                         key={person.id}
-                        className="flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-slate-900/70 px-2 py-1.5"
+                        className="flex items-center justify-between gap-1.5 rounded border border-[#c2c6d3] bg-[#f0f3ff] px-2 py-1 shadow-2xs"
                       >
                         <div className="min-w-0">
-                          <span className="block truncate text-xs font-semibold text-white">{person.name}</span>
-                          <span className={`mt-0.5 inline-flex rounded px-1.5 py-0.5 text-[10px] font-bold ${person.role === 'DRIVER' ? 'bg-emerald-500/15 text-emerald-300' : 'bg-blue-500/15 text-blue-300'}`}>
+                          <span className="block truncate text-xs font-bold text-[#111c2d]">{person.name}</span>
+                          <span className={`inline-flex rounded px-1 text-[10px] font-bold ${person.role === 'DRIVER' ? 'bg-[#a0f399]/40 text-[#1b6d24]' : 'bg-[#dee8ff] text-[#004a99]'}`}>
                             {getRoleLabel(person.role)}
                           </span>
                         </div>
@@ -141,36 +150,30 @@ export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemov
                           type="button"
                           disabled={isPending}
                           onClick={() => onRemove(person.id, shiftDate, slot.value)}
-                          className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-slate-400 transition-colors hover:bg-red-500/20 hover:text-red-300 disabled:cursor-wait disabled:opacity-60"
+                          className="flex h-4 w-4 shrink-0 items-center justify-center rounded text-[#737783] hover:bg-[#ffdad6] hover:text-[#ba1a1a] transition-colors disabled:opacity-50"
                           aria-label={`Bỏ ${person.name} khỏi ca ${slot.label} ${shiftDate}`}
                         >
-                          x
+                          ×
                         </button>
                       </div>
                     ))}
 
-                    {people.length === 0 ? (
-                      <div className="flex min-h-10 items-center justify-center rounded-lg border border-dashed border-white/10 text-xs font-semibold text-slate-600">
-                        +
-                      </div>
-                    ) : (
-                      <select
-                        value=""
-                        disabled={isPending || availablePeople.length === 0}
-                        onChange={(event) => {
-                          if (event.target.value) onAssign(event.target.value, shiftDate, slot.value);
-                        }}
-                        className="h-9 w-full rounded-lg border border-dashed border-white/10 bg-slate-950/70 px-2 text-xs font-semibold text-slate-300 outline-none transition-colors hover:border-blue-500/40 focus:border-blue-500/60 disabled:cursor-not-allowed disabled:opacity-50"
-                        aria-label={`Chọn nhân sự cho ca ${slot.label} ${shiftDate}`}
-                      >
-                        <option value="">{availablePeople.length === 0 ? 'Đã đủ ca' : '+ Chọn người'}</option>
-                        {availablePeople.map((person) => (
-                          <option key={person.id} value={person.id}>
-                            {person.name} - {getRoleLabel(person.role)}
-                          </option>
-                        ))}
-                      </select>
-                    )}
+                    <select
+                      value=""
+                      disabled={isPending || availablePeople.length === 0}
+                      onChange={(event) => {
+                        if (event.target.value) onAssign(event.target.value, shiftDate, slot.value);
+                      }}
+                      className="h-7 w-full rounded border border-dashed border-[#c2c6d3] bg-white px-1.5 text-[11px] font-medium text-[#424751] outline-none hover:border-[#004a99] focus:border-[#004a99] disabled:opacity-40 cursor-pointer"
+                      aria-label={`Chọn nhân sự cho ca ${slot.label} ${shiftDate}`}
+                    >
+                      <option value="">{availablePeople.length === 0 ? 'Đã đủ ca' : '+ Gán người'}</option>
+                      {availablePeople.map((person) => (
+                        <option key={person.id} value={person.id}>
+                          {person.name} ({getRoleLabel(person.role)})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               );
@@ -179,8 +182,8 @@ export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemov
         ))}
       </div>
       {people.length === 0 && (
-        <div className="border-t border-white/10 px-4 py-3 text-sm text-slate-400">
-          Thêm nhân viên hoặc tài xế trong Nhân sự trước, sau đó chọn người trong từng khung giờ.
+        <div className="border-t border-[#c2c6d3] bg-[#f9f9ff] px-4 py-3 text-xs text-[#737783]">
+          Thêm nhân viên hoặc tài xế trong phần Cài đặt &gt; Nhân sự trước, sau đó phân ca trực tiếp trên bảng này.
         </div>
       )}
     </div>

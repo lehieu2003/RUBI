@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { CalendarDays, ChevronLeft, ChevronRight, Save } from 'lucide-react';
-import { Sidebar } from '@/components/dashboard/sidebar';
+import { ChevronLeft, ChevronRight, Users, Loader2, AlertCircle } from 'lucide-react';
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
 import {
@@ -68,12 +68,9 @@ export default function SchedulePage() {
         throw new Error(payload?.error ?? 'Không thể tải lịch trình');
       }
       const data = payload?.data !== undefined ? payload.data : payload;
-      setPeople(Array.isArray(data) ? data : []);
+      setPeople(Array.isArray(data?.people) ? data.people : []);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Không thể tải lịch trình';
-      setLoadError(message);
-      setPeople([]);
-      toast({ type: 'error', title: 'Lỗi', message });
+      setLoadError(error instanceof Error ? error.message : 'Không thể tải lịch trình');
     } finally {
       setLoading(false);
     }
@@ -83,38 +80,37 @@ export default function SchedulePage() {
     void loadSchedule();
   }, [loadSchedule]);
 
-  const saveAssignment = async (
-    userId: string,
-    shiftDate: string,
-    shift: Shift | null,
-    removeShift?: Shift
-  ) => {
-    const cellKey = `${shift ?? 'REMOVE'}:${shiftDate}`;
-    setPendingCell(cellKey);
+  const saveAssignment = async (userId: string, shiftDate: string, shift: Shift | null, previousShift?: Shift) => {
+    const currentShift = shift ?? previousShift;
+    if (!currentShift) return;
+
+    const cellKey = `${currentShift}:${shiftDate}`;
+    setPendingCell(shift ? cellKey : `REMOVE:${shiftDate}`);
 
     try {
       const response = await fetch(API_ENDPOINTS.SCHEDULE.ASSIGNMENTS, {
-        method: 'PATCH',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, shift, removeShift, shiftDate }),
+        body: JSON.stringify({ userId, shiftDate, shift }),
       });
-      const payload = await response.json().catch(() => ({}));
+      const payload = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error(payload.error ?? 'Không thể cập nhật lịch trình');
+        throw new Error(payload?.error ?? 'Cập nhật thất bại');
       }
 
-      setPeople((previous) =>
-        previous.map((person) => {
+      setPeople((current) =>
+        current.map((person) => {
           if (person.id !== userId) return person;
-          const shifts = person.shifts.filter(
-            (assignment) => assignment.shiftDate !== shiftDate || assignment.shift !== (removeShift ?? shift)
+          const filtered = person.shifts.filter(
+            (item) => !(item.shiftDate === shiftDate && item.shift === currentShift)
           );
           return {
             ...person,
-            shifts: shift ? [...shifts, { shiftDate, shift }] : shifts,
+            shifts: shift ? [...filtered, { shiftDate, shift }] : filtered,
           };
         })
       );
+      toast({ type: 'success', title: shift ? 'Đã gán ca làm việc' : 'Đã xóa ca làm việc' });
     } catch (error) {
       toast({
         type: 'error',
@@ -127,115 +123,75 @@ export default function SchedulePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
-      <Sidebar />
-
-      <main className="pl-64">
-        <div className="p-8">
-          <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <div className="mb-2 flex items-center gap-3 text-blue-400">
-                <CalendarDays className="h-5 w-5" />
-                <span className="text-sm font-semibold">Lịch trình tuần</span>
-              </div>
-              <h1 className="text-3xl font-black text-white">{formatWeekLabel(weekStart)}</h1>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setWeekStart((current) => addDays(current, -7))}
-                className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
-                aria-label="Tuần trước"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setWeekStart(getMonday(new Date()))}
-                className="h-10 rounded-lg border border-blue-500/30 bg-blue-500/10 px-4 text-sm font-semibold text-blue-300 transition-colors hover:bg-blue-500/20"
-              >
-                Hôm nay
-              </button>
-              <button
-                type="button"
-                onClick={() => setWeekStart((current) => addDays(current, 7))}
-                className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
-                aria-label="Tuần sau"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </div>
+    <DashboardLayout>
+      <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px]">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Lịch Trình & Phân Ca</h1>
+            <p className="text-xs text-[#424751] mt-1">{formatWeekLabel(weekStart)}</p>
           </div>
 
-          {loading ? (
-            <ScheduleSkeleton />
-          ) : loadError ? (
-            <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-10 text-center">
-              <h2 className="text-lg font-bold text-white">Không tải được lịch trình</h2>
-              <p className="mt-2 text-sm text-red-200">{loadError}</p>
-              <button
-                type="button"
-                onClick={() => void loadSchedule()}
-                className="mt-5 rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-600"
-              >
-                Tải lại
-              </button>
-            </div>
-          ) : people.length === 0 ? (
-            <>
-              <CalendarGrid
-                people={people}
-                weekDates={weekDates}
-                pendingCell={pendingCell}
-                onAssign={(userId, shiftDate, shift) => void saveAssignment(userId, shiftDate, shift)}
-                onRemove={(userId, shiftDate, shift) => void saveAssignment(userId, shiftDate, null, shift)}
-              />
-              <div className="mt-4 flex justify-end">
-                <Link
-                  href="/settings"
-                  className="inline-flex rounded-lg bg-gradient-to-r from-blue-600 to-violet-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-blue-500/30"
-                >
-                  Mở nhân sự
-                </Link>
-              </div>
-            </>
-          ) : (
-            <CalendarGrid
-              people={people}
-              weekDates={weekDates}
-              pendingCell={pendingCell}
-              onAssign={(userId, shiftDate, shift) => void saveAssignment(userId, shiftDate, shift)}
-              onRemove={(userId, shiftDate, shift) => void saveAssignment(userId, shiftDate, null, shift)}
-            />
-          )}
-
-          <div className="mt-6 flex justify-end">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              onClick={() => toast({ type: 'success', title: 'Lịch trình đã được lưu' })}
-              className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-violet-600 px-5 py-3 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-blue-500/30"
+              onClick={() => setWeekStart((current) => addDays(current, -7))}
+              className="flex h-9 w-9 items-center justify-center rounded border border-[#c2c6d3] bg-white text-[#424751] hover:bg-[#dee8ff] transition-colors shadow-2xs"
+              aria-label="Tuần trước"
             >
-              <Save className="h-4 w-4" />
-              Lưu lịch trình
+              <ChevronLeft className="h-4 w-4" />
             </button>
+            <button
+              type="button"
+              onClick={() => setWeekStart(getMonday(new Date()))}
+              className="h-9 rounded border border-[#004a99] bg-[#dee8ff] px-3.5 text-xs font-bold text-[#00346f] hover:bg-[#c2d7ff] transition-colors shadow-2xs"
+            >
+              Hôm nay
+            </button>
+            <button
+              type="button"
+              onClick={() => setWeekStart((current) => addDays(current, 7))}
+              className="flex h-9 w-9 items-center justify-center rounded border border-[#c2c6d3] bg-white text-[#424751] hover:bg-[#dee8ff] transition-colors shadow-2xs"
+              aria-label="Tuần sau"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+            <Link
+              href="/settings"
+              className="ml-2 flex items-center gap-1.5 rounded border border-[#c2c6d3] bg-white px-3 py-2 text-xs font-bold text-[#00346f] hover:bg-[#dee8ff] transition-colors shadow-2xs"
+            >
+              <Users className="h-4 w-4" />
+              QUẢN LÝ NHÂN SỰ
+            </Link>
           </div>
         </div>
-      </main>
-    </div>
-  );
-}
 
-function ScheduleSkeleton() {
-  return (
-    <div className="overflow-hidden rounded-xl border border-white/10 bg-white/5">
-      <div className="grid min-w-[760px] grid-cols-8">
-        {Array.from({ length: 32 }).map((_, index) => (
-          <div key={index} className="min-h-14 border-r border-t border-white/10 p-3">
-            <div className="h-4 animate-pulse rounded bg-white/10" />
+        {loading ? (
+          <div className="flex items-center justify-center py-24">
+            <Loader2 className="h-8 w-8 animate-spin text-[#004a99]" />
           </div>
-        ))}
+        ) : loadError ? (
+          <div className="rounded border border-[#ba1a1a]/30 bg-[#ffdad6]/50 p-8 text-center">
+            <AlertCircle className="h-8 w-8 text-[#ba1a1a] mx-auto mb-2" />
+            <h2 className="text-base font-bold text-[#93000a]">Không tải được lịch trình</h2>
+            <p className="mt-1 text-xs text-[#424751]">{loadError}</p>
+            <button
+              type="button"
+              onClick={() => void loadSchedule()}
+              className="mt-4 rounded bg-[#004a99] px-4 py-2 text-xs font-bold text-white hover:bg-[#00346f] transition-colors"
+            >
+              Tải lại
+            </button>
+          </div>
+        ) : (
+          <CalendarGrid
+            people={people}
+            weekDates={weekDates}
+            pendingCell={pendingCell}
+            onAssign={(userId, shiftDate, shift) => void saveAssignment(userId, shiftDate, shift)}
+            onRemove={(userId, shiftDate, shift) => void saveAssignment(userId, shiftDate, null, shift)}
+          />
+        )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

@@ -10,9 +10,9 @@ export interface ToastMessage {
 
 function renderMessage(input: Omit<ToastMessage, 'id'>) {
   return (
-    <div className="flex flex-col">
-      <span className="text-sm font-semibold">{input.title}</span>
-      {input.message ? <span className="mt-0.5 text-xs opacity-90">{input.message}</span> : null}
+    <div className="flex flex-col text-left">
+      <span className="text-xs font-bold text-[#111c2d]">{input.title}</span>
+      {input.message ? <span className="mt-0.5 text-[11px] text-[#424751]">{input.message}</span> : null}
     </div>
   );
 }
@@ -38,17 +38,17 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         position="top-right"
         toastOptions={{
           duration: 4000,
-          className: 'rounded-xl border border-white/10 bg-slate-900/95 text-slate-100 shadow-2xl',
+          className: '!rounded !border !border-[#c2c6d3] !bg-white !text-[#111c2d] !shadow-lg !py-2.5 !px-3.5',
           success: {
             iconTheme: {
-              primary: '#34d399',
-              secondary: '#052e16',
+              primary: '#1b6d24',
+              secondary: '#a0f399',
             },
           },
           error: {
             iconTheme: {
-              primary: '#f87171',
-              secondary: '#450a0a',
+              primary: '#ba1a1a',
+              secondary: '#ffdad6',
             },
           },
         }}

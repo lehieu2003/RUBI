@@ -390,62 +390,62 @@ export default function SettingsPage() {
 
               {/* Create Staff Modal */}
               {showCreateModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-                  <div className="rounded-2xl border border-white/10 bg-slate-900 p-6 w-full max-w-md">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-lg font-bold text-white">Thêm nhân sự</h3>
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+                  <div className="rounded border border-[#c2c6d3] bg-white p-6 w-full max-w-md shadow-xl">
+                    <div className="flex items-center justify-between mb-5 border-b border-[#e7eeff] pb-3">
+                      <h3 className="text-base font-bold text-[#111c2d]">Thêm nhân sự mới</h3>
                       <button
                         onClick={() => {
                           setShowCreateModal(false);
                           setNewName(''); setNewEmail(''); setNewPassword(''); setNewRole('STAFF');
                         }}
-                        className="text-slate-400 hover:text-white"
+                        className="text-[#737783] hover:text-[#111c2d]"
                       >
                         <X className="h-5 w-5" />
                       </button>
                     </div>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-slate-400 mb-2">Họ tên</label>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1.5">Họ và tên *</label>
                         <input
                           type="text"
                           value={newName}
                           onChange={e => setNewName(e.target.value)}
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
+                          className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99] outline-none"
                           placeholder="VD: Nguyễn Văn A"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-400 mb-2">Email</label>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1.5">Email tài khoản *</label>
                         <input
                           type="email"
                           value={newEmail}
                           onChange={e => setNewEmail(e.target.value)}
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
+                          className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99] outline-none"
                           placeholder="VD: nv-a@email.com"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-400 mb-2">Mật khẩu</label>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1.5">Mật khẩu ban đầu *</label>
                         <input
                           type="password"
                           value={newPassword}
                           onChange={e => setNewPassword(e.target.value)}
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
+                          className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99] outline-none"
                           placeholder="Ít nhất 6 ký tự"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-400 mb-2">Vai trò</label>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1.5">Vai trò hệ thống</label>
                         <select
                           value={newRole}
                           onChange={e => setNewRole(e.target.value as UserRole)}
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
+                          className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99] outline-none"
                         >
-                          <option value="STAFF">Nhân viên</option>
-                          <option value="DRIVER">Tài xế</option>
+                          <option value="STAFF">Nhân viên văn phòng</option>
+                          <option value="DRIVER">Tài xế giao hàng</option>
                           <option value="ACCOUNTANT">Kế toán</option>
-                          <option value="ADMIN">Admin</option>
+                          <option value="ADMIN">Quản lý (Admin)</option>
                         </select>
                       </div>
                       <button
@@ -472,7 +472,7 @@ export default function SettingsPage() {
                               setStaffUsers(prev => [data.user, ...prev]);
                               setShowCreateModal(false);
                               setNewName(''); setNewEmail(''); setNewPassword(''); setNewRole('STAFF');
-                              toast({ type: 'success', title: 'Đã tạo nhân sự' });
+                              toast({ type: 'success', title: 'Đã tạo nhân sự thành công' });
                             }
                           } catch (err) {
                             console.error('Failed to create staff', err);
@@ -483,9 +483,9 @@ export default function SettingsPage() {
                             });
                           }
                         }}
-                        className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
+                        className="w-full py-2.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-colors shadow-sm mt-2"
                       >
-                        Tạo nhân sự
+                        TẠO NHÂN SỰ MỚI
                       </button>
                     </div>
                   </div>
@@ -494,25 +494,25 @@ export default function SettingsPage() {
 
               {/* Change Password Modal */}
               {showPasswordModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-                  <div className="rounded-2xl border border-white/10 bg-slate-900 p-6 w-full max-w-md">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-lg font-bold text-white">Đổi mật khẩu</h3>
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+                  <div className="rounded border border-[#c2c6d3] bg-white p-6 w-full max-w-md shadow-xl">
+                    <div className="flex items-center justify-between mb-5 border-b border-[#e7eeff] pb-3">
+                      <h3 className="text-base font-bold text-[#111c2d]">Đổi mật khẩu tài khoản</h3>
                       <button
                         onClick={() => { setShowPasswordModal(null); setPasswordInput(''); }}
-                        className="text-slate-400 hover:text-white"
+                        className="text-[#737783] hover:text-[#111c2d]"
                       >
                         <X className="h-5 w-5" />
                       </button>
                     </div>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-slate-400 mb-2">Mật khẩu mới</label>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1.5">Mật khẩu mới *</label>
                         <input
                           type="password"
                           value={passwordInput}
                           onChange={e => setPasswordInput(e.target.value)}
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
+                          className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99] outline-none"
                           placeholder="Ít nhất 6 ký tự"
                         />
                       </div>
@@ -548,9 +548,9 @@ export default function SettingsPage() {
                             });
                           }
                         }}
-                        className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
+                        className="w-full py-2.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-colors shadow-sm mt-2"
                       >
-                        Lưu mật khẩu
+                        LƯU MẬT KHẨU MỚI
                       </button>
                     </div>
                   </div>
