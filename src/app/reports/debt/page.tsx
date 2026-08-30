@@ -22,8 +22,9 @@ export default function DebtReportPage() {
       try {
         const res = await fetch(API_ENDPOINTS.REPORTS.DEBT);
         if (!res.ok) throw new Error('Failed to fetch debt report');
-        const data = await res.json();
-        setDebts(data);
+        const json = await res.json();
+        const data = json?.data !== undefined ? json.data : json;
+        setDebts(Array.isArray(data) ? data : []);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {

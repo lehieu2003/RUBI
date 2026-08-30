@@ -40,9 +40,13 @@ export default function ShellDepositsPage() {
           fetch(API_ENDPOINTS.CUSTOMERS.BASE),
         ]);
         if (!depositsRes.ok) throw new Error('Failed to fetch deposits');
-        setDeposits(await depositsRes.json());
+        const depJson = await depositsRes.json();
+        const depData = depJson?.data !== undefined ? depJson.data : depJson;
+        setDeposits(Array.isArray(depData) ? depData : []);
         if (customersRes.ok) {
-          setAllCustomers(await customersRes.json());
+          const custJson = await customersRes.json();
+          const custData = custJson?.data !== undefined ? custJson.data : custJson;
+          setAllCustomers(Array.isArray(custData) ? custData : []);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');

@@ -48,8 +48,9 @@ export default function SettingsPage() {
     async function loadUser() {
       try {
         const res = await fetch(API_ENDPOINTS.AUTH.ME);
-        const data = await res.json();
-        if (data.user) setCurrentUser(data.user);
+        const json = await res.json();
+        const data = json?.data !== undefined ? json.data : json;
+        if (data?.user) setCurrentUser(data.user);
       } catch (err) {
         console.error('Failed to load user', err);
       }
@@ -63,8 +64,9 @@ export default function SettingsPage() {
     async function loadStaff() {
       try {
         const res = await fetch(API_ENDPOINTS.STAFF.BASE);
-        const data = await res.json();
-        if (data.users) setStaffUsers(data.users);
+        const json = await res.json();
+        const data = json?.data !== undefined ? json.data : json;
+        if (data?.users) setStaffUsers(data.users);
       } catch (err) {
         console.error('Failed to load staff', err);
       }

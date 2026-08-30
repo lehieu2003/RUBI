@@ -39,7 +39,8 @@ export default function AdminDashboardPage() {
       try {
         const response = await fetch(API_ENDPOINTS.ADMIN.STATS);
         if (!response.ok) throw new Error('Không thể tải thống kê hệ thống');
-        const data = await response.json();
+        const json = await response.json();
+        const data = json?.data !== undefined ? json.data : json;
         if (active) setStats(data);
       } catch (err) {
         if (active)

@@ -69,8 +69,9 @@ export default function SettlePage() {
       try {
         const res = await fetch(`${API_ENDPOINTS.ORDERS.BASE}?status=DELIVERED&date=${todayStr}`);
         if (!res.ok) throw new Error('Failed to fetch orders');
-        const data = await res.json();
-        setOrders(data);
+        const json = await res.json();
+        const data = json?.data !== undefined ? json.data : json;
+        setOrders(Array.isArray(data) ? data : []);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {

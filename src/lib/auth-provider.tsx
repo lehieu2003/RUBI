@@ -43,8 +43,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkAuth = async () => {
     try {
       const res = await fetch(API_ENDPOINTS.AUTH.ME);
-      const data = await res.json();
-      setUser(data.user);
+      const json = await res.json();
+      const payload = json?.data !== undefined ? json.data : json;
+      setUser(payload?.user ?? null);
     } catch {
       setUser(null);
     } finally {
@@ -59,9 +60,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || data.error) {
-        const errorMsg = data.error || (data.errors ? 'Dữ liệu không hợp lệ' : 'Đăng nhập không thành công');
+      const json = await res.json().catch(() => ({}));
+      const payload = json?.data !== undefined ? json.data : json;
+      if (!res.ok || json?.error || payload?.error) {
+        const errorMsg = json?.error || payload?.error || (json?.errors ? 'Dữ liệu không hợp lệ' : 'Đăng nhập không thành công');
         toast({ type: 'error', title: 'Đăng nhập thất bại', message: errorMsg });
         return { error: errorMsg };
       }
@@ -69,32 +71,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       toast({ type: 'success', title: 'Đăng nhập thành công' });
       return { error: null };
     } catch {
-      const errorMsg = 'Có lỗi xảy ra khi kết nối máy chủ';
-      toast({ type: 'error', title: 'Lỗi mạng', message: errorMsg });
-      return { error: errorMsg };
+      toast({ type: 'error', title: 'Lỗi mạng', message: 'Không thể kết nối đến máy chủ' });
+      return { error: 'Không thể kết nối đến máy chủ' };
     }
   };
 
-  const signUp = async (email: string, password: string, name: string, factoryName?: string, phone?: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    name: string,
+    factoryName?: string,
+    phone?: string
+  ) => {
     try {
       const res = await fetch(API_ENDPOINTS.AUTH.REGISTER, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, name, factoryName, phone }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || data.error) {
-        const errorMsg = data.error || (data.errors ? 'Dữ liệu không hợp lệ' : 'Đăng ký không thành công');
+      const json = await res.json().catch(() => ({}));
+      const payload = json?.data !== undefined ? json.data : json;
+      if (!res.ok || json?.error || payload?.error) {
+        const errorMsg = json?.error || payload?.error || 'Đăng ký không thành công';
         toast({ type: 'error', title: 'Đăng ký thất bại', message: errorMsg });
         return { error: errorMsg };
       }
       await checkAuth();
-      toast({ type: 'success', title: 'Đăng ký thành công', message: 'Chào mừng bạn đến với IceFlow!' });
+      toast({ type: 'success', title: 'Đăng ký thành công' });
       return { error: null };
     } catch {
-      const errorMsg = 'Có lỗi xảy ra khi kết nối máy chủ';
-      toast({ type: 'error', title: 'Lỗi mạng', message: errorMsg });
-      return { error: errorMsg };
+      toast({ type: 'error', title: 'Lỗi mạng', message: 'Không thể kết nối đến máy chủ' });
+      return { error: 'Không thể kết nối đến máy chủ' };
     }
   };
 

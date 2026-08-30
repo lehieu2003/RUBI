@@ -80,9 +80,10 @@ export default function DriverViewPage({
         }
         throw new Error('Không thể tải đơn hàng');
       }
-      const data = await response.json();
-      setDriver(data.driver);
-      setOrders(data.orders);
+      const json = await response.json();
+      const data = json?.data !== undefined ? json.data : json;
+      setDriver(data?.driver ?? null);
+      setOrders(data?.orders ?? []);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi');

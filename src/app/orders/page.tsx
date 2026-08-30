@@ -79,7 +79,8 @@ export default function OrdersPage() {
     queryFn: async () => {
       const res = await fetch(API_ENDPOINTS.ORDERS.BASE);
       if (!res.ok) throw new Error("Failed to load orders");
-      return res.json();
+      const json = await res.json();
+      return json?.data !== undefined ? json.data : json;
     },
   });
 
@@ -88,7 +89,8 @@ export default function OrdersPage() {
     queryFn: async () => {
       const res = await fetch(API_ENDPOINTS.CUSTOMERS.BASE);
       if (!res.ok) throw new Error("Failed to load customers");
-      return res.json();
+      const json = await res.json();
+      return json?.data !== undefined ? json.data : json;
     },
   });
 
@@ -97,7 +99,8 @@ export default function OrdersPage() {
     queryFn: async () => {
       const res = await fetch(API_ENDPOINTS.PRODUCTS.BASE);
       if (!res.ok) throw new Error("Failed to load products");
-      return res.json();
+      const json = await res.json();
+      return json?.data !== undefined ? json.data : json;
     },
   });
 
@@ -106,7 +109,8 @@ export default function OrdersPage() {
     queryFn: async () => {
       const res = await fetch(API_ENDPOINTS.DRIVERS.BASE);
       if (!res.ok) throw new Error("Failed to load drivers");
-      return res.json();
+      const json = await res.json();
+      return json?.data !== undefined ? json.data : json;
     },
   });
 

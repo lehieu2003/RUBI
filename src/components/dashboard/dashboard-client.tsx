@@ -51,8 +51,9 @@ export function DashboardClient({
     if (currentUser?.role === 'ADMIN' && currentUser?.factoryId) {
       fetch(API_ENDPOINTS.BILLING.SUBSCRIPTION)
         .then(res => res.json())
-        .then(data => {
-          if (data.subscription) {
+        .then(json => {
+          const data = json?.data !== undefined ? json.data : json;
+          if (data?.subscription) {
             setSubscriptionData({ subscription: data.subscription, driverCount: data.driverCount ?? 0 });
           }
         })

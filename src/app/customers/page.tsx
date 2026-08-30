@@ -41,7 +41,8 @@ export default function CustomersPage() {
     queryFn: async () => {
       const res = await fetch(API_ENDPOINTS.CUSTOMERS.BASE);
       if (!res.ok) throw new Error('Failed to load customers');
-      return res.json();
+      const json = await res.json();
+      return json?.data !== undefined ? json.data : json;
     },
   });
 
@@ -50,7 +51,8 @@ export default function CustomersPage() {
     queryFn: async () => {
       const res = await fetch(API_ENDPOINTS.PRODUCTS.BASE);
       if (!res.ok) throw new Error('Failed to load products');
-      return res.json();
+      const json = await res.json();
+      return json?.data !== undefined ? json.data : json;
     },
   });
 

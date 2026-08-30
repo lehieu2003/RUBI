@@ -19,7 +19,8 @@ export function TrialBanner() {
 
     fetch(API_ENDPOINTS.AUTH.ME)
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
+      .then((json) => {
+        const data = json?.data !== undefined ? json.data : json;
         const sub = data?.subscription
           ? {
               ...data.subscription,

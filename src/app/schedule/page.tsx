@@ -67,7 +67,8 @@ export default function SchedulePage() {
       if (!response.ok) {
         throw new Error(payload?.error ?? 'Không thể tải lịch trình');
       }
-      setPeople(payload);
+      const data = payload?.data !== undefined ? payload.data : payload;
+      setPeople(Array.isArray(data) ? data : []);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Không thể tải lịch trình';
       setLoadError(message);

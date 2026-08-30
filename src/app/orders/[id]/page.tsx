@@ -45,9 +45,10 @@ export default function OrderDetailPage() {
     async function fetchOrder() {
       try {
         const res = await fetch(API_ENDPOINTS.ORDERS.BASE);
-        const orders = await res.json();
+        const json = await res.json();
+        const orders = json?.data !== undefined ? json.data : json;
         // Find this order by id
-        const found = orders.find((o: OrderDetail) => o.id === params.id);
+        const found = Array.isArray(orders) ? orders.find((o: OrderDetail) => o.id === params.id) : null;
         if (found) {
           setOrder(found);
         } else {

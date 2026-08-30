@@ -57,7 +57,8 @@ export function BillingScreen() {
   useEffect(() => {
     fetch(API_ENDPOINTS.AUTH.ME)
       .then(r => r.json())
-      .then((sessionData: Session) => {
+      .then(sessionJson => {
+        const sessionData: Session = sessionJson?.data !== undefined ? sessionJson.data : sessionJson;
         setSession(sessionData);
         const role = sessionData.user?.role;
         if (role && role !== 'ADMIN' && role !== 'ACCOUNTANT' && role !== 'SUPER_ADMIN') {
@@ -66,7 +67,11 @@ export function BillingScreen() {
         }
         return fetch(API_ENDPOINTS.BILLING.SUBSCRIPTION)
           .then(r => r.json())
-          .then(d => { setData(d); setLoading(false); })
+          .then(dJson => {
+            const d = dJson?.data !== undefined ? dJson.data : dJson;
+            setData(d);
+            setLoading(false);
+          })
           .catch(() => setLoading(false));
       })
       .catch(() => setLoading(false));

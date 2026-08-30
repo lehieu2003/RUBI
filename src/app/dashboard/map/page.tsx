@@ -49,8 +49,9 @@ export default function AdminMapPage() {
       try {
         const res = await fetch(API_ENDPOINTS.DRIVERS.BASE);
         if (res.ok) {
-          const data = await res.json();
-          setDrivers(data);
+          const json = await res.json();
+          const data = json?.data !== undefined ? json.data : json;
+          setDrivers(Array.isArray(data) ? data : []);
         }
       } catch (err) {
         console.error('Failed to fetch drivers:', err);
@@ -63,14 +64,15 @@ export default function AdminMapPage() {
     async function fetchMapData() {
       setLoading(true);
       try {
-        let url = `/api/orders/map?date=${selectedDate}`;
+        let url = `${API_ENDPOINTS.ORDERS.MAP}?date=${selectedDate}`;
         if (selectedDriverId !== 'all') {
           url += `&driverId=${selectedDriverId}`;
         }
         const res = await fetch(url);
         if (!res.ok) throw new Error('Failed to fetch map data');
-        const data = await res.json();
-        setOrders(data);
+        const json = await res.json();
+        const data = json?.data !== undefined ? json.data : json;
+        setOrders(Array.isArray(data) ? data : []);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
