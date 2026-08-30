@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useCallback } from 'react';
+import { X } from 'lucide-react';
 
 interface DrawerProps {
   isOpen: boolean;
@@ -88,7 +89,7 @@ export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 bg-black/40"
+        className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -98,35 +99,23 @@ export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="drawer-title"
-        className="fixed right-0 top-0 z-50 flex h-full w-full max-w-lg flex-col bg-slate-800 shadow-xl"
+        className="fixed right-0 top-0 z-50 flex h-full w-full max-w-lg flex-col border-l border-[#c2c6d3] bg-white shadow-2xl transition-transform"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
-          <h2 id="drawer-title" className="text-lg font-semibold text-white">
+        <div className="flex items-center justify-between border-b border-[#e7eeff] bg-[#f9f9ff] px-6 py-4">
+          <h2 id="drawer-title" className="text-base font-bold text-[#002754]">
             {title}
           </h2>
           <button
             onClick={onClose}
-            className="rounded p-1 text-slate-400 hover:bg-white/10 hover:text-white"
-            aria-label="Close drawer"
+            className="flex h-8 w-8 items-center justify-center rounded text-[#737783] hover:bg-[#dee8ff] hover:text-[#004a99] transition-colors"
+            aria-label="Đóng bảng"
           >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <X className="h-5 w-5" />
           </button>
         </div>
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 text-slate-200">{children}</div>
+        <div className="flex-1 overflow-y-auto px-6 py-5 text-[#111c2d]">{children}</div>
       </div>
     </>
   );

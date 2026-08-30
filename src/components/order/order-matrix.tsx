@@ -62,27 +62,27 @@ export function OrderMatrix({
   );
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+    <div className="overflow-x-auto rounded border border-[#c2c6d3] bg-white p-3 shadow-2xs">
+      <table className="w-full text-sm border-collapse">
         <thead>
-          <tr>
-            <th className="px-2 py-1 text-left font-medium text-slate-400"></th>
-            <th className="px-2 py-1 text-center font-medium text-slate-400">5kg</th>
-            <th className="px-2 py-1 text-center font-medium text-slate-400">10kg</th>
-            <th className="px-2 py-1 text-center font-medium text-slate-400">20kg</th>
+          <tr className="border-b border-[#e7eeff]">
+            <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-[#424751]">Loại đá</th>
+            <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-[#424751]">5kg</th>
+            <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-[#424751]">10kg</th>
+            <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-[#424751]">20kg</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-[#e7eeff]">
           {grid.map((row, rowIdx) => (
-            <tr key={row.label}>
-              <td className="whitespace-nowrap px-2 py-1 font-medium text-slate-300">
+            <tr key={row.label} className="hover:bg-[#f9f9ff] transition-colors">
+              <td className="whitespace-nowrap px-3 py-3 font-bold text-[#111c2d]">
                 {row.label}
               </td>
               {row.cells.map((cell, colIdx) => {
                 if (!cell) {
                   return (
-                    <td key={colIdx} className="px-2 py-1">
-                      <span className="text-slate-600">-</span>
+                    <td key={colIdx} className="px-3 py-3 text-center">
+                      <span className="text-[#c2c6d3] font-mono">—</span>
                     </td>
                   );
                 }
@@ -93,9 +93,8 @@ export function OrderMatrix({
                 const isFirst = rowIdx === 0 && colIdx === 0;
 
                 return (
-                  <td key={product.id} className="px-2 py-1">
-                    <div className="flex flex-col items-center gap-0.5">
-                      <span className="text-xs text-slate-400">{product.name}</span>
+                  <td key={product.id} className="px-3 py-3">
+                    <div className="flex flex-col items-center gap-1">
                       <input
                         ref={isFirst ? firstInputRef : undefined}
                         type="number"
@@ -109,14 +108,14 @@ export function OrderMatrix({
                         onKeyDown={handleKeyDown}
                         disabled={disabled}
                         tabIndex={0}
-                        className="w-16 rounded border border-white/10 bg-white/5 px-2 py-1 text-center text-sm text-white focus:border-blue-500/50 focus:outline-none focus:ring-1 focus:ring-blue-500/50 disabled:bg-slate-800"
+                        className="w-20 rounded border border-[#c2c6d3] bg-white px-2 py-1.5 text-center text-sm font-bold text-[#111c2d] focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99] disabled:bg-[#f0f3ff] transition-all shadow-2xs font-mono"
                       />
-                      <span className="text-xs text-slate-500">
-                        {price > 0 ? `${price.toLocaleString()}đ` : '-'}
+                      <span className="text-[11px] font-mono text-[#737783]">
+                        {price > 0 ? `${price.toLocaleString('vi-VN')}đ` : 'Chưa có giá'}
                       </span>
                       {lineTotal > 0 && (
-                        <span className="text-xs font-medium text-emerald-400">
-                          {lineTotal.toLocaleString()}đ
+                        <span className="text-xs font-bold text-[#1b6d24] font-mono">
+                          {lineTotal.toLocaleString('vi-VN')}đ
                         </span>
                       )}
                     </div>

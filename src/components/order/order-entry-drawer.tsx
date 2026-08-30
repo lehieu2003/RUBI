@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useOrderStore } from '@/stores/order-store';
 import { Drawer } from '@/components/ui/drawer';
 import { SearchBar } from '@/components/order/search-bar';
 import { OrderMatrix } from '@/components/order/order-matrix';
 import { saveOrder, loadCustomerPrices } from '@/lib/actions/orders';
+import { toast } from '@/components/dashboard/toast';
+import { Check, Loader2, AlertCircle } from 'lucide-react';
 import type { Customer, Product } from '@prisma/client';
 
 interface OrderEntryDrawerProps {
@@ -71,11 +73,18 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
       lineTotal: qty * (prices[productId] ?? 0),
     }));
 
+    if (lineItems.length === 0) {
+      setIsSaving(false);
+      setSaveError('Vui lòng nhập số lượng cho ít nhất 1 loại đá');
+      return;
+    }
+
     const result = await saveOrder({ customerId: customer.id, lineItems });
 
     setIsSaving(false);
 
     if (result.success) {
+      toast({ type: 'success', title: `Đã lên đơn thành công cho ${customer.name}` });
       // Reset and close
       setValues(new Map());
       setPrices({});
@@ -95,16 +104,15 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
         <span className="text-lg leading-none">+</span>
         <span>LÊN ĐƠN NHANH</span>
         <span className="ml-auto rounded bg-[#00346f] px-1.5 py-0.5 text-[10px] font-mono text-[#9bbdff]">
-          F2 / Ctrl+N
+          F2
         </span>
       </button>
 
       <Drawer isOpen={isOpen} onClose={closeDrawer} title="Tạo Đơn Hàng Tốc Độ Cao">
-        <div className="flex flex-col gap-4">
-
+        <div className="flex flex-col gap-5">
           {/* Customer search */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-300">
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#424751]">
               Khách hàng
             </label>
             <SearchBar
@@ -116,10 +124,10 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
 
           {/* Selected customer display */}
           {customer && (
-            <div className="rounded-md bg-blue-500/20 border border-blue-500/30 p-3 text-sm">
-              <div className="font-medium text-blue-300">{customer.name}</div>
-              <div className="text-blue-400/70">
-                {customer.code} • {customer.phone}
+            <div className="rounded border border-[#004a99]/30 bg-[#dee8ff]/50 p-3.5">
+              <div className="font-bold text-base text-[#002754]">{customer.name}</div>
+              <div className="text-xs text-[#004a99] font-mono mt-0.5 font-medium">
+                Mã: {customer.code} • SĐT: {customer.phone}
               </div>
             </div>
           )}
@@ -128,8 +136,8 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
           {customer && (
             <>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">
-                  Số lượng (kg)
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#424751]">
+                  Số lượng bao đá đặt
                 </label>
                 <OrderMatrix
                   products={products}
@@ -141,28 +149,39 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
                 />
               </div>
 
-              {/* Total */}
-              <div className="flex items-center justify-between rounded-md bg-slate-800 px-4 py-3">
-                <span className="font-medium text-slate-300">Tổng cộng</span>
-                <span className="text-xl font-bold text-emerald-400">
-                  {total.toLocaleString()}đ
+              {/* Total display */}
+              <div className="flex items-center justify-between rounded border border-[#c2c6d3] bg-[#f9f9ff] px-4 py-3.5">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#424751]">Tổng cộng</span>
+                <span className="text-2xl font-bold font-mono text-[#004a99]">
+                  {total.toLocaleString('vi-VN')}đ
                 </span>
               </div>
 
-              {/* Error message */}
+              {/* Error display */}
               {saveError && (
-                <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">
-                  {saveError}
+                <div className="flex items-center gap-2 rounded border border-[#ba1a1a]/30 bg-[#ffdad6] p-3 text-xs font-bold text-[#93000a]">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <span>{saveError}</span>
                 </div>
               )}
 
-              {/* Save button */}
+              {/* Confirm button */}
               <button
                 onClick={handleConfirm}
-                disabled={isSaving || values.size === 0}
-                className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-400"
+                disabled={isSaving || total === 0}
+                className="w-full flex items-center justify-center gap-2 rounded bg-[#004a99] hover:bg-[#00346f] active:bg-[#002754] text-white font-bold text-sm min-h-[50px] px-4 shadow-sm transition-all disabled:opacity-40"
               >
-                {isSaving ? 'Đang lưu...' : 'Lưu đơn hàng'}
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Đang lưu đơn hàng...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-5 w-5 stroke-[2.5]" />
+                    <span>XÁC NHẬN TẠO ĐƠN (ENTER)</span>
+                  </>
+                )}
               </button>
             </>
           )}
