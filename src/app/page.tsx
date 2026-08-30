@@ -24,129 +24,154 @@ export default function LandingPage() {
   const dashboardUrl = user?.role === 'SUPER_ADMIN' ? '/admin/dashboard' : user?.role === 'DRIVER' ? '/driver' : '/dashboard';
 
   return (
-    <div className="min-h-screen bg-[#0a0a1a] text-white font-system-ui overflow-x-hidden">
-      {/* Animated Gradient Background */}
+    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d] overflow-x-hidden">
+      {/* Background Soft Glows */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-gradient-to-r from-blue-600/30 to-violet-600/30 rounded-full blur-[120px] animate-[pulse_8s_ease-in-out_infinite]" />
-        <div className="absolute top-1/3 right-1/4 w-[400px] h-[400px] bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-full blur-[100px] animate-[pulse_10s_ease-in-out_infinite]" style={{ animationDelay: '2s' }} />
-        <div className="absolute bottom-1/4 left-1/3 w-[450px] h-[450px] bg-gradient-to-r from-violet-500/20 to-purple-500/20 rounded-full blur-[110px] animate-[pulse_12s_ease-in-out_infinite]" style={{ animationDelay: '4s' }} />
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[#dee8ff]/60 rounded-full blur-[140px]" />
+        <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-[#d8e3fb]/50 rounded-full blur-[120px]" />
       </div>
 
       {/* Grid Pattern Overlay */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+      <div
+        className="fixed inset-0 overflow-hidden pointer-events-none opacity-[0.4]"
+        style={{
+          backgroundImage: 'linear-gradient(#e7eeff 1px, transparent 1px), linear-gradient(90deg, #e7eeff 1px, transparent 1px)',
+          backgroundSize: '48px 48px',
+        }}
+      />
 
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 flex items-center justify-between px-6 py-3 max-w-[1200px] mx-auto bg-white/5 backdrop-blur-xl border border-white/10 shadow-lg rounded-2xl mt-4 mx-4 transition-all duration-500 hover:bg-white/10 hover:border-white/20 hover:shadow-blue-500/10">
-        <div className="flex items-center gap-2 text-xl font-extrabold">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-violet-600 rounded-lg flex items-center justify-center">
+      <nav className="sticky top-0 z-50 flex items-center justify-between px-6 py-3 max-w-[1200px] mx-auto bg-white/90 backdrop-blur-md border border-[#c2c6d3] shadow-xs rounded-xl mt-4 transition-all">
+        <div className="flex items-center gap-2.5 text-xl font-bold">
+          <div className="w-8 h-8 bg-[#004a99] rounded flex items-center justify-center text-white shadow-2xs">
             <IceIcon />
           </div>
-          <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">IceFlow</span>
+          <span className="text-[#002754] font-black tracking-tight">IceFlow</span>
         </div>
         <div className="flex items-center gap-6">
-          <a href="#pain" className="text-sm font-medium text-gray-400 hover:text-white transition-all duration-300 hover:scale-105">Nỗi đau</a>
-          <a href="#features" className="text-sm font-medium text-gray-400 hover:text-white transition-all duration-300 hover:scale-105">Tính năng</a>
+          <a href="#pain" className="text-xs font-bold uppercase tracking-wider text-[#424751] hover:text-[#004a99] transition-colors">
+            Nỗi đau
+          </a>
+          <a href="#features" className="text-xs font-bold uppercase tracking-wider text-[#424751] hover:text-[#004a99] transition-colors">
+            Tính năng
+          </a>
           {user ? (
-            <Link href={dashboardUrl} className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-semibold text-sm rounded-xl hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5">
-              Vào Bảng điều khiển
+            <Link
+              href={dashboardUrl}
+              className="px-4 py-2 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-all shadow-xs"
+            >
+              VÀO BẢNG ĐIỀU KHIỂN &rarr;
             </Link>
           ) : (
-            <>
-              <Link href="/login" className="px-5 py-2.5 border border-white/20 text-gray-300 font-medium text-sm rounded-xl hover:border-white/40 hover:text-white transition-all duration-300 hover:bg-white/5">
+            <div className="flex items-center gap-2.5">
+              <Link
+                href="/login"
+                className="px-3.5 py-1.5 border border-[#c2c6d3] bg-white text-[#00346f] font-bold text-xs rounded hover:bg-[#dee8ff] transition-all"
+              >
                 Đăng nhập
               </Link>
-              <Link href="/register" className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-semibold text-sm rounded-xl hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5">
-                Dùng thử
+              <Link
+                href="/register"
+                className="px-4 py-1.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-all shadow-xs"
+              >
+                Dùng thử 14 ngày
               </Link>
-            </>
+            </div>
           )}
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="relative max-w-[900px] mx-auto px-8 pt-28 pb-20 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500/10 to-orange-500/10 border border-red-500/20 rounded-full text-sm text-red-400 font-medium mb-8 animate-[fadeInUp_0.8s_ease-out]">
-          <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-          <span>Chủ lò đá đang mất tiền mỗi ngày — và không biết</span>
+      <section className="relative max-w-[900px] mx-auto px-6 pt-20 pb-16 text-center">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#ffdcc2]/60 border border-[#7f3700]/20 rounded-full text-xs text-[#7f3700] font-bold mb-6">
+          <span className="w-2 h-2 bg-[#ba1a1a] rounded-full animate-pulse" />
+          <span>Chủ xưởng đá đang thất thoát tiền & vỏ bao mỗi ngày</span>
         </div>
 
-        <h1 className="text-[clamp(2.5rem,6vw,4rem)] font-black leading-[1.1] tracking-tight mb-6 animate-[fadeInUp_0.8s_ease-out_0.1s_both]">
-          <span className="bg-gradient-to-b from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
-            Quản lý lò đá thảnh thơi
-          </span>
+        <h1 className="text-[clamp(2.2rem,5vw,3.5rem)] font-black leading-[1.15] tracking-tight text-[#111c2d] mb-6">
+          Quản Lý Xưởng Đá Thảnh Thơi
           <br />
-          <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">
-            Chống thất thoát tuyệt đối
+          <span className="text-[#004a99]">
+            Chống Thất Thoát Tuyệt Đối
           </span>
         </h1>
 
-        <p className="text-lg text-gray-400 leading-relaxed mb-10 max-w-[600px] mx-auto animate-[fadeInUp_0.8s_ease-out_0.2s_both]">
-          Số hóa đơn hàng, theo dõi công nợ đại lý và quản lý kho lạnh chỉ trên một nền tảng.
-          <span className="text-gray-300"> Dễ dùng như Zalo, hiệu quả hơn sổ sách.</span>
+        <p className="text-base text-[#424751] leading-relaxed mb-8 max-w-[620px] mx-auto">
+          Số hóa đơn hàng chỉ 30 giây, theo dõi công nợ đại lý và quản lý vỏ bao tự động.
+          <span className="text-[#111c2d] font-semibold"> Dễ dùng hơn Zalo, nhanh hơn sổ tay.</span>
         </p>
 
-        <div className="flex items-center justify-center gap-4 flex-wrap animate-[fadeInUp_0.8s_ease-out_0.3s_both]">
+        <div className="flex items-center justify-center gap-3 flex-wrap">
           {user ? (
-            <Link href={dashboardUrl} className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold text-base rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/30 hover:-translate-y-1">
-              <span className="relative z-10">Vào Bảng điều khiển &rarr;</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <Link
+              href={dashboardUrl}
+              className="px-7 py-3.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-sm rounded shadow-sm transition-all"
+            >
+              TIẾP TỤC QUẢN LÝ XƯỞNG &rarr;
             </Link>
           ) : (
             <>
-              <Link href="/register" className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold text-base rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/30 hover:-translate-y-1">
-                <span className="relative z-10">Dùng thử miễn phí 14 ngày</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <Link
+                href="/register"
+                className="px-7 py-3.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-sm rounded shadow-sm transition-all"
+              >
+                DÙNG THỬ MIỄN PHÍ 14 NGÀY
               </Link>
-              <Link href="/login" className="px-8 py-4 text-gray-400 font-semibold text-base rounded-2xl border border-white/10 hover:border-white/20 hover:text-white hover:bg-white/5 transition-all duration-300">
-                Đăng nhập ngay
+              <Link
+                href="/login"
+                className="px-7 py-3.5 bg-white text-[#00346f] font-bold text-sm rounded border border-[#c2c6d3] hover:bg-[#dee8ff] transition-all"
+              >
+                ĐĂNG NHẬP NGAY
               </Link>
             </>
           )}
         </div>
 
-        <p className="mt-6 text-sm text-gray-500 animate-[fadeInUp_0.8s_ease-out_0.4s_both]">Không cần thẻ tín dụng • Không cần hỗ trợ kỹ thuật</p>
+        <p className="mt-4 text-xs text-[#737783]">Không cần thẻ tín dụng • Không cần cài đặt phức tạp</p>
 
-        <div className="mt-16 flex items-center justify-center gap-8 flex-wrap animate-[fadeInUp_0.8s_ease-out_0.5s_both]">
+        <div className="mt-14 flex items-center justify-center gap-8 flex-wrap border-t border-[#c2c6d3] pt-8">
           <StatItem value="50+" label="Nhà máy đá" />
-          <div className="w-px h-10 bg-white/10" />
-          <StatItem value="1000+" label="Đơn hàng/ngày" />
-          <div className="w-px h-10 bg-white/10" />
-          <StatItem value="30s" label="Mỗi đơn" />
+          <div className="w-px h-10 bg-[#c2c6d3]" />
+          <StatItem value="1,000+" label="Đơn hàng / ngày" />
+          <div className="w-px h-10 bg-[#c2c6d3]" />
+          <StatItem value="30s" label="Thời gian lên đơn" />
         </div>
       </section>
 
       {/* Pain Points */}
-      <section id="pain" className="relative py-24 px-8">
+      <section id="pain" className="relative py-16 px-6 bg-white border-y border-[#c2c6d3]">
         <div className="max-w-[1200px] mx-auto">
-          <div className="text-center mb-16">
-            <span className="inline-block px-4 py-1.5 bg-red-500/10 border border-red-500/20 rounded-full text-xs font-semibold text-red-400 mb-4 uppercase tracking-wider">Nỗi đau thực tế</span>
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Những nỗi đau khiến chủ lò đá mất ngủ</h2>
-            <p className="text-gray-400 max-w-[500px] mx-auto">Bạn nhận ra mình đang gặp vấn đề — nhưng chưa có cách giải quyết đúng.</p>
+          <div className="text-center mb-12">
+            <span className="inline-block px-3 py-1 bg-[#ffdad6] border border-[#ba1a1a]/20 rounded text-xs font-bold text-[#ba1a1a] mb-2 uppercase tracking-wider">
+              Nỗi đau thực tế
+            </span>
+            <h2 className="text-2xl md:text-3xl font-black text-[#111c2d] mb-2">Những Vấn Đề Khiến Chủ Xưởng Mất Tiền</h2>
+            <p className="text-xs text-[#424751] max-w-[500px] mx-auto">Ghi sổ tay và chốt Zalo thủ công gây ra hàng loạt sai sót.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <PainCard
               icon={<BagLossIcon />}
               title="Thất thoát vỏ bao"
-              desc="Đến cuối tháng mới biết thiếu hụt vài chục bao — mà không biết trôi từ đâu."
+              desc="Đến cuối tháng mới biết thiếu hụt hàng trăm bao — không rõ khách nào đang nợ."
               delay={0}
             />
             <PainCard
               icon={<DebtConfusionIcon />}
               title="Sai lệch công nợ"
-              desc="Tài xế thu tiền về nhưng quên nộp, sổ tay ghi chép nhầm lẫn."
+              desc="Tài xế giao hàng thu tiền nhưng quên nộp, sổ tay ghi chép nhầm lẫn số lượng."
               delay={100}
             />
             <PainCard
               icon={<BlindProfitIcon />}
               title="Mù mờ lợi nhuận"
-              desc="Cuối tháng không biết thực sự lãi bao nhiêu sau khi trừ tiền điện, xăng xe."
+              desc="Cuối tháng không biết thực sự lãi bao nhiêu sau khi trừ tiền điện, xăng xe và vỏ."
               delay={200}
             />
             <PainCard
               icon={<ZaloMessIcon />}
-              title="Đơn qua Zalo"
-              desc="Một ngày 50-80 đơn — lỗi nhập liệu, chép nhầm là chuyện thường."
+              title="Lộn xộn tin nhắn Zalo"
+              desc="Một ngày 50-80 đơn qua Zalo — bỏ sót đơn, giao nhầm loại đá là chuyện thường."
               delay={300}
             />
           </div>
@@ -154,202 +179,151 @@ export default function LandingPage() {
       </section>
 
       {/* Loss Calculator */}
-      <section className="relative py-24 px-8">
+      <section className="relative py-16 px-6">
         <div className="max-w-[700px] mx-auto">
-          <div className="relative bg-gradient-to-br from-blue-600/10 to-violet-600/10 backdrop-blur-xl border border-white/10 rounded-3xl p-8 overflow-hidden">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-gradient-to-b from-blue-500/20 to-transparent blur-2xl" />
-
-            <div className="relative flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-violet-500 rounded-xl flex items-center justify-center">
+          <div className="bg-white border border-[#c2c6d3] rounded-2xl p-6 md:p-8 shadow-sm">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-[#dee8ff] rounded flex items-center justify-center text-[#004a99]">
                 <CalculatorIcon />
               </div>
-              <h3 className="text-xl font-bold text-white">Tính toán thất thoát của bạn</h3>
+              <div>
+                <h3 className="text-base font-bold text-[#111c2d]">Tính Toán Thất Thoát Của Xưởng Bạn</h3>
+                <p className="text-xs text-[#424751]">Ước tính số tiền thất thoát từ vỏ bao trôi nổi mỗi năm</p>
+              </div>
             </div>
 
-            <div className="flex gap-8 items-center flex-wrap">
+            <div className="flex gap-6 items-center flex-wrap">
               <div className="flex-1 min-w-[200px]">
-                <label className="block text-sm font-medium text-gray-400 mb-3">Số vỏ bao mất mỗi tháng</label>
-                <div className="flex items-center gap-3">
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-2">
+                  Số vỏ bao mất mỗi tháng
+                </label>
+                <div className="flex items-center gap-2">
                   <input
                     type="number"
                     value={bagLoss}
                     onChange={(e) => setBagLoss(Number(e.target.value) || 0)}
                     min="0"
-                    className="w-28 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-2xl font-bold text-center text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/15 transition-all"
+                    className="w-28 px-3 py-2 bg-white border border-[#004a99] rounded text-xl font-bold text-center text-[#111c2d] focus:outline-none"
                     placeholder="0"
                   />
-                  <span className="text-sm text-gray-400">vỏ bao</span>
+                  <span className="text-xs font-bold text-[#424751]">vỏ bao / tháng</span>
                 </div>
               </div>
 
-              <div className="flex-1 min-w-[200px] text-center p-5 bg-gradient-to-br from-red-500/10 to-orange-500/10 border border-red-500/20 rounded-2xl">
-                <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Thất thoát ước tính/năm</p>
-                <p className="text-4xl font-black bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent mb-1">
-                  ~{yearlyLoss}M
+              <div className="flex-1 min-w-[200px] text-center p-4 bg-[#ffdcc2]/50 border border-[#7f3700]/20 rounded-xl">
+                <p className="text-xs font-bold text-[#7f3700] uppercase tracking-wider mb-1">Thất thoát ước tính / năm</p>
+                <p className="data-lg text-3xl font-black text-[#ba1a1a] mb-0.5">
+                  ~{yearlyLoss} triệu đ
                 </p>
-                <p className="text-xs text-gray-500">*20,000đ/vỏ bao</p>
+                <p className="text-[11px] text-[#737783]">*Tính định mức 20,000đ / vỏ bao</p>
               </div>
             </div>
 
-            <p className="mt-6 text-sm text-blue-400 text-center font-medium">
-              IceFlow giúp bạn theo dõi từng vỏ bao — biết ai nợ, nợ bao nhiêu, từ khi nào.
+            <p className="mt-5 text-xs text-[#004a99] text-center font-bold">
+              IceFlow giúp theo dõi từng vỏ bao trả ra / thu về — biết chính xác đại lý nào nợ.
             </p>
           </div>
         </div>
       </section>
 
       {/* Features */}
-      <section id="features" className="relative py-24 px-8">
+      <section id="features" className="relative py-16 px-6 bg-white border-y border-[#c2c6d3]">
         <div className="max-w-[1200px] mx-auto">
-          <div className="text-center mb-16">
-            <span className="inline-block px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full text-xs font-semibold text-blue-400 mb-4 uppercase tracking-wider">Tính năng</span>
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Thiết kế cho chủ lò đá thực thụ</h2>
-            <p className="text-gray-400 max-w-[500px] mx-auto">Không hoa mỹ. Mỗi tính năng đều giải quyết một vấn đề cụ thể.</p>
+          <div className="text-center mb-12">
+            <span className="inline-block px-3 py-1 bg-[#dee8ff] border border-[#004a99]/20 rounded text-xs font-bold text-[#004a99] mb-2 uppercase tracking-wider">
+              Tính năng cốt lõi
+            </span>
+            <h2 className="text-2xl md:text-3xl font-black text-[#111c2d] mb-2">Được Thiết Kế Cho Chủ Lò Đá Việt Nam</h2>
+            <p className="text-xs text-[#424751] max-w-[500px] mx-auto">Tập trung vào tốc độ, độ chính xác và tính dễ dùng.</p>
           </div>
 
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-6">
             {/* Feature 1: Speed */}
-            <div className="group grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 hover:border-white/20 transition-all duration-500">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-6 md:p-8 bg-[#f9f9ff] border border-[#c2c6d3] rounded-2xl">
               <div>
-                <span className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold rounded-full mb-4">
-                  <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" /> Tốc độ
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#a0f399]/40 text-[#1b6d24] text-xs font-bold rounded mb-3">
+                  ✓ TỐC ĐỘ CAO
                 </span>
-                <h3 className="text-2xl font-bold text-white mb-3">Lên đơn siêu tốc — 30 giây</h3>
-                <p className="text-gray-400 leading-relaxed mb-5">Vừa nghe điện thoại vừa lên đơn. Search khách → Tab qua sản phẩm → Enter = xong. Tự động áp giá riêng cho từng đại lý.</p>
-                <ul className="flex flex-col gap-3">
-                  <li className="flex items-center gap-3 text-sm text-gray-300">
-                    <span className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs">✓</span>
-                    Tự động nhận diện khách qua mã KH hoặc SĐT
+                <h3 className="text-xl font-bold text-[#111c2d] mb-2">Lên đơn siêu tốc — chỉ 30 giây</h3>
+                <p className="text-xs text-[#424751] leading-relaxed mb-4">Vừa nghe điện thoại vừa gõ đơn. Tìm khách hàng bằng tên, số điện thoại hoặc mã đại lý. Tự động áp giá riêng theo từng đại lý.</p>
+                <ul className="flex flex-col gap-2 text-xs text-[#424751]">
+                  <li className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded bg-[#a0f399]/40 text-[#1b6d24] flex items-center justify-center font-bold text-[10px]">✓</span>
+                    Tìm kiếm thông minh (Fuzzy Search)
                   </li>
-                  <li className="flex items-center gap-3 text-sm text-gray-300">
-                    <span className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs">✓</span>
-                    Bảng giá riêng theo từng khách hàng
+                  <li className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded bg-[#a0f399]/40 text-[#1b6d24] flex items-center justify-center font-bold text-[10px]">✓</span>
+                    Bảng giá riêng theo từng đại lý
                   </li>
-                  <li className="flex items-center gap-3 text-sm text-gray-300">
-                    <span className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs">✓</span>
-                    Tổng tiền tự động cập nhật
+                  <li className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded bg-[#a0f399]/40 text-[#1b6d24] flex items-center justify-center font-bold text-[10px]">✓</span>
+                    Tự động tính tiền và lưu đơn tức thì
                   </li>
                 </ul>
               </div>
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-violet-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative bg-[#0f172a] rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-                  <div className="flex gap-2 p-3 bg-[#1e1e2e] border-b border-white/5">
-                    <div className="w-3 h-3 rounded-full bg-red-500/50" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
-                    <div className="w-3 h-3 rounded-full bg-green-500/50" />
+              <div className="bg-white rounded border border-[#c2c6d3] p-4 shadow-sm">
+                <div className="flex items-center gap-2 pb-3 border-b border-[#e7eeff] text-xs font-bold text-[#004a99]">
+                  <span>🔍</span>
+                  <span>Đại lý Minh Tuấn (0912 345 678)</span>
+                </div>
+                <div className="py-2.5 space-y-2 text-xs">
+                  <div className="flex justify-between font-medium text-[#111c2d]">
+                    <span>Đá Bi (20kg) × 10 bao</span>
+                    <span className="font-bold text-[#004a99]">120,000 đ</span>
                   </div>
-                  <div className="p-5 flex flex-col gap-3">
-                    <div className="flex items-center gap-2 bg-white/5 rounded-xl px-4 py-3 text-sm text-gray-400 border border-white/5">
-                      <span className="text-blue-400">🔍</span>
-                      <span>Tìm khách hàng...</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm text-gray-300 py-2 border-b border-white/5">
-                      <span>Đá Bi 5kg</span>
-                      <span className="text-blue-400 font-semibold">×10</span>
-                      <span className="text-emerald-400">120,000đ</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm text-gray-300 py-2 border-b border-white/5">
-                      <span>Đá Viên 10kg</span>
-                      <span className="text-blue-400 font-semibold">×5</span>
-                      <span className="text-emerald-400">220,000đ</span>
-                    </div>
+                  <div className="flex justify-between font-medium text-[#111c2d]">
+                    <span>Đá Viên (20kg) × 5 bao</span>
+                    <span className="font-bold text-[#004a99]">110,000 đ</span>
+                  </div>
+                  <div className="flex justify-between pt-2 border-t border-[#e7eeff] font-bold text-sm">
+                    <span className="text-[#424751]">TỔNG CỘNG:</span>
+                    <span className="text-[#1b6d24]">230,000 đ</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Feature 2: Reconciliation */}
-            <div className="group grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 hover:border-white/20 transition-all duration-500">
-              <div className="relative order-2 lg:order-1">
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative bg-[#0f172a] rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-                  <div className="flex gap-2 p-3 bg-[#1e1e2e] border-b border-white/5">
-                    <div className="w-3 h-3 rounded-full bg-red-500/50" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
-                    <div className="w-3 h-3 rounded-full bg-green-500/50" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-6 md:p-8 bg-[#f9f9ff] border border-[#c2c6d3] rounded-2xl">
+              <div className="bg-white rounded border border-[#c2c6d3] p-4 shadow-sm order-2 lg:order-1">
+                <div className="text-xs font-bold uppercase text-[#424751] mb-2 pb-2 border-b border-[#e7eeff]">
+                  Đối soát ca xe cuối ngày
+                </div>
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between py-1 border-b border-[#e7eeff]">
+                    <span className="text-[#737783]">Tiền mặt tài xế nộp</span>
+                    <span className="font-bold text-[#1b6d24]">+3,200,000 đ</span>
                   </div>
-                  <div className="p-5 flex flex-col gap-3">
-                    <div className="text-xs font-semibold text-gray-200 mb-2 uppercase tracking-wider">Đối soát cuối ngày</div>
-                    <div className="flex justify-between items-center text-sm text-gray-300 py-2 border-b border-white/5">
-                      <span>Công nợ</span>
-                      <span className="text-emerald-400 font-bold">+3,200,000đ</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm text-gray-300 py-2 border-b border-white/5">
-                      <span>Vỏ bao</span>
-                      <span className="text-red-400 font-bold">-28 vỏ</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm text-gray-300 py-2">
-                      <span>Đơn hàng</span>
-                      <span className="text-blue-400 font-bold">+12 đơn</span>
-                    </div>
+                  <div className="flex justify-between py-1 border-b border-[#e7eeff]">
+                    <span className="text-[#737783]">Vỏ bao thu về</span>
+                    <span className="font-bold text-[#004a99]">45 / 50 vỏ</span>
+                  </div>
+                  <div className="flex justify-between py-1 font-bold">
+                    <span className="text-[#737783]">Đơn hoàn tất</span>
+                    <span className="text-[#111c2d]">12 / 12 đơn</span>
                   </div>
                 </div>
               </div>
               <div className="order-1 lg:order-2">
-                <span className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold rounded-full mb-4">
-                  <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" /> Đối soát
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#dee8ff] text-[#004a99] text-xs font-bold rounded mb-3">
+                  ✓ ĐỐI SOÁT TỰ ĐỘNG
                 </span>
-                <h3 className="text-2xl font-bold text-white mb-3">Cuối ngày chốt sổ 5 phút</h3>
-                <p className="text-gray-400 leading-relaxed mb-5">Tự động trừ kho, cộng nợ khách hàng ngay khi tài xế về. Không cần cộng tay, không cần Excel.</p>
-                <ul className="flex flex-col gap-3">
-                  <li className="flex items-center gap-3 text-sm text-gray-300">
-                    <span className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs">✓</span>
-                    Tài xế xác nhận giao trên điện thoại
+                <h3 className="text-xl font-bold text-[#111c2d] mb-2">Chốt sổ cuối ca chỉ 5 phút</h3>
+                <p className="text-xs text-[#424751] leading-relaxed mb-4">Tự động đối chiếu đơn giao, tiền mặt tài xế thu về và số vỏ bao thu hồi. Không cần cộng sổ tay, không sợ thất thoát.</p>
+                <ul className="flex flex-col gap-2 text-xs text-[#424751]">
+                  <li className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded bg-[#a0f399]/40 text-[#1b6d24] flex items-center justify-center font-bold text-[10px]">✓</span>
+                    Tài xế bấm giao hàng trên điện thoại
                   </li>
-                  <li className="flex items-center gap-3 text-sm text-gray-300">
-                    <span className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs">✓</span>
-                    Công nợ tự động cập nhật
+                  <li className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded bg-[#a0f399]/40 text-[#1b6d24] flex items-center justify-center font-bold text-[10px]">✓</span>
+                    Công nợ cập nhật ngay lập tức
                   </li>
-                  <li className="flex items-center gap-3 text-sm text-gray-300">
-                    <span className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs">✓</span>
-                    Lịch sử giao dịch đại lý
+                  <li className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded bg-[#a0f399]/40 text-[#1b6d24] flex items-center justify-center font-bold text-[10px]">✓</span>
+                    Báo cáo doanh thu và nợ rõ ràng
                   </li>
                 </ul>
-              </div>
-            </div>
-
-            {/* Feature 3: Print */}
-            <div className="group grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 hover:border-white/20 transition-all duration-500">
-              <div>
-                <span className="inline-flex items-center gap-2 px-3 py-1 bg-violet-500/10 border border-violet-500/20 text-violet-400 text-xs font-semibold rounded-full mb-4">
-                  <span className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-pulse" /> Kho & In ấn
-                </span>
-                <h3 className="text-2xl font-bold text-white mb-3">In phiếu giao tức thì</h3>
-                <p className="text-gray-400 leading-relaxed mb-5">Kết nối máy in văn phòng thông thường, in phiếu giao hàng chuyên nghiệp có sẵn chỗ ký nhận.</p>
-                <ul className="flex flex-col gap-3">
-                  <li className="flex items-center gap-3 text-sm text-gray-300">
-                    <span className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs">✓</span>
-                    Đầy đủ thông tin: khách, sản phẩm, số lượng, tổng tiền
-                  </li>
-                  <li className="flex items-center gap-3 text-sm text-gray-300">
-                    <span className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs">✓</span>
-                    Khách ký xác nhận trên phiếu
-                  </li>
-                  <li className="flex items-center gap-3 text-sm text-gray-300">
-                    <span className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs">✓</span>
-                    Lưu trữ số hóa — không lo mất sổ
-                  </li>
-                </ul>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-purple-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative bg-white rounded-2xl p-6 shadow-2xl border border-gray-200">
-                  <div className="font-black text-xs text-center border-b-2 border-gray-200 pb-3 mb-4 text-gray-800 uppercase tracking-wider">PHIẾU GIAO HÀNG</div>
-                  <div className="text-gray-500 mb-4 leading-relaxed">
-                    <span className="font-semibold text-gray-700">Đại lý Minh Tuấn</span><br />
-                    18/04/2026 14:30
-                  </div>
-                  <div className="flex flex-col gap-2 mb-4 text-gray-800">
-                    <div className="flex justify-between"><span>Đá Bi 5kg × 10</span><span className="font-semibold">120,000đ</span></div>
-                    <div className="flex justify-between"><span>Đá Viên 10kg × 5</span><span className="font-semibold">220,000đ</span></div>
-                  </div>
-                  <div className="flex justify-between items-center py-3 border-t-2 border-gray-200">
-                    <span className="font-bold text-gray-800">TỔNG CỘNG</span>
-                    <span className="font-black text-xl text-blue-600">2,340,000đ</span>
-                  </div>
-                  <div className="text-gray-400 italic text-sm mt-4">Chữ ký khách hàng: ___________</div>
-                </div>
               </div>
             </div>
           </div>
@@ -357,55 +331,61 @@ export default function LandingPage() {
       </section>
 
       {/* Vietnam-proof */}
-      <section className="relative py-24 px-8">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      <section className="relative py-16 px-6">
         <div className="max-w-[1200px] mx-auto">
-          <div className="text-center mb-12">
-            <span className="inline-block px-4 py-1.5 bg-violet-500/10 border border-violet-500/20 rounded-full text-xs font-semibold text-violet-400 mb-4 uppercase tracking-wider">Khác biệt</span>
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Thực tế tại Việt Nam</h2>
+          <div className="text-center mb-10">
+            <span className="inline-block px-3 py-1 bg-[#dee8ff] border border-[#004a99]/20 rounded text-xs font-bold text-[#004a99] mb-2 uppercase tracking-wider">
+              Cam kết
+            </span>
+            <h2 className="text-2xl md:text-3xl font-black text-[#111c2d] mb-2">Tối Ưu Cho Môi Trường Nhà Máy Đá</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <LocalCard
               icon={<GlobeIcon />}
-              title="Tiếng Việt hoàn toàn"
-              desc="Giao diện đơn giản, dễ dùng cho cả công nhân và tài xế."
+              title="100% Tiếng Việt"
+              desc="Giao diện thuần Việt, đơn giản, dễ dùng cho cả nhân viên văn phòng và tài xế xe tải."
             />
             <LocalCard
               icon={<CloudIcon />}
-              title="Dữ liệu đám mây"
-              desc="Không lo mất sổ sách. Mọi thứ được sao lưu tự động."
+              title="Lưu trữ đám mây"
+              desc="Không lo mất dữ liệu hay rách sổ sách. Dữ liệu được đồng bộ và sao lưu liên tục."
             />
             <LocalCard
               icon={<ServerIcon />}
-              title="Hoạt động ổn định"
-              desc="50-100 đơn/ngày vẫn mượt. Peak season không chậm."
+              title="Chịu tải mùa cao điểm"
+              desc="Xử lý mượt mà 100-200 đơn/ngày trong những đợt nắng nóng cao điểm không hề chậm trễ."
             />
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="relative py-24 px-8 text-center">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-gradient-to-r from-blue-500/20 via-violet-500/20 to-purple-500/20 rounded-full blur-3xl" />
-
-        <div className="relative max-w-[640px] mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Bắt đầu trong 5 phút</h2>
-          <p className="text-gray-400 leading-relaxed mb-10">Đăng ký, kết nối dữ liệu, bắt đầu nhập đơn. Không cần cài đặt phức tạp.</p>
-          <div className="flex items-center justify-center gap-4 flex-wrap">
+      <section className="relative py-16 px-6 text-center bg-[#002754] text-white">
+        <div className="max-w-[640px] mx-auto">
+          <h2 className="text-2xl md:text-3xl font-black text-white mb-3">Bắt Đầu Quản Lý Xưởng Đá Ngay Hôm Nay</h2>
+          <p className="text-xs text-[#9bbdff] leading-relaxed mb-6">Đăng ký tài khoản trong 1 phút và trải nghiệm miễn phí 14 ngày không giới hạn tính năng.</p>
+          <div className="flex items-center justify-center gap-3 flex-wrap">
             {user ? (
-              <Link href={dashboardUrl} className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold text-base rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/30 hover:-translate-y-1">
-                <span className="relative z-10">Tiếp tục quản lý xưởng &rarr;</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <Link
+                href={dashboardUrl}
+                className="px-6 py-3 bg-[#004a99] hover:bg-[#255dad] text-white font-bold text-xs rounded transition-all shadow-sm"
+              >
+                TIẾP TỤC QUẢN LÝ XƯỞNG &rarr;
               </Link>
             ) : (
               <>
-                <Link href="/register" className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold text-base rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/30 hover:-translate-y-1">
-                  <span className="relative z-10">Dùng thử miễn phí 14 ngày</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <Link
+                  href="/register"
+                  className="px-6 py-3 bg-[#004a99] hover:bg-[#255dad] text-white font-bold text-xs rounded transition-all shadow-sm"
+                >
+                  DÙNG THỬ MIỄN PHÍ 14 NGÀY
                 </Link>
-                <Link href="/login" className="px-8 py-4 text-gray-400 font-semibold text-base rounded-2xl border border-white/10 hover:border-white/20 hover:text-white hover:bg-white/5 transition-all duration-300">
-                  Đăng nhập
+                <Link
+                  href="/login"
+                  className="px-6 py-3 bg-transparent border border-[#9bbdff] text-[#ecf1ff] font-bold text-xs rounded hover:bg-[#00346f] transition-all"
+                >
+                  ĐĂNG NHẬP
                 </Link>
               </>
             )}
@@ -414,36 +394,18 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="relative py-12 px-8 border-t border-white/10">
-        <div className="max-w-[1200px] mx-auto flex flex-col items-center gap-4">
-          <div className="flex items-center gap-2 text-xl font-extrabold">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-violet-600 rounded-lg flex items-center justify-center">
+      <footer className="py-8 px-6 border-t border-[#c2c6d3] bg-white">
+        <div className="max-w-[1200px] mx-auto flex flex-col items-center gap-2">
+          <div className="flex items-center gap-2 text-lg font-bold">
+            <div className="w-6 h-6 bg-[#004a99] rounded flex items-center justify-center text-white">
               <IceIcon />
             </div>
-            <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">IceFlow</span>
+            <span className="text-[#002754] font-black">IceFlow</span>
           </div>
-          <p className="text-sm text-gray-500">Quản lý lò đá thảnh thơi — Chống thất thoát tiền & vỏ bao</p>
-          <p className="text-xs text-gray-600">© 2026 IceFlow SaaS • Cho nhà máy đá Việt Nam</p>
+          <p className="text-xs text-[#424751]">Quản lý lò đá thảnh thơi — Chống thất thoát tiền & vỏ bao</p>
+          <p className="text-[11px] text-[#737783]">© 2026 IceFlow SaaS • Dành cho nhà máy đá Việt Nam</p>
         </div>
       </footer>
-
-      {/* Keyframes */}
-      <style jsx>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 0.5; transform: scale(1); }
-          50% { opacity: 0.8; transform: scale(1.05); }
-        }
-      `}</style>
     </div>
   );
 }
