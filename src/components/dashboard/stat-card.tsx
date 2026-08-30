@@ -53,14 +53,14 @@ export function StatCard({
       <div className="flex items-start justify-between">
         <div className="flex-1">
           {/* Title */}
-          <p className="text-xs font-bold uppercase tracking-wider text-[#424751] mb-1">
+          <p className="text-xs font-bold uppercase tracking-wider text-[#334155] mb-1.5">
             {title}
           </p>
 
           {/* Main value (Data Mono) */}
           <p
-            className={`data-lg font-bold ${
-              warning ? 'text-[#ba1a1a]' : 'text-[#111c2d]'
+            className={`font-mono text-2xl font-bold tracking-tight tabular-nums ${
+              warning ? 'text-[#ba1a1a]' : 'text-[#0f172a]'
             }`}
           >
             {value}
@@ -68,7 +68,7 @@ export function StatCard({
 
           {/* Sub value */}
           {subValue && (
-            <p className="mt-1 text-xs text-[#737783]">{subValue}</p>
+            <p className="mt-1 text-xs text-[#64748b] font-medium">{subValue}</p>
           )}
 
           {/* Trend indicator */}

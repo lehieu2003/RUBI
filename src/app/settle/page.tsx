@@ -241,28 +241,28 @@ export default function SettlePage() {
                 return (
                   <div
                     key={order.id}
-                    className="rounded border border-[#c2c6d3] p-4 bg-white hover:bg-[#f0f3ff] transition-all shadow-sm"
+                    className="rounded border border-[#c2c6d3] p-4 bg-white hover:bg-[#f8fafc] transition-all shadow-sm"
                   >
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2.5 mb-1.5">
-                          <span className="data-sm font-bold text-[#004a99] bg-[#dee8ff] px-2 py-0.5 rounded">
+                          <span className="font-mono text-xs font-bold text-[#004a99] bg-[#dee8ff] px-2 py-0.5 rounded">
                             {order.code}
                           </span>
-                          <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${status.color}`}>
+                          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${status.color}`}>
                             {status.label}
                           </span>
                         </div>
-                        <h3 className="text-base font-bold text-[#111c2d]">{order.customerName}</h3>
-                        <p className="text-[#424751] text-xs mt-1">{order.items}</p>
-                        <div className="flex items-center gap-4 mt-2 text-xs text-[#737783]">
-                          <span>Tài xế: <strong className="text-[#111c2d]">{order.driverName}</strong></span>
-                          <span>Giờ giao: <strong className="text-[#111c2d] data-sm">{order.createdAt}</strong></span>
+                        <h3 className="text-base font-bold text-[#0f172a]">{order.customerName}</h3>
+                        <p className="text-[#334155] text-xs font-medium mt-1">{order.items}</p>
+                        <div className="flex items-center gap-4 mt-2 text-xs text-[#475569]">
+                          <span>Tài xế: <strong className="text-[#0f172a] font-semibold">{order.driverName}</strong></span>
+                          <span>Giờ giao: <strong className="text-[#0f172a] font-mono tabular-nums">{order.createdAt}</strong></span>
                         </div>
                       </div>
 
-                      <div className="text-left md:text-right border-t md:border-t-0 pt-3 md:pt-0 border-[#e7eeff]">
-                        <p className="data-lg font-bold text-[#111c2d]">
+                      <div className="text-left md:text-right border-t md:border-t-0 pt-3 md:pt-0 border-slate-200">
+                        <p className="font-mono text-lg font-bold text-[#0f172a] tabular-nums">
                           {order.total.toLocaleString('vi-VN')}đ
                         </p>
                         {order.status === 'DELIVERED' && rawOrder && (

@@ -96,36 +96,36 @@ export default function DeliveryCard({ order, index, onConfirm }: DeliveryCardPr
         </button>
 
         {/* Money to collect */}
-        <div className="flex items-center justify-between bg-[#f9f9ff] border border-[#c2c6d3] rounded p-3 mb-4">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#424751]">
+        <div className="flex items-center justify-between bg-[#f8fafc] border border-[#cbd5e1] rounded-xl p-3.5 mb-4">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#475569]">
             Tiền cần thu:
           </span>
-          <p className="data-lg font-bold text-[#111c2d]">
+          <p className="font-mono text-xl font-black text-[#0f172a] tabular-nums">
             {formatCurrency(order.total)}
           </p>
         </div>
 
-        {/* Action Buttons (Strict minimum 48px/56px touch target for driver) */}
+        {/* Action Buttons (Strict minimum 52px touch target for driver) */}
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => callCustomer(order.customer.phone)}
-            className="flex items-center justify-center gap-2 h-12 rounded border-2 border-[#004a99] text-[#004a99] font-bold text-sm hover:bg-[#dee8ff] active:bg-[#d8e3fb]"
+            className="flex items-center justify-center gap-2 h-14 rounded-xl border-2 border-[#004a99] bg-white text-[#004a99] font-bold text-base hover:bg-[#dee8ff] active:scale-[0.98] transition-all shadow-sm"
           >
-            <Phone className="h-4 w-4" />
+            <Phone className="h-5 w-5" />
             Gọi khách
           </button>
 
           {!isDelivered ? (
             <button
               onClick={() => onConfirm(order.id)}
-              className="flex items-center justify-center gap-2 h-12 rounded bg-[#1b6d24] text-white font-bold text-sm hover:bg-[#217128] active:bg-[#005312] shadow-sm"
+              className="flex items-center justify-center gap-2 h-14 rounded-xl bg-[#15803d] text-white font-bold text-base hover:bg-[#166534] active:scale-[0.98] transition-all shadow-md shadow-emerald-900/20"
             >
-              <Check className="h-5 w-5" />
+              <Check className="h-6 w-6 stroke-[2.5]" />
               Giao xong
             </button>
           ) : (
-            <div className="flex items-center justify-center gap-1.5 h-12 rounded bg-[#dee8ff] text-[#004a99] font-bold text-xs">
-              <Check className="h-4 w-4" />
+            <div className="flex items-center justify-center gap-2 h-14 rounded-xl bg-[#f0fdf4] border border-[#86efac] text-[#166534] font-bold text-sm">
+              <Check className="h-5 w-5 stroke-[2.5]" />
               Đã hoàn tất
             </div>
           )}

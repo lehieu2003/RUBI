@@ -421,11 +421,11 @@ export default function OrdersPage() {
           <div className="overflow-hidden rounded border border-[#c2c6d3] bg-white shadow-sm">
             <table className="w-full text-left border-collapse table-industrial">
               <thead>
-                <tr className="border-b border-[#c2c6d3] bg-[#f9f9ff] text-[12px] font-bold uppercase tracking-wider text-[#424751]">
-                  <th className="py-3 px-3 w-10">
+                <tr className="border-b border-[#c2c6d3] bg-[#f0f4fc] text-[12px] font-bold uppercase tracking-wider text-[#1e293b]">
+                  <th className="py-2.5 px-3 w-10">
                     <button
                       onClick={toggleAllSelection}
-                      className="text-[#737783] hover:text-[#00346f] transition-colors"
+                      className="text-[#475569] hover:text-[#00346f] transition-colors"
                     >
                       {selectedOrderIds.size === filteredOrders.length && filteredOrders.length > 0 ? (
                         <CheckSquare className="h-4 w-4 text-[#004a99]" />
@@ -434,27 +434,27 @@ export default function OrdersPage() {
                       )}
                     </button>
                   </th>
-                  <th className="py-3 px-3">Mã đơn</th>
-                  <th className="py-3 px-3">Khách hàng</th>
-                  <th className="py-3 px-3">Sản phẩm</th>
-                  <th className="py-3 px-3">Tài xế</th>
-                  <th className="py-3 px-3">Giờ</th>
-                  <th className="py-3 px-3 text-right">Tổng tiền</th>
-                  <th className="py-3 px-3 text-center">Trạng thái</th>
-                  <th className="py-3 px-3 text-right">Thao tác</th>
+                  <th className="py-2.5 px-3">Mã đơn</th>
+                  <th className="py-2.5 px-3">Khách hàng</th>
+                  <th className="py-2.5 px-3">Sản phẩm</th>
+                  <th className="py-2.5 px-3">Tài xế</th>
+                  <th className="py-2.5 px-3">Giờ</th>
+                  <th className="py-2.5 px-3 text-right">Tổng tiền</th>
+                  <th className="py-2.5 px-3 text-center">Trạng thái</th>
+                  <th className="py-2.5 px-3 text-right">Thao tác</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#e7eeff] text-sm">
+              <tbody className="divide-y divide-[#e2e8f0] text-sm">
                 {filteredOrders.map((order) => {
                   const status = statusConfig[order.status as keyof typeof statusConfig] || statusConfig.PENDING;
                   const StatusIcon = status.icon;
 
                   return (
-                    <tr key={order.id} className={"h-12 hover:bg-[#f0f3ff] transition-colors " + (selectedOrderIds.has(order.id) ? "bg-[#dee8ff]/30" : "")}>
-                      <td className="py-3 px-3">
+                    <tr key={order.id} className={"h-11 hover:bg-[#f1f5f9] transition-colors " + (selectedOrderIds.has(order.id) ? "bg-[#dee8ff]/40" : "")}>
+                      <td className="py-2.5 px-3">
                         <button
                           onClick={() => toggleOrderSelection(order.id)}
-                          className="text-[#737783] hover:text-[#00346f] transition-colors"
+                          className="text-[#64748b] hover:text-[#00346f] transition-colors"
                         >
                           {selectedOrderIds.has(order.id) ? (
                             <CheckSquare className="h-4 w-4 text-[#004a99]" />
@@ -463,34 +463,34 @@ export default function OrdersPage() {
                           )}
                         </button>
                       </td>
-                      <td className="py-3 px-3 data-sm font-bold text-[#004a99]">
+                      <td className="py-2.5 px-3 font-mono font-bold text-xs text-[#004a99]">
                         #{order.code}
                       </td>
-                      <td className="py-3 px-3">
-                        <p className="font-semibold text-[#111c2d]">{order.customer}</p>
-                        <p className="text-xs text-[#737783] font-mono">{order.codeCus}</p>
+                      <td className="py-2.5 px-3">
+                        <p className="font-semibold text-[#0f172a] leading-tight">{order.customer}</p>
+                        <p className="text-xs text-[#475569] font-mono leading-tight mt-0.5">{order.codeCus}</p>
                       </td>
-                      <td className="py-3 px-3 text-xs text-[#424751] truncate max-w-xs" title={order.items}>
+                      <td className="py-2.5 px-3 text-xs text-[#334155] truncate max-w-xs font-medium" title={order.items}>
                         {order.items || "-"}
                       </td>
-                      <td className="py-3 px-3 text-xs font-medium">
-                        <span className={order.driverId ? "text-[#111c2d]" : "text-[#7f3700] font-bold"}>
+                      <td className="py-2.5 px-3 text-xs font-medium">
+                        <span className={order.driverId ? "text-[#0f172a]" : "text-[#b45309] font-bold"}>
                           {order.driverName}
                         </span>
                       </td>
-                      <td className="py-3 px-3 data-sm text-[#737783]">
+                      <td className="py-2.5 px-3 text-xs font-mono text-[#475569] tabular-nums">
                         {order.createdAt}
                       </td>
-                      <td className="py-3 px-3 text-right data-md font-bold text-[#111c2d]">
+                      <td className="py-2.5 px-3 text-right font-mono font-bold text-[#0f172a] tabular-nums">
                         {order.total.toLocaleString("vi-VN")}đ
                       </td>
-                      <td className="py-3 px-3 text-center">
-                        <span className={"inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold " + status.color}>
+                      <td className="py-2.5 px-3 text-center">
+                        <span className={"inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold " + status.color}>
                           <StatusIcon className="h-3 w-3" />
                           {status.label}
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-right">
+                      <td className="py-2.5 px-3 text-right">
                         <button
                           onClick={() => setSelectedOrderId(order.id)}
                           className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-[#004a99] text-[#004a99] hover:bg-[#dee8ff] text-xs font-semibold transition-colors"
@@ -507,7 +507,11 @@ export default function OrdersPage() {
 
             {filteredOrders.length === 0 && (
               <div className="py-16 text-center">
-                <p className="text-xs text-[#737783]">Không có đơn hàng nào phù hợp với bộ lọc</p>
+                <div className="mx-auto w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                  <FileText className="h-6 w-6 text-slate-400" />
+                </div>
+                <p className="text-sm font-semibold text-[#0f172a]">Không tìm thấy đơn hàng</p>
+                <p className="text-xs text-[#64748b] mt-1">Không có đơn hàng nào khớp với điều kiện lọc hiện tại</p>
               </div>
             )}
           </div>
