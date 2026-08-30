@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Sidebar } from '@/components/dashboard/sidebar';
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
@@ -37,12 +37,9 @@ export default function DebtReportPage() {
   const totalOutstanding = debts.reduce((sum, d) => sum + Math.max(0, d.outstandingDebt), 0);
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d]">
-      <Sidebar />
-
-      <main className="pl-64">
-        <div className="p-8 max-w-[1400px]">
-          {/* Header */}
+    <DashboardLayout>
+      <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px]">
+        {/* Header */}
           <div className="border-b border-[#c2c6d3] pb-4 mb-6">
             <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Báo Cáo Công Nợ Khách Hàng</h1>
             <p className="text-xs text-[#424751] mt-1">
@@ -136,7 +133,6 @@ export default function DebtReportPage() {
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </DashboardLayout>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Sidebar } from '@/components/dashboard/sidebar';
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Phone, Package, TrendingUp, Truck, Users } from 'lucide-react';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
@@ -34,12 +34,9 @@ export default function VehiclesPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d]">
-      <Sidebar />
-
-      <main className="pl-64">
-        <div className="p-8 max-w-[1400px]">
-          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4">
+    <DashboardLayout>
+      <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px]">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Đội Xe & Tài Xế</h1>
               <p className="text-xs text-[#424751] mt-1">{drivers.length} tài xế trong danh sách nhân sự</p>
@@ -150,7 +147,6 @@ export default function VehiclesPage() {
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </DashboardLayout>
   );
 }

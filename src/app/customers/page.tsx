@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Sidebar } from '@/components/dashboard/sidebar';
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Search, Plus, Phone, MapPin, DollarSign, Package, ChevronRight, X } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
@@ -100,13 +100,10 @@ export default function CustomersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d]">
-      <Sidebar />
-
-      <main className="pl-64">
-        <div className="p-8 max-w-[1400px]">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4 mb-6">
+    <DashboardLayout>
+      <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px]">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4 mb-6">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Danh Sách Khách Hàng</h1>
               <p className="text-xs text-[#424751] mt-1">{customers.length} đại lý / khách hàng trong hệ thống</p>
@@ -177,7 +174,6 @@ export default function CustomersPage() {
             </div>
           )}
         </div>
-      </main>
 
       {/* Add Customer Modal */}
       {isModalOpen && (
@@ -298,7 +294,7 @@ export default function CustomersPage() {
           </div>
         </>
       )}
-    </div>
+    </DashboardLayout>
   );
 }
 

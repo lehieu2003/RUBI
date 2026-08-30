@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Sidebar } from "@/components/dashboard/sidebar";
+import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { useReactToPrint } from "react-to-print";
 import { Search, Printer, FileText, Clock, Truck, CheckCircle2, Package, XCircle, TruckIcon, CheckSquare, Square, MapPin } from "lucide-react";
 import { OrderEntryDrawer } from "@/components/order/order-entry-drawer";
@@ -289,13 +289,10 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d]">
-      <Sidebar />
-
-      <main className="pl-64">
-        <div className="p-8 max-w-[1400px]">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4 mb-6">
+    <DashboardLayout>
+      <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px]">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4 mb-6">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Quản Lý Đơn Hàng</h1>
               <p className="text-xs text-[#424751] mt-1">{mappedOrders.length} đơn hàng trong ca trực</p>
@@ -516,7 +513,6 @@ export default function OrdersPage() {
             )}
           </div>
         </div>
-      </main>
 
       {/* Order Detail Drawer */}
       {selectedOrder && (
@@ -688,6 +684,6 @@ export default function OrdersPage() {
       <div ref={printRef} className="print-slip">
         {slipOrder && <PrintSlip order={slipOrder} />}
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

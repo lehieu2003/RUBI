@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Sidebar } from '@/components/dashboard/sidebar';
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { User, Bell, Database, Shield, Palette, Save, Users, Key, Plus, X, CreditCard } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
@@ -84,13 +84,10 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d]">
-      <Sidebar />
-
-      <main className="pl-64">
-        <div className="p-8 max-w-[1400px]">
-          {/* Header */}
-          <div className="border-b border-[#c2c6d3] pb-4 mb-6">
+    <DashboardLayout>
+      <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px]">
+        {/* Header */}
+        <div className="border-b border-[#c2c6d3] pb-4 mb-6">
             <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Cài Đặt Hệ Thống</h1>
             <p className="text-xs text-[#424751] mt-1">Quản lý hồ sơ nhà máy, nhân sự, bảng giá và phân quyền</p>
           </div>
@@ -562,7 +559,6 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </DashboardLayout>
   );
 }
