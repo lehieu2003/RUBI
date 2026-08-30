@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Phone, MapPin, Check, Navigation, Camera, Image as ImageIcon } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 
@@ -113,8 +114,8 @@ export default function DeliveryCard({ order, index, onConfirm }: DeliveryCardPr
         {/* Photo Proof thumbnail if captured */}
         {photoPreview && (
           <div className="mb-3 p-2 rounded bg-[#dee8ff]/50 border border-[#004a99]/30 flex items-center gap-2">
-            <div className="h-12 w-12 rounded overflow-hidden bg-black shrink-0 border border-[#c2c6d3]">
-              <img src={photoPreview} alt="Ảnh giao hàng" className="h-full w-full object-cover" />
+            <div className="relative h-12 w-12 rounded overflow-hidden bg-black shrink-0 border border-[#c2c6d3]">
+              <Image src={photoPreview} alt="Ảnh giao hàng" width={48} height={48} unoptimized className="h-full w-full object-cover" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-bold text-[#00346f] flex items-center gap-1">

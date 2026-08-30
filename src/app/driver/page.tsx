@@ -55,9 +55,10 @@ export default function DriverPage() {
       if (!response.ok) {
         throw new Error(response.status === 401 ? 'Tài khoản tài xế chưa được liên kết' : 'Không thể tải đơn hàng');
       }
-      const data = await response.json();
-      setDriver(data.driver);
-      setOrders(data.orders);
+      const json = await response.json();
+      const data = json?.data !== undefined ? json.data : json;
+      setDriver(data?.driver || null);
+      setOrders(Array.isArray(data?.orders) ? data.orders : Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi');
@@ -78,7 +79,7 @@ export default function DriverPage() {
 
   const handleConfirm = useCallback(async (orderId: string) => {
     setOrders((previous) =>
-      previous.map((order) => (order.id === orderId ? { ...order, status: 'DELIVERED' as const } : order))
+      (previous || []).map((order) => (order.id === orderId ? { ...order, status: 'DELIVERED' as const } : order))
     );
 
     try {
@@ -93,7 +94,7 @@ export default function DriverPage() {
       }
     } catch (err) {
       setOrders((previous) =>
-        previous.map((order) => (order.id === orderId ? { ...order, status: 'SHIPPING' as const } : order))
+        (previous || []).map((order) => (order.id === orderId ? { ...order, status: 'SHIPPING' as const } : order))
       );
       toast({
         type: 'error',
@@ -103,8 +104,9 @@ export default function DriverPage() {
     }
   }, []);
 
-  const pendingCount = orders.filter((order) => order.status === 'SHIPPING').length;
-  const deliveredCount = orders.filter((order) => order.status === 'DELIVERED').length;
+  const safeOrders = orders || [];
+  const pendingCount = safeOrders.filter((order) => order.status === 'SHIPPING').length;
+  const deliveredCount = safeOrders.filter((order) => order.status === 'DELIVERED').length;
 
   if (loading) {
     return (
