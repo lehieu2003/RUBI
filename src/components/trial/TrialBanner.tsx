@@ -5,6 +5,7 @@ import { getDaysRemaining, isSubscriptionActive, isGracePeriodExpired, isWithinW
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import type { Subscription } from '@prisma/client';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 export function TrialBanner() {
   const { user } = useAuth();
@@ -16,7 +17,7 @@ export function TrialBanner() {
   useEffect(() => {
     if (!user?.factoryId) return;
 
-    fetch('/api/auth/me')
+    fetch(API_ENDPOINTS.AUTH.ME)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         const sub = data?.subscription

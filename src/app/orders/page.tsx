@@ -10,6 +10,7 @@ import { Drawer } from "@/components/ui/drawer";
 import { PrintSlip } from "@/components/order/print-slip";
 import type { Customer, Product } from "@prisma/client";
 import { toast } from "@/components/dashboard/toast";
+import { API_ENDPOINTS } from "@/lib/api-endpoints";
 
 interface OrderItemWithProduct {
   id: string;
@@ -76,7 +77,7 @@ export default function OrdersPage() {
   const { data: orders = [], isLoading: ordersLoading, error: ordersError } = useQuery<OrderFromAPI[]>({
     queryKey: ["orders"],
     queryFn: async () => {
-      const res = await fetch("/api/orders");
+      const res = await fetch(API_ENDPOINTS.ORDERS.BASE);
       if (!res.ok) throw new Error("Failed to load orders");
       return res.json();
     },
@@ -85,7 +86,7 @@ export default function OrdersPage() {
   const { data: customers = [] } = useQuery<Customer[]>({
     queryKey: ["customers"],
     queryFn: async () => {
-      const res = await fetch("/api/customers");
+      const res = await fetch(API_ENDPOINTS.CUSTOMERS.BASE);
       if (!res.ok) throw new Error("Failed to load customers");
       return res.json();
     },
@@ -94,7 +95,7 @@ export default function OrdersPage() {
   const { data: products = [] } = useQuery<Product[]>({
     queryKey: ["products"],
     queryFn: async () => {
-      const res = await fetch("/api/products");
+      const res = await fetch(API_ENDPOINTS.PRODUCTS.BASE);
       if (!res.ok) throw new Error("Failed to load products");
       return res.json();
     },
@@ -103,7 +104,7 @@ export default function OrdersPage() {
   const { data: drivers = [] } = useQuery<DriverFromAPI[]>({
     queryKey: ["drivers"],
     queryFn: async () => {
-      const res = await fetch("/api/drivers");
+      const res = await fetch(API_ENDPOINTS.DRIVERS.BASE);
       if (!res.ok) throw new Error("Failed to load drivers");
       return res.json();
     },
@@ -192,7 +193,7 @@ export default function OrdersPage() {
     if (!selectedOrderId) return;
     setUpdatingStatus(true);
     try {
-      const res = await fetch("/api/orders/" + selectedOrderId + "/status", {
+      const res = await fetch(API_ENDPOINTS.ORDERS.STATUS(selectedOrderId), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -223,7 +224,7 @@ export default function OrdersPage() {
     if (!bulkAssignDriverId || selectedOrderIds.size === 0) return;
     setBulkAssigning(true);
     try {
-      const res = await fetch("/api/orders/bulk-assign", {
+      const res = await fetch(API_ENDPOINTS.ORDERS.BULK_ASSIGN, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

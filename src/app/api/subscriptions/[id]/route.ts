@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
   if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiError('Unauthorized', 401);
   }
   if (!session.factoryId) {
-    return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+    return apiError('Bad Request: factoryId not found', 400);
   }
 
   const { id } = await params;
@@ -19,17 +20,17 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   });
 
   if (!subscription) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    return apiError('Not found', 404);
   }
 
-  return NextResponse.json({ subscription });
+  return apiSuccess({ subscription });
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await requireRole(['ADMIN']);
   await requireActiveSubscription();
   if (!session.factoryId) {
-    return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+    return apiError('Bad Request: factoryId not found', 400);
   }
 
   const { id } = await params;
@@ -39,7 +40,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   });
 
   if (!subscription) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    return apiError('Not found', 404);
   }
 
   const body = await req.json();
@@ -60,5 +61,5 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     data: updates,
   });
 
-  return NextResponse.json({ subscription: updated });
+  return apiSuccess({ subscription: updated });
 }

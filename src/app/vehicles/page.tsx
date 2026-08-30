@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { Phone, Package, TrendingUp, Truck, Users } from 'lucide-react';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 interface Driver {
   id: string;
@@ -19,7 +20,7 @@ export default function VehiclesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/drivers')
+    fetch(API_ENDPOINTS.DRIVERS.BASE)
       .then((response) => (response.ok ? response.json() : []))
       .then((data) => {
         setDrivers(data);

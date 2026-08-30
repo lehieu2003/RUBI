@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireActiveSubscription, requireRole } from '@/lib/auth/helpers';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const SHIFTS = [
@@ -46,19 +47,16 @@ export async function GET(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
     if (!(await ensureFactoryExists(session.factoryId))) {
-      return NextResponse.json(
-        { error: 'Factory mapping is invalid. Please relink this account to a valid factory.' },
-        { status: 409 }
-      );
+      return apiError('Factory mapping is invalid. Please relink this account to a valid factory.', 409);
     }
 
     const { searchParams } = new URL(request.url);
     const weekStart = parseDateOnly(searchParams.get('week'));
     if (!weekStart) {
-      return NextResponse.json({ error: 'Invalid week. Expected YYYY-MM-DD' }, { status: 400 });
+      return apiError('Invalid week. Expected YYYY-MM-DD', 400);
     }
 
     const weekEnd = addDays(weekStart, 7);
@@ -80,21 +78,19 @@ export async function GET(request: NextRequest) {
       orderBy: [{ role: 'asc' }, { name: 'asc' }],
     });
 
-    return NextResponse.json(
-      people.map((person) => ({
-        id: person.id,
-        name: person.name,
-        role: person.role,
-        shifts: person.scheduleAssignments.map((assignment) => ({
-          shiftDate: assignment.shiftDate.toISOString().slice(0, 10),
-          shift: assignment.shift,
-        })),
-      }))
-    );
+    return apiSuccess(people.map((person) => ({
+            id: person.id,
+            name: person.name,
+            role: person.role,
+            shifts: person.scheduleAssignments.map((assignment) => ({
+              shiftDate: assignment.shiftDate.toISOString().slice(0, 10),
+              shift: assignment.shift,
+            })),
+          })));
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('[GET /api/schedule/assignments]', error);
-    return NextResponse.json({ error: 'Schedule fetch failed' }, { status: 500 });
+    return apiError('Schedule fetch failed', 500);
   }
 }
 
@@ -103,28 +99,22 @@ export async function PATCH(request: NextRequest) {
     const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
     await requireActiveSubscription();
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
     if (!(await ensureFactoryExists(session.factoryId))) {
-      return NextResponse.json(
-        { error: 'Factory mapping is invalid. Please relink this account to a valid factory.' },
-        { status: 409 }
-      );
+      return apiError('Factory mapping is invalid. Please relink this account to a valid factory.', 409);
     }
 
     const body = await request.json();
     const parsed = ShiftAssignmentSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid request. Required: userId, shift, shiftDate' },
-        { status: 400 }
-      );
+      return apiError('Invalid request. Required: userId, shift, shiftDate', 400);
     }
 
     const { userId, shift } = parsed.data;
     const shiftDate = parseDateOnly(parsed.data.shiftDate);
     if (!shiftDate) {
-      return NextResponse.json({ error: 'Invalid shiftDate. Expected YYYY-MM-DD' }, { status: 400 });
+      return apiError('Invalid shiftDate. Expected YYYY-MM-DD', 400);
     }
 
     const person = await prisma.user.findFirst({
@@ -137,23 +127,20 @@ export async function PATCH(request: NextRequest) {
       select: { id: true, role: true },
     });
     if (!person) {
-      return NextResponse.json({ error: 'Staff or driver not found' }, { status: 404 });
+      return apiError('Staff or driver not found', 404);
     }
 
     if (shift === null) {
       if (!parsed.data.removeShift) {
-        return NextResponse.json(
-          { error: 'Invalid request. removeShift is required when shift is null' },
-          { status: 400 }
-        );
+        return apiError('Invalid request. removeShift is required when shift is null', 400);
       }
       await prisma.scheduleAssignment.deleteMany({
         where: { factoryId: session.factoryId, userId, shiftDate, shift: parsed.data.removeShift },
       });
-      return NextResponse.json({
-        success: true,
-        assignment: { userId, shift: null, removeShift: parsed.data.removeShift, shiftDate: parsed.data.shiftDate },
-      });
+      return apiSuccess({
+              success: true,
+              assignment: { userId, shift: null, removeShift: parsed.data.removeShift, shiftDate: parsed.data.shiftDate },
+            });
     }
 
     if (person.role === 'DRIVER') {
@@ -174,10 +161,7 @@ export async function PATCH(request: NextRequest) {
       });
 
       if (scheduledDrivers.length >= maxDrivers) {
-        return NextResponse.json(
-          { error: 'Cần nâng cấp subscription để thêm driver', code: 'DRIVER_LIMIT_EXCEEDED' },
-          { status: 403 }
-        );
+        return apiError('Cần nâng cấp subscription để thêm driver', 403);
       }
     }
 
@@ -192,17 +176,17 @@ export async function PATCH(request: NextRequest) {
       update: { shift, factoryId: session.factoryId },
     });
 
-    return NextResponse.json({
-      success: true,
-      assignment: {
-        userId: assignment.userId,
-        shift: assignment.shift,
-        shiftDate: assignment.shiftDate.toISOString().slice(0, 10),
-      },
-    });
+    return apiSuccess({
+          success: true,
+          assignment: {
+            userId: assignment.userId,
+            shift: assignment.shift,
+            shiftDate: assignment.shiftDate.toISOString().slice(0, 10),
+          },
+        });
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('[PATCH /api/schedule/assignments]', error);
-    return NextResponse.json({ error: 'Schedule update failed' }, { status: 500 });
+    return apiError('Schedule update failed', 500);
   }
 }

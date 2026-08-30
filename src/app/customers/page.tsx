@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { Search, Plus, Phone, MapPin, DollarSign, Package, ChevronRight, X } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 interface Customer {
   id: string;
@@ -38,7 +39,7 @@ export default function CustomersPage() {
   const { data: customers = [], isLoading: customersLoading } = useQuery<Customer[]>({
     queryKey: ['customers'],
     queryFn: async () => {
-      const res = await fetch('/api/customers');
+      const res = await fetch(API_ENDPOINTS.CUSTOMERS.BASE);
       if (!res.ok) throw new Error('Failed to load customers');
       return res.json();
     },
@@ -47,7 +48,7 @@ export default function CustomersPage() {
   const { data: products = [] } = useQuery<Product[]>({
     queryKey: ['products'],
     queryFn: async () => {
-      const res = await fetch('/api/products');
+      const res = await fetch(API_ENDPOINTS.PRODUCTS.BASE);
       if (!res.ok) throw new Error('Failed to load products');
       return res.json();
     },
@@ -55,7 +56,7 @@ export default function CustomersPage() {
 
   const addCustomerMutation = useMutation({
     mutationFn: async (newCustomerData: typeof formData) => {
-      const res = await fetch('/api/customers', {
+      const res = await fetch(API_ENDPOINTS.CUSTOMERS.BASE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCustomerData),

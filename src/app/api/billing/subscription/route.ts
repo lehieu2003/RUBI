@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 export const runtime = 'nodejs';
 
@@ -11,7 +12,7 @@ export async function GET() {
   try {
     const session = await requireRole(['ADMIN', 'ACCOUNTANT', 'STAFF']);
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
 
     const factoryId = session.factoryId;
@@ -25,10 +26,10 @@ export async function GET() {
       where: { factoryId, isActive: true },
     });
 
-    return NextResponse.json({ subscription, driverCount });
+    return apiSuccess({ subscription, driverCount });
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('[GET /api/billing/subscription]', error);
-    return NextResponse.json({ error: 'Failed to fetch subscription' }, { status: 500 });
+    return apiError('Failed to fetch subscription', 500);
   }
 }

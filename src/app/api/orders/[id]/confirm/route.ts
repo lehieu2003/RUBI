@@ -3,6 +3,7 @@ import { prisma, prismaAuth } from '@/lib/db';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { requireRole } from '@/lib/auth/helpers';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 // PATCH /api/orders/[id]/confirm
 // Body: { gps: { lat: number, lng: number } | null }
@@ -25,10 +26,7 @@ export async function PATCH(
     const parsed = ConfirmSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid request. Required: gps { lat, lng } or gps: null' },
-        { status: 400 }
-      );
+      return apiError('Invalid request. Required: gps { lat, lng } or gps: null', 400);
     }
 
     const authHeader = request.headers.get('authorization');
@@ -39,7 +37,7 @@ export async function PATCH(
       ? await prismaAuth.driver.findUnique({ where: { token: bodyToken } })
       : await getSessionDriver();
     if (!driver) {
-      return NextResponse.json({ error: 'Invalid driver credentials' }, { status: 401 });
+      return apiError('Invalid driver credentials', 401);
     }
 
     // --- Order ownership check ---
@@ -47,10 +45,10 @@ export async function PATCH(
       where: { id, factoryId: driver.factoryId },
     });
     if (!order) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+      return apiError('Order not found', 404);
     }
     if (order.driverId !== driver.id) {
-      return NextResponse.json({ error: 'Not authorized to confirm this order' }, { status: 403 });
+      return apiError('Not authorized to confirm this order', 403);
     }
 
     // --- Update order to DELIVERED with GPS coordinates ---
@@ -63,20 +61,20 @@ export async function PATCH(
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      orderId: updated.id,
-      status: updated.status,
-      deliveryGps: updated.deliveryGps,
-    });
+    return apiSuccess({
+          success: true,
+          orderId: updated.id,
+          status: updated.status,
+          deliveryGps: updated.deliveryGps,
+        });
   } catch (error) {
     if (error instanceof Response) throw error;
     // Handle Prisma not found error specifically
     if (error instanceof Error && error.name === 'NotFoundError') {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+      return apiError('Order not found', 404);
     }
     console.error('[PATCH /api/orders/[id]/confirm]', error);
-    return NextResponse.json({ error: 'Confirmation failed' }, { status: 500 });
+    return apiError('Confirmation failed', 500);
   }
 }
 

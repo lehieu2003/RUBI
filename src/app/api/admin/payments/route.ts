@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prismaAuth } from '@/lib/db';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 const basePrisma = prismaAuth;
 
@@ -14,7 +15,7 @@ function inferPaymentSource(notes: string | null): 'TENANT_SELF_UPGRADE' | 'SUPE
 export async function GET(request: Request) {
   const session = await getSession();
   if (!session || session.role !== 'SUPER_ADMIN') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiError('Forbidden', 403);
   }
 
   const { searchParams } = new URL(request.url);
@@ -73,25 +74,25 @@ export async function GET(request: Request) {
     }),
   ]);
 
-  return NextResponse.json({
-    payments: payments.map(payment => {
-      const subscription = payment.factory.subscriptions[0] ?? null;
-      return {
-        id: payment.id,
-        confirmedAt: payment.confirmedAt.toISOString(),
-        amount: Number(payment.amount),
-        adminName: payment.admin.name,
-        factoryId: payment.factory.id,
-        factoryName: payment.factory.name,
-        subscriptionId: subscription?.id ?? null,
-        driverCount: subscription?.driverCount ?? null,
-        pricePerDriver: subscription?.pricePerDriver ? Number(subscription.pricePerDriver) : null,
-        source: inferPaymentSource(payment.notes),
-        notes: payment.notes,
-      };
-    }),
-    total,
-    page,
-    totalPages: Math.ceil(total / limit),
-  });
+  return apiSuccess({
+      payments: payments.map(payment => {
+        const subscription = payment.factory.subscriptions[0] ?? null;
+        return {
+          id: payment.id,
+          confirmedAt: payment.confirmedAt.toISOString(),
+          amount: Number(payment.amount),
+          adminName: payment.admin.name,
+          factoryId: payment.factory.id,
+          factoryName: payment.factory.name,
+          subscriptionId: subscription?.id ?? null,
+          driverCount: subscription?.driverCount ?? null,
+          pricePerDriver: subscription?.pricePerDriver ? Number(subscription.pricePerDriver) : null,
+          source: inferPaymentSource(payment.notes),
+          notes: payment.notes,
+        };
+      }),
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
 }

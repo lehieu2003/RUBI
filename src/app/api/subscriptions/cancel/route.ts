@@ -1,19 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 export async function POST(req: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
     await requireActiveSubscription();
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
 
     const { subscriptionId } = await req.json();
 
     if (!subscriptionId) {
-      return NextResponse.json({ error: 'subscriptionId required' }, { status: 400 });
+      return apiError('subscriptionId required', 400);
     }
 
     // Verify subscription belongs to this factory
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!subscription) {
-      return NextResponse.json({ error: 'Subscription not found' }, { status: 404 });
+      return apiError('Subscription not found', 404);
     }
 
     // Set grace period: endDate = now + 7 days
@@ -36,14 +37,14 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      gracePeriodEnd: gracePeriodEnd.toISOString(),
-      subscription: updatedSubscription,
-    });
+    return apiSuccess({
+          success: true,
+          gracePeriodEnd: gracePeriodEnd.toISOString(),
+          subscription: updatedSubscription,
+        });
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('Cancel subscription error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return apiError('Internal server error', 500);
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prismaAuth } from '@/lib/db';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 const basePrisma = prismaAuth;
 
@@ -10,7 +11,7 @@ export async function PATCH(
 ) {
   const session = await getSession();
   if (!session || session.role !== 'SUPER_ADMIN') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiError('Forbidden', 403);
   }
 
   const { id } = await params;
@@ -18,26 +19,26 @@ export async function PATCH(
   const { status, extendDays, pricePerDriver, driverCount, recordPayment } = body;
 
   if (status !== undefined && status !== 'ACTIVE' && status !== 'CANCELLED') {
-    return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
+    return apiError('Invalid status', 400);
   }
 
   if (extendDays !== undefined && (!Number.isInteger(extendDays) || extendDays <= 0 || extendDays > 3650)) {
-    return NextResponse.json({ error: 'extendDays must be an integer between 1 and 3650' }, { status: 400 });
+    return apiError('extendDays must be an integer between 1 and 3650', 400);
   }
 
   if (pricePerDriver !== undefined && (typeof pricePerDriver !== 'number' || pricePerDriver < 0)) {
-    return NextResponse.json({ error: 'pricePerDriver must be a non-negative number' }, { status: 400 });
+    return apiError('pricePerDriver must be a non-negative number', 400);
   }
 
   if (driverCount !== undefined && (!Number.isInteger(driverCount) || driverCount < 0)) {
-    return NextResponse.json({ error: 'driverCount must be a non-negative integer' }, { status: 400 });
+    return apiError('driverCount must be a non-negative integer', 400);
   }
 
   const updates: Record<string, unknown> = {};
   const sub = await basePrisma.subscription.findUnique({ where: { id } });
 
   if (!sub) {
-    return NextResponse.json({ error: 'Subscription not found' }, { status: 404 });
+    return apiError('Subscription not found', 404);
   }
 
   // Handle status change (activate/deactivate)
@@ -86,5 +87,5 @@ export async function PATCH(
     }
   }
 
-  return NextResponse.json({ subscription: updated });
+  return apiSuccess({ subscription: updated });
 }

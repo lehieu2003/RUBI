@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 interface CustomerImportRow {
   code: string;
@@ -13,17 +14,14 @@ export async function POST(req: NextRequest) {
   try {
     const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
 
     const body = await req.json();
     const { customers } = body as { customers: CustomerImportRow[] };
 
     if (!Array.isArray(customers)) {
-      return NextResponse.json(
-        { error: 'customers must be an array' },
-        { status: 400 }
-      );
+      return apiError('customers must be an array', 400);
     }
 
     let imported = 0;
@@ -67,10 +65,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ imported, skipped, errors });
+    return apiSuccess({ imported, skipped, errors });
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('[POST /api/customers/import]', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return apiError('Internal server error', 500);
   }
 }

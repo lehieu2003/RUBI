@@ -5,12 +5,13 @@ import { getFactorySubscription } from '@/lib/subscription-queries';
 
 // Use prismaAuth for global user lookups (no tenant filtering)
 import { prismaAuth } from '@/lib/db';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 export async function GET() {
   const session = await getSession();
 
   if (!session) {
-    return NextResponse.json({ user: null, subscription: null }, { status: 401 });
+    return apiSuccess({ user: null, subscription: null });
   }
 
   const user = await prismaAuth.user.findUnique({
@@ -19,15 +20,12 @@ export async function GET() {
   });
 
   if (!user) {
-    return NextResponse.json({ user: null, subscription: null }, { status: 401 });
+    return apiSuccess({ user: null, subscription: null });
   }
 
   const factoryId = session.factoryId ?? user.factoryId ?? undefined;
   if (user.role !== 'SUPER_ADMIN' && !factoryId) {
-    return NextResponse.json(
-      { user: null, subscription: null, error: 'Tài khoản chưa được gán nhà máy' },
-      { status: 403 }
-    );
+    return apiError('Tài khoản chưa được gán nhà máy', 403);
   }
 
   if (!session.factoryId && factoryId) {
@@ -48,22 +46,22 @@ export async function GET() {
 
   const daysRemaining = getDaysRemaining(subscription);
 
-  return NextResponse.json({
-    user: {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      factoryId,
-    },
-    subscription: subscription ? {
-      id: subscription.id,
-      planType: subscription.planType,
-      status: subscription.status,
-      startDate: subscription.startDate.toISOString(),
-      endDate: subscription.endDate.toISOString(),
-      driverCount: subscription.driverCount,
-      daysRemaining,
-    } : null,
-  });
+  return apiSuccess({
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        factoryId,
+      },
+      subscription: subscription ? {
+        id: subscription.id,
+        planType: subscription.planType,
+        status: subscription.status,
+        startDate: subscription.startDate.toISOString(),
+        endDate: subscription.endDate.toISOString(),
+        driverCount: subscription.driverCount,
+        daysRemaining,
+      } : null,
+    });
 }

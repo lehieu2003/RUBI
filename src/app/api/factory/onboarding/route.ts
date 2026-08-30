@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 export async function PATCH(req: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
     await requireActiveSubscription();
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
 
     await prisma.factory.update({
@@ -15,10 +16,10 @@ export async function PATCH(req: NextRequest) {
       data: { onboardingCompleted: true },
     });
 
-    return NextResponse.json({ success: true });
+    return apiSuccess({ success: true });
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('Onboarding complete error:', error);
-    return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
+    return apiError('Lỗi server', 500);
   }
 }

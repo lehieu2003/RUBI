@@ -1,19 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 export async function GET(request: NextRequest) {
   try {
     // --- Session auth ---
     const session = await getSession();
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return apiError('Unauthorized', 401);
     }
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
     if (session.role !== 'ACCOUNTANT' && session.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return apiError('Forbidden', 403);
     }
 
     const customers = await prisma.customer.findMany({
@@ -50,9 +51,9 @@ export async function GET(request: NextRequest) {
     const filtered = debtReport.filter(d => d.outstandingDebt > 0);
     const sorted = [...filtered].sort((a, b) => b.outstandingDebt - a.outstandingDebt);
 
-    return NextResponse.json(sorted);
+    return apiSuccess(sorted);
   } catch (error) {
     console.error('[GET /api/reports/debt]', error);
-    return NextResponse.json({ error: 'Failed to fetch debt report' }, { status: 500 });
+    return apiError('Failed to fetch debt report', 500);
   }
 }

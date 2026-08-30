@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma, prismaAuth } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 // GET /api/driver/orders?token=xxx&date=YYYY-MM-DD
 // Returns orders for authenticated driver filtered by today's date
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
       : await getSessionDriver();
 
     if (!driver) {
-      return NextResponse.json({ error: token ? 'Invalid token' : 'Driver profile not found' }, { status: 401 });
+      return apiError(token ? 'Invalid token' : 'Driver profile not found', 401);
     }
 
     // Get today's date range
@@ -53,14 +54,14 @@ export async function GET(request: NextRequest) {
       driverName: driver.name, // Include driver name for display
     }));
 
-    return NextResponse.json({
-      driver: { id: driver.id, name: driver.name },
-      orders: serialized,
-    });
+    return apiSuccess({
+          driver: { id: driver.id, name: driver.name },
+          orders: serialized,
+        });
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('[GET /api/driver/orders]', error);
-    return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
+    return apiError('Failed to fetch orders', 500);
   }
 }
 

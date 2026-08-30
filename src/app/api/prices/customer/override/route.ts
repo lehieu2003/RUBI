@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 const CustomerPriceOverrideSchema = z.object({
   customerId: z.string().min(1),
@@ -15,17 +16,14 @@ export async function POST(request: NextRequest) {
     const session = await requireRole(['ADMIN']);
     await requireActiveSubscription();
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
 
     const body = await request.json();
     const parsed = CustomerPriceOverrideSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: parsed.error.flatten() },
-        { status: 400 }
-      );
+      return apiError('Invalid request', 400);
     }
 
     const { customerId, productId, price } = parsed.data;
@@ -40,7 +38,7 @@ export async function POST(request: NextRequest) {
       }),
     ]);
     if (!customer || !product) {
-      return NextResponse.json({ error: 'Customer or product not found' }, { status: 404 });
+      return apiError('Customer or product not found', 404);
     }
 
     await prisma.customerPriceOverride.upsert({
@@ -57,14 +55,11 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true });
+    return apiSuccess({ success: true });
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('Error setting customer price override:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return apiError('Internal server error', 500);
   }
 }
 
@@ -73,7 +68,7 @@ export async function DELETE(request: NextRequest) {
     const session = await requireRole(['ADMIN']);
     await requireActiveSubscription();
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
 
     const { searchParams } = new URL(request.url);
@@ -81,10 +76,7 @@ export async function DELETE(request: NextRequest) {
     const productId = searchParams.get('productId');
 
     if (!customerId || !productId) {
-      return NextResponse.json(
-        { error: 'Missing customerId or productId' },
-        { status: 400 }
-      );
+      return apiError('Missing customerId or productId', 400);
     }
 
     const [customer, product] = await Promise.all([
@@ -98,20 +90,17 @@ export async function DELETE(request: NextRequest) {
       }),
     ]);
     if (!customer || !product) {
-      return NextResponse.json({ error: 'Customer or product not found' }, { status: 404 });
+      return apiError('Customer or product not found', 404);
     }
 
     await prisma.customerPriceOverride.deleteMany({
       where: { customerId, productId },
     });
 
-    return NextResponse.json({ success: true });
+    return apiSuccess({ success: true });
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('Error removing customer price override:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return apiError('Internal server error', 500);
   }
 }

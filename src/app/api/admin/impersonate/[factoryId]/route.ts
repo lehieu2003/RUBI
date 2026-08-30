@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prismaAuth } from '@/lib/db';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 const basePrisma = prismaAuth;
 
@@ -10,7 +11,7 @@ export async function POST(
 ) {
   const session = await getSession();
   if (!session || session.role !== 'SUPER_ADMIN') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiError('Forbidden', 403);
   }
 
   const { factoryId } = await params;
@@ -21,7 +22,7 @@ export async function POST(
   });
 
   if (!factory) {
-    return NextResponse.json({ error: 'Factory not found' }, { status: 400 });
+    return apiError('Factory not found', 400);
   }
 
   // Create impersonation log
@@ -35,12 +36,12 @@ export async function POST(
   // Calculate expiresAt (15 minutes from now)
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-  const response = NextResponse.json({
-    success: true,
-    factoryId: factory.id,
-    factoryName: factory.name,
-    expiresAt: expiresAt.toISOString(),
-  });
+  const response = apiSuccess({
+      success: true,
+      factoryId: factory.id,
+      factoryName: factory.name,
+      expiresAt: expiresAt.toISOString(),
+    });
 
   // Set httpOnly cookie with impersonation token
   response.cookies.set('impersonate_token', impersonation.token, {

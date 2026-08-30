@@ -8,6 +8,7 @@ import { TrialWarningModal } from '@/components/trial/TrialWarningModal';
 import { isWithinWarningPeriod } from '@/lib/subscription-status';
 import { Snowflake } from 'lucide-react';
 import type { Subscription } from '@prisma/client';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 export default function LoginPage() {
   const { signIn, user } = useAuth();
@@ -24,7 +25,7 @@ export default function LoginPage() {
 
     async function checkSubscription() {
       try {
-        const res = await fetch('/api/auth/me');
+        const res = await fetch(API_ENDPOINTS.AUTH.ME);
         const data = await res.json();
         if (data.subscription && isWithinWarningPeriod({ endDate: new Date(data.subscription.endDate) } as Subscription)) {
           setSubscription({ ...data.subscription, endDate: new Date(data.subscription.endDate) } as Subscription);
@@ -51,7 +52,7 @@ export default function LoginPage() {
 
     // After successful login, fetch role and redirect
     try {
-      const meRes = await fetch('/api/auth/me');
+      const meRes = await fetch(API_ENDPOINTS.AUTH.ME);
       const meData = await meRes.json();
       if (meData.user?.role === 'SUPER_ADMIN') {
         router.push('/admin/dashboard');

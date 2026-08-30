@@ -10,6 +10,7 @@ import {
   Truck,
 } from 'lucide-react';
 import { StatCard } from '@/components/dashboard/stat-card';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 interface SystemStats {
   totalFactoryCount: number;
@@ -36,7 +37,7 @@ export default function AdminDashboardPage() {
 
     async function fetchStats() {
       try {
-        const response = await fetch('/api/admin/stats');
+        const response = await fetch(API_ENDPOINTS.ADMIN.STATS);
         if (!response.ok) throw new Error('Không thể tải thống kê hệ thống');
         const data = await response.json();
         if (active) setStats(data);

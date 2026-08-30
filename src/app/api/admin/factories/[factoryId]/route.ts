@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prismaAuth } from '@/lib/db';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 const basePrisma = prismaAuth;
 
@@ -21,7 +22,7 @@ export async function GET(
 ) {
   const session = await getSession();
   if (!session || session.role !== 'SUPER_ADMIN') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiError('Forbidden', 403);
   }
 
   const { factoryId } = await params;
@@ -51,7 +52,7 @@ export async function GET(
   });
 
   if (!factory) {
-    return NextResponse.json({ error: 'Factory not found' }, { status: 404 });
+    return apiError('Factory not found', 404);
   }
 
   const subscription = factory.subscriptions[0] ?? null;
@@ -101,52 +102,52 @@ export async function GET(
 
   const lastPaymentAt = recentPayments[0]?.confirmedAt?.toISOString() ?? null;
 
-  return NextResponse.json({
-    factory: {
-      id: factory.id,
-      name: factory.name,
-      phone: factory.phone,
-      address: factory.address,
-      createdAt: factory.createdAt.toISOString(),
-    },
-    subscription: subscription
-      ? {
-          id: subscription.id,
-          planType: subscription.planType,
-          status: subscription.status,
-          startDate: subscription.startDate.toISOString(),
-          endDate: subscription.endDate.toISOString(),
-          driverCount: subscription.driverCount,
-          pricePerDriver: subscription.pricePerDriver ? Number(subscription.pricePerDriver) : null,
-        }
-      : null,
-    activeDriverCount: factory.drivers.length,
-    usersCount: factory.users.length,
-    staffCount: factory.users.filter(user => user.role !== 'ADMIN').length,
-    monthlyAmount: getMonthlyAmount(subscription),
-    daysRemaining: getDaysRemaining(subscription?.endDate ?? null),
-    lastPaymentAt,
-    totalOrders,
-    pendingOrders,
-    recentPayments: recentPayments.map(payment => ({
-      id: payment.id,
-      amount: Number(payment.amount),
-      confirmedAt: payment.confirmedAt.toISOString(),
-      adminName: payment.admin.name,
-      notes: payment.notes,
-    })),
-    recentOrders: recentOrders.map(order => ({
-      id: order.id,
-      status: order.status,
-      total: Number(order.total),
-      createdAt: order.createdAt.toISOString(),
-      customerName: order.customer.name,
-    })),
-    users: factory.users.map(user => ({
-      ...user,
-      createdAt: user.createdAt.toISOString(),
-    })),
-  });
+  return apiSuccess({
+      factory: {
+        id: factory.id,
+        name: factory.name,
+        phone: factory.phone,
+        address: factory.address,
+        createdAt: factory.createdAt.toISOString(),
+      },
+      subscription: subscription
+        ? {
+            id: subscription.id,
+            planType: subscription.planType,
+            status: subscription.status,
+            startDate: subscription.startDate.toISOString(),
+            endDate: subscription.endDate.toISOString(),
+            driverCount: subscription.driverCount,
+            pricePerDriver: subscription.pricePerDriver ? Number(subscription.pricePerDriver) : null,
+          }
+        : null,
+      activeDriverCount: factory.drivers.length,
+      usersCount: factory.users.length,
+      staffCount: factory.users.filter(user => user.role !== 'ADMIN').length,
+      monthlyAmount: getMonthlyAmount(subscription),
+      daysRemaining: getDaysRemaining(subscription?.endDate ?? null),
+      lastPaymentAt,
+      totalOrders,
+      pendingOrders,
+      recentPayments: recentPayments.map(payment => ({
+        id: payment.id,
+        amount: Number(payment.amount),
+        confirmedAt: payment.confirmedAt.toISOString(),
+        adminName: payment.admin.name,
+        notes: payment.notes,
+      })),
+      recentOrders: recentOrders.map(order => ({
+        id: order.id,
+        status: order.status,
+        total: Number(order.total),
+        createdAt: order.createdAt.toISOString(),
+        customerName: order.customer.name,
+      })),
+      users: factory.users.map(user => ({
+        ...user,
+        createdAt: user.createdAt.toISOString(),
+      })),
+    });
 }
 
 export async function POST(
@@ -155,7 +156,7 @@ export async function POST(
 ) {
   const session = await getSession();
   if (!session || session.role !== 'SUPER_ADMIN') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiError('Forbidden', 403);
   }
 
   const { factoryId } = await params;
@@ -171,11 +172,11 @@ export async function POST(
   });
 
   if (!factory) {
-    return NextResponse.json({ error: 'Factory not found' }, { status: 404 });
+    return apiError('Factory not found', 404);
   }
 
   if (factory.subscriptions[0]) {
-    return NextResponse.json({ subscription: factory.subscriptions[0] });
+    return apiSuccess({ subscription: factory.subscriptions[0] });
   }
 
   const trialEndDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
@@ -191,5 +192,5 @@ export async function POST(
     },
   });
 
-  return NextResponse.json({ subscription }, { status: 201 });
+  return apiSuccess({ subscription });
 }

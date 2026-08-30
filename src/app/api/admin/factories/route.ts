@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prismaAuth } from '@/lib/db';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 const basePrisma = prismaAuth;
 
@@ -18,7 +19,7 @@ function getMonthlyAmount(subscription: { driverCount: number; pricePerDriver: u
 export async function GET() {
   const session = await getSession();
   if (!session || session.role !== 'SUPER_ADMIN') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiError('Forbidden', 403);
   }
 
   const factories = await basePrisma.factory.findMany({
@@ -61,5 +62,5 @@ export async function GET() {
     };
   });
 
-  return NextResponse.json({ factories: result });
+  return apiSuccess({ factories: result });
 }

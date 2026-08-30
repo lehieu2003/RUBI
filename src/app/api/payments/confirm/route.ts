@@ -1,23 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prismaAuth } from '@/lib/db';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return apiError('Unauthorized', 401);
     }
 
     if (session.role !== 'ADMIN' && session.role !== 'SUPER_ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return apiError('Forbidden', 403);
     }
 
     const body = await req.json();
     const { subscriptionId, amount } = body;
 
     if (!subscriptionId || typeof amount !== 'number' || amount < 0) {
-      return NextResponse.json({ error: 'Invalid input: subscriptionId and non-negative amount required' }, { status: 400 });
+      return apiError('Invalid input: subscriptionId and non-negative amount required', 400);
     }
 
     const subscription = session.role === 'SUPER_ADMIN'
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest) {
         });
 
     if (!subscription) {
-      return NextResponse.json({ error: 'Subscription not found' }, { status: 404 });
+      return apiError('Subscription not found', 404);
     }
 
     const baseDate = subscription.endDate > new Date() ? subscription.endDate : new Date();
@@ -60,10 +61,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true, subscription: updatedSubscription });
+    return apiSuccess({ success: true, subscription: updatedSubscription });
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('[POST /api/payments/confirm]', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return apiError('Internal server error', 500);
   }
 }

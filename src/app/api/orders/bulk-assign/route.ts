@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 // PATCH /api/orders/bulk-assign
 // Body: { orderIds: string[], driverId: string }
@@ -16,17 +17,14 @@ export async function PATCH(request: NextRequest) {
     const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
     await requireActiveSubscription();
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
 
     const body = await request.json();
     const parsed = BulkAssignSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid request. Required: orderIds (string[]) and driverId (string)' },
-        { status: 400 }
-      );
+      return apiError('Invalid request. Required: orderIds (string[]) and driverId (string)', 400);
     }
 
     const { orderIds, driverId } = parsed.data;
@@ -37,7 +35,7 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (!driver) {
-      return NextResponse.json({ error: 'Driver not found' }, { status: 404 });
+      return apiError('Driver not found', 404);
     }
 
     // SUB-01: Check subscription is active (read-only mode if not)
@@ -53,10 +51,7 @@ export async function PATCH(request: NextRequest) {
       where: { factoryId: session.factoryId, isActive: true },
     });
     if (currentDriverCount >= maxDrivers) {
-      return NextResponse.json(
-        { error: 'Cần nâng cấp subscription để thêm driver', code: 'DRIVER_LIMIT_EXCEEDED' },
-        { status: 403 }
-      );
+      return apiError('Cần nâng cấp subscription để thêm driver', 403);
     }
 
     // Bulk update orders to assign to driver
@@ -72,14 +67,14 @@ export async function PATCH(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      assignedCount: result.count,
-      driver: { id: driver.id, name: driver.name },
-    });
+    return apiSuccess({
+          success: true,
+          assignedCount: result.count,
+          driver: { id: driver.id, name: driver.name },
+        });
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('[PATCH /api/orders/bulk-assign]', error);
-    return NextResponse.json({ error: 'Bulk assign failed' }, { status: 500 });
+    return apiError('Bulk assign failed', 500);
   }
 }

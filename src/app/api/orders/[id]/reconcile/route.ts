@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
 import { z } from 'zod';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 const ReconcileSchema = z.object({
   items: z.array(z.object({
@@ -19,14 +20,14 @@ export async function PATCH(
     const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
     await requireActiveSubscription();
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
 
     const { id } = await params;
     const body = await request.json();
     const parsed = ReconcileSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid body. Required: items[{id, actualQty}]' }, { status: 400 });
+      return apiError('Invalid body. Required: items[{id, actualQty}]', 400);
     }
 
     // --- Atomic transaction: reconcile + inventory deduction + debt entry ---
@@ -100,14 +101,14 @@ export async function PATCH(
       }
     });
 
-    return NextResponse.json({
-      success: true,
-      orderId: id,
-      status: 'COMPLETED',
-    });
+    return apiSuccess({
+          success: true,
+          orderId: id,
+          status: 'COMPLETED',
+        });
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('[PATCH /api/orders/[id]/reconcile]', error);
-    return NextResponse.json({ error: 'Reconciliation failed' }, { status: 500 });
+    return apiError('Reconciliation failed', 500);
   }
 }

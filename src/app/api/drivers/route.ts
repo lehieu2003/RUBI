@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 // GET /api/drivers
 // Returns active driver profiles backed by DRIVER user accounts.
@@ -9,7 +10,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN', 'ACCOUNTANT', 'STAFF']);
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
 
     const { searchParams } = new URL(request.url);
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
         select: { id: true, name: true, phone: true },
         orderBy: { name: 'asc' },
       });
-      return NextResponse.json({ count: drivers.length, drivers });
+      return apiSuccess({ count: drivers.length, drivers });
     }
 
     const drivers = await prisma.driver.findMany({
@@ -46,11 +47,11 @@ export async function GET(request: NextRequest) {
       orderBy: { name: 'asc' },
     });
 
-    return NextResponse.json(drivers);
+    return apiSuccess(drivers);
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('[GET /api/drivers]', error);
-    return NextResponse.json({ error: 'Failed to fetch drivers' }, { status: 500 });
+    return apiError('Failed to fetch drivers', 500);
   }
 }
 
@@ -59,13 +60,10 @@ export async function POST() {
   try {
     await requireRole(['ADMIN']);
     await requireActiveSubscription();
-    return NextResponse.json(
-      { error: 'Tạo tài xế trong phần Nhân sự bằng role Tài xế', code: 'DRIVER_CREATE_FROM_STAFF' },
-      { status: 405 }
-    );
+    return apiError('Tạo tài xế trong phần Nhân sự bằng role Tài xế', 405);
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('[POST /api/drivers]', error);
-    return NextResponse.json({ error: 'Failed to create driver' }, { status: 500 });
+    return apiError('Failed to create driver', 500);
   }
 }

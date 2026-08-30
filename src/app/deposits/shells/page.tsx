@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { Package, Plus, ArrowDownToLine, ArrowUpFromLine, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 interface DepositRecord {
   customerId: string;
@@ -35,8 +36,8 @@ export default function ShellDepositsPage() {
     async function fetchData() {
       try {
         const [depositsRes, customersRes] = await Promise.all([
-          fetch('/api/deposits/shells'),
-          fetch('/api/customers'),
+          fetch(API_ENDPOINTS.DEPOSITS.SHELLS),
+          fetch(API_ENDPOINTS.CUSTOMERS.BASE),
         ]);
         if (!depositsRes.ok) throw new Error('Failed to fetch deposits');
         setDeposits(await depositsRes.json());
@@ -59,7 +60,7 @@ export default function ShellDepositsPage() {
     }
     setSubmitting(true);
     try {
-      const res = await fetch('/api/deposits/shells', {
+      const res = await fetch(API_ENDPOINTS.DEPOSITS.SHELLS, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -73,7 +74,7 @@ export default function ShellDepositsPage() {
         throw new Error(err.error || 'Failed to record');
       }
       // Refresh deposits
-      const refreshRes = await fetch('/api/deposits/shells');
+      const refreshRes = await fetch(API_ENDPOINTS.DEPOSITS.SHELLS);
       if (refreshRes.ok) setDeposits(await refreshRes.json());
       setIsModalOpen(false);
       setSelectedCustomer('');

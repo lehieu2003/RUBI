@@ -15,6 +15,7 @@ import {
   Package,
 } from 'lucide-react';
 import type { Customer, Product, Order, Subscription } from '@prisma/client';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 type DashboardOrder = Omit<Order, 'total'> & {
   total: string | number;
@@ -48,7 +49,7 @@ export function DashboardClient({
   // Fetch subscription data for ADMIN users
   useEffect(() => {
     if (currentUser?.role === 'ADMIN' && currentUser?.factoryId) {
-      fetch('/api/billing/subscription')
+      fetch(API_ENDPOINTS.BILLING.SUBSCRIPTION)
         .then(res => res.json())
         .then(data => {
           if (data.subscription) {

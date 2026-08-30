@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { toast } from '@/components/dashboard/toast';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 interface SubscriptionInfo {
   id: string;
@@ -41,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch('/api/auth/me');
+      const res = await fetch(API_ENDPOINTS.AUTH.ME);
       const data = await res.json();
       setUser(data.user);
     } catch {
@@ -53,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(API_ENDPOINTS.AUTH.LOGIN, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -68,40 +69,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       toast({ type: 'success', title: 'Đăng nhập thành công' });
       return { error: null };
     } catch {
-      toast({ type: 'error', title: 'Đăng nhập thất bại', message: 'Lỗi kết nối' });
-      return { error: 'Lỗi kết nối' };
+      const errorMsg = 'Có lỗi xảy ra khi kết nối máy chủ';
+      toast({ type: 'error', title: 'Lỗi mạng', message: errorMsg });
+      return { error: errorMsg };
     }
   };
 
   const signUp = async (email: string, password: string, name: string, factoryName?: string, phone?: string) => {
     try {
-      const res = await fetch('/api/auth/register', {
+      const res = await fetch(API_ENDPOINTS.AUTH.REGISTER, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, name, factoryName, phone }),
       });
-      const data = await res.json();
-      if (data.error) {
-        toast({ type: 'error', title: 'Đăng ký thất bại', message: data.error });
-        return { error: data.error };
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.error) {
+        const errorMsg = data.error || (data.errors ? 'Dữ liệu không hợp lệ' : 'Đăng ký không thành công');
+        toast({ type: 'error', title: 'Đăng ký thất bại', message: errorMsg });
+        return { error: errorMsg };
       }
-      setUser(data.user);
-      toast({ type: 'success', title: 'Đăng ký thành công' });
+      await checkAuth();
+      toast({ type: 'success', title: 'Đăng ký thành công', message: 'Chào mừng bạn đến với IceFlow!' });
       return { error: null };
     } catch {
-      toast({ type: 'error', title: 'Đăng ký thất bại', message: 'Lỗi kết nối' });
-      return { error: 'Lỗi kết nối' };
+      const errorMsg = 'Có lỗi xảy ra khi kết nối máy chủ';
+      toast({ type: 'error', title: 'Lỗi mạng', message: errorMsg });
+      return { error: errorMsg };
     }
   };
 
   const signOut = async () => {
     try {
-      const res = await fetch('/api/auth/logout', { method: 'POST' });
-      if (!res.ok) throw new Error('Không thể đăng xuất');
+      await fetch(API_ENDPOINTS.AUTH.LOGOUT, { method: 'POST' });
       setUser(null);
-      toast({ type: 'success', title: 'Đã đăng xuất' });
+      toast({ type: 'info', title: 'Đã đăng xuất' });
     } catch {
-      toast({ type: 'error', title: 'Đăng xuất thất bại', message: 'Vui lòng thử lại' });
+      // Ignore logout error
     }
   };
 

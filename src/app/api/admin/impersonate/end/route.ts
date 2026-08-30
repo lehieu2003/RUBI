@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prismaAuth } from '@/lib/db';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 const basePrisma = prismaAuth;
 
 export async function POST(request: NextRequest) {
   const session = await getSession();
   if (!session || session.role !== 'SUPER_ADMIN') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiError('Forbidden', 403);
   }
 
   const token = request.cookies.get('impersonate_token')?.value;
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  const response = NextResponse.json({ success: true });
+  const response = apiSuccess({ success: true });
 
   // Clear the impersonation cookie
   response.cookies.set('impersonate_token', '', {

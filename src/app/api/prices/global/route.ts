@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 const SetGlobalPriceSchema = z.object({
   productId: z.string().min(1),
@@ -14,17 +15,14 @@ export async function POST(request: NextRequest) {
     const session = await requireRole(['ADMIN']);
     await requireActiveSubscription();
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
 
     const body = await request.json();
     const parsed = SetGlobalPriceSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: parsed.error.flatten() },
-        { status: 400 }
-      );
+      return apiError('Invalid request', 400);
     }
 
     const { productId, price } = parsed.data;
@@ -34,7 +32,7 @@ export async function POST(request: NextRequest) {
       select: { id: true },
     });
     if (!product) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return apiError('Product not found', 404);
     }
 
     await prisma.globalPrice.upsert({
@@ -48,13 +46,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true });
+    return apiSuccess({ success: true });
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('Error setting global price:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return apiError('Internal server error', 500);
   }
 }

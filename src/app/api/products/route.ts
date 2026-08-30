@@ -1,24 +1,25 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 export async function GET() {
   try {
     const session = await getSession();
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return apiError('Unauthorized', 401);
     }
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
 
     const products = await prisma.product.findMany({
       where: { isActive: true, factoryId: session.factoryId },
       orderBy: [{ name: 'asc' }, { sizeKg: 'asc' }],
     });
-    return NextResponse.json(products);
+    return apiSuccess(products);
   } catch (error) {
     console.error('[GET /api/products]', error);
-    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
+    return apiError('Failed to fetch products', 500);
   }
 }

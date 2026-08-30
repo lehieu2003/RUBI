@@ -6,16 +6,14 @@ import { rateLimit, getIpFromRequest } from '@/lib/rate-limit';
 
 // Use prismaAuth for global auth queries (no tenant filtering)
 import { prismaAuth } from '@/lib/db';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 export async function POST(req: NextRequest) {
   // RATEL-01: Login rate limit - 5 per IP per minute
   const ip = getIpFromRequest(req);
   const limit = rateLimit(ip, 5, 60 * 1000);
   if (!limit.success) {
-    return NextResponse.json(
-      { error: 'Too Many Requests' },
-      { status: 429, headers: { 'Retry-After': String(limit.retryAfter) } }
-    );
+    return apiError('Too Many Requests', 429);
   }
 
   try {
@@ -24,10 +22,7 @@ export async function POST(req: NextRequest) {
     if (!parseResult.success) {
       const fieldErrors = parseResult.error.flatten().fieldErrors;
       const firstError = Object.values(fieldErrors).flat()[0] || 'Dữ liệu không hợp lệ';
-      return NextResponse.json(
-        { error: firstError, errors: parseResult.error.flatten() },
-        { status: 400 }
-      );
+      return apiError(firstError, 400);
     }
 
     const { email, password } = parseResult.data;
@@ -36,23 +31,20 @@ export async function POST(req: NextRequest) {
     if (!user) {
       // Perform dummy bcrypt comparison to prevent timing leak attack
       await bcrypt.compare(password, '$2b$12$placeholder.hash.that.is.valid.for.timing');
-      return NextResponse.json({ error: 'Email hoặc mật khẩu không đúng' }, { status: 401 });
+      return apiError('Email hoặc mật khẩu không đúng', 401);
     }
 
     if (!user.isActive) {
-      return NextResponse.json({ error: 'Tài khoản đã bị vô hiệu hóa' }, { status: 403 });
+      return apiError('Tài khoản đã bị vô hiệu hóa', 403);
     }
 
     if (user.role !== 'SUPER_ADMIN' && !user.factoryId) {
-      return NextResponse.json(
-        { error: 'Tài khoản chưa được gán nhà máy. Vui lòng liên hệ admin.' },
-        { status: 403 }
-      );
+      return apiError('Tài khoản chưa được gán nhà máy. Vui lòng liên hệ admin.', 403);
     }
 
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
-      return NextResponse.json({ error: 'Email hoặc mật khẩu không đúng' }, { status: 401 });
+      return apiError('Email hoặc mật khẩu không đúng', 401);
     }
 
     const token = await signJWT({
@@ -64,17 +56,17 @@ export async function POST(req: NextRequest) {
     });
     await setSessionCookie(token);
 
-    return NextResponse.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        factoryId: user.factoryId,
-      },
-    });
+    return apiSuccess({
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            factoryId: user.factoryId,
+          },
+        });
   } catch (error) {
     console.error('Login error:', error);
-    return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
+    return apiError('Lỗi server', 500);
   }
 }

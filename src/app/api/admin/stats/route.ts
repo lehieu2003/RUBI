@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prismaAuth } from '@/lib/db';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 const basePrisma = prismaAuth;
 
 export async function GET() {
   const session = await getSession();
   if (!session || session.role !== 'SUPER_ADMIN') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiError('Forbidden', 403);
   }
 
   const now = new Date();
@@ -65,14 +66,14 @@ export async function GET() {
     return sum + Number(payment.amount);
   }, 0);
 
-  return NextResponse.json({
-    totalFactoryCount: factories.length,
-    activeFactoryCount: activeSubscriptions.length,
-    trialFactoryCount: trialSubscriptions.length,
-    expiredFactoryCount: expiredSubscriptions.length,
-    activeDriverCount,
-    monthlyRevenue,
-    monthlyPaymentTotal,
-    nearExpiryCount: nearExpirySubscriptions.length,
-  });
+  return apiSuccess({
+      totalFactoryCount: factories.length,
+      activeFactoryCount: activeSubscriptions.length,
+      trialFactoryCount: trialSubscriptions.length,
+      expiredFactoryCount: expiredSubscriptions.length,
+      activeDriverCount,
+      monthlyRevenue,
+      monthlyPaymentTotal,
+      nearExpiryCount: nearExpirySubscriptions.length,
+    });
 }

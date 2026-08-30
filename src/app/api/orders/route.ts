@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 // GET /api/orders - List orders with filters (D-06)
 // Supports: customerId, status, date
@@ -9,7 +10,7 @@ export async function GET(request: NextRequest) {
     // --- Session auth ---
     const session = await requireRole(['ADMIN', 'ACCOUNTANT', 'STAFF']);
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
 
     const { searchParams } = new URL(request.url);
@@ -54,10 +55,10 @@ export async function GET(request: NextRequest) {
       })),
     }));
 
-    return NextResponse.json(serialized);
+    return apiSuccess(serialized);
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('[GET /api/orders]', error);
-    return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
+    return apiError('Failed to fetch orders', 500);
   }
 }

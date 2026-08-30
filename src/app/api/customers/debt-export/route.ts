@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 // GET /api/customers/debt-export
 // Returns customer debt data and recent orders for Excel export
@@ -8,12 +9,12 @@ export async function GET() {
   try {
     const session = await getSession();
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return apiError('Unauthorized', 401);
     }
 
     const factoryId = session.factoryId;
     if (!factoryId) {
-      return NextResponse.json({ error: 'Factory not found' }, { status: 400 });
+      return apiError('Factory not found', 400);
     }
 
     const customers = await prisma.customer.findMany({
@@ -47,6 +48,6 @@ export async function GET() {
     return NextResponse.json({ customers, orders });
   } catch (error) {
     console.error('[GET /api/customers/debt-export]', error);
-    return NextResponse.json({ error: 'Failed to fetch export data' }, { status: 500 });
+    return apiError('Failed to fetch export data', 500);
   }
 }

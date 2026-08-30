@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 interface DebtRecord {
   customerId: string;
@@ -19,7 +20,7 @@ export default function DebtReportPage() {
   useEffect(() => {
     async function fetchDebts() {
       try {
-        const res = await fetch('/api/reports/debt');
+        const res = await fetch(API_ENDPOINTS.REPORTS.DEBT);
         if (!res.ok) throw new Error('Failed to fetch debt report');
         const data = await res.json();
         setDebts(data);

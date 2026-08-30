@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { ImpersonationDrawer } from '@/components/admin/impersonation-drawer';
 import { toast } from '@/components/dashboard/toast';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Tổng quan', icon: BarChart3 },
@@ -30,7 +31,7 @@ function ImpersonationOverlay() {
 
   const handleEndImpersonation = async () => {
     try {
-      const res = await fetch('/api/admin/impersonate/end', { method: 'POST' });
+      const res = await fetch(API_ENDPOINTS.ADMIN.IMPERSONATE.END, { method: 'POST' });
       if (!res.ok) throw new Error('Không thể kết thúc impersonate');
       toast({ type: 'success', title: 'Đã thoát impersonate' });
     } catch (err) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
 import { z } from 'zod';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 const ShellDepositSchema = z.object({
   customerId: z.string(),
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
 
     const customers = await prisma.customer.findMany({
@@ -45,11 +46,11 @@ export async function GET(request: NextRequest) {
     // Sort by netDepositOwed descending (most owed first)
     deposits.sort((a, b) => b.netDepositOwed - a.netDepositOwed);
 
-    return NextResponse.json(deposits);
+    return apiSuccess(deposits);
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('[GET /api/deposits/shells]', error);
-    return NextResponse.json({ error: 'Failed to fetch deposit data' }, { status: 500 });
+    return apiError('Failed to fetch deposit data', 500);
   }
 }
 
@@ -58,13 +59,13 @@ export async function PATCH(request: NextRequest) {
     const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
     await requireActiveSubscription();
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
 
     const body = await request.json();
     const parsed = ShellDepositSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
+      return apiError('Invalid body', 400);
     }
 
     const { customerId, shellsOut, shellsIn } = parsed.data;
@@ -74,7 +75,7 @@ export async function PATCH(request: NextRequest) {
       where: { id: customerId, factoryId: session.factoryId },
     });
     if (!customer) {
-      return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
+      return apiError('Customer not found', 404);
     }
 
     await prisma.customerShellDeposit.upsert({
@@ -91,15 +92,15 @@ export async function PATCH(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      customerId,
-      shellsOut: shellsOut ?? 0,
-      shellsIn: shellsIn ?? 0,
-    });
+    return apiSuccess({
+          success: true,
+          customerId,
+          shellsOut: shellsOut ?? 0,
+          shellsIn: shellsIn ?? 0,
+        });
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('[PATCH /api/deposits/shells]', error);
-    return NextResponse.json({ error: 'Failed to update deposit' }, { status: 500 });
+    return apiError('Failed to update deposit', 500);
   }
 }

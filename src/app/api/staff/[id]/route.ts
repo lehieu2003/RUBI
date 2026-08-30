@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 const STAFF_ROLES = ['ADMIN', 'ACCOUNTANT', 'STAFF', 'DRIVER'] as const;
 
@@ -25,7 +26,7 @@ export async function PATCH(
     const session = await requireRole(['ADMIN']);
     await requireActiveSubscription();
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
 
     const { id } = await params;
@@ -33,7 +34,7 @@ export async function PATCH(
 
     // Prevent admin from modifying themselves
     if (id === session.userId) {
-      return NextResponse.json({ error: 'Không thể tự sửa tài khoản' }, { status: 400 });
+      return apiError('Không thể tự sửa tài khoản', 400);
     }
 
     const existing = await prisma.user.findFirst({
@@ -41,7 +42,7 @@ export async function PATCH(
       select: { id: true, name: true, role: true, isActive: true, driverProfile: { select: { id: true } } },
     });
     if (!existing) {
-      return NextResponse.json({ error: 'Staff not found' }, { status: 404 });
+      return apiError('Staff not found', 404);
     }
 
     const updateData: Record<string, unknown> = {};
@@ -54,7 +55,7 @@ export async function PATCH(
     // Reset password
     if (body.password) {
       if (body.password.length < 6) {
-        return NextResponse.json({ error: 'Mật khẩu phải có ít nhất 6 ký tự' }, { status: 400 });
+        return apiError('Mật khẩu phải có ít nhất 6 ký tự', 400);
       }
       updateData.password = await bcrypt.hash(body.password, 12);
     }
@@ -116,11 +117,11 @@ export async function PATCH(
       return updatedUser;
     });
 
-    return NextResponse.json({ user });
+    return apiSuccess({ user });
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('[PATCH /api/staff/[id]]', error);
-    return NextResponse.json({ error: 'Failed to update staff' }, { status: 500 });
+    return apiError('Failed to update staff', 500);
   }
 }
 
@@ -133,13 +134,13 @@ export async function DELETE(
     const session = await requireRole(['ADMIN']);
     await requireActiveSubscription();
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
 
     const { id } = await params;
 
     if (id === session.userId) {
-      return NextResponse.json({ error: 'Không thể tự xóa tài khoản' }, { status: 400 });
+      return apiError('Không thể tự xóa tài khoản', 400);
     }
 
     const existing = await prisma.user.findFirst({
@@ -147,7 +148,7 @@ export async function DELETE(
       select: { id: true },
     });
     if (!existing) {
-      return NextResponse.json({ error: 'Staff not found' }, { status: 404 });
+      return apiError('Staff not found', 404);
     }
 
     await prisma.user.update({
@@ -155,10 +156,10 @@ export async function DELETE(
       data: { isActive: false },
     });
 
-    return NextResponse.json({ success: true });
+    return apiSuccess({ success: true });
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('[DELETE /api/staff/[id]]', error);
-    return NextResponse.json({ error: 'Failed to delete staff' }, { status: 500 });
+    return apiError('Failed to delete staff', 500);
   }
 }

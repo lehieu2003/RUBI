@@ -5,6 +5,7 @@ import type { Subscription } from '@prisma/client';
 import { exportCustomerDebtExcel } from '@/lib/export-excel';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/dashboard/toast';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 interface CancelSubscriptionFlowProps {
   subscription: Subscription;
@@ -21,7 +22,7 @@ export function CancelSubscriptionFlow({ subscription, factoryId }: CancelSubscr
 
     try {
       // 1. Fetch customer debt data for export
-      const exportRes = await fetch('/api/customers/debt-export');
+      const exportRes = await fetch(API_ENDPOINTS.CUSTOMERS.DEBT_EXPORT);
 
       if (!exportRes.ok) {
         throw new Error('Failed to fetch export data');
@@ -35,7 +36,7 @@ export function CancelSubscriptionFlow({ subscription, factoryId }: CancelSubscr
       }
 
       // 3. Call cancel API
-      const cancelRes = await fetch('/api/subscriptions/cancel', {
+      const cancelRes = await fetch(API_ENDPOINTS.SUBSCRIPTIONS.CANCEL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subscriptionId: subscription.id }),

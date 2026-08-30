@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 // GET /api/orders/map?date=YYYY-MM-DD&driverId=xxx
 // Returns all orders with GPS data for admin map
@@ -9,13 +10,13 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return apiError('Unauthorized', 401);
     }
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
     if (session.role !== 'ACCOUNTANT' && session.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return apiError('Forbidden', 403);
     }
 
     const { searchParams } = new URL(request.url);
@@ -63,9 +64,9 @@ export async function GET(request: NextRequest) {
       createdAt: order.createdAt,
     }));
 
-    return NextResponse.json(serialized);
+    return apiSuccess(serialized);
   } catch (error) {
     console.error('[GET /api/orders/map]', error);
-    return NextResponse.json({ error: 'Failed to fetch map data' }, { status: 500 });
+    return apiError('Failed to fetch map data', 500);
   }
 }

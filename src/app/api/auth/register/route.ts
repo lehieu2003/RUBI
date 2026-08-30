@@ -6,26 +6,21 @@ import { rateLimit, getIpFromRequest } from '@/lib/rate-limit';
 
 // Use prismaAuth for global auth queries (no tenant filtering)
 import { prismaAuth } from '@/lib/db';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 export async function POST(req: NextRequest) {
   // RATEL-02: Registration rate limit - 3 per IP per minute
   const ip = getIpFromRequest(req);
   const limit = rateLimit(ip, 3, 60 * 1000);
   if (!limit.success) {
-    return NextResponse.json(
-      { error: 'Too Many Requests' },
-      { status: 429, headers: { 'Retry-After': String(limit.retryAfter) } }
-    );
+    return apiError('Too Many Requests', 429);
   }
 
   try {
     const body = await req.json();
     const parseResult = registerSchema.safeParse(body);
     if (!parseResult.success) {
-      return NextResponse.json(
-        { errors: parseResult.error.flatten() },
-        { status: 400 }
-      );
+      return apiSuccess({ errors: parseResult.error.flatten() });
     }
 
     const { email, password, name, phone, factoryName } = parseResult.data;
@@ -34,7 +29,7 @@ export async function POST(req: NextRequest) {
     // Check existing user (globally unique email) - no tenant context needed
     const existing = await prismaAuth.user.findUnique({ where: { email } });
     if (existing) {
-      return NextResponse.json({ error: 'Email đã được đăng ký' }, { status: 409 });
+      return apiError('Email đã được đăng ký', 409);
     }
 
     // Check existing phone (globally, for ADMIN users - prevent duplicate factory registration)
@@ -42,7 +37,7 @@ export async function POST(req: NextRequest) {
       where: { phone, role: 'ADMIN' },
     });
     if (existingPhone) {
-      return NextResponse.json({ error: 'Số điện thoại đã được sử dụng' }, { status: 409 });
+      return apiError('Số điện thoại đã được sử dụng', 409);
     }
 
     // Hash password
@@ -90,25 +85,25 @@ export async function POST(req: NextRequest) {
     await setSessionCookie(token);
 
     // REG-01: nextUrl in response body
-    return NextResponse.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        phone: user.phone,
-        factoryId: factory.id,
-      },
-      subscription: {
-        id: subscription.id,
-        planType: subscription.planType,
-        startDate: subscription.startDate,
-        endDate: subscription.endDate,
-        status: subscription.status,
-      },
-      nextUrl: '/dashboard',
-    });
+    return apiSuccess({
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            phone: user.phone,
+            factoryId: factory.id,
+          },
+          subscription: {
+            id: subscription.id,
+            planType: subscription.planType,
+            startDate: subscription.startDate,
+            endDate: subscription.endDate,
+            status: subscription.status,
+          },
+          nextUrl: '/dashboard',
+        });
   } catch (error) {
     console.error('Register error:', error);
-    return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
+    return apiError('Lỗi server', 500);
   }
 }

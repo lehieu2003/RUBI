@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { CheckCircle2, Clock, Truck, DollarSign, Package, Search, XCircle } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 // Types for API response
 interface OrderItemWithProduct {
@@ -66,7 +67,7 @@ export default function SettlePage() {
   useEffect(() => {
     async function fetchOrders() {
       try {
-        const res = await fetch(`/api/orders?status=DELIVERED&date=${todayStr}`);
+        const res = await fetch(`${API_ENDPOINTS.ORDERS.BASE}?status=DELIVERED&date=${todayStr}`);
         if (!res.ok) throw new Error('Failed to fetch orders');
         const data = await res.json();
         setOrders(data);
@@ -117,7 +118,7 @@ export default function SettlePage() {
     setReconcileLoading(true);
     try {
       const items = Object.entries(reconcileItems).map(([id, actualQty]) => ({ id, actualQty }));
-      const res = await fetch(`/api/orders/${reconcileOrder.id}/reconcile`, {
+      const res = await fetch(API_ENDPOINTS.ORDERS.RECONCILE(reconcileOrder.id), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ items }),
@@ -127,7 +128,7 @@ export default function SettlePage() {
         throw new Error(err.error || 'Reconciliation failed');
       }
       // Refresh orders
-      const ordersRes = await fetch(`/api/orders?status=DELIVERED&date=${todayStr}`);
+      const ordersRes = await fetch(`${API_ENDPOINTS.ORDERS.BASE}?status=DELIVERED&date=${todayStr}`);
       const ordersData = await ordersRes.json();
       setOrders(ordersData);
       setReconcileOrder(null);

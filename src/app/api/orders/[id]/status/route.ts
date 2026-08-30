@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 // PATCH /api/orders/[id]/status - Update order status (D-05)
 // Valid statuses: PENDING, SHIPPING, DELIVERED, COMPLETED, CANCELLED
@@ -21,24 +22,18 @@ export async function PATCH(
     const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
     await requireActiveSubscription();
     if (!session.factoryId) {
-      return NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+      return apiError('Bad Request: factoryId not found', 400);
     }
 
     const parsed = StatusSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid status. Must be PENDING, SHIPPING, DELIVERED, COMPLETED, or CANCELLED' },
-        { status: 400 }
-      );
+      return apiError('Invalid status. Must be PENDING, SHIPPING, DELIVERED, COMPLETED, or CANCELLED', 400);
     }
 
     // Require cancellation reason when cancelling
     if (parsed.data.status === 'CANCELLED' && !parsed.data.cancellationReason) {
-      return NextResponse.json(
-        { error: 'Cancellation reason is required when cancelling an order' },
-        { status: 400 }
-      );
+      return apiError('Cancellation reason is required when cancelling an order', 400);
     }
 
     // Verify order belongs to current factory before updating
@@ -46,7 +41,7 @@ export async function PATCH(
       where: { id, factoryId: session.factoryId },
     });
     if (!existing) {
-      return NextResponse.json({ error: 'Order not found or access denied' }, { status: 404 });
+      return apiError('Order not found or access denied', 404);
     }
 
     const order = await prisma.order.update({
@@ -59,10 +54,10 @@ export async function PATCH(
       },
     });
 
-    return NextResponse.json(order);
+    return apiSuccess(order);
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('[PATCH /api/orders/[id]/status]', error);
-    return NextResponse.json({ error: 'Update failed' }, { status: 500 });
+    return apiError('Update failed', 500);
   }
 }

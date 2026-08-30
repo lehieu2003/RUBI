@@ -8,6 +8,7 @@ import { Sidebar } from '@/components/dashboard/sidebar';
 import { VietQRCode } from '@/components/billing/VietQRCode';
 import { PricingDisplay } from '@/components/billing/PricingDisplay';
 import { toast } from '@/components/dashboard/toast';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 interface SubscriptionData {
   subscription: {
@@ -54,7 +55,7 @@ export function BillingScreen() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch('/api/auth/me')
+    fetch(API_ENDPOINTS.AUTH.ME)
       .then(r => r.json())
       .then((sessionData: Session) => {
         setSession(sessionData);
@@ -63,7 +64,7 @@ export function BillingScreen() {
           router.push('/dashboard');
           return;
         }
-        return fetch('/api/billing/subscription')
+        return fetch(API_ENDPOINTS.BILLING.SUBSCRIPTION)
           .then(r => r.json())
           .then(d => { setData(d); setLoading(false); })
           .catch(() => setLoading(false));
@@ -104,7 +105,7 @@ export function BillingScreen() {
     setPaymentError(null);
 
     try {
-      const response = await fetch('/api/payments/confirm', {
+      const response = await fetch(API_ENDPOINTS.PAYMENTS.CONFIRM, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
