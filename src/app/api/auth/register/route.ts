@@ -7,6 +7,7 @@ import { rateLimit, getIpFromRequest } from '@/lib/rate-limit';
 // Use prismaAuth for global auth queries (no tenant filtering)
 import { prismaAuth } from '@/lib/db';
 import { apiSuccess, apiError } from "@/lib/api-response";
+import { sendWelcomeEmail } from '@/lib/email/service';
 
 export async function POST(req: NextRequest) {
   // RATEL-02: Registration rate limit - 3 per IP per minute
@@ -83,6 +84,13 @@ export async function POST(req: NextRequest) {
       factoryId: factory.id,
     });
     await setSessionCookie(token);
+
+    // Send Welcome Email in background
+    void sendWelcomeEmail({
+      to: user.email,
+      name: user.name,
+      factoryName: factory.name,
+    });
 
     // REG-01: nextUrl in response body
     return apiSuccess({

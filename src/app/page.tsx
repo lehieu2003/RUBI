@@ -395,7 +395,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="py-8 px-6 border-t border-[#c2c6d3] bg-white">
-        <div className="max-w-[1200px] mx-auto flex flex-col items-center gap-2">
+        <div className="max-w-[1200px] mx-auto flex flex-col items-center gap-3">
           <div className="flex items-center gap-2 text-lg font-bold">
             <div className="w-6 h-6 bg-[#004a99] rounded flex items-center justify-center text-white">
               <IceIcon />
@@ -403,7 +403,12 @@ export default function LandingPage() {
             <span className="text-[#002754] font-black">IceFlow</span>
           </div>
           <p className="text-xs text-[#424751]">Quản lý lò đá thảnh thơi — Chống thất thoát tiền & vỏ bao</p>
-          <p className="text-[11px] text-[#737783]">© 2026 IceFlow SaaS • Dành cho nhà máy đá Việt Nam</p>
+          <div className="flex items-center gap-4 text-xs font-bold text-[#004a99]">
+            <Link href="/terms" className="hover:underline">Điều khoản dịch vụ</Link>
+            <span className="text-[#c2c6d3]">•</span>
+            <Link href="/privacy" className="hover:underline">Chính sách bảo mật</Link>
+          </div>
+          <p className="text-[11px] text-[#737783] mt-1">© 2026 IceFlow SaaS • Dành cho xưởng sản xuất đá Việt Nam</p>
         </div>
       </footer>
     </div>
