@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Sidebar } from '@/components/dashboard/sidebar';
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { HourlyChart } from '@/components/dashboard/hourly-chart';
 import { RecentOrders } from '@/components/dashboard/recent-orders';
@@ -129,124 +129,120 @@ export function DashboardClient({
   };
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d]">
-      <Sidebar />
+    <DashboardLayout>
+      <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px]">
+        {/* Header */}
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4">
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">
+                Bảng Điều Khiển Vận Hành
+              </h1>
+              {currentUser?.role === 'ADMIN' && subscriptionData.subscription && (
+                <Link
+                  href="/billing"
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold transition-colors ${
+                    isExpiringSoon
+                      ? 'bg-[#ffdcc2] text-[#7f3700] border border-[#7f3700]/30 hover:bg-[#ffdcc2]/80'
+                      : 'bg-[#dee8ff] text-[#004a99] border border-[#004a99]/20 hover:bg-[#dee8ff]/80'
+                  }`}
+                >
+                  <CreditCard className="h-3.5 w-3.5" />
+                  <span>
+                    {subscriptionData.subscription.planType === 'PAID' ? 'Gói PRO' : 'Gói Dùng thử'}
+                    {daysRemaining !== null ? ` (Còn ${daysRemaining} ngày)` : ''}
+                  </span>
+                </Link>
+              )}
+            </div>
+            <p className="text-xs text-[#424751] mt-1">
+              Theo dõi tình trạng đơn hàng, tồn kho và sản lượng tức thời
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <OrderEntryDrawer customers={customers} products={products} />
+          </div>
+        </div>
 
-      <main className="pl-64">
-        <div className="p-8 max-w-[1400px]">
-          {/* Header */}
-          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4">
+        {/* Onboarding prompt for new factories with no customers */}
+        {showOnboardingPrompt && (
+          <div className="mb-6 rounded border border-[#ffdcc2] bg-[#ffdcc2]/40 px-5 py-4 flex items-center justify-between">
             <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">
-                  Bảng Điều Khiển Vận Hành
-                </h1>
-                {currentUser?.role === 'ADMIN' && subscriptionData.subscription && (
-                  <Link
-                    href="/billing"
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold transition-colors ${
-                      isExpiringSoon
-                        ? 'bg-[#ffdcc2] text-[#7f3700] border border-[#7f3700]/30 hover:bg-[#ffdcc2]/80'
-                        : 'bg-[#dee8ff] text-[#004a99] border border-[#004a99]/20 hover:bg-[#dee8ff]/80'
-                    }`}
-                  >
-                    <CreditCard className="h-3.5 w-3.5" />
-                    <span>
-                      {subscriptionData.subscription.planType === 'PAID' ? 'Gói PRO' : 'Gói Dùng thử'}
-                      {daysRemaining !== null ? ` (Còn ${daysRemaining} ngày)` : ''}
-                    </span>
-                  </Link>
-                )}
-              </div>
-              <p className="text-xs text-[#424751] mt-1">
-                Theo dõi tình trạng đơn hàng, tồn kho và sản lượng tức thời
+              <p className="text-[#7f3700] font-bold text-sm">Bạn chưa có khách hàng nào trong hệ thống.</p>
+              <p className="text-[#424751] text-xs mt-0.5">
+                Nhập danh sách khách hàng từ file CSV để bắt đầu tạo đơn hàng nhanh chóng.
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <OrderEntryDrawer customers={customers} products={products} />
-            </div>
+            <a
+              href="/onboarding"
+              className="ml-4 shrink-0 px-4 py-2 bg-[#004a99] hover:bg-[#00346f] text-white font-bold rounded text-xs transition-colors shadow-2xs"
+            >
+              Nhập dữ liệu ngay
+            </a>
           </div>
+        )}
 
-          {/* Onboarding prompt for new factories with no customers */}
-          {showOnboardingPrompt && (
-            <div className="mb-6 rounded border border-[#ffdcc2] bg-[#ffdcc2]/40 px-5 py-4 flex items-center justify-between">
-              <div>
-                <p className="text-[#7f3700] font-bold text-sm">Bạn chưa có khách hàng nào trong hệ thống.</p>
-                <p className="text-[#424751] text-xs mt-0.5">
-                  Nhập danh sách khách hàng từ file CSV để bắt đầu tạo đơn hàng nhanh chóng.
-                </p>
-              </div>
-              <a
-                href="/onboarding"
-                className="ml-4 shrink-0 px-4 py-2 bg-[#004a99] hover:bg-[#00346f] text-white font-bold rounded text-xs transition-colors shadow-2xs"
-              >
-                Nhập dữ liệu ngay
-              </a>
-            </div>
-          )}
-
-          {/* Tier 1: 4 Core KPI Stat Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <StatCard
-              title="Doanh số hôm nay"
-              value={stats.revenue.value}
-              subValue={stats.revenue.subValue}
-              icon={DollarSign}
-              iconColor="text-[#1b6d24]"
-              iconBg="bg-[#a0f399]/40"
-              trend={stats.revenue.trend}
-              trendValue={stats.revenue.trendValue}
-            />
-            <StatCard
-              title="Tổng đơn hàng"
-              value={stats.orders.value}
-              subValue={stats.orders.subValue}
-              icon={FileText}
-              iconColor="text-[#004a99]"
-              iconBg="bg-[#dee8ff]"
-              trend={stats.orders.trend}
-            />
-            <StatCard
-              title="Tồn kho lạnh"
-              value={stats.inventory.value}
-              subValue={stats.inventory.subValue}
-              icon={Snowflake}
-              iconColor="text-[#004a99]"
-              iconBg="bg-[#dee8ff]"
-            />
-            <StatCard
-              title="Vỏ bao đang ở khách"
-              value={stats.bags.value}
-              subValue={stats.bags.subValue}
-              icon={Package}
-              iconColor="text-[#7f3700]"
-              iconBg="bg-[#ffdcc2]/50"
-              trend={stats.bags.trend}
-              trendValue={stats.bags.trendValue}
-              warning={stats.bags.warning}
-            />
-          </div>
-
-          {/* Tier 2: Action Hub & Production Distribution */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
-            {/* Hourly Chart - 60% */}
-            <div className="lg:col-span-3">
-              <HourlyChart orders={orders} />
-            </div>
-
-            {/* Quick Actions Hub - 40% */}
-            <div className="lg:col-span-2">
-              <QuickActions
-                pendingOrdersCount={pendingCount}
-                totalBagsOut={totalBagsOut}
-              />
-            </div>
-          </div>
-
-          {/* Tier 3: Recent Orders Table */}
-          <RecentOrders orders={orders} />
+        {/* Tier 1: 4 Core KPI Stat Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <StatCard
+            title="Doanh số hôm nay"
+            value={stats.revenue.value}
+            subValue={stats.revenue.subValue}
+            icon={DollarSign}
+            iconColor="text-[#1b6d24]"
+            iconBg="bg-[#a0f399]/40"
+            trend={stats.revenue.trend}
+            trendValue={stats.revenue.trendValue}
+          />
+          <StatCard
+            title="Tổng đơn hàng"
+            value={stats.orders.value}
+            subValue={stats.orders.subValue}
+            icon={FileText}
+            iconColor="text-[#004a99]"
+            iconBg="bg-[#dee8ff]"
+            trend={stats.orders.trend}
+          />
+          <StatCard
+            title="Tồn kho lạnh"
+            value={stats.inventory.value}
+            subValue={stats.inventory.subValue}
+            icon={Snowflake}
+            iconColor="text-[#004a99]"
+            iconBg="bg-[#dee8ff]"
+          />
+          <StatCard
+            title="Vỏ bao đang ở khách"
+            value={stats.bags.value}
+            subValue={stats.bags.subValue}
+            icon={Package}
+            iconColor="text-[#7f3700]"
+            iconBg="bg-[#ffdcc2]/50"
+            trend={stats.bags.trend}
+            trendValue={stats.bags.trendValue}
+            warning={stats.bags.warning}
+          />
         </div>
-      </main>
-    </div>
+
+        {/* Tier 2: Action Hub & Production Distribution */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
+          {/* Hourly Chart - 60% */}
+          <div className="lg:col-span-3">
+            <HourlyChart orders={orders} />
+          </div>
+
+          {/* Quick Actions Hub - 40% */}
+          <div className="lg:col-span-2">
+            <QuickActions
+              pendingOrdersCount={pendingCount}
+              totalBagsOut={totalBagsOut}
+            />
+          </div>
+        </div>
+
+        {/* Tier 3: Recent Orders Table */}
+        <RecentOrders orders={orders} />
+      </div>
+    </DashboardLayout>
   );
 }
