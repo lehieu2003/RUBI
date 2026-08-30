@@ -90,13 +90,18 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
     <>
       <button
         onClick={openDrawer}
-        className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+        className="w-full flex items-center justify-center gap-2 rounded bg-[#004a99] hover:bg-[#00346f] active:bg-[#002754] text-white font-bold text-sm min-h-[48px] px-4 shadow-sm transition-all"
       >
-        + New Order
+        <span className="text-lg leading-none">+</span>
+        <span>LÊN ĐƠN NHANH</span>
+        <span className="ml-auto rounded bg-[#00346f] px-1.5 py-0.5 text-[10px] font-mono text-[#9bbdff]">
+          F2 / Ctrl+N
+        </span>
       </button>
 
-      <Drawer isOpen={isOpen} onClose={closeDrawer} title="New Order">
+      <Drawer isOpen={isOpen} onClose={closeDrawer} title="Tạo Đơn Hàng Tốc Độ Cao">
         <div className="flex flex-col gap-4">
+
           {/* Customer search */}
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-300">

@@ -1,427 +1,498 @@
 /**
- * IceFlow SaaS - Phase 1 Seed Script
+ * IceFlow SaaS - Complete System Seed Script
  *
- * Populates the database with initial data:
- * - 6 products (Đá Bi/Đá Viên x 5/10/20kg)
- * - 5 customers (KH001-KH005)
- * - Global prices for all products
- * - Customer price overrides for KH001 and KH002 (partial overrides)
- * - 6 sample orders with order items (DRAFT, CONFIRMED, PRINTED, DELIVERED statuses)
+ * Populates the entire database with realistic data for:
+ * 1. Super Admin & System Factory
+ * 2. Demo Tenant Factory (Nhà Máy Đá Miền Đông) with Active Subscription
+ * 3. Factory Users: Owner/Admin, Accountant, Staff, Driver
+ * 4. Products (Đá Bi, Đá Viên, Đá Cây, Đá Mi) & Global Prices
+ * 5. Customers with Customer Price Overrides
+ * 6. Customer Debt Ledgers & Shell Deposits (Cược vỏ)
+ * 7. Drivers & Schedule Assignments (Ca trực)
+ * 8. Inventory snapshots
+ * 9. Orders & Order Items in various lifecycle stages
+ * 10. Sample Payments
  *
- * Run with: npx tsx src/db/seed.ts
- * Or: node --loader tsx src/db/seed.ts
+ * Run with: npm run db:seed
  */
 
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient, Prisma, UserRole, Shift, LedgerType, OrderStatus } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
-// Product data: 6 SKUs
-const PRODUCTS = [
-  { name: 'Đá Bi', sizeKg: 5, unit: 'bag' },
-  { name: 'Đá Bi', sizeKg: 10, unit: 'bag' },
-  { name: 'Đá Bi', sizeKg: 20, unit: 'bag' },
-  { name: 'Đá Viên', sizeKg: 5, unit: 'bag' },
-  { name: 'Đá Viên', sizeKg: 10, unit: 'bag' },
-  { name: 'Đá Viên', sizeKg: 20, unit: 'bag' },
-] as const;
+async function main() {
+  console.log('='.repeat(60));
+  console.log('🧊 ICEFLOW SAAS - SEEDING COMPLETE SYSTEM DATA');
+  console.log('='.repeat(60));
 
-// Customer data: 5 wholesale customers in HCMC
-const CUSTOMERS = [
-  {
-    code: 'KH001',
-    name: 'Trần Văn Minh',
-    address: '123 Nguyễn Trãi, Quận 1, TP.HCM',
-    phone: '0903123456',
-  },
-  {
-    code: 'KH002',
-    name: 'Lê Thị Hương',
-    address: '456 Lê Văn Sỹ, Quận 3, TP.HCM',
-    phone: '0907654321',
-  },
-  {
-    code: 'KH003',
-    name: 'Phạm Đình Khoa',
-    address: '789 Điện Biên Phủ, Quận Bình Thạnh, TP.HCM',
-    phone: '0938123456',
-  },
-  {
-    code: 'KH004',
-    name: 'Nguyễn Thị Mai',
-    address: '321 Võ Văn Ngân, Thủ Đức, TP.HCM',
-    phone: '0945123456',
-  },
-  {
-    code: 'KH005',
-    name: 'Hoàng Văn Tài',
-    address: '654 Cách Mạng Tháng 8, Quận 10, TP.HCM',
-    phone: '0952123456',
-  },
-] as const;
+  const defaultPassword = await bcrypt.hash('12345678', 10);
 
-// Global base prices (VND per bag) - reasonable wholesale rates
-const GLOBAL_PRICES: Record<string, number> = {
-  'Đá Bi-5': 12000,
-  'Đá Bi-10': 22000,
-  'Đá Bi-20': 40000,
-  'Đá Viên-5': 15000,
-  'Đá Viên-10': 28000,
-  'Đá Viên-20': 52000,
-};
-
-// Customer price overrides for KH001 (2 products - Đá Bi 20kg and Đá Viên 10kg get discounts)
-const KH001_OVERRIDES: Record<string, number> = {
-  'Đá Bi-20': 38000, // discounted from 40000
-  'Đá Viên-10': 26000, // discounted from 28000
-};
-
-// Customer price overrides for KH002 (3 products)
-const KH002_OVERRIDES: Record<string, number> = {
-  'Đá Bi-5': 11000, // discounted from 12000
-  'Đá Viên-5': 14000, // discounted from 15000
-  'Đá Viên-20': 48000, // discounted from 52000
-};
-
-async function clearData() {
-  console.log('Clearing existing data...');
-
-  // Delete in reverse dependency order
-  await prisma.orderItem.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.customerPriceOverride.deleteMany();
-  await prisma.globalPrice.deleteMany();
-  await prisma.product.deleteMany();
-  await prisma.customer.deleteMany();
-
-  console.log('  - OrderItems deleted');
-  console.log('  - Orders deleted');
-  console.log('  - CustomerPriceOverrides deleted');
-  console.log('  - GlobalPrices deleted');
-  console.log('  - Products deleted');
-  console.log('  - Customers deleted');
-}
-
-async function createSystemFactory() {
-  console.log('\nCreating system factory...');
-
-  const factory = await prisma.factory.upsert({
-    where: { id: 'system-factory' },
+  // -------------------------------------------------------------
+  // 1. SUPER ADMIN & SYSTEM FACTORY
+  // -------------------------------------------------------------
+  console.log('\n[1/7] Creating System Factory & Super Admin...');
+  const systemFactory = await prisma.factory.upsert({
+    where: { id: 'sys-default-factory' },
     update: {},
     create: {
-      id: 'system-factory',
-      name: 'System',
+      id: 'sys-default-factory',
+      name: 'Hệ Thống IceFlow',
       isSystem: true,
+      onboardingCompleted: true,
     },
   });
 
-  console.log(`  - System factory: ${factory.id}`);
-  return factory;
-}
+  const superAdmin = await prisma.user.upsert({
+    where: { email: 'superadmin@iceflow.vn' },
+    update: { password: defaultPassword },
+    create: {
+      email: 'superadmin@iceflow.vn',
+      name: 'Super Administrator',
+      phone: '0901000000',
+      password: defaultPassword,
+      role: UserRole.SUPER_ADMIN,
+      isActive: true,
+    },
+  });
+  console.log(`  ✓ Super Admin: ${superAdmin.email} | Pass: 12345678`);
 
-async function createProducts(systemFactoryId: string) {
-  console.log('\nCreating 6 products...');
+  // -------------------------------------------------------------
+  // 2. MAIN DEMO FACTORY (Nhà Máy Đá Miền Đông)
+  // -------------------------------------------------------------
+  console.log('\n[2/7] Creating Demo Factory (Nhà Máy Đá Miền Đông)...');
+  const demoFactory = await prisma.factory.upsert({
+    where: { id: 'factory-mien-dong' },
+    update: {},
+    create: {
+      id: 'factory-mien-dong',
+      name: 'Nhà Máy Nước Đá Miền Đông',
+      phone: '028 3899 9999',
+      address: '128 Xa Lộ Hà Nội, TP. Thủ Đức, TP.HCM',
+      isSystem: false,
+      onboardingCompleted: true,
+    },
+  });
 
-  const createdProducts = [];
+  // Subscription (PAID - 30 days remaining)
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + 30);
+  await prisma.subscription.upsert({
+    where: { id: 'sub-mien-dong' },
+    update: {},
+    create: {
+      id: 'sub-mien-dong',
+      factoryId: demoFactory.id,
+      planType: 'PAID',
+      status: 'ACTIVE',
+      startDate: new Date(),
+      endDate: endDate,
+      driverCount: 3,
+      pricePerDriver: new Prisma.Decimal(150000),
+    },
+  });
+  console.log(`  ✓ Demo Factory created with Active Subscription (3 drivers)`);
 
-  for (const product of PRODUCTS) {
-    const created = await prisma.product.create({
-      data: {
-        name: product.name,
-        sizeKg: product.sizeKg,
-        unit: product.unit,
+  // -------------------------------------------------------------
+  // 3. FACTORY USERS (Owner, Accountant, Staff, Driver)
+  // -------------------------------------------------------------
+  console.log('\n[3/7] Creating Factory Users (All Roles)...');
+  
+  const adminUser = await prisma.user.upsert({
+    where: { email: 'admin@miendong.vn' },
+    update: { password: defaultPassword },
+    create: {
+      email: 'admin@miendong.vn',
+      name: 'Nguyễn Văn Chủ Xưởng',
+      phone: '0909111222',
+      password: defaultPassword,
+      role: UserRole.ADMIN,
+      isFactoryOwner: true,
+      factoryId: demoFactory.id,
+    },
+  });
+
+  const accountantUser = await prisma.user.upsert({
+    where: { email: 'ketoan@miendong.vn' },
+    update: { password: defaultPassword },
+    create: {
+      email: 'ketoan@miendong.vn',
+      name: 'Trần Thị Kế Toán',
+      phone: '0909333444',
+      password: defaultPassword,
+      role: UserRole.ACCOUNTANT,
+      factoryId: demoFactory.id,
+    },
+  });
+
+  const staffUser = await prisma.user.upsert({
+    where: { email: 'nhanvien@miendong.vn' },
+    update: { password: defaultPassword },
+    create: {
+      email: 'nhanvien@miendong.vn',
+      name: 'Lê Văn Lên Đơn',
+      phone: '0909555666',
+      password: defaultPassword,
+      role: UserRole.STAFF,
+      factoryId: demoFactory.id,
+    },
+  });
+
+  const driverUser1 = await prisma.user.upsert({
+    where: { email: 'taixe1@miendong.vn' },
+    update: { password: defaultPassword },
+    create: {
+      email: 'taixe1@miendong.vn',
+      name: 'Phạm Văn Tài (Xe 1)',
+      phone: '0909777888',
+      password: defaultPassword,
+      role: UserRole.DRIVER,
+      factoryId: demoFactory.id,
+    },
+  });
+
+  console.log(`  ✓ Owner / Admin : ${adminUser.email}      | Pass: 12345678`);
+  console.log(`  ✓ Accountant    : ${accountantUser.email}     | Pass: 12345678`);
+  console.log(`  ✓ Order Staff   : ${staffUser.email}   | Pass: 12345678`);
+  console.log(`  ✓ Driver User   : ${driverUser1.email}     | Pass: 12345678`);
+
+  // -------------------------------------------------------------
+  // 4. DRIVERS & SCHEDULE
+  // -------------------------------------------------------------
+  console.log('\n[4/7] Setting up Drivers & Shifts...');
+  const driver1 = await prisma.driver.upsert({
+    where: { slug: 'tai-xe-1-miendong' },
+    update: {},
+    create: {
+      name: 'Phạm Văn Tài',
+      slug: 'tai-xe-1-miendong',
+      phone: '0909777888',
+      factoryId: demoFactory.id,
+      userId: driverUser1.id,
+      isActive: true,
+    },
+  });
+
+  const driver2 = await prisma.driver.upsert({
+    where: { slug: 'tai-xe-2-miendong' },
+    update: {},
+    create: {
+      name: 'Hoàng Văn Lộc',
+      slug: 'tai-xe-2-miendong',
+      phone: '0909999000',
+      factoryId: demoFactory.id,
+      isActive: true,
+    },
+  });
+
+  // Schedule for driver
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  await prisma.scheduleAssignment.upsert({
+    where: {
+      userId_shiftDate_shift: {
+        userId: driverUser1.id,
+        shiftDate: today,
+        shift: Shift.SLOT_06_09,
+      },
+    },
+    update: {},
+    create: {
+      factoryId: demoFactory.id,
+      userId: driverUser1.id,
+      shiftDate: today,
+      shift: Shift.SLOT_06_09,
+    },
+  });
+
+  // -------------------------------------------------------------
+  // 5. PRODUCTS & GLOBAL PRICES
+  // -------------------------------------------------------------
+  console.log('\n[5/7] Creating Products & Pricing...');
+  const productDefs = [
+    { id: 'prod-bi-5', name: 'Đá Bi', sizeKg: 5, unit: 'Bao', price: 12000 },
+    { id: 'prod-bi-10', name: 'Đá Bi', sizeKg: 10, unit: 'Bao', price: 22000 },
+    { id: 'prod-bi-20', name: 'Đá Bi', sizeKg: 20, unit: 'Bao', price: 40000 },
+    { id: 'prod-vien-5', name: 'Đá Viên', sizeKg: 5, unit: 'Bao', price: 15000 },
+    { id: 'prod-vien-10', name: 'Đá Viên', sizeKg: 10, unit: 'Bao', price: 28000 },
+    { id: 'prod-vien-20', name: 'Đá Viên', sizeKg: 20, unit: 'Bao', price: 52000 },
+    { id: 'prod-cay-50', name: 'Đá Cây', sizeKg: 50, unit: 'Cây', price: 35000 },
+    { id: 'prod-mi-20', name: 'Đá Mi', sizeKg: 20, unit: 'Bao', price: 30000 },
+  ];
+
+  const products: Record<string, string> = {};
+
+  for (const p of productDefs) {
+    const prod = await prisma.product.upsert({
+      where: { id: p.id },
+      update: {},
+      create: {
+        id: p.id,
+        name: p.name,
+        sizeKg: p.sizeKg,
+        unit: p.unit,
+        factoryId: demoFactory.id,
         isActive: true,
-        factoryId: systemFactoryId,
       },
     });
-    createdProducts.push(created);
-    console.log(`  - ${created.name} ${created.sizeKg}kg (${created.id})`);
+    products[p.id] = prod.id;
+
+    await prisma.globalPrice.upsert({
+      where: { productId: prod.id },
+      update: { pricePerUnit: new Prisma.Decimal(p.price) },
+      create: {
+        productId: prod.id,
+        pricePerUnit: new Prisma.Decimal(p.price),
+      },
+    });
+
+    // Inventory snapshot
+    await prisma.inventory.upsert({
+      where: {
+        productId_date: {
+          productId: prod.id,
+          date: today,
+        },
+      },
+      update: { quantityOnHand: 200 },
+      create: {
+        productId: prod.id,
+        date: today,
+        quantityOnHand: 200,
+      },
+    });
   }
+  console.log(`  ✓ Created ${productDefs.length} Products with Global Prices & Inventory`);
 
-  return createdProducts;
-}
+  // -------------------------------------------------------------
+  // 6. CUSTOMERS, OVERRIDES, DEBT & SHELL DEPOSITS
+  // -------------------------------------------------------------
+  console.log('\n[6/7] Creating Customers, Debt Ledgers & Shell Deposits...');
+  const customerDefs = [
+    {
+      code: 'KH-001',
+      name: 'Quán Nhậu Gió Biển',
+      phone: '0908123456',
+      address: '45 Đường Số 7, P. Linh Trung, Thủ Đức',
+      shellsOut: 30,
+      shellsIn: 10,
+      debt: 1250000,
+      override: { prodId: 'prod-bi-20', price: 38000 },
+    },
+    {
+      code: 'KH-002',
+      name: 'Đại Lý Nước Ngọt Minh Tâm',
+      phone: '0908234567',
+      address: '102 Kha Vạn Cân, Hiệp Bình Chánh, Thủ Đức',
+      shellsOut: 50,
+      shellsIn: 25,
+      debt: 3400000,
+      override: { prodId: 'prod-bi-10', price: 20000 },
+    },
+    {
+      code: 'KH-003',
+      name: 'Cà Phê Sân Vườn Hướng Dương',
+      phone: '0908345678',
+      address: '78 Võ Văn Ngân, Bình Thọ, Thủ Đức',
+      shellsOut: 15,
+      shellsIn: 15,
+      debt: 0,
+    },
+    {
+      code: 'KH-004',
+      name: 'Vựa Hải Sản Năm Căn',
+      phone: '0908456789',
+      address: '235 Đặng Văn Bi, Trường Thọ, Thủ Đức',
+      shellsOut: 40,
+      shellsIn: 10,
+      debt: 2100000,
+      override: { prodId: 'prod-cay-50', price: 32000 },
+    },
+    {
+      code: 'KH-005',
+      name: 'Trà Sữa Ding Tea Thủ Đức',
+      phone: '0908567890',
+      address: '12 Tô Vĩnh Diện, Linh Chiểu, Thủ Đức',
+      shellsOut: 10,
+      shellsIn: 10,
+      debt: 0,
+    },
+  ];
 
-async function createCustomers(systemFactoryId: string) {
-  console.log('\nCreating 5 customers...');
+  const createdCustomers: Record<string, string> = {};
 
-  const createdCustomers = [];
-
-  for (const customer of CUSTOMERS) {
-    const created = await prisma.customer.create({
-      data: {
-        code: customer.code,
-        name: customer.name,
-        address: customer.address,
-        phone: customer.phone,
+  for (const c of customerDefs) {
+    const cust = await prisma.customer.upsert({
+      where: {
+        code_factoryId: {
+          code: c.code,
+          factoryId: demoFactory.id,
+        },
+      },
+      update: {},
+      create: {
+        code: c.code,
+        name: c.name,
+        phone: c.phone,
+        address: c.address,
+        factoryId: demoFactory.id,
         isActive: true,
-        factoryId: systemFactoryId,
       },
     });
-    createdCustomers.push(created);
-    console.log(`  - ${created.code}: ${created.name} (${created.id})`);
-  }
+    createdCustomers[c.code] = cust.id;
 
-  return createdCustomers;
-}
-
-async function createGlobalPrices(products: Awaited<ReturnType<typeof createProducts>>) {
-  console.log('\nSetting global base prices...');
-
-  for (const product of products) {
-    const priceKey = `${product.name}-${product.sizeKg}`;
-    const pricePerUnit = GLOBAL_PRICES[priceKey];
-
-    if (pricePerUnit === undefined) {
-      throw new Error(`No global price defined for ${priceKey}`);
-    }
-
-    await prisma.globalPrice.create({
-      data: {
-        productId: product.id,
-        pricePerUnit: new Prisma.Decimal(pricePerUnit),
+    // Shell Deposit
+    await prisma.customerShellDeposit.upsert({
+      where: { customerId: cust.id },
+      update: { shellsOut: c.shellsOut, shellsIn: c.shellsIn },
+      create: {
+        customerId: cust.id,
+        shellsOut: c.shellsOut,
+        shellsIn: c.shellsIn,
+        depositPerShell: new Prisma.Decimal(50000),
       },
     });
 
-    console.log(`  - ${product.name} ${product.sizeKg}kg: ${pricePerUnit.toLocaleString()}đ`);
-  }
-}
-
-async function createCustomerOverrides(
-  customers: Awaited<ReturnType<typeof createCustomers>>,
-  products: Awaited<ReturnType<typeof createProducts>>
-) {
-  console.log('\nSetting customer price overrides...');
-
-  const productMap = Object.fromEntries(products.map((p) => [`${p.name}-${p.sizeKg}`, p]));
-
-  // KH001 overrides
-  const kh001 = customers.find((c) => c.code === 'KH001')!;
-  for (const [priceKey, pricePerUnit] of Object.entries(KH001_OVERRIDES)) {
-    const product = productMap[priceKey];
-    if (!product) throw new Error(`Product not found: ${priceKey}`);
-
-    await prisma.customerPriceOverride.create({
-      data: {
-        customerId: kh001.id,
-        productId: product.id,
-        pricePerUnit: new Prisma.Decimal(pricePerUnit),
-      },
-    });
-    console.log(`  - ${kh001.code}: ${priceKey} = ${pricePerUnit.toLocaleString()}đ (override)`);
-  }
-
-  // KH002 overrides
-  const kh002 = customers.find((c) => c.code === 'KH002')!;
-  for (const [priceKey, pricePerUnit] of Object.entries(KH002_OVERRIDES)) {
-    const product = productMap[priceKey];
-    if (!product) throw new Error(`Product not found: ${priceKey}`);
-
-    await prisma.customerPriceOverride.create({
-      data: {
-        customerId: kh002.id,
-        productId: product.id,
-        pricePerUnit: new Prisma.Decimal(pricePerUnit),
-      },
-    });
-    console.log(`  - ${kh002.code}: ${priceKey} = ${pricePerUnit.toLocaleString()}đ (override)`);
-  }
-}
-
-// Order status type
-type SeedOrderStatus = 'PENDING' | 'SHIPPING' | 'DELIVERED' | 'COMPLETED' | 'CANCELLED';
-
-// Sample orders data
-const SAMPLE_ORDERS: Array<{
-  customerCode: string;
-  status: SeedOrderStatus;
-  items: Array<{ productKey: string; quantity: number }>;
-  notes: string | null;
-}> = [
-  {
-    customerCode: 'KH001',
-    status: 'PENDING',
-    items: [
-      { productKey: 'Đá Bi-10', quantity: 5 },
-      { productKey: 'Đá Bi-5', quantity: 3 },
-    ],
-    notes: 'Giao buổi sáng',
-  },
-  {
-    customerCode: 'KH002',
-    status: 'SHIPPING',
-    items: [
-      { productKey: 'Đá Viên-10', quantity: 4 },
-    ],
-    notes: null,
-  },
-  {
-    customerCode: 'KH003',
-    status: 'SHIPPING',
-    items: [
-      { productKey: 'Đá Bi-20', quantity: 10 },
-      { productKey: 'Đá Viên-5', quantity: 5 },
-    ],
-    notes: 'Khách hàng VIP',
-  },
-  {
-    customerCode: 'KH004',
-    status: 'DELIVERED',
-    items: [
-      { productKey: 'Đá Bi-5', quantity: 2 },
-    ],
-    notes: null,
-  },
-  {
-    customerCode: 'KH005',
-    status: 'DELIVERED',
-    items: [
-      { productKey: 'Đá Bi-10', quantity: 8 },
-      { productKey: 'Đá Viên-20', quantity: 3 },
-    ],
-    notes: 'Thanh toán cuối tháng',
-  },
-  {
-    customerCode: 'KH001',
-    status: 'PENDING',
-    items: [
-      { productKey: 'Đá Bi-5', quantity: 6 },
-    ],
-    notes: 'Đơn hàng bổ sung',
-  },
-];
-
-async function createOrders(
-  systemFactoryId: string,
-  customers: Awaited<ReturnType<typeof createCustomers>>,
-  products: Awaited<ReturnType<typeof createProducts>>
-) {
-  console.log('\nCreating sample orders...');
-
-  const customerMap = Object.fromEntries(customers.map((c) => [c.code, c]));
-  const productMap = Object.fromEntries(products.map((p) => [`${p.name}-${p.sizeKg}`, p]));
-
-  // Get global prices for calculating totals
-  const globalPrices = await prisma.globalPrice.findMany();
-  const priceMap = Object.fromEntries(
-    globalPrices.map((gp) => [gp.productId, gp.pricePerUnit.toNumber()])
-  );
-
-  // Also get customer overrides
-  const overrides = await prisma.customerPriceOverride.findMany();
-  const overrideMap = new Map<string, number>();
-  for (const ov of overrides) {
-    overrideMap.set(`${ov.customerId}-${ov.productId}`, ov.pricePerUnit.toNumber());
-  }
-
-  let orderCount = 0;
-  for (const orderData of SAMPLE_ORDERS) {
-    const customer = customerMap[orderData.customerCode];
-    if (!customer) throw new Error(`Customer not found: ${orderData.customerCode}`);
-
-    // Build order items and calculate total
-    const orderItemsData: Array<{
-      productId: string;
-      quantity: number;
-      unitPrice: Prisma.Decimal;
-      lineTotal: Prisma.Decimal;
-    }> = [];
-
-    let orderTotal = 0;
-    for (const item of orderData.items) {
-      const product = productMap[item.productKey];
-      if (!product) throw new Error(`Product not found: ${item.productKey}`);
-
-      // Check for customer override first, then global price
-      const overrideKey = `${customer.id}-${product.id}`;
-      const unitPrice = overrideMap.has(overrideKey)
-        ? overrideMap.get(overrideKey)!
-        : priceMap[product.id];
-
-      const lineTotal = unitPrice * item.quantity;
-      orderTotal += lineTotal;
-
-      orderItemsData.push({
-        productId: product.id,
-        quantity: item.quantity,
-        unitPrice: new Prisma.Decimal(unitPrice),
-        lineTotal: new Prisma.Decimal(lineTotal),
+    // Debt Ledger (if has debt)
+    if (c.debt > 0) {
+      await prisma.customerDebtLedger.create({
+        data: {
+          customerId: cust.id,
+          type: LedgerType.DEBT,
+          amount: new Prisma.Decimal(c.debt),
+          notes: 'Nợ gối đầu tháng trước',
+        },
       });
     }
 
-    // Create the order
-    const order = await prisma.order.create({
+    // Price override
+    if (c.override) {
+      await prisma.customerPriceOverride.upsert({
+        where: {
+          customerId_productId: {
+            customerId: cust.id,
+            productId: c.override.prodId,
+          },
+        },
+        update: { pricePerUnit: new Prisma.Decimal(c.override.price) },
+        create: {
+          customerId: cust.id,
+          productId: c.override.prodId,
+          pricePerUnit: new Prisma.Decimal(c.override.price),
+        },
+      });
+    }
+  }
+  console.log(`  ✓ Created ${customerDefs.length} Customers with Debt & Shell Deposits`);
+
+  // -------------------------------------------------------------
+  // 7. ORDERS & DELIVERY LIFECYCLE
+  // -------------------------------------------------------------
+  console.log('\n[7/7] Creating Sample Orders...');
+  const sampleOrders = [
+    {
+      custCode: 'KH-001',
+      status: OrderStatus.SHIPPING,
+      driverId: driver1.id,
+      notes: 'Giao trước 11h trưa quán mở cửa',
+      items: [
+        { prodId: 'prod-bi-20', qty: 5, price: 38000 },
+        { prodId: 'prod-vien-10', qty: 3, price: 28000 },
+      ],
+    },
+    {
+      custCode: 'KH-002',
+      status: OrderStatus.PENDING,
+      driverId: driver2.id,
+      notes: 'Gọi trước khi tới 10 phút',
+      items: [
+        { prodId: 'prod-bi-10', qty: 10, price: 20000 },
+        { prodId: 'prod-bi-5', qty: 5, price: 12000 },
+      ],
+    },
+    {
+      custCode: 'KH-003',
+      status: OrderStatus.DELIVERED,
+      driverId: driver1.id,
+      notes: 'Đã thanh toán tiền mặt đủ',
+      deliveredAt: new Date(),
+      items: [
+        { prodId: 'prod-vien-5', qty: 4, price: 15000 },
+      ],
+    },
+    {
+      custCode: 'KH-004',
+      status: OrderStatus.COMPLETED,
+      driverId: driver1.id,
+      notes: 'Giao ướp cá',
+      deliveredAt: new Date(),
+      items: [
+        { prodId: 'prod-cay-50', qty: 8, price: 32000 },
+        { prodId: 'prod-mi-20', qty: 4, price: 30000 },
+      ],
+    },
+  ];
+
+  for (const o of sampleOrders) {
+    const custId = createdCustomers[o.custCode];
+    const total = o.items.reduce((sum, i) => sum + i.qty * i.price, 0);
+
+    await prisma.order.create({
       data: {
-        customerId: customer.id,
-        status: orderData.status,
-        total: new Prisma.Decimal(orderTotal),
-        notes: orderData.notes,
-        factoryId: systemFactoryId,
+        customerId: custId,
+        factoryId: demoFactory.id,
+        driverId: o.driverId,
+        assignerId: staffUser.id,
+        status: o.status,
+        notes: o.notes,
+        total: new Prisma.Decimal(total),
+        deliveredAt: o.deliveredAt,
         orderItems: {
-          create: orderItemsData,
+          create: o.items.map(i => ({
+            productId: i.prodId,
+            quantity: i.qty,
+            unitPrice: new Prisma.Decimal(i.price),
+            lineTotal: new Prisma.Decimal(i.qty * i.price),
+            actualQty: o.status === OrderStatus.DELIVERED || o.status === OrderStatus.COMPLETED ? i.qty : null,
+          })),
         },
       },
     });
-
-    orderCount++;
-    console.log(`  - Order ${order.id} (${orderData.status}): ${orderData.customerCode} - ${orderTotal.toLocaleString()}đ`);
   }
 
-  console.log(`  Total orders created: ${orderCount}`);
+  // Payment from owner
+  await prisma.payment.create({
+    data: {
+      factoryId: demoFactory.id,
+      adminId: adminUser.id,
+      amount: new Prisma.Decimal(450000),
+      notes: 'Thanh toán thuê bao tháng qua VietQR',
+    },
+  });
+
+  console.log(`  ✓ Created Sample Orders in PENDING, SHIPPING, DELIVERED, COMPLETED states`);
+
+  console.log('\n' + '='.repeat(60));
+  console.log('🎉 SEED DATA GENERATION FINISHED SUCCESSFULLY!');
+  console.log('='.repeat(60));
+  console.log('\n🔑 TÀI KHOẢN ĐĂNG NHẬP THỬ NGHIỆM:');
+  console.log('┌──────────────────┬──────────────────────────┬───────────┐');
+  console.log('│ Vai trò (Role)   │ Email                    │ Password  │');
+  console.log('├──────────────────┼──────────────────────────┼───────────┤');
+  console.log('│ Super Admin      │ superadmin@iceflow.vn    │ 12345678  │');
+  console.log('│ Chủ xưởng (Admin)│ admin@miendong.vn        │ 12345678  │');
+  console.log('│ Kế toán          │ ketoan@miendong.vn       │ 12345678  │');
+  console.log('│ Nhân viên lên đơn│ nhanvien@miendong.vn     │ 12345678  │');
+  console.log('│ Tài xế giao hàng │ taixe1@miendong.vn       │ 12345678  │');
+  console.log('└──────────────────┴──────────────────────────┴───────────┘\n');
 }
 
-export async function seed() {
-  console.log('='.repeat(50));
-  console.log('IceFlow SaaS - Phase 1 Seed');
-  console.log('='.repeat(50));
-
-  try {
-    // Connect to database
-    await prisma.$connect();
-    console.log('\nConnected to database');
-
-    // Clear existing data
-    await clearData();
-
-    // Create system factory first
-    const systemFactory = await createSystemFactory();
-
-    // Create data
-    const products = await createProducts(systemFactory.id);
-    const customers = await createCustomers(systemFactory.id);
-    await createGlobalPrices(products);
-    await createCustomerOverrides(customers, products);
-    await createOrders(systemFactory.id, customers, products);
-
-    console.log('\n' + '='.repeat(50));
-    console.log('Seed completed successfully!');
-    console.log('='.repeat(50));
-
-    // Verify data
-    const productCount = await prisma.product.count();
-    const customerCount = await prisma.customer.count();
-    const globalPriceCount = await prisma.globalPrice.count();
-    const overrideCount = await prisma.customerPriceOverride.count();
-    const orderCount = await prisma.order.count();
-    const orderItemCount = await prisma.orderItem.count();
-
-    console.log('\nVerification:');
-    console.log(`  - Products: ${productCount}/6`);
-    console.log(`  - Customers: ${customerCount}/5`);
-    console.log(`  - Global Prices: ${globalPriceCount}/6`);
-    console.log(`  - Customer Overrides: ${overrideCount}/5`);
-    console.log(`  - Orders: ${orderCount}/6`);
-    console.log(`  - Order Items: ${orderItemCount}/9`);
-  } catch (error) {
-    console.error('\nSeed failed:', error);
-    throw error;
-  } finally {
+main()
+  .catch((e) => {
+    console.error('❌ Error during seed:', e);
+    process.exit(1);
+  })
+  .finally(async () => {
     await prisma.$disconnect();
-  }
-}
-
-// Run seed if executed directly
-if (require.main === module) {
-  seed()
-    .then(() => process.exit(0))
-    .catch(() => process.exit(1));
-}
+  });

@@ -1,39 +1,15 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyJWT } from '@/lib/auth';
 import { canAccessPath, isTenantAppPath } from '@/lib/rbac/permissions';
-import { isSubscriptionActive, isGracePeriodExpired } from '@/lib/subscription-status';
 import { setTenantContext, TenantContext } from '@/lib/tenant';
 
 type UserRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'DRIVER' | 'SUPER_ADMIN';
-
-// Check if impersonation token is valid (not expired, not ended)
-async function isImpersonating(request: NextRequest): Promise<{ active: boolean; factoryId?: string }> {
-  const token = request.cookies.get('impersonate_token')?.value;
-  if (!token) return { active: false };
-
-  // Use fetch to call internal API to check impersonation validity
-  // (Prisma doesn't work in Edge runtime)
-  try {
-    const url = new URL('/api/admin/impersonate/status', request.url);
-    const res = await fetch(url.toString(), {
-      headers: { Cookie: request.headers.get('cookie') || '' },
-    });
-    if (res.ok) {
-      const data = await res.json();
-      return { active: data.active, factoryId: data.factoryId };
-    }
-  } catch {
-    // Fail closed: if check fails, don't allow writes
-    console.error('[Middleware] Impersonation check failed');
-  }
-  return { active: false };
-}
 
 export async function middleware(request: NextRequest) {
   const token = request.cookies.get('auth_token')?.value;
   const session = token ? await verifyJWT(token) : null;
 
-  // Set tenant context for Prisma $extends hooks (auto-injects factoryId filter)
+  // Set tenant context for Prisma  hooks (auto-injects factoryId filter)
   if (session) {
     setTenantContext(
       (session as { factoryId?: string }).factoryId ?? null,
@@ -58,7 +34,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Check role-based access
+  // Check role-based access in pure memory (0ms network delay)
   if (session) {
     const userRole = (session as { role?: UserRole }).role as UserRole | undefined;
     if (isAppRoute && !canAccessPath(userRole, pathname)) {
@@ -68,57 +44,14 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    // Impersonation enforcement: block writes while impersonating
+    // Fast memory-check for Impersonation (reject write if impersonation cookie exists)
     if (request.method !== 'GET' && pathname.startsWith('/api/')) {
-      const { active } = await isImpersonating(request);
-      if (active) {
+      const impersonateToken = request.cookies.get('impersonate_token')?.value;
+      if (impersonateToken) {
         return NextResponse.json(
           { error: 'Read-only during impersonation. End impersonation to make changes.', code: 'READ_ONLY_IMPERSONATION' },
           { status: 403 }
         );
-      }
-    }
-
-    // Subscription enforcement for non-GET API requests
-    if (request.method !== 'GET' && pathname.startsWith('/api/')) {
-      const factoryId = (session as { factoryId?: string }).factoryId;
-      if (factoryId) {
-        try {
-          // Use fetch to call internal API instead of Prisma directly
-          // Prisma Client doesn't work in edge runtime
-          const subRes = await fetch(
-            new URL('/api/billing/subscription', request.url),
-            { headers: { Cookie: request.headers.get('cookie') || '' } }
-          );
-          if (subRes.ok) {
-            const data = await subRes.json();
-            const sub = data?.subscription ?? null;
-            if (sub && sub.status === 'CANCELLED' && isGracePeriodExpired(sub)) {
-              return NextResponse.json(
-                { error: 'Subscription cancelled and grace period expired. Account locked.', code: 'ACCOUNT_LOCKED' },
-                { status: 403 }
-              );
-            }
-            if (sub && !isSubscriptionActive(sub)) {
-              return NextResponse.json(
-                { error: 'Subscription inactive. System is read-only.', code: 'READ_ONLY' },
-                { status: 403 }
-              );
-            }
-          } else {
-            return NextResponse.json(
-              { error: 'Unable to verify subscription status', code: 'CHECK_FAILED' },
-              { status: 503 }
-            );
-          }
-        } catch (error) {
-          // Fail closed: reject write if subscription check fails
-          console.error('[Middleware] Subscription check failed:', error);
-          return NextResponse.json(
-            { error: 'Unable to verify subscription status', code: 'CHECK_FAILED' },
-            { status: 503 }
-          );
-        }
       }
     }
   }

@@ -19,22 +19,22 @@ export function SubscriptionStatusCard({ subscription, driverCount, isAdmin }: S
   const isInactive = !isSubscriptionActive(subscription);
   const maxDrivers = 1 + (subscription?.driverCount ?? 0);
 
-  const statusColor = isInactive ? 'text-red-400' : 'text-emerald-400';
-  const statusBg = isInactive ? 'bg-red-500/20' : 'bg-emerald-500/20';
+  const statusColor = isInactive ? 'text-[#ba1a1a]' : 'text-[#1b6d24]';
+  const statusBg = isInactive ? 'bg-[#ffdad6]' : 'bg-[#dee8ff]';
 
   const statusText = isInactive
     ? 'Hết hạn — Chỉ đọc'
     : isWarning
-    ? `Trial còn ${daysRemaining} ngày — Liên hệ Admin để nâng cấp`
-    : 'Đang hoạt động';
+    ? `Còn ${daysRemaining} ngày — Cần gia hạn`
+    : 'Gói hoạt động';
 
-  const iconColor = isWarning ? 'text-amber-400' : isInactive ? 'text-red-400' : 'text-blue-400';
-  const iconBg = isWarning ? 'bg-amber-500/20' : isInactive ? 'bg-red-500/20' : 'bg-blue-500/20';
+  const iconColor = isWarning ? 'text-[#7f3700]' : isInactive ? 'text-[#ba1a1a]' : 'text-[#004a99]';
+  const iconBg = isWarning ? 'bg-[#ffdbca]' : isInactive ? 'bg-[#ffdad6]' : 'bg-[#dee8ff]';
 
   return (
     <StatCard
-      title="Subscription"
-      value={subscription?.planType ?? 'N/A'}
+      title="Gói Thuê Bao"
+      value={subscription?.planType === 'PAID' ? 'TRẢ PHÍ (PRO)' : 'DÙNG THỬ (TRIAL)'}
       subValue={statusText}
       icon={CreditCard}
       iconColor={iconColor}
@@ -42,16 +42,17 @@ export function SubscriptionStatusCard({ subscription, driverCount, isAdmin }: S
       warning={isWarning || isInactive}
     >
       {/* Driver count detail */}
-      <div className="mt-3 pt-3 border-t border-white/10">
-        <div className="flex justify-between text-sm">
-          <span className="text-slate-400">Drivers</span>
-          <span className="text-white font-medium">{driverCount} / {maxDrivers}</span>
+      <div className="mt-3 pt-3 border-t border-[#e7eeff]">
+        <div className="flex justify-between text-xs font-semibold">
+          <span className="text-[#424751]">Tài xế sử dụng</span>
+          <span className="data-sm text-[#00346f]">{driverCount} / {maxDrivers}</span>
         </div>
-        <div className="flex justify-between text-sm mt-1">
-          <span className="text-slate-400">Loại</span>
-          <span className={statusColor}>{subscription?.planType ?? 'N/A'}</span>
+        <div className="flex justify-between text-xs font-semibold mt-1">
+          <span className="text-[#424751]">Trạng thái</span>
+          <span className={`font-bold ${statusColor}`}>{subscription?.status ?? 'ACTIVE'}</span>
         </div>
       </div>
     </StatCard>
   );
 }
+

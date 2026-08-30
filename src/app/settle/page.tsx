@@ -145,72 +145,66 @@ export default function SettlePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 flex items-center justify-center">
-        <div className="text-slate-400">Đang tải đơn hàng...</div>
+      <div className="min-h-screen bg-[#f9f9ff] flex items-center justify-center">
+        <div className="text-[#004a99] font-bold">Đang tải đối soát...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 flex items-center justify-center">
-        <div className="text-red-400">Lỗi: {error}</div>
+      <div className="min-h-screen bg-[#f9f9ff] flex items-center justify-center">
+        <div className="text-[#ba1a1a] font-bold">Lỗi: {error}</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-blue-600/10 to-violet-600/10 rounded-full blur-3xl" />
-      </div>
-
+    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d]">
       <Sidebar />
 
       <main className="pl-64">
-        <div className="relative p-8">
+        <div className="p-8 max-w-[1400px]">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4 mb-6">
             <div>
-              <h1 className="text-3xl font-black text-white">Đối soát & Chốt đơn</h1>
-              <p className="text-slate-400 mt-1">
-                {pendingCount} đơn chờ đối soát
-              </p>
+              <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Đối Soát & Chốt Đơn Cuối Ca</h1>
+              <p className="text-xs text-[#424751] mt-1">{pendingCount} đơn hàng đã giao cần xác nhận số lượng thực tế</p>
             </div>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="rounded border border-[#7f3700]/30 bg-[#dee8ff] p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                  <Clock className="h-5 w-5 text-blue-400" />
+                <div className="h-10 w-10 rounded bg-[#004a99] flex items-center justify-center text-white">
+                  <Clock className="h-5 w-5 text-[#9bbdff]" />
                 </div>
                 <div>
-                  <p className="text-sm text-blue-400">Chờ đối soát</p>
-                  <p className="text-2xl font-black text-white">{pendingCount}</p>
+                  <p className="text-xs font-bold text-[#00346f] uppercase">Chờ đối soát</p>
+                  <p className="data-lg font-bold text-[#111c2d]">{pendingCount}</p>
                 </div>
               </div>
             </div>
-            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5">
+            <div className="rounded border border-[#1b6d24]/30 bg-[#a0f399]/20 p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                <div className="h-10 w-10 rounded bg-[#1b6d24] flex items-center justify-center text-white">
+                  <CheckCircle2 className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm text-emerald-400">Đã đối soát hôm nay</p>
-                  <p className="text-2xl font-black text-white">{completedCount}</p>
+                  <p className="text-xs font-bold text-[#1b6d24] uppercase">Đã đối soát hôm nay</p>
+                  <p className="data-lg font-bold text-[#111c2d]">{completedCount}</p>
                 </div>
               </div>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+            <div className="rounded border border-[#c2c6d3] bg-white p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center">
-                  <Package className="h-5 w-5 text-slate-400" />
+                <div className="h-10 w-10 rounded bg-[#e7eeff] flex items-center justify-center text-[#424751]">
+                  <Package className="h-5 w-5 text-[#00346f]" />
                 </div>
                 <div>
-                  <p className="text-sm text-slate-400">Tổng đơn hôm nay</p>
-                  <p className="text-2xl font-black text-white">{orders.length}</p>
+                  <p className="text-xs font-bold text-[#424751] uppercase">Tổng đơn trong ngày</p>
+                  <p className="data-lg font-bold text-[#111c2d]">{orders.length}</p>
                 </div>
               </div>
             </div>
@@ -219,22 +213,22 @@ export default function SettlePage() {
           {/* Search */}
           <div className="flex items-center gap-4 mb-6">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#737783]" />
               <input
                 type="text"
                 placeholder="Tìm theo tên khách hoặc mã đơn..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-blue-500/50"
+                className="w-full pl-10 pr-4 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] placeholder-[#737783] focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99]"
               />
             </div>
           </div>
 
           {/* Orders List */}
           {filteredOrders.length === 0 ? (
-            <div className="text-center py-16">
-              <Package className="h-12 w-12 text-slate-600 mx-auto mb-4" />
-              <p className="text-slate-500">Không có đơn hàng nào cần đối soát</p>
+            <div className="text-center py-16 bg-white rounded border border-[#c2c6d3]">
+              <Package className="h-10 w-10 text-[#737783] mx-auto mb-2" />
+              <p className="text-xs text-[#737783]">Không có đơn hàng nào cần đối soát</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -245,36 +239,36 @@ export default function SettlePage() {
                 return (
                   <div
                     key={order.id}
-                    className="rounded-2xl border backdrop-blur-xl p-5 bg-white/5 border-white/10 transition-all hover:bg-white/8"
+                    className="rounded border border-[#c2c6d3] p-4 bg-white hover:bg-[#f0f3ff] transition-all shadow-sm"
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <span className="text-sm font-mono text-blue-400 bg-blue-500/20 px-2 py-0.5 rounded">
+                        <div className="flex items-center gap-2.5 mb-1.5">
+                          <span className="data-sm font-bold text-[#004a99] bg-[#dee8ff] px-2 py-0.5 rounded">
                             {order.code}
                           </span>
-                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${status.color}`}>
+                          <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${status.color}`}>
                             {status.label}
                           </span>
                         </div>
-                        <h3 className="text-lg font-semibold text-white">{order.customerName}</h3>
-                        <p className="text-slate-400 text-sm mt-1">{order.items}</p>
-                        <div className="flex items-center gap-4 mt-3 text-sm">
-                          <span className="text-slate-500">Tài xế: <span className="text-white">{order.driverName}</span></span>
-                          <span className="text-slate-500">Giờ giao: <span className="text-white">{order.createdAt}</span></span>
+                        <h3 className="text-base font-bold text-[#111c2d]">{order.customerName}</h3>
+                        <p className="text-[#424751] text-xs mt-1">{order.items}</p>
+                        <div className="flex items-center gap-4 mt-2 text-xs text-[#737783]">
+                          <span>Tài xế: <strong className="text-[#111c2d]">{order.driverName}</strong></span>
+                          <span>Giờ giao: <strong className="text-[#111c2d] data-sm">{order.createdAt}</strong></span>
                         </div>
                       </div>
 
-                      <div className="text-right">
-                        <p className="text-2xl font-black text-emerald-400">
+                      <div className="text-left md:text-right border-t md:border-t-0 pt-3 md:pt-0 border-[#e7eeff]">
+                        <p className="data-lg font-bold text-[#111c2d]">
                           {order.total.toLocaleString('vi-VN')}đ
                         </p>
                         {order.status === 'DELIVERED' && rawOrder && (
                           <button
                             onClick={() => handleSettle(rawOrder)}
-                            className="mt-3 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-sm transition-colors"
+                            className="mt-2 px-4 py-2 bg-[#1b6d24] hover:bg-[#217128] text-white font-bold rounded text-xs transition-colors shadow-sm"
                           >
-                            Chốt đơn
+                            CHỐT ĐƠN
                           </button>
                         )}
                       </div>
@@ -290,25 +284,25 @@ export default function SettlePage() {
       {/* Reconcile Modal */}
       {reconcileOrder && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={() => setReconcileOrder(null)} />
-          <div className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-slate-900 border border-white/10 rounded-2xl shadow-2xl p-6">
-            <h3 className="text-xl font-bold text-white mb-1">
+          <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs" onClick={() => setReconcileOrder(null)} />
+          <div className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white border border-[#c2c6d3] rounded shadow-xl p-6">
+            <h3 className="text-lg font-bold text-[#111c2d] mb-1">
               Chốt đơn {reconcileOrder.code || `DH-${reconcileOrder.id.slice(-6).toUpperCase()}`}
             </h3>
-            <p className="text-slate-400 text-sm mb-6">{reconcileOrder.customer?.name}</p>
+            <p className="text-[#424751] text-xs mb-5">{reconcileOrder.customer?.name}</p>
 
             {/* Line items */}
             <div className="space-y-3 mb-6">
-              <p className="text-sm font-medium text-slate-400 uppercase">Sản phẩm đã giao</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-[#424751]">Số lượng thực giao</p>
               {reconcileOrder.orderItems?.map((item) => (
-                <div key={item.id} className="flex items-center gap-3">
+                <div key={item.id} className="flex items-center gap-3 p-2.5 rounded bg-[#f9f9ff] border border-[#e7eeff]">
                   <div className="flex-1">
-                    <p className="text-white font-medium">{item.product?.name || 'Sản phẩm'}</p>
-                    <p className="text-slate-400 text-sm">
+                    <p className="text-xs font-bold text-[#111c2d]">{item.product?.name || 'Sản phẩm'}</p>
+                    <p className="text-[#737783] text-[11px]">
                       {item.product?.sizeKg || 0}kg x {item.quantity} — Đơn giá: {Number(item.unitPrice).toLocaleString('vi-VN')}đ
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <input
                       type="number"
                       min="0"
@@ -317,27 +311,27 @@ export default function SettlePage() {
                         ...prev,
                         [item.id]: parseInt(e.target.value) || 0,
                       }))}
-                      className="w-20 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-center focus:outline-none focus:border-emerald-500/50"
+                      className="w-16 px-2 py-1.5 bg-white border border-[#c2c6d3] rounded text-[#111c2d] text-center text-xs font-bold data-sm focus:outline-none focus:border-[#004a99]"
                     />
-                    <span className="text-slate-400">/ {item.quantity}</span>
+                    <span className="text-xs text-[#737783]">/ {item.quantity}</span>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-2.5 mt-6">
               <button
                 onClick={() => setReconcileOrder(null)}
-                className="flex-1 py-3 border border-white/20 text-slate-400 font-semibold rounded-xl hover:bg-white/5 transition-colors"
+                className="flex-1 py-2.5 border border-[#c2c6d3] text-[#424751] font-bold text-xs rounded hover:bg-[#dee8ff] transition-colors"
               >
-                Hủy
+                HỦY
               </button>
               <button
                 onClick={handleReconcile}
                 disabled={reconcileLoading}
-                className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-800 text-white font-semibold rounded-xl transition-colors"
+                className="flex-1 py-2.5 bg-[#1b6d24] hover:bg-[#217128] disabled:bg-slate-300 text-white font-bold text-xs rounded transition-colors shadow-sm"
               >
-                {reconcileLoading ? 'Đang chốt...' : 'Xác nhận chốt'}
+                {reconcileLoading ? 'Đang chốt...' : 'XÁC NHẬN CHỐT'}
               </button>
             </div>
           </div>

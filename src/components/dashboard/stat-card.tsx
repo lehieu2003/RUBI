@@ -21,8 +21,8 @@ export function StatCard({
   value,
   subValue,
   icon: Icon,
-  iconColor = 'text-blue-500',
-  iconBg = 'bg-blue-50',
+  iconColor = 'text-[#004a99]',
+  iconBg = 'bg-[#dee8ff]',
   trend,
   trendValue,
   warning,
@@ -37,65 +37,63 @@ export function StatCard({
 
   const trendColor =
     trend === 'up'
-      ? 'text-emerald-500'
+      ? 'text-[#1b6d24]'
       : trend === 'down'
-        ? 'text-red-500'
-        : 'text-slate-400';
+        ? 'text-[#ba1a1a]'
+        : 'text-[#737783]';
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 transition-all duration-300 hover:bg-white/10 hover:shadow-lg hover:shadow-blue-500/5 ${
-        warning ? 'ring-2 ring-amber-500/50' : ''
+      className={`relative overflow-hidden rounded border bg-[#ffffff] p-5 transition-all duration-150 ${
+        warning
+          ? 'border-[#7f3700] bg-[#ffdad6]/20'
+          : 'border-[#c2c6d3] hover:border-[#004a99] shadow-sm'
       }`}
     >
-      {/* Glow effect on hover */}
-      <div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-        <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-gradient-to-br from-blue-500/10 to-violet-500/10 blur-2xl" />
-      </div>
-
-      <div className="relative flex items-start justify-between">
+      <div className="flex items-start justify-between">
         <div className="flex-1">
           {/* Title */}
-          <p className="text-sm font-medium text-slate-400 mb-1">{title}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-[#424751] mb-1">
+            {title}
+          </p>
 
-          {/* Main value */}
+          {/* Main value (Data Mono) */}
           <p
-            className={`text-2xl font-black ${warning ? 'text-amber-400' : 'text-white'}`}
+            className={`data-lg font-bold ${
+              warning ? 'text-[#ba1a1a]' : 'text-[#111c2d]'
+            }`}
           >
             {value}
           </p>
 
           {/* Sub value */}
           {subValue && (
-            <p className="mt-1 text-sm text-slate-500">{subValue}</p>
+            <p className="mt-1 text-xs text-[#737783]">{subValue}</p>
           )}
 
           {/* Trend indicator */}
           {trend && trendValue && (
-            <div className={`mt-2 flex items-center gap-1 ${trendColor}`}>
-              <TrendIcon className="h-4 w-4" />
-              <span className="text-xs font-medium">{trendValue}</span>
+            <div className={`mt-2 flex items-center gap-1 text-xs font-semibold ${trendColor}`}>
+              <TrendIcon className="h-3.5 w-3.5" />
+              <span>{trendValue}</span>
             </div>
           )}
 
-          {/* Custom content (for detailed stats like inventory breakdown) */}
           {children}
         </div>
 
         {/* Icon */}
         <div
-          className={`flex h-12 w-12 items-center justify-center rounded-xl ${iconBg} shadow-lg`}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded ${iconBg}`}
         >
-          <Icon className={`h-6 w-6 ${iconColor}`} />
+          <Icon className={`h-5 w-5 ${iconColor}`} />
         </div>
       </div>
 
       {/* Warning badge */}
       {warning && (
-        <div className="absolute right-4 top-4">
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2 py-1 text-[10px] font-semibold text-amber-400">
-            ⚠️ Cảnh báo
-          </span>
+        <div className="mt-3 inline-flex items-center gap-1 rounded bg-[#ffdad6] px-2 py-0.5 text-[11px] font-bold text-[#93000a]">
+          ⚠️ Cần kiểm tra
         </div>
       )}
     </div>

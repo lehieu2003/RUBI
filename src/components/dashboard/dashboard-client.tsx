@@ -97,40 +97,25 @@ export function DashboardClient({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
-      {/* Background effects */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-blue-600/10 to-violet-600/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 -left-40 w-80 h-80 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-full blur-3xl" />
-      </div>
-
-      {/* Grid overlay */}
-      <div
-        className="fixed inset-0 pointer-events-none opacity-[0.02]"
-        style={{
-          backgroundImage:
-            'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)',
-          backgroundSize: '60px 60px',
-        }}
-      />
-
-      {/* Sidebar */}
+    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d]">
       <Sidebar />
 
-      {/* Main content */}
-      <main className="pl-64 transition-all duration-300">
-        <div className="relative p-8">
-          {/* Page header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-black text-white">Tổng quan</h1>
-            <p className="text-slate-400 mt-1">
-              {new Date().toLocaleDateString('vi-VN', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </p>
+
+      <main className="pl-64">
+        <div className="p-8 max-w-[1400px]">
+          {/* Header */}
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">
+                Bảng Điều Khiển Vận Hành
+              </h1>
+              <p className="text-sm text-[#424751]">
+                Theo dõi tình trạng đơn hàng, tồn kho và sản lượng tức thời
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <OrderEntryDrawer customers={customers} products={products} />
+            </div>
           </div>
 
           {/* Onboarding prompt for new factories with no customers */}

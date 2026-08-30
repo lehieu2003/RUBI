@@ -107,12 +107,12 @@ export default function DriverPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
+      <div className="flex min-h-screen items-center justify-center bg-[#f9f9ff]">
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 animate-pulse items-center justify-center rounded-xl border border-blue-500/30 bg-blue-500/20">
-            <Snowflake className="h-6 w-6 text-blue-400" />
+          <div className="mx-auto mb-4 flex h-12 w-12 animate-pulse items-center justify-center rounded bg-[#004a99]">
+            <Snowflake className="h-6 w-6 text-[#9bbdff]" />
           </div>
-          <p className="text-sm text-slate-400">Đang tải...</p>
+          <p className="text-xs font-bold text-[#00346f]">Đang tải danh sách đơn...</p>
         </div>
       </div>
     );
@@ -120,19 +120,19 @@ export default function DriverPage() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 p-4">
-        <div className="max-w-sm text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-red-500/30 bg-red-500/20">
-            <span className="text-3xl">!</span>
+      <div className="flex min-h-screen items-center justify-center bg-[#f9f9ff] p-4">
+        <div className="max-w-sm text-center bg-white p-6 rounded border border-[#c2c6d3] shadow-sm">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded bg-[#ffdad6] text-[#ba1a1a]">
+            <span className="text-2xl font-black">!</span>
           </div>
-          <p className="mb-2 font-semibold text-white">{error}</p>
-          <p className="mb-6 text-sm text-slate-400">Nhấn Làm mới để thử lại hoặc liên hệ văn phòng</p>
+          <p className="mb-2 font-bold text-sm text-[#111c2d]">{error}</p>
+          <p className="mb-6 text-xs text-[#424751]">Nhấn Làm mới để thử lại hoặc liên hệ văn phòng điều phối</p>
           <button
             onClick={handleRefresh}
-            className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-blue-500 font-semibold text-white transition-colors hover:bg-blue-600"
+            className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded bg-[#004a99] font-bold text-white transition-colors hover:bg-[#00346f] text-sm shadow-sm"
           >
-            <RefreshCw className="h-5 w-5" />
-            Làm mới
+            <RefreshCw className="h-4 w-4" />
+            LÀM MỚI
           </button>
         </div>
       </div>
@@ -140,21 +140,21 @@ export default function DriverPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
-      <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-900/95 px-4 py-4 backdrop-blur-xl">
+    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d]">
+      <header className="sticky top-0 z-20 border-b border-[#002754] bg-[#00346f] px-4 py-3.5 text-white shadow-sm">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-violet-600">
-              <Snowflake className="h-5 w-5 text-white" />
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded bg-[#004a99]">
+              <Snowflake className="h-5 w-5 text-[#9bbdff]" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white">IceFlow Driver</h1>
-              {driver && <p className="text-xs text-slate-400">Tài xế: {driver.name}</p>}
+              <h1 className="text-base font-bold tracking-tight">IceFlow Tài Xế</h1>
+              {driver && <p className="text-[11px] text-[#9bbdff] font-medium">Xe / Tài xế: {driver.name}</p>}
             </div>
           </div>
           <button
             onClick={() => void signOut()}
-            className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+            className="rounded p-2 text-[#9bbdff] hover:bg-[#004a99] hover:text-white transition-colors"
             aria-label="Đăng xuất"
           >
             <LogOut className="h-5 w-5" />
@@ -163,30 +163,30 @@ export default function DriverPage() {
       </header>
 
       <div className="grid grid-cols-2 gap-3 p-4">
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
-          <div className="mb-1 flex items-center gap-2 text-amber-400">
+        <div className="rounded border border-[#7f3700]/30 bg-[#dee8ff] p-3.5">
+          <div className="mb-1 flex items-center gap-1.5 text-[#00346f]">
             <Clock className="h-4 w-4" />
-            <span className="text-xs font-medium">Chờ giao</span>
+            <span className="text-xs font-bold uppercase">Chờ giao</span>
           </div>
-          <p className="text-2xl font-black text-white">{pendingCount}</p>
+          <p className="data-lg font-bold text-[#111c2d]">{pendingCount}</p>
         </div>
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-          <div className="mb-1 flex items-center gap-2 text-emerald-400">
+        <div className="rounded border border-[#1b6d24]/30 bg-[#a0f399]/20 p-3.5">
+          <div className="mb-1 flex items-center gap-1.5 text-[#1b6d24]">
             <CheckCircle2 className="h-4 w-4" />
-            <span className="text-xs font-medium">Đã giao</span>
+            <span className="text-xs font-bold uppercase">Đã giao</span>
           </div>
-          <p className="text-2xl font-black text-white">{deliveredCount}</p>
+          <p className="data-lg font-bold text-[#111c2d]">{deliveredCount}</p>
         </div>
       </div>
 
-      <div className="px-4 pb-3">
+      <div className="px-4 pb-1">
         <button
           onClick={handleRefresh}
           disabled={isRefreshing}
-          className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 font-medium text-white transition-colors hover:bg-white/10 disabled:cursor-wait disabled:opacity-60"
+          className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded border border-[#c2c6d3] bg-white text-xs font-bold text-[#00346f] hover:bg-[#dee8ff] transition-colors shadow-sm disabled:opacity-60"
         >
-          <RefreshCw className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} />
-          {isRefreshing ? 'Đang tải...' : 'Làm mới'}
+          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          {isRefreshing ? 'Đang cập nhật...' : 'CẬP NHẬT ĐƠN HÀNG'}
         </button>
       </div>
 
@@ -215,11 +215,11 @@ export default function DriverPage() {
       <DriverMap orders={orders} isOpen={showMap} onClose={() => setShowMap(false)} />
       <button
         onClick={() => setShowMap(true)}
-        className="fixed bottom-4 left-4 right-4 min-h-[48px] rounded-xl bg-blue-500 font-semibold text-white shadow-lg shadow-blue-500/20 transition-colors hover:bg-blue-600"
+        className="fixed bottom-4 left-4 right-4 min-h-[52px] rounded bg-[#004a99] hover:bg-[#00346f] active:bg-[#002754] font-bold text-sm text-white shadow-lg transition-colors flex items-center justify-center gap-2"
       >
-        Xem bản đồ
+        XEM BẢN ĐỒ GIAO HÀNG
       </button>
-      <div className="h-20" />
+      <div className="h-24" />
     </div>
   );
 }

@@ -26,27 +26,27 @@ const statusConfig = {
   PENDING: {
     label: 'Chờ giao',
     icon: Clock,
-    color: 'text-slate-400 bg-slate-500/20',
+    color: 'bg-[#7f3700] text-white',
   },
   SHIPPING: {
     label: 'Đang giao',
     icon: Truck,
-    color: 'text-amber-400 bg-amber-500/20',
+    color: 'bg-[#004a99] text-white',
   },
   DELIVERED: {
     label: 'Đã giao',
     icon: Package,
-    color: 'text-blue-400 bg-blue-500/20',
+    color: 'bg-[#1b6d24] text-white',
   },
   COMPLETED: {
     label: 'Hoàn thành',
     icon: CheckCircle2,
-    color: 'text-emerald-400 bg-emerald-500/20',
+    color: 'bg-[#217128] text-white',
   },
   CANCELLED: {
     label: 'Đã hủy',
     icon: XCircle,
-    color: 'text-red-400 bg-red-500/20',
+    color: 'bg-[#ba1a1a] text-white',
   },
 };
 
@@ -58,158 +58,91 @@ function formatDate(date: Date | string) {
 export function RecentOrders({ orders, onPrint }: RecentOrdersProps) {
   if (orders.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        {/* Empty state illustration */}
-        <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-blue-500/20 to-violet-500/20">
-          <svg
-            viewBox="0 0 64 64"
-            className="h-16 w-16 text-blue-400"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          >
-            {/* Ice bag illustration */}
-            <path d="M32 8L20 20v24l12 12 12-12V20L32 8z" />
-            <path d="M32 8v36M20 20l12 12 12-12" />
-            <circle cx="32" cy="32" r="4" fill="currentColor" />
-          </svg>
+      <div className="flex flex-col items-center justify-center py-16 text-center border border-[#c2c6d3] rounded bg-white">
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded bg-[#dee8ff] text-[#004a99]">
+          <FileText className="h-8 w-8" />
         </div>
-        <h3 className="text-lg font-semibold text-white mb-2">
+        <h3 className="text-base font-bold text-[#111c2d] mb-1">
           Hôm nay chưa có đơn hàng nào
         </h3>
-        <p className="text-sm text-slate-400 max-w-sm">
-          Hãy bấm nút "Lên đơn mới" để tạo đơn hàng đầu tiên trong ngày!
+        <p className="text-xs text-[#737783] max-w-sm">
+          Hãy tạo đơn hàng mới từ thanh tác vụ nhanh để bắt đầu theo dõi!
         </p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl">
+    <div className="overflow-hidden rounded border border-[#c2c6d3] bg-white shadow-sm">
       {/* Header */}
-      <div className="border-b border-white/10 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-white">Đơn hàng gần đây</h3>
-            <p className="text-sm text-slate-400">10 đơn hàng mới nhất</p>
-          </div>
+      <div className="border-b border-[#c2c6d3] bg-[#f0f3ff] px-6 py-4 flex items-center justify-between">
+        <div>
+          <h3 className="text-base font-bold text-[#111c2d]">Đơn Hàng Gần Đây</h3>
+          <p className="text-xs text-[#424751]">Danh sách đơn hàng phát sinh trong ca làm việc</p>
         </div>
+        <span className="data-sm bg-[#dee8ff] text-[#00346f] px-2.5 py-1 rounded font-bold">
+          {orders.length} Đơn
+        </span>
       </div>
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-white/5">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Mã đơn
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Khách hàng
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Sản phẩm
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Tổng tiền
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Trạng thái
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Giờ
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Thao tác
-              </th>
+        <table className="w-full text-left border-collapse table-industrial">
+          <thead>
+            <tr className="border-b border-[#c2c6d3] bg-[#f9f9ff] text-[12px] font-bold uppercase tracking-wider text-[#424751]">
+              <th className="py-3.5 px-4">Thời gian</th>
+              <th className="py-3.5 px-4">Mã KH</th>
+              <th className="py-3.5 px-4">Khách hàng</th>
+              <th className="py-3.5 px-4">Chi tiết hàng</th>
+              <th className="py-3.5 px-4 text-right">Tổng tiền</th>
+              <th className="py-3.5 px-4 text-center">Trạng thái</th>
+              <th className="py-3.5 px-4 text-right">Thao tác</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5">
-            {orders.map((order) => {
-              const status = statusConfig[order.status] || statusConfig.PENDING;
+          <tbody className="divide-y divide-[#e7eeff] text-sm">
+            {orders.slice(0, 10).map((order) => {
+              const status = statusConfig[order.status] ?? statusConfig.PENDING;
               const StatusIcon = status.icon;
-              const total =
-                typeof order.total === 'string'
-                  ? parseFloat(order.total)
-                  : order.total;
-
               return (
-                <tr
-                  key={order.id}
-                  className="transition-colors hover:bg-white/5"
-                >
-                  {/* Order code */}
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <span className="text-sm font-mono font-semibold text-blue-400">
-                      #{order.id.slice(-6).toUpperCase()}
-                    </span>
+                <tr key={order.id} className="h-12 hover:bg-[#f0f3ff] transition-colors">
+                  <td className="py-3 px-4 data-sm text-[#424751]">
+                    {formatDate(order.createdAt)}
                   </td>
-
-                  {/* Customer */}
-                  <td className="px-6 py-4">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-white">
-                        {order.customer.name}
-                      </span>
-                      <span className="text-xs text-slate-500">
-                        {order.customer.code}
-                      </span>
-                    </div>
+                  <td className="py-3 px-4 data-sm font-bold text-[#004a99]">
+                    {order.customer.code}
                   </td>
-
-                  {/* Products */}
-                  <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-1">
-                      {order.orderItems.slice(0, 2).map((item, i) => (
-                        <span
-                          key={i}
-                          className="inline-flex items-center rounded-full bg-slate-700/50 px-2 py-0.5 text-xs text-slate-300"
-                        >
-                          {item.product.name} {item.product.sizeKg}kg ×
-                          {item.quantity}
-                        </span>
-                      ))}
-                      {order.orderItems.length > 2 && (
-                        <span className="inline-flex items-center rounded-full bg-slate-700/50 px-2 py-0.5 text-xs text-slate-400">
-                          +{order.orderItems.length - 2}
-                        </span>
-                      )}
-                    </div>
+                  <td className="py-3 px-4 font-semibold text-[#111c2d]">
+                    {order.customer.name}
                   </td>
-
-                  {/* Total */}
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <span className="text-sm font-bold text-emerald-400">
-                      {total.toLocaleString('vi-VN')}đ
-                    </span>
+                  <td className="py-3 px-4 text-xs text-[#424751]">
+                    {order.orderItems
+                      ?.map(
+                        (i) =>
+                          `${i.product.name} ${i.product.sizeKg}kg × ${i.quantity}`
+                      )
+                      .join(', ')}
                   </td>
-
-                  {/* Status */}
-                  <td className="whitespace-nowrap px-6 py-4">
+                  <td className="py-3 px-4 text-right data-md font-bold text-[#111c2d]">
+                    {Number(order.total).toLocaleString('vi-VN')}đ
+                  </td>
+                  <td className="py-3 px-4 text-center">
                     <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${status.color}`}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-bold ${status.color}`}
                     >
-                      <StatusIcon className="h-3.5 w-3.5" />
+                      <StatusIcon className="h-3 w-3" />
                       {status.label}
                     </span>
                   </td>
-
-                  {/* Time */}
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <span className="text-sm text-slate-400">
-                      {formatDate(order.createdAt)}
-                    </span>
-                  </td>
-
-                  {/* Actions */}
-                  <td className="whitespace-nowrap px-6 py-4 text-right">
-                    <button
-                      onClick={() => onPrint?.(order.id)}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-slate-700/50 px-3 py-1.5 text-xs font-medium text-slate-300 transition-all hover:bg-slate-600 hover:text-white"
-                    >
-                      <Printer className="h-3.5 w-3.5" />
-                      In lại
-                    </button>
+                  <td className="py-3 px-4 text-right">
+                    {onPrint && (
+                      <button
+                        onClick={() => onPrint(order.id)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-[#004a99] text-[#004a99] hover:bg-[#dee8ff] text-xs font-semibold transition-colors"
+                      >
+                        <Printer className="h-3.5 w-3.5" />
+                        In K80
+                      </button>
+                    )}
                   </td>
                 </tr>
               );

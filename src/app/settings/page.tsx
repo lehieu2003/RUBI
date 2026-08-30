@@ -81,46 +81,42 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-blue-600/10 to-violet-600/10 rounded-full blur-3xl" />
-      </div>
-
+    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d]">
       <Sidebar />
 
       <main className="pl-64">
-        <div className="relative p-8">
+        <div className="p-8 max-w-[1400px]">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-black text-white">Cài đặt</h1>
-            <p className="text-slate-400 mt-1">Quản lý tài khoản và hệ thống</p>
+          <div className="border-b border-[#c2c6d3] pb-4 mb-6">
+            <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Cài Đặt Hệ Thống</h1>
+            <p className="text-xs text-[#424751] mt-1">Quản lý hồ sơ nhà máy, nhân sự, bảng giá và phân quyền</p>
           </div>
 
-          <div className="flex gap-8">
+          <div className="flex flex-col md:flex-row gap-6">
             {/* Tabs Sidebar */}
-            <div className="w-64 shrink-0">
-              <nav className="space-y-1">
+            <div className="w-full md:w-56 shrink-0">
+              <nav className="space-y-1 bg-white p-2 rounded border border-[#c2c6d3] shadow-sm">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all ${
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded text-left text-xs font-bold transition-all ${
                       activeTab === tab.id
-                        ? 'bg-blue-500/20 text-blue-400'
-                        : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                        ? 'bg-[#004a99] text-white shadow-sm'
+                        : 'text-[#424751] hover:bg-[#dee8ff] hover:text-[#00346f]'
                     }`}
                   >
-                    <tab.icon className="h-5 w-5" />
-                    <span className="text-sm font-medium">{tab.label}</span>
+                    <tab.icon className="h-4 w-4" />
+                    <span>{tab.label}</span>
                   </button>
                 ))}
                 {canViewBilling && (
                   <Link
                     href="/settings/billing"
-                    className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-slate-400 transition-all hover:bg-white/5 hover:text-white"
+                    className="flex w-full items-center gap-2.5 rounded px-3 py-2 text-left text-xs font-bold text-[#424751] transition-all hover:bg-[#dee8ff] hover:text-[#00346f]"
                   >
-                    <CreditCard className="h-5 w-5" />
-                    <span className="text-sm font-medium">Thanh toán</span>
+                    <CreditCard className="h-4 w-4" />
+                    <span>Gói Dịch Vụ</span>
                   </Link>
                 )}
               </nav>
@@ -129,46 +125,46 @@ export default function SettingsPage() {
             {/* Content */}
             <div className="flex-1">
               {activeTab === 'profile' && (
-                <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
-                  <h2 className="text-lg font-bold text-white mb-6">Hồ sơ nhà máy</h2>
+                <div className="rounded border border-[#c2c6d3] bg-white p-6 shadow-sm">
+                  <h2 className="text-base font-bold text-[#111c2d] mb-4 border-b border-[#e7eeff] pb-2">Hồ sơ nhà máy</h2>
 
                   <div className="space-y-4 max-w-lg">
                     <div>
-                      <label className="block text-sm font-medium text-slate-400 mb-2">Tên nhà máy</label>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1">Tên nhà máy</label>
                       <input
                         type="text"
-                        defaultValue="Nhà máy đá ABC"
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
+                        defaultValue="Nhà Máy Nước Đá Miền Đông"
+                        className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99] focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-400 mb-2">Email</label>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1">Email liên hệ</label>
                       <input
                         type="email"
-                        defaultValue="contact@abcice.vn"
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
+                        defaultValue="admin@miendong.vn"
+                        className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99] focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-400 mb-2">Số điện thoại</label>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1">Số điện thoại tổng đài</label>
                       <input
                         type="tel"
-                        defaultValue="0909123456"
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
+                        defaultValue="0901234567"
+                        className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99] focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-400 mb-2">Địa chỉ</label>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1">Địa chỉ xưởng đá</label>
                       <input
                         type="text"
-                        defaultValue="123 Đường ABC, Quận XYZ, TP.HCM"
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
+                        defaultValue="128 Quốc lộ 1A, TP. Biên Hòa, Đồng Nai"
+                        className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99] focus:outline-none"
                       />
                     </div>
 
-                    <button className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors mt-4">
-                      <Save className="h-5 w-5" />
-                      Lưu thay đổi
+                    <button className="flex items-center gap-2 px-4 py-2.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-colors shadow-sm mt-2">
+                      <Save className="h-4 w-4" />
+                      LƯU THAY ĐỔI
                     </button>
                   </div>
                 </div>

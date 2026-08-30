@@ -35,46 +35,40 @@ export default function DebtReportPage() {
   const totalOutstanding = debts.reduce((sum, d) => sum + Math.max(0, d.outstandingDebt), 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-red-600/10 to-orange-600/10 rounded-full blur-3xl" />
-      </div>
-
+    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d]">
       <Sidebar />
 
       <main className="pl-64">
-        <div className="relative p-8">
+        <div className="p-8 max-w-[1400px]">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-black text-white">Báo cáo công nợ</h1>
-              <p className="text-slate-400 mt-1">
-                {debts.length} khách hàng • Tổng nợ: {totalOutstanding.toLocaleString('vi-VN')}đ
-              </p>
-            </div>
+          <div className="border-b border-[#c2c6d3] pb-4 mb-6">
+            <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Báo Cáo Công Nợ Khách Hàng</h1>
+            <p className="text-xs text-[#424751] mt-1">
+              {debts.length} khách hàng • Tổng nợ phải thu: <strong className="font-mono text-[#ba1a1a]">{totalOutstanding.toLocaleString('vi-VN')}đ</strong>
+            </p>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="rounded border border-[#ba1a1a]/30 bg-[#ffdad6]/40 p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-red-500/20 flex items-center justify-center">
-                  <AlertCircle className="h-5 w-5 text-red-400" />
+                <div className="h-10 w-10 rounded bg-[#ba1a1a] flex items-center justify-center text-white">
+                  <AlertCircle className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm text-red-400">Tổng công nợ</p>
-                  <p className="text-2xl font-black text-white">{totalOutstanding.toLocaleString('vi-VN')}đ</p>
+                  <p className="text-xs font-bold text-[#ba1a1a] uppercase">Tổng nợ chưa thu</p>
+                  <p className="data-lg font-bold text-[#93000a]">{totalOutstanding.toLocaleString('vi-VN')}đ</p>
                 </div>
               </div>
             </div>
-            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5">
+            <div className="rounded border border-[#1b6d24]/30 bg-[#a0f399]/20 p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                <div className="h-10 w-10 rounded bg-[#1b6d24] flex items-center justify-center text-white">
+                  <CheckCircle2 className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm text-emerald-400">Khách không nợ</p>
-                  <p className="text-2xl font-black text-white">
+                  <p className="text-xs font-bold text-[#1b6d24] uppercase">Khách đã thanh toán đủ</p>
+                  <p className="data-lg font-bold text-[#111c2d]">
                     {debts.filter(d => d.outstandingDebt <= 0).length}
                   </p>
                 </div>
@@ -85,47 +79,53 @@ export default function DebtReportPage() {
           {/* Debt Table */}
           {loading ? (
             <div className="flex items-center justify-center py-16">
-              <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full" />
+              <div className="animate-spin h-8 w-8 border-2 border-[#004a99] border-t-transparent rounded-full" />
             </div>
           ) : error ? (
-            <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-center">
-              <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-3" />
-              <p className="text-red-400 font-medium">Không thể tải báo cáo</p>
-              <p className="text-slate-400 text-sm mt-1">Vui lòng thử lại sau</p>
+            <div className="rounded border border-[#ba1a1a]/30 bg-[#ffdad6]/50 p-6 text-center">
+              <AlertCircle className="h-8 w-8 text-[#ba1a1a] mx-auto mb-2" />
+              <p className="text-[#93000a] font-bold text-sm">Không thể tải báo cáo</p>
+              <p className="text-[#424751] text-xs mt-1">Vui lòng thử lại sau</p>
             </div>
           ) : debts.length === 0 ? (
-            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-6 text-center">
-              <CheckCircle2 className="h-12 w-12 text-emerald-400 mx-auto mb-3" />
-              <p className="text-emerald-400 font-medium">Không có công nợ</p>
-              <p className="text-slate-400 text-sm mt-1">Tất cả khách hàng đã trả hết nợ</p>
+            <div className="rounded border border-[#1b6d24]/30 bg-[#a0f399]/20 p-6 text-center">
+              <CheckCircle2 className="h-8 w-8 text-[#1b6d24] mx-auto mb-2" />
+              <p className="text-[#1b6d24] font-bold text-sm">Không có công nợ</p>
+              <p className="text-[#424751] text-xs mt-1">Tất cả khách hàng đã thanh toán đầy đủ</p>
             </div>
           ) : (
-            <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
-              <table className="w-full">
+            <div className="overflow-hidden rounded border border-[#c2c6d3] bg-white shadow-sm">
+              <table className="w-full text-left border-collapse table-industrial">
                 <thead>
-                  <tr className="border-b border-white/10 bg-white/5">
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-400">Khách hàng</th>
-                    <th className="px-6 py-4 text-right text-sm font-semibold text-slate-400">Công nợ</th>
-                    <th className="px-6 py-4 text-right text-sm font-semibold text-slate-400">Thanh toán cuối</th>
+                  <tr className="border-b border-[#c2c6d3] bg-[#f9f9ff] text-[12px] font-bold uppercase tracking-wider text-[#424751]">
+                    <th className="py-3 px-4">Khách hàng</th>
+                    <th className="py-3 px-4 text-right">Dư nợ hiện tại</th>
+                    <th className="py-3 px-4 text-right">Lần trả cuối</th>
+                    <th className="py-3 px-4 text-center">Trạng thái</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {debts.map((debt, idx) => (
-                    <tr key={debt.customerId} className={`border-b border-white/5 ${idx !== debts.length - 1 ? '' : 'last:border-0'}`}>
-                      <td className="px-6 py-4">
-                        <span className="text-white font-medium">{debt.customerName}</span>
+                <tbody className="divide-y divide-[#e7eeff] text-sm">
+                  {debts.map((debt) => (
+                    <tr key={debt.customerId} className="h-12 hover:bg-[#f0f3ff] transition-colors">
+                      <td className="py-3 px-4 font-bold text-[#111c2d]">{debt.customerName}</td>
+                      <td className="py-3 px-4 text-right data-md font-bold">
+                        <span className={debt.outstandingDebt > 0 ? 'text-[#ba1a1a]' : 'text-[#1b6d24]'}>
+                          {debt.outstandingDebt.toLocaleString('vi-VN')}đ
+                        </span>
                       </td>
-                      <td className={`px-6 py-4 text-right font-bold ${
-                        debt.outstandingDebt > 0 ? 'text-red-400' : 'text-emerald-400'
-                      }`}>
-                        {debt.outstandingDebt > 0
-                          ? `${debt.outstandingDebt.toLocaleString('vi-VN')}đ`
-                          : '0đ'}
+                      <td className="py-3 px-4 text-right data-sm text-[#737783]">
+                        {debt.lastPaymentDate ? new Date(debt.lastPaymentDate).toLocaleDateString('vi-VN') : 'Chưa từng trả'}
                       </td>
-                      <td className="px-6 py-4 text-right text-slate-400 text-sm">
-                        {debt.lastPaymentDate
-                          ? new Date(debt.lastPaymentDate).toLocaleDateString('vi-VN')
-                          : '—'}
+                      <td className="py-3 px-4 text-center">
+                        {debt.outstandingDebt > 0 ? (
+                          <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-[#ffdad6] text-[#93000a]">
+                            Còn nợ
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-[#a0f399]/40 text-[#1b6d24]">
+                            Đã tất toán
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ))}

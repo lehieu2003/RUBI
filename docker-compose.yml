@@ -4,7 +4,7 @@ services:
       context: .
       target: dev
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       NODE_ENV: development
       NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321
@@ -22,7 +22,7 @@ services:
   postgres:
     image: postgres:16-alpine
     ports:
-      - "5432:5432"
+      - '5433:5432'
     environment:
       POSTGRES_DB: iceflow
       POSTGRES_USER: iceflow
@@ -30,7 +30,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U iceflow -d iceflow"]
+      test: ['CMD-SHELL', 'pg_isready -U iceflow -d iceflow']
       interval: 5s
       timeout: 5s
       retries: 10

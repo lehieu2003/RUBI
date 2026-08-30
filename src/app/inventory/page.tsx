@@ -35,137 +35,125 @@ export default function InventoryPage() {
   const todayTotal = fakeProductionLogs.reduce((sum, log) => sum + log.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-cyan-600/10 to-blue-600/10 rounded-full blur-3xl" />
-      </div>
-
+    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d]">
       <Sidebar />
 
       <main className="pl-64">
-        <div className="relative p-8">
+        <div className="p-8 max-w-[1400px]">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4 mb-6">
             <div>
-              <h1 className="text-3xl font-black text-white">Kho lạnh</h1>
-              <p className="text-slate-400 mt-1">Theo dõi tồn kho và sản lượng</p>
+              <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Kho Lạnh & Tồn Kho</h1>
+              <p className="text-xs text-[#424751] mt-1">Theo dõi tồn kho theo loại đá và nhật ký sản xuất</p>
             </div>
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-cyan-500/30 transition-all"
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-all shadow-sm"
             >
-              <Plus className="h-5 w-5" />
-              Nhập sản lượng
+              <Plus className="h-4 w-4" />
+              NHẬP SẢN LƯỢNG MỚI
             </button>
           </div>
 
           {/* Inventory Overview */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* Đá Bi */}
-            <div className="rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 to-blue-500/5 backdrop-blur-xl p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-12 w-12 rounded-xl bg-cyan-500/20 flex items-center justify-center">
-                  <Snowflake className="h-6 w-6 text-cyan-400" />
+            <div className="rounded border border-[#c2c6d3] bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-4 border-b border-[#e7eeff] pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded bg-[#004a99] flex items-center justify-center text-white">
+                    <Snowflake className="h-5 w-5 text-[#9bbdff]" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-[#111c2d]">Đá Bi (Túi/Bao)</h3>
+                    <p className="text-xs text-[#737783]">Đá uống bia, cà phê</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white">Đá Bi</h3>
-                  <p className="text-cyan-400 text-2xl font-black">{fakeInventory.daBi.totalKg.toLocaleString()} kg</p>
-                </div>
+                <p className="data-lg font-bold text-[#004a99]">{fakeInventory.daBi.totalKg.toLocaleString()} kg</p>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
-                <div className="bg-white/5 rounded-xl p-3 text-center">
-                  <p className="text-slate-400 text-xs mb-1">Bao 5kg</p>
-                  <p className="text-lg font-bold text-white">{fakeInventory.daBi.bags5}</p>
+                <div className="bg-[#f9f9ff] border border-[#e7eeff] rounded p-3 text-center">
+                  <p className="text-[#424751] text-xs font-bold mb-1">Bao 5kg</p>
+                  <p className="data-md font-bold text-[#111c2d]">{fakeInventory.daBi.bags5}</p>
                 </div>
-                <div className="bg-white/5 rounded-xl p-3 text-center">
-                  <p className="text-slate-400 text-xs mb-1">Bao 10kg</p>
-                  <p className="text-lg font-bold text-white">{fakeInventory.daBi.bags10}</p>
+                <div className="bg-[#f9f9ff] border border-[#e7eeff] rounded p-3 text-center">
+                  <p className="text-[#424751] text-xs font-bold mb-1">Bao 10kg</p>
+                  <p className="data-md font-bold text-[#111c2d]">{fakeInventory.daBi.bags10}</p>
                 </div>
-                <div className="bg-white/5 rounded-xl p-3 text-center">
-                  <p className="text-slate-400 text-xs mb-1">Bao 20kg</p>
-                  <p className="text-lg font-bold text-white">{fakeInventory.daBi.bags20}</p>
+                <div className="bg-[#f9f9ff] border border-[#e7eeff] rounded p-3 text-center">
+                  <p className="text-[#424751] text-xs font-bold mb-1">Bao 20kg</p>
+                  <p className="data-md font-bold text-[#111c2d]">{fakeInventory.daBi.bags20}</p>
                 </div>
               </div>
             </div>
 
             {/* Đá Viên */}
-            <div className="rounded-2xl border border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-violet-500/5 backdrop-blur-xl p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-12 w-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                  <Snowflake className="h-6 w-6 text-blue-400" />
+            <div className="rounded border border-[#c2c6d3] bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-4 border-b border-[#e7eeff] pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded bg-[#004a99] flex items-center justify-center text-white">
+                    <Snowflake className="h-5 w-5 text-[#9bbdff]" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-[#111c2d]">Đá Viên / Đá Cây</h3>
+                    <p className="text-xs text-[#737783]">Đá ướp thực phẩm, hải sản</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white">Đá Viên</h3>
-                  <p className="text-blue-400 text-2xl font-black">{fakeInventory.daVien.totalKg.toLocaleString()} kg</p>
-                </div>
+                <p className="data-lg font-bold text-[#004a99]">{fakeInventory.daVien.totalKg.toLocaleString()} kg</p>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
-                <div className="bg-white/5 rounded-xl p-3 text-center">
-                  <p className="text-slate-400 text-xs mb-1">Bao 5kg</p>
-                  <p className="text-lg font-bold text-white">{fakeInventory.daVien.bags5}</p>
+                <div className="bg-[#f9f9ff] border border-[#e7eeff] rounded p-3 text-center">
+                  <p className="text-[#424751] text-xs font-bold mb-1">Bao 5kg</p>
+                  <p className="data-md font-bold text-[#111c2d]">{fakeInventory.daVien.bags5}</p>
                 </div>
-                <div className="bg-white/5 rounded-xl p-3 text-center">
-                  <p className="text-slate-400 text-xs mb-1">Bao 10kg</p>
-                  <p className="text-lg font-bold text-white">{fakeInventory.daVien.bags10}</p>
+                <div className="bg-[#f9f9ff] border border-[#e7eeff] rounded p-3 text-center">
+                  <p className="text-[#424751] text-xs font-bold mb-1">Bao 10kg</p>
+                  <p className="data-md font-bold text-[#111c2d]">{fakeInventory.daVien.bags10}</p>
                 </div>
-                <div className="bg-white/5 rounded-xl p-3 text-center">
-                  <p className="text-slate-400 text-xs mb-1">Bao 20kg</p>
-                  <p className="text-lg font-bold text-white">{fakeInventory.daVien.bags20}</p>
+                <div className="bg-[#f9f9ff] border border-[#e7eeff] rounded p-3 text-center">
+                  <p className="text-[#424751] text-xs font-bold mb-1">Bao 20kg</p>
+                  <p className="data-md font-bold text-[#111c2d]">{fakeInventory.daVien.bags20}</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Today's Production */}
-          <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <History className="h-5 w-5 text-slate-400" />
-                <h3 className="text-lg font-bold text-white">Sản lượng hôm nay</h3>
-              </div>
+          {/* Production History */}
+          <div className="rounded border border-[#c2c6d3] bg-white shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-[#c2c6d3] bg-[#f9f9ff]">
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-emerald-400" />
-                <span className="text-emerald-400 font-bold">{todayTotal} bao</span>
+                <History className="h-4 w-4 text-[#004a99]" />
+                <h3 className="text-sm font-bold text-[#111c2d]">Nhật Ký Cắt & Nhập Kho Hôm Nay</h3>
               </div>
+              <span className="text-xs font-bold text-[#004a99] bg-[#dee8ff] px-2.5 py-1 rounded">
+                Tổng nhập: {todayTotal} bao
+              </span>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-white/10">
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase">Giờ</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase">Loại</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase">Qui cách</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase">Số lượng</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase">Công nhân</th>
+            <table className="w-full text-left border-collapse table-industrial">
+              <thead>
+                <tr className="border-b border-[#c2c6d3] bg-[#f9f9ff] text-[12px] font-bold uppercase tracking-wider text-[#424751]">
+                  <th className="py-3 px-4">Giờ</th>
+                  <th className="py-3 px-4">Loại đá</th>
+                  <th className="py-3 px-4">Quy cách</th>
+                  <th className="py-3 px-4 text-right">Số lượng (Bao)</th>
+                  <th className="py-3 px-4 text-right">Người nhập</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#e7eeff] text-sm">
+                {fakeProductionLogs.map((log) => (
+                  <tr key={log.id} className="h-11 hover:bg-[#f0f3ff] transition-colors">
+                    <td className="py-3 px-4 data-sm font-bold text-[#737783]">{log.time}</td>
+                    <td className="py-3 px-4 font-bold text-[#111c2d]">{log.type}</td>
+                    <td className="py-3 px-4 text-xs font-mono text-[#004a99]">{log.size}</td>
+                    <td className="py-3 px-4 text-right data-md font-bold text-[#111c2d]">+{log.quantity}</td>
+                    <td className="py-3 px-4 text-right text-xs text-[#424751] font-medium">{log.worker}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {fakeProductionLogs.map((log) => (
-                    <tr key={log.id} className="border-b border-white/5 hover:bg-white/5">
-                      <td className="py-3 px-4 text-white font-mono">{log.time}</td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                          log.type === 'Đá Bi' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-blue-500/20 text-blue-400'
-                        }`}>
-                          {log.type}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-slate-300">{log.size}</td>
-                      <td className="py-3 px-4">
-                        <span className="flex items-center gap-1">
-                          <Package className="h-4 w-4 text-slate-500" />
-                          <span className="text-white font-semibold">{log.quantity}</span>
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-slate-400">{log.worker}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </main>
@@ -173,58 +161,52 @@ export default function InventoryPage() {
       {/* Add Production Modal */}
       {showAddModal && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={() => setShowAddModal(false)} />
-          <div className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-slate-900 border border-white/10 rounded-2xl shadow-2xl p-6">
-            <h3 className="text-xl font-bold text-white mb-6">Nhập sản lượng</h3>
+          <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs" onClick={() => setShowAddModal(false)} />
+          <div className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white border border-[#c2c6d3] rounded shadow-xl p-6">
+            <h3 className="text-lg font-bold text-[#111c2d] mb-1">Nhập sản lượng kho</h3>
+            <p className="text-[#424751] text-xs mb-5">Ghi nhận mẻ đá vừa ra lò vào kho lạnh</p>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Loại đá</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {inventoryTypes.map((t) => (
-                    <button
-                      key={t.id}
-                      onClick={() => setSelectedType(t)}
-                      className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                        selectedType.id === t.id
-                          ? 'bg-cyan-500/20 border border-cyan-500/50 text-cyan-400'
-                          : 'bg-white/5 border border-white/10 text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      {t.label}
-                    </button>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1.5">Loại đá & Quy cách</label>
+                <select
+                  value={selectedType.id}
+                  onChange={(e) => {
+                    const t = inventoryTypes.find(item => item.id === e.target.value);
+                    if (t) setSelectedType(t);
+                  }}
+                  className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99]"
+                >
+                  {inventoryTypes.map(t => (
+                    <option key={t.id} value={t.id}>{t.label}</option>
                   ))}
-                </div>
+                </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Số lượng bao</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1.5">Số lượng (Bao)</label>
                 <input
                   type="number"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
-                  placeholder="0"
-                  min="1"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-lg focus:outline-none focus:border-cyan-500/50"
+                  placeholder="Ví dụ: 50"
+                  className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99]"
                 />
               </div>
             </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-2.5 mt-6">
               <button
                 onClick={() => setShowAddModal(false)}
-                className="flex-1 py-3 border border-white/20 text-slate-400 font-semibold rounded-xl hover:bg-white/5 transition-colors"
+                className="flex-1 py-2.5 border border-[#c2c6d3] text-[#424751] font-bold text-xs rounded hover:bg-[#dee8ff] transition-colors"
               >
-                Hủy
+                HỦY
               </button>
               <button
-                onClick={() => {
-                  setShowAddModal(false);
-                  setQuantity('');
-                }}
-                className="flex-1 py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-xl transition-colors"
+                onClick={() => setShowAddModal(false)}
+                className="flex-1 py-2.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-colors shadow-sm"
               >
-                Nhập kho
+                XÁC NHẬN NHẬP KHO
               </button>
             </div>
           </div>

@@ -2,6 +2,18 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import {
+  IceIcon,
+  BagLossIcon,
+  DebtConfusionIcon,
+  BlindProfitIcon,
+  ZaloMessIcon,
+  CalculatorIcon,
+  GlobeIcon,
+  CloudIcon,
+  ServerIcon,
+} from '@/components/landing/icons';
+import { StatItem, PainCard, LocalCard } from '@/components/landing/cards';
 
 export default function LandingPage() {
   const [bagLoss, setBagLoss] = useState(50);
@@ -9,7 +21,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a1a] text-white font-system-ui overflow-x-hidden">
-
       {/* Animated Gradient Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-gradient-to-r from-blue-600/30 to-violet-600/30 rounded-full blur-[120px] animate-[pulse_8s_ease-in-out_infinite]" />
@@ -42,13 +53,11 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="relative max-w-[900px] mx-auto px-8 pt-28 pb-20 text-center">
-        {/* Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500/10 to-orange-500/10 border border-red-500/20 rounded-full text-sm text-red-400 font-medium mb-8 animate-[fadeInUp_0.8s_ease-out]">
           <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
           <span>Chủ lò đá đang mất tiền mỗi ngày — và không biết</span>
         </div>
 
-        {/* Main Heading */}
         <h1 className="text-[clamp(2.5rem,6vw,4rem)] font-black leading-[1.1] tracking-tight mb-6 animate-[fadeInUp_0.8s_ease-out_0.1s_both]">
           <span className="bg-gradient-to-b from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
             Quản lý lò đá thảnh thơi
@@ -64,7 +73,6 @@ export default function LandingPage() {
           <span className="text-gray-300"> Dễ dùng như Zalo, hiệu quả hơn sổ sách.</span>
         </p>
 
-        {/* CTA Buttons */}
         <div className="flex items-center justify-center gap-4 flex-wrap animate-[fadeInUp_0.8s_ease-out_0.3s_both]">
           <Link href="/register" className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold text-base rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/30 hover:-translate-y-1">
             <span className="relative z-10">Dùng thử miễn phí 14 ngày</span>
@@ -77,7 +85,6 @@ export default function LandingPage() {
 
         <p className="mt-6 text-sm text-gray-500 animate-[fadeInUp_0.8s_ease-out_0.4s_both]">Không cần thẻ tín dụng • Không cần hỗ trợ kỹ thuật</p>
 
-        {/* Hero Visual - Stats Bar */}
         <div className="mt-16 flex items-center justify-center gap-8 flex-wrap animate-[fadeInUp_0.8s_ease-out_0.5s_both]">
           <StatItem value="50+" label="Nhà máy đá" />
           <div className="w-px h-10 bg-white/10" />
@@ -124,11 +131,11 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
       {/* Loss Calculator */}
       <section className="relative py-24 px-8">
         <div className="max-w-[700px] mx-auto">
           <div className="relative bg-gradient-to-br from-blue-600/10 to-violet-600/10 backdrop-blur-xl border border-white/10 rounded-3xl p-8 overflow-hidden">
-            {/* Glow effect */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-gradient-to-b from-blue-500/20 to-transparent blur-2xl" />
 
             <div className="relative flex items-center gap-3 mb-8">
@@ -180,7 +187,6 @@ export default function LandingPage() {
           </div>
 
           <div className="flex flex-col gap-8">
-
             {/* Feature 1: Speed */}
             <div className="group grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 hover:border-white/20 transition-all duration-500">
               <div>
@@ -325,16 +331,13 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </section>
 
       {/* Vietnam-proof */}
       <section className="relative py-24 px-8">
-        {/* Gradient divider */}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
         <div className="max-w-[1200px] mx-auto">
           <div className="text-center mb-12">
             <span className="inline-block px-4 py-1.5 bg-violet-500/10 border border-violet-500/20 rounded-full text-xs font-semibold text-violet-400 mb-4 uppercase tracking-wider">Khác biệt</span>
@@ -363,12 +366,11 @@ export default function LandingPage() {
 
       {/* CTA */}
       <section className="relative py-24 px-8 text-center">
-        {/* Glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-gradient-to-r from-blue-500/20 via-violet-500/20 to-purple-500/20 rounded-full blur-3xl" />
 
         <div className="relative max-w-[640px] mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Bắt đầu trong 5 phút</h2>
-          <p className="text-gray-400 leading-relaxed mb-10">Đăng ký, kết nối Supabase (hoặc dùng demo), bắt đầu nhập đơn. Không cần cài đặt phức tạp.</p>
+          <p className="text-gray-400 leading-relaxed mb-10">Đăng ký, kết nối dữ liệu, bắt đầu nhập đơn. Không cần cài đặt phức tạp.</p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <Link href="/register" className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold text-base rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/30 hover:-translate-y-1">
               <span className="relative z-10">Dùng thử miễn phí 14 ngày</span>
@@ -413,126 +415,5 @@ export default function LandingPage() {
         }
       `}</style>
     </div>
-  );
-}
-
-function StatItem({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="text-center">
-      <div className="text-2xl font-black bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">{value}</div>
-      <div className="text-xs text-gray-500 uppercase tracking-wider">{label}</div>
-    </div>
-  );
-}
-
-function PainCard({ icon, title, desc, delay }: { icon: React.ReactNode; title: string; desc: string; delay: number }) {
-  return (
-    <div
-      className="group relative p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-red-500/30 transition-all duration-500 hover:-translate-y-1 hover:shadow-lg hover:shadow-red-500/10"
-      style={{ animationDelay: `${delay}ms` }}
-    >
-      <div className="w-12 h-12 bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-xl flex items-center justify-center text-red-400 mb-4 group-hover:scale-110 transition-transform duration-300">
-        {icon}
-      </div>
-      <h3 className="text-base font-bold text-white mb-2">{title}</h3>
-      <p className="text-sm text-gray-400 leading-relaxed">{desc}</p>
-      {/* Hover glow */}
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-    </div>
-  );
-}
-
-function LocalCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
-  return (
-    <div className="group p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all duration-300">
-      <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-violet-500/20 rounded-xl flex items-center justify-center text-blue-400 mb-4 group-hover:scale-110 transition-transform duration-300">
-        {icon}
-      </div>
-      <h4 className="text-base font-semibold text-white mb-2">{title}</h4>
-      <p className="text-sm text-gray-400 leading-relaxed">{desc}</p>
-    </div>
-  );
-}
-
-// Icons
-function IceIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <path d="M12 2v20M2 12h20" />
-      <circle cx="12" cy="12" r="4" />
-    </svg>
-  );
-}
-
-function WarningIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01" />
-    </svg>
-  );
-}
-
-function BagLossIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" />
-    </svg>
-  );
-}
-
-function DebtConfusionIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0zM12 8v4M12 16h.01" />
-    </svg>
-  );
-}
-
-function BlindProfitIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-    </svg>
-  );
-}
-
-function ZaloMessIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
-    </svg>
-  );
-}
-
-function CalculatorIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <path d="M7 2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4a2 2 0 012-2zM8 10h8M8 14h5" />
-    </svg>
-  );
-}
-
-function GlobeIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <circle cx="12" cy="12" r="10" />
-      <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
-    </svg>
-  );
-}
-
-function CloudIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z" />
-    </svg>
-  );
-}
-
-function ServerIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <path d="M4 4h16a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2zM4 14h16a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4a2 2 0 012-2zM9 8h6M9 16h6" />
-    </svg>
   );
 }

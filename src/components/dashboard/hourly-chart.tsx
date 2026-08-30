@@ -28,21 +28,21 @@ export function HourlyChart() {
   const maxOrders = Math.max(...hourlyData.map((d) => d.orders));
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6">
+    <div className="relative overflow-hidden rounded border border-[#c2c6d3] bg-white p-5 shadow-sm">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-5 flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-bold text-white">Sản lượng theo giờ</h3>
-          <p className="text-sm text-slate-400">Hôm nay</p>
+          <h3 className="text-base font-bold text-[#111c2d]">Sản Lượng Theo Khung Giờ</h3>
+          <p className="text-xs text-[#424751]">Số lượng đơn hàng phân bổ trong ngày</p>
         </div>
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/20">
-          <BarChart3 className="h-5 w-5 text-blue-400" />
+        <div className="flex h-9 w-9 items-center justify-center rounded bg-[#dee8ff]">
+          <BarChart3 className="h-5 w-5 text-[#004a99]" />
         </div>
       </div>
 
       {/* Chart */}
-      <div className="flex h-48 items-end justify-between gap-2">
-        {hourlyData.map((data, index) => {
+      <div className="flex h-44 items-end justify-between gap-1.5 pt-4">
+        {hourlyData.map((data) => {
           const heightPercent = (data.orders / maxOrders) * 100;
           const isPeak = data.orders >= maxOrders * 0.8;
 
@@ -54,17 +54,17 @@ export function HourlyChart() {
               {/* Bar */}
               <div className="relative w-full">
                 <div
-                  className={`w-full rounded-t-lg transition-all duration-500 ${
+                  className={`w-full rounded-t transition-all duration-150 ${
                     isPeak
-                      ? 'bg-gradient-to-t from-blue-600 to-violet-500'
-                      : 'bg-gradient-to-t from-slate-600 to-slate-500'
+                      ? 'bg-[#004a99] hover:bg-[#00346f]'
+                      : 'bg-[#9bbdff] hover:bg-[#004a99]'
                   }`}
-                  style={{ height: `${Math.max(heightPercent, 8)}%` }}
+                  style={{ height: `${Math.max(heightPercent, 10)}%` }}
                 >
                   {/* Hover tooltip */}
-                  <div className="absolute -top-16 left-1/2 -translate-x-1/2 hidden items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 shadow-xl group-hover:flex whitespace-nowrap">
-                    <span className="text-xs text-slate-400">{data.hour}</span>
-                    <span className="text-sm font-bold text-white">
+                  <div className="absolute -top-12 left-1/2 -translate-x-1/2 hidden items-center gap-1.5 rounded bg-[#111c2d] text-white px-2.5 py-1 shadow-lg group-hover:flex whitespace-nowrap z-10">
+                    <span className="data-sm text-[#9bbdff]">{data.hour}:</span>
+                    <span className="data-sm font-bold text-white">
                       {data.orders} đơn
                     </span>
                   </div>
@@ -72,7 +72,7 @@ export function HourlyChart() {
               </div>
 
               {/* Hour label */}
-              <span className="mt-2 text-[10px] text-slate-500">
+              <span className="mt-2 data-sm text-[#424751] font-semibold">
                 {data.hour}
               </span>
             </div>
@@ -81,12 +81,13 @@ export function HourlyChart() {
       </div>
 
       {/* Peak indicator */}
-      <div className="mt-4 flex items-center justify-center gap-2">
-        <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-        <span className="text-xs text-slate-400">
-          Giờ cao điểm: 10h-11h và 16h-17h
+      <div className="mt-3 flex items-center justify-center gap-2 border-t border-[#e7eeff] pt-3">
+        <div className="h-2 w-2 rounded-full bg-[#004a99]" />
+        <span className="text-xs font-medium text-[#424751]">
+          Cao điểm giao hàng: 10h-11h và 16h-17h
         </span>
       </div>
     </div>
   );
 }
+

@@ -58,10 +58,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      const data = await res.json();
-      if (data.error) {
-        toast({ type: 'error', title: 'Đăng nhập thất bại', message: data.error });
-        return { error: data.error };
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.error) {
+        const errorMsg = data.error || (data.errors ? 'Dữ liệu không hợp lệ' : 'Đăng nhập không thành công');
+        toast({ type: 'error', title: 'Đăng nhập thất bại', message: errorMsg });
+        return { error: errorMsg };
       }
       await checkAuth();
       toast({ type: 'success', title: 'Đăng nhập thành công' });

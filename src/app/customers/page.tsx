@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { Search, Plus, Phone, MapPin, DollarSign, Package, ChevronRight, X } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
@@ -28,50 +29,61 @@ interface Product {
 
 export default function CustomersPage() {
   const [search, setSearch] = useState('');
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerDetail | null>(null);
   const [editingPrices, setEditingPrices] = useState<Record<string, string>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({ code: '', name: '', phone: '', address: '', isActive: true });
-  const [submitting, setSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    Promise.all([
-      fetch('/api/customers').then(r => r.ok ? r.json() : []),
-      fetch('/api/products').then(r => r.ok ? r.json() : []),
-    ]).then(([customersData, productsData]) => {
-      setCustomers(customersData);
-      setProducts(productsData);
-      setLoading(false);
-    });
-  }, []);
+  const { data: customers = [], isLoading: customersLoading } = useQuery<Customer[]>({
+    queryKey: ['customers'],
+    queryFn: async () => {
+      const res = await fetch('/api/customers');
+      if (!res.ok) throw new Error('Failed to load customers');
+      return res.json();
+    },
+  });
+
+  const { data: products = [] } = useQuery<Product[]>({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const res = await fetch('/api/products');
+      if (!res.ok) throw new Error('Failed to load products');
+      return res.json();
+    },
+  });
+
+  const addCustomerMutation = useMutation({
+    mutationFn: async (newCustomerData: typeof formData) => {
+      const res = await fetch('/api/customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newCustomerData),
+      });
+      if (!res.ok) throw new Error('Failed to create');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      setIsModalOpen(false);
+      setFormData({ code: '', name: '', phone: '', address: '', isActive: true });
+      toast({ type: 'success', title: 'Đã thêm khách hàng' });
+    },
+    onError: () => {
+      toast({ type: 'error', title: 'Lỗi', message: 'Không thể tạo khách hàng' });
+    },
+  });
 
   const handleAddCustomer = async () => {
     if (!formData.code || !formData.name) {
       toast({ type: 'error', title: 'Vui lòng nhập mã và tên khách hàng' });
       return;
     }
-    setSubmitting(true);
-    try {
-      const res = await fetch('/api/customers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      if (!res.ok) throw new Error('Failed to create');
-      const customer = await res.json();
-      setCustomers(prev => [...prev, customer]);
-      setIsModalOpen(false);
-      setFormData({ code: '', name: '', phone: '', address: '', isActive: true });
-      toast({ type: 'success', title: 'Đã thêm khách hàng' });
-    } catch {
-      toast({ type: 'error', title: 'Lỗi', message: 'Không thể tạo khách hàng' });
-    } finally {
-      setSubmitting(false);
-    }
+    addCustomerMutation.mutate(formData);
   };
+
+  const loading = customersLoading;
+  const submitting = addCustomerMutation.isPending;
 
   const filteredCustomers = customers.filter(
     (c) =>
@@ -85,83 +97,77 @@ export default function CustomersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
-      {/* Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-blue-600/10 to-violet-600/10 rounded-full blur-3xl" />
-      </div>
-
+    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d]">
       <Sidebar />
 
       <main className="pl-64">
-        <div className="relative p-8">
+        <div className="p-8 max-w-[1400px]">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4 mb-6">
             <div>
-              <h1 className="text-3xl font-black text-white">Khách hàng</h1>
-              <p className="text-slate-400 mt-1">{customers.length} khách hàng</p>
+              <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Danh Sách Khách Hàng</h1>
+              <p className="text-xs text-[#424751] mt-1">{customers.length} đại lý / khách hàng trong hệ thống</p>
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/30 transition-all"
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-all shadow-sm"
             >
-              <Plus className="h-5 w-5" />
-              Thêm khách hàng
+              <Plus className="h-4 w-4" />
+              THÊM KHÁCH HÀNG
             </button>
           </div>
 
           {/* Search */}
           <div className="relative mb-6">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#737783]" />
             <input
               type="text"
               placeholder="Tìm theo tên, SĐT hoặc mã KH..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] placeholder-[#737783] focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99]"
             />
           </div>
 
           {/* Customer List */}
           {loading ? (
             <div className="flex items-center justify-center py-16">
-              <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full" />
+              <div className="animate-spin h-8 w-8 border-2 border-[#004a99] border-t-transparent rounded-full" />
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredCustomers.map((customer) => (
                 <div
                   key={customer.id}
                   onClick={() => setSelectedCustomer(customer)}
-                  className="group cursor-pointer rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 hover:bg-white/10 hover:border-blue-500/30 transition-all"
+                  className="group cursor-pointer rounded border border-[#c2c6d3] bg-white p-4 hover:border-[#004a99] hover:bg-[#f0f3ff] transition-all shadow-sm flex flex-col justify-between"
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
+                  <div>
+                    <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono text-blue-400 bg-blue-500/20 px-2 py-0.5 rounded">
+                        <span className="text-xs font-bold font-mono text-[#004a99] bg-[#dee8ff] px-2 py-0.5 rounded">
                           {customer.code}
                         </span>
                         {!customer.isActive && (
-                          <span className="text-xs font-mono text-slate-500 bg-slate-500/20 px-2 py-0.5 rounded">
+                          <span className="text-xs font-mono text-[#737783] bg-[#cfdaf2] px-2 py-0.5 rounded">
                             inactive
                           </span>
                         )}
                       </div>
-                      <h3 className="text-lg font-semibold text-white mt-1">{customer.name}</h3>
+                      <ChevronRight className="h-4 w-4 text-[#737783] group-hover:text-[#004a99] transition-colors" />
                     </div>
-                    <ChevronRight className="h-5 w-5 text-slate-500 group-hover:text-blue-400 transition-colors" />
+                    <h3 className="text-base font-bold text-[#111c2d] mb-2">{customer.name}</h3>
                   </div>
 
-                  <div className="flex items-center gap-4 text-sm text-slate-400 mb-3">
-                    <span className="flex items-center gap-1">
-                      <Phone className="h-4 w-4" />
-                      {customer.phone || '—'}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1 text-slate-500 text-xs mb-3">
-                    <MapPin className="h-3 w-3" />
-                    {customer.address || '—'}
+                  <div className="space-y-1.5 border-t border-[#e7eeff] pt-2 text-xs text-[#424751]">
+                    <div className="flex items-center gap-1.5">
+                      <Phone className="h-3.5 w-3.5 text-[#737783]" />
+                      <span className="font-mono font-medium">{customer.phone || '—'}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 truncate">
+                      <MapPin className="h-3.5 w-3.5 text-[#737783] shrink-0" />
+                      <span className="truncate">{customer.address || '—'}</span>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -173,115 +179,115 @@ export default function CustomersPage() {
       {/* Add Customer Modal */}
       {isModalOpen && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-          <div className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-slate-900 border border-white/10 rounded-2xl shadow-2xl p-6">
-            <h3 className="text-xl font-bold text-white mb-1">Thêm khách hàng</h3>
-            <p className="text-slate-400 text-sm mb-6">Tạo khách hàng mới (có thể để inactive)</p>
+          <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs" onClick={() => setIsModalOpen(false)} />
+          <div className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white border border-[#c2c6d3] rounded shadow-xl p-6">
+            <h3 className="text-lg font-bold text-[#111c2d] mb-1">Thêm khách hàng</h3>
+            <p className="text-[#424751] text-xs mb-5">Tạo thông tin đại lý hoặc khách lấy đá mới</p>
 
-            <div className="space-y-4">
+            <div className="space-y-3.5">
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Mã khách hàng *</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1">Mã khách hàng *</label>
                 <input
                   type="text"
                   value={formData.code}
                   onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
+                  className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99]"
                   placeholder="KH001"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Tên khách hàng *</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1">Tên khách hàng *</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
+                  className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99]"
                   placeholder="Đại lý Minh Tuấn"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Số điện thoại</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1">Số điện thoại</label>
                 <input
                   type="text"
                   value={formData.phone}
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
+                  className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99]"
                   placeholder="0909123456"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">Địa chỉ</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1">Địa chỉ giao hàng</label>
                 <input
                   type="text"
                   value={formData.address}
                   onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-blue-500/50"
-                  placeholder="123 Lê Lợi, Quận 1, TP.HCM"
+                  className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99]"
+                  placeholder="123 Lê Lợi, Quận 1"
                 />
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 pt-1">
                 <input
                   type="checkbox"
                   id="isActive"
                   checked={formData.isActive}
                   onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
-                  className="w-4 h-4 rounded border-white/20 bg-white/5"
+                  className="w-4 h-4 rounded border-[#c2c6d3] text-[#004a99] focus:ring-[#004a99]"
                 />
-                <label htmlFor="isActive" className="text-sm text-white">Active ngay (bỏ chọn nếu muốn tạo inactive)</label>
+                <label htmlFor="isActive" className="text-xs font-medium text-[#111c2d]">Kích hoạt ngay</label>
               </div>
             </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-2.5 mt-6">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="flex-1 py-3 border border-white/20 text-slate-400 font-semibold rounded-xl hover:bg-white/5 transition-colors"
+                className="flex-1 py-2.5 border border-[#c2c6d3] text-[#424751] font-bold text-xs rounded hover:bg-[#dee8ff] transition-colors"
               >
-                Hủy
+                HỦY
               </button>
               <button
                 onClick={handleAddCustomer}
                 disabled={submitting}
-                className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white font-semibold rounded-xl transition-colors"
+                className="flex-1 py-2.5 bg-[#004a99] hover:bg-[#00346f] disabled:bg-slate-300 text-white font-bold text-xs rounded transition-colors shadow-sm"
               >
-                {submitting ? 'Đang lưu...' : 'Xác nhận'}
+                {submitting ? 'Đang lưu...' : 'XÁC NHẬN'}
               </button>
             </div>
           </div>
         </>
       )}
 
-      {/* Customer Detail Modal */}
+      {/* Customer Detail Drawer */}
       {selectedCustomer && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedCustomer(null)} />
-          <div className="fixed right-0 top-0 z-50 h-full w-full max-w-2xl bg-slate-900 border-l border-white/10 shadow-2xl overflow-y-auto">
-            <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-slate-900/95 backdrop-blur-xl border-b border-white/10">
+          <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs" onClick={() => setSelectedCustomer(null)} />
+          <div className="fixed right-0 top-0 z-50 h-full w-full max-w-lg bg-white border-l border-[#c2c6d3] shadow-2xl overflow-y-auto">
+            <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-[#f9f9ff] border-b border-[#c2c6d3]">
               <div>
-                <span className="text-xs font-mono text-blue-400 bg-blue-500/20 px-2 py-0.5 rounded">
+                <span className="text-xs font-bold font-mono text-[#004a99] bg-[#dee8ff] px-2 py-0.5 rounded">
                   {selectedCustomer.code}
                 </span>
-                <h2 className="text-xl font-bold text-white mt-1">{selectedCustomer.name}</h2>
+                <h2 className="text-lg font-bold text-[#111c2d] mt-1">{selectedCustomer.name}</h2>
               </div>
               <button
                 onClick={() => setSelectedCustomer(null)}
-                className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                className="p-1.5 rounded hover:bg-[#dee8ff] text-[#737783] hover:text-[#111c2d] transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-5">
               {/* Contact Info */}
-              <div className="rounded-xl border border-white/10 bg-white/5 p-5">
-                <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Thông tin liên hệ</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-4 w-4 text-slate-500" />
-                    <span className="text-white">{selectedCustomer.phone || '—'}</span>
+              <div className="rounded border border-[#c2c6d3] bg-[#f9f9ff] p-4">
+                <h3 className="text-xs font-bold text-[#424751] uppercase tracking-wider mb-3">Thông tin liên hệ</h3>
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center gap-2.5">
+                    <Phone className="h-4 w-4 text-[#737783]" />
+                    <span className="text-[#111c2d] font-mono font-medium">{selectedCustomer.phone || '—'}</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-4 w-4 text-slate-500" />
-                    <span className="text-white">{selectedCustomer.address || '—'}</span>
+                  <div className="flex items-center gap-2.5">
+                    <MapPin className="h-4 w-4 text-[#737783]" />
+                    <span className="text-[#111c2d]">{selectedCustomer.address || '—'}</span>
                   </div>
                 </div>
               </div>
@@ -292,3 +298,4 @@ export default function CustomersPage() {
     </div>
   );
 }
+

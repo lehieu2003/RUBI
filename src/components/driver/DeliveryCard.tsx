@@ -48,90 +48,89 @@ export default function DeliveryCard({ order, index, onConfirm }: DeliveryCardPr
 
   return (
     <div
-      className={`rounded-2xl border backdrop-blur-xl overflow-hidden transition-all ${
+      className={`rounded border overflow-hidden transition-all duration-150 ${
         isDelivered
-          ? 'bg-emerald-500/5 border-emerald-500/20'
-          : 'bg-white/5 border-white/10'
+          ? 'bg-[#a0f399]/15 border-[#1b6d24]'
+          : 'bg-white border-[#c2c6d3] shadow-sm'
       }`}
     >
       {/* Card Header */}
       <div className="p-4">
         {/* STT and Status Row */}
-        <div className="flex items-start justify-between mb-3">
+        <div className="flex items-start justify-between mb-2">
           <div>
-            <span className="inline-block px-2 py-0.5 bg-slate-700/50 text-slate-300 text-xs rounded mb-1">
-              #{index}
+            <span className="inline-block px-2 py-0.5 bg-[#d8e3fb] text-[#00346f] data-sm font-bold rounded mb-1">
+              ĐIỂM GIAO #{index}
             </span>
-            <h3 className="text-lg font-bold text-white">{order.customer.name}</h3>
+            <h3 className="text-lg font-bold text-[#111c2d] leading-snug">
+              {order.customer.name}
+            </h3>
           </div>
           <span
-            className={`px-2 py-1 rounded-lg text-xs font-semibold ${
-              isDelivered
-                ? 'bg-emerald-500/20 text-emerald-400'
-                : 'bg-amber-500/20 text-amber-400'
+            className={`px-2.5 py-1 rounded text-xs font-bold uppercase tracking-wider text-white ${
+              isDelivered ? 'bg-[#1b6d24]' : 'bg-[#004a99]'
             }`}
           >
-            {isDelivered ? 'Đã giao' : 'Chờ giao'}
+            {isDelivered ? 'Đã giao' : 'Đang giao'}
           </span>
         </div>
 
         {/* Items */}
-        <div className="flex items-center gap-2 text-slate-300 text-sm mb-3">
-          <span className="text-cyan-400">❄️</span>
-          <span>{formatItems(order.orderItems)}</span>
+        <div className="rounded bg-[#f0f3ff] p-2.5 my-3 border border-[#dee8ff]">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#424751] block mb-1">
+            Hàng cần giao:
+          </span>
+          <p className="data-md font-bold text-[#00346f]">
+            {formatItems(order.orderItems)}
+          </p>
         </div>
 
         {/* Address (tappable) */}
         <button
           onClick={() => openGoogleMaps(order.customer.address)}
-          className="flex items-center gap-2 text-slate-400 text-sm mb-4 hover:text-white transition-colors w-full text-left"
+          className="flex items-center gap-2 text-[#424751] hover:text-[#004a99] text-sm mb-4 w-full text-left py-2 px-2.5 rounded bg-[#f9f9ff] border border-[#e7eeff]"
         >
-          <MapPin className="h-4 w-4 shrink-0" />
-          <span className="flex-1">{order.customer.address}</span>
-          <Navigation className="h-4 w-4 shrink-0" />
+          <MapPin className="h-4 w-4 shrink-0 text-[#004a99]" />
+          <span className="flex-1 font-medium">{order.customer.address}</span>
+          <Navigation className="h-4 w-4 shrink-0 text-[#004a99]" />
         </button>
 
         {/* Money to collect */}
-        <div className="bg-slate-800/50 rounded-xl p-3 mb-4">
-          <span className="text-slate-400 text-sm">Tiền cần thu</span>
-          <p className="text-xl font-bold text-white">{formatCurrency(order.total)}</p>
+        <div className="flex items-center justify-between bg-[#f9f9ff] border border-[#c2c6d3] rounded p-3 mb-4">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#424751]">
+            Tiền cần thu:
+          </span>
+          <p className="data-lg font-bold text-[#111c2d]">
+            {formatCurrency(order.total)}
+          </p>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3">
+        {/* Action Buttons (Strict minimum 48px/56px touch target for driver) */}
+        <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => callCustomer(order.customer.phone)}
-            className="flex-1 flex items-center justify-center gap-2 min-h-[44px] bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl transition-colors"
+            className="flex items-center justify-center gap-2 h-12 rounded border-2 border-[#004a99] text-[#004a99] font-bold text-sm hover:bg-[#dee8ff] active:bg-[#d8e3fb]"
           >
-            <Phone className="h-5 w-5" />
-            Gọi điện
+            <Phone className="h-4 w-4" />
+            Gọi khách
           </button>
-          <button
-            onClick={() => openGoogleMaps(order.customer.address)}
-            className="flex-1 flex items-center justify-center gap-2 min-h-[44px] bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl transition-colors"
-          >
-            <MapPin className="h-5 w-5" />
-            Chỉ đường
-          </button>
+
+          {!isDelivered ? (
+            <button
+              onClick={() => onConfirm(order.id)}
+              className="flex items-center justify-center gap-2 h-12 rounded bg-[#1b6d24] text-white font-bold text-sm hover:bg-[#217128] active:bg-[#005312] shadow-sm"
+            >
+              <Check className="h-5 w-5" />
+              Giao xong
+            </button>
+          ) : (
+            <div className="flex items-center justify-center gap-1.5 h-12 rounded bg-[#dee8ff] text-[#004a99] font-bold text-xs">
+              <Check className="h-4 w-4" />
+              Đã hoàn tất
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Confirm Delivery Footer */}
-      {!isDelivered && (
-        <button
-          onClick={() => onConfirm(order.id)}
-          className="w-full min-h-[48px] bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2"
-        >
-          <Check className="h-5 w-5" />
-          Xác nhận đã giao
-        </button>
-      )}
-      {isDelivered && (
-        <div className="w-full min-h-[48px] bg-emerald-500/20 text-emerald-400 font-semibold text-sm flex items-center justify-center gap-2">
-          <Check className="h-5 w-5" />
-          Đã hoàn thành
-        </div>
-      )}
     </div>
   );
 }

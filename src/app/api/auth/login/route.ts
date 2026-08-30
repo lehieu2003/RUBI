@@ -22,8 +22,10 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const parseResult = loginSchema.safeParse(body);
     if (!parseResult.success) {
+      const fieldErrors = parseResult.error.flatten().fieldErrors;
+      const firstError = Object.values(fieldErrors).flat()[0] || 'Dữ liệu không hợp lệ';
       return NextResponse.json(
-        { errors: parseResult.error.flatten() },
+        { error: firstError, errors: parseResult.error.flatten() },
         { status: 400 }
       );
     }
