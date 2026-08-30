@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Filter, Loader2 } from 'lucide-react';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 interface Factory {
   id: string;
@@ -47,7 +48,7 @@ export default function AdminPaymentsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/admin/factories')
+    fetch(API_ENDPOINTS.ADMIN.FACTORIES)
       .then(response => response.json())
       .then(data => setFactories(data.factories ?? []))
       .catch(() => setFactories([]));
@@ -63,7 +64,7 @@ export default function AdminPaymentsPage() {
     if (endDate) params.set('endDate', endDate);
 
     try {
-      const response = await fetch(`/api/admin/payments?${params.toString()}`);
+      const response = await fetch(`${API_ENDPOINTS.ADMIN.PAYMENTS}?${params.toString()}`);
       if (response.ok) {
         const data: PaymentsResponse = await response.json();
         setPayments(data.payments);

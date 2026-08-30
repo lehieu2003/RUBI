@@ -6,6 +6,7 @@ import DeliveryCard from '@/components/driver/DeliveryCard';
 import EmptyState from '@/components/driver/EmptyState';
 import DriverMap from '@/components/driver/DriverMap';
 import { toast } from '@/components/dashboard/toast';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 interface DriverInfo {
   id: string;
@@ -72,7 +73,7 @@ export default function DriverViewPage({
     if (!token) return;
 
     try {
-      const response = await fetch(`/api/driver/orders?token=${encodeURIComponent(token)}`);
+      const response = await fetch(`${API_ENDPOINTS.DRIVER_APP.ORDERS}?token=${encodeURIComponent(token)}`);
       if (!response.ok) {
         if (response.status === 401) {
           throw new Error('Liên kết không hợp lệ hoặc đã hết hạn');
@@ -111,7 +112,7 @@ export default function DriverViewPage({
     );
 
     try {
-      const response = await fetch(`/api/orders/${orderId}/confirm`, {
+      const response = await fetch(API_ENDPOINTS.ORDERS.CONFIRM(orderId), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token }),

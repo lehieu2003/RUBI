@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { X, Building2, Truck, Calendar, ChevronRight } from 'lucide-react';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 interface ImpersonationDrawerProps {
   factoryId: string;
@@ -35,7 +36,7 @@ export function ImpersonationDrawer({ factoryId, factoryName, onClose }: Imperso
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/admin/factories/${factoryId}`)
+    fetch(API_ENDPOINTS.ADMIN.FACTORY_DETAIL(factoryId))
       .then(r => r.json())
       .then(d => {
         setData(d);

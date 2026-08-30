@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { PrintSlip } from '@/components/order/print-slip';
 import { Printer, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 interface OrderItemWithProduct {
   id: string;
@@ -43,7 +44,7 @@ export default function OrderDetailPage() {
   useEffect(() => {
     async function fetchOrder() {
       try {
-        const res = await fetch(`/api/orders`);
+        const res = await fetch(API_ENDPOINTS.ORDERS.BASE);
         const orders = await res.json();
         // Find this order by id
         const found = orders.find((o: OrderDetail) => o.id === params.id);

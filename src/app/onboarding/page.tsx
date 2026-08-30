@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Papa from 'papaparse';
 import { toast } from '@/components/dashboard/toast';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 type Step = 'upload' | 'mapping' | 'preview' | 'importing' | 'done';
 
@@ -74,7 +75,7 @@ export default function OnboardingPage() {
   const handleImport = async () => {
     setStep('importing');
     try {
-      const res = await fetch('/api/customers/import', {
+      const res = await fetch(API_ENDPOINTS.CUSTOMERS.IMPORT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customers }),
@@ -87,7 +88,7 @@ export default function OnboardingPage() {
       });
 
       // REG-04: Mark onboarding complete after successful import
-      const onboardingRes = await fetch('/api/factory/onboarding', {
+      const onboardingRes = await fetch(API_ENDPOINTS.FACTORY.ONBOARDING, {
         method: 'PATCH',
       });
       if (!onboardingRes.ok) throw new Error('Đã import nhưng không thể cập nhật onboarding');

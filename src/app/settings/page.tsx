@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { User, Bell, Database, Shield, Palette, Save, Users, Key, Plus, X, CreditCard } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 type UserRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'DRIVER';
 
@@ -46,7 +47,7 @@ export default function SettingsPage() {
   useEffect(() => {
     async function loadUser() {
       try {
-        const res = await fetch('/api/auth/me');
+        const res = await fetch(API_ENDPOINTS.AUTH.ME);
         const data = await res.json();
         if (data.user) setCurrentUser(data.user);
       } catch (err) {
@@ -61,7 +62,7 @@ export default function SettingsPage() {
     if (!isAdmin) return;
     async function loadStaff() {
       try {
-        const res = await fetch('/api/staff');
+        const res = await fetch(API_ENDPOINTS.STAFF.BASE);
         const data = await res.json();
         if (data.users) setStaffUsers(data.users);
       } catch (err) {
@@ -341,7 +342,7 @@ export default function SettingsPage() {
                                 <button
                                   onClick={async () => {
                                     try {
-                                      const res = await fetch(`/api/staff/${staff.id}`, {
+                                      const res = await fetch(API_ENDPOINTS.STAFF.DETAIL(staff.id), {
                                         method: 'PATCH',
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({ isActive: !staff.isActive }),
@@ -459,7 +460,7 @@ export default function SettingsPage() {
                             return;
                           }
                           try {
-                            const res = await fetch('/api/staff', {
+                            const res = await fetch(API_ENDPOINTS.STAFF.BASE, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ name: newName, email: newEmail, password: newPassword, role: newRole }),
@@ -527,7 +528,7 @@ export default function SettingsPage() {
                             return;
                           }
                           try {
-                            const res = await fetch(`/api/staff/${showPasswordModal}`, {
+                            const res = await fetch(API_ENDPOINTS.STAFF.DETAIL(showPasswordModal), {
                               method: 'PATCH',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ password: passwordInput }),

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Product } from '@prisma/client';
 import { toast } from '@/components/dashboard/toast';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 type GlobalPricesMap = Map<string, number>;
 
@@ -45,7 +46,7 @@ export function GlobalPricesTable({ products, globalPrices }: GlobalPricesTableP
     setEditValue('');
 
     try {
-      const response = await fetch('/api/prices/global', {
+      const response = await fetch(API_ENDPOINTS.PRICES.GLOBAL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productId, price: newPrice }),

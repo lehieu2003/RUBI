@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { CalendarDays, ChevronLeft, ChevronRight, Save } from 'lucide-react';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { toast } from '@/components/dashboard/toast';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 import {
   CalendarGrid,
   type SchedulePerson,
@@ -61,7 +62,7 @@ export default function SchedulePage() {
     setLoading(true);
     setLoadError(null);
     try {
-      const response = await fetch(`/api/schedule/assignments?week=${weekStartParam}`);
+      const response = await fetch(`${API_ENDPOINTS.SCHEDULE.ASSIGNMENTS}?week=${weekStartParam}`);
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
         throw new Error(payload?.error ?? 'Không thể tải lịch trình');
@@ -91,7 +92,7 @@ export default function SchedulePage() {
     setPendingCell(cellKey);
 
     try {
-      const response = await fetch('/api/schedule/assignments', {
+      const response = await fetch(API_ENDPOINTS.SCHEDULE.ASSIGNMENTS, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, shift, removeShift, shiftDate }),

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ChevronDown, ChevronUp, Eye, Loader2 } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 interface Factory {
   id: string;
@@ -100,7 +101,7 @@ function ActionModal({
           ? { pricePerDriver }
           : { status: factory.subscription.status === 'ACTIVE' ? 'CANCELLED' : 'ACTIVE' };
 
-      const response = await fetch(`/api/admin/subscriptions/${factory.subscription.id}`, {
+      const response = await fetch(API_ENDPOINTS.ADMIN.SUBSCRIPTION_DETAIL(factory.subscription.id), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -218,7 +219,7 @@ export function TenantTable({ onError }: TenantTableProps) {
   useEffect(() => {
     const loadFactories = async () => {
       try {
-        const response = await fetch('/api/admin/factories');
+        const response = await fetch(API_ENDPOINTS.ADMIN.FACTORIES);
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
           onError?.(data.error ?? 'Không thể tải danh sách nhà máy');
@@ -277,7 +278,7 @@ export function TenantTable({ onError }: TenantTableProps) {
   const handleCreateTrial = async (factory: Factory) => {
     setRowLoading(factory.id);
     try {
-      const response = await fetch(`/api/admin/factories/${factory.id}`, { method: 'POST' });
+      const response = await fetch(API_ENDPOINTS.ADMIN.FACTORY_DETAIL(factory.id), { method: 'POST' });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) {
         const message = result.error ?? 'Không thể tạo trial';
@@ -312,7 +313,7 @@ export function TenantTable({ onError }: TenantTableProps) {
   const handleImpersonate = async (factory: Factory) => {
     setRowLoading(factory.id);
     try {
-      const response = await fetch(`/api/admin/impersonate/${factory.id}`, { method: 'POST' });
+      const response = await fetch(API_ENDPOINTS.ADMIN.IMPERSONATE.START(factory.id), { method: 'POST' });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         throw new Error(data.error ?? 'Không thể impersonate tenant');

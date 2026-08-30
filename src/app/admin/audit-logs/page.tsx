@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Download, Filter, Loader2 } from 'lucide-react';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 interface Factory {
   id: string;
@@ -48,7 +49,7 @@ export default function AuditLogsPage() {
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    fetch('/api/admin/factories')
+    fetch(API_ENDPOINTS.ADMIN.FACTORIES)
       .then(response => response.json())
       .then(data => setFactories(data.factories ?? []))
       .catch(() => setFactories([]));
@@ -67,7 +68,7 @@ export default function AuditLogsPage() {
   const fetchLogs = useCallback(async (pageNum: number) => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/admin/audit-logs?${buildQuery(pageNum)}`);
+      const response = await fetch(`${API_ENDPOINTS.ADMIN.AUDIT_LOGS}?${buildQuery(pageNum)}`);
       if (response.ok) {
         const data: LogsResponse = await response.json();
         setLogs(data.logs);
@@ -92,7 +93,7 @@ export default function AuditLogsPage() {
       if (startDate) params.set('startDate', startDate);
       if (endDate) params.set('endDate', endDate);
 
-      const response = await fetch(`/api/admin/audit-logs/export?${params.toString()}`);
+      const response = await fetch(`${API_ENDPOINTS.ADMIN.AUDIT_LOGS_EXPORT}?${params.toString()}`);
       if (response.ok) {
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);

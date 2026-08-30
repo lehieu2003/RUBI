@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { MapPin, Calendar, Truck } from 'lucide-react';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 // Dynamic import MapInner to avoid SSR issues with Leaflet
 const MapInner = dynamic(() => import('@/components/driver/MapInner'), {
@@ -46,7 +47,7 @@ export default function AdminMapPage() {
   useEffect(() => {
     async function fetchDrivers() {
       try {
-        const res = await fetch('/api/drivers');
+        const res = await fetch(API_ENDPOINTS.DRIVERS.BASE);
         if (res.ok) {
           const data = await res.json();
           setDrivers(data);

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { CreditCard, Loader2, Users } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 interface TenantDetail {
   factory: {
@@ -74,7 +75,7 @@ export default function AdminTenantDetailPage() {
   const loadTenant = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/admin/factories/${params.factoryId}`);
+      const response = await fetch(API_ENDPOINTS.ADMIN.FACTORY_DETAIL(params.factoryId as string));
       if (!response.ok) throw new Error('Không thể tải tenant');
       const result = await response.json();
       setData(result);
@@ -96,7 +97,7 @@ export default function AdminTenantDetailPage() {
     setActionLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/admin/subscriptions/${data.subscription.id}`, {
+      const response = await fetch(API_ENDPOINTS.ADMIN.SUBSCRIPTION_DETAIL(data.subscription.id), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -122,7 +123,7 @@ export default function AdminTenantDetailPage() {
   const impersonate = async () => {
     if (!data) return;
     try {
-      const response = await fetch(`/api/admin/impersonate/${data.factory.id}`, { method: 'POST' });
+      const response = await fetch(API_ENDPOINTS.ADMIN.IMPERSONATE.START(data.factory.id), { method: 'POST' });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) {
         throw new Error(result.error ?? 'Không thể impersonate');
