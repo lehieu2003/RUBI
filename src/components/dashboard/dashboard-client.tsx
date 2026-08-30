@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { StatCard } from '@/components/dashboard/stat-card';
-import { SubscriptionStatusCard } from '@/components/dashboard/subscription-status-card';
 import { HourlyChart } from '@/components/dashboard/hourly-chart';
 import { RecentOrders } from '@/components/dashboard/recent-orders';
 import { QuickActions } from '@/components/dashboard/quick-actions';
@@ -13,9 +13,11 @@ import {
   FileText,
   Snowflake,
   Package,
+  CreditCard,
 } from 'lucide-react';
 import type { Customer, Product, Order, Subscription } from '@prisma/client';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { getDaysRemaining } from '@/lib/subscription-status';
 
 type DashboardOrder = Omit<Order, 'total'> & {
   total: string | number;
@@ -77,6 +79,7 @@ export function DashboardClient({
     0
   );
   const deliveredCount = todayOrders.filter((o) => o.status === 'DELIVERED').length;
+  const pendingCount = todayOrders.length - deliveredCount;
 
   let revenueTrend: 'up' | 'down' | 'neutral' = 'neutral';
   let revenueTrendValue = 'Chưa có đơn';
@@ -97,6 +100,9 @@ export function DashboardClient({
     revenueTrendValue = 'Tăng trưởng hôm nay';
   }
 
+  const daysRemaining = getDaysRemaining(subscriptionData.subscription);
+  const isExpiringSoon = daysRemaining !== null && daysRemaining <= 7;
+
   const stats = {
     revenue: {
       value: todayRevenue.toLocaleString('vi-VN') + 'đ',
@@ -106,7 +112,7 @@ export function DashboardClient({
     },
     orders: {
       value: todayOrders.length.toString(),
-      subValue: `${deliveredCount} đã giao, ${todayOrders.length - deliveredCount} chờ`,
+      subValue: `${deliveredCount} đã giao, ${pendingCount} chờ`,
       trend: 'neutral' as const,
     },
     inventory: {
@@ -131,10 +137,28 @@ export function DashboardClient({
           {/* Header */}
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">
-                Bảng Điều Khiển Vận Hành
-              </h1>
-              <p className="text-sm text-[#424751]">
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">
+                  Bảng Điều Khiển Vận Hành
+                </h1>
+                {currentUser?.role === 'ADMIN' && subscriptionData.subscription && (
+                  <Link
+                    href="/billing"
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold transition-colors ${
+                      isExpiringSoon
+                        ? 'bg-[#ffdcc2] text-[#7f3700] border border-[#7f3700]/30 hover:bg-[#ffdcc2]/80'
+                        : 'bg-[#dee8ff] text-[#004a99] border border-[#004a99]/20 hover:bg-[#dee8ff]/80'
+                    }`}
+                  >
+                    <CreditCard className="h-3.5 w-3.5" />
+                    <span>
+                      {subscriptionData.subscription.planType === 'PAID' ? 'Gói PRO' : 'Gói Dùng thử'}
+                      {daysRemaining !== null ? ` (Còn ${daysRemaining} ngày)` : ''}
+                    </span>
+                  </Link>
+                )}
+              </div>
+              <p className="text-xs text-[#424751] mt-1">
                 Theo dõi tình trạng đơn hàng, tồn kho và sản lượng tức thời
               </p>
             </div>
@@ -145,10 +169,10 @@ export function DashboardClient({
 
           {/* Onboarding prompt for new factories with no customers */}
           {showOnboardingPrompt && (
-            <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 flex items-center justify-between">
+            <div className="mb-6 rounded border border-[#ffdcc2] bg-[#ffdcc2]/40 px-5 py-4 flex items-center justify-between">
               <div>
-                <p className="text-amber-300 font-semibold">Bạn chưa có khách hàng nào.</p>
-                <p className="text-amber-400/70 text-sm mt-0.5">
+                <p className="text-[#7f3700] font-bold text-sm">Bạn chưa có khách hàng nào trong hệ thống.</p>
+                <p className="text-[#424751] text-xs mt-0.5">
                   Nhập danh sách khách hàng từ file CSV để bắt đầu tạo đơn hàng nhanh chóng.
                 </p>
               </div>
@@ -161,15 +185,15 @@ export function DashboardClient({
             </div>
           )}
 
-          {/* Tier 1: Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Tier 1: 4 Core KPI Stat Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <StatCard
               title="Doanh số hôm nay"
               value={stats.revenue.value}
               subValue={stats.revenue.subValue}
               icon={DollarSign}
-              iconColor="text-emerald-400"
-              iconBg="bg-emerald-500/20"
+              iconColor="text-[#1b6d24]"
+              iconBg="bg-[#a0f399]/40"
               trend={stats.revenue.trend}
               trendValue={stats.revenue.trendValue}
             />
@@ -178,8 +202,8 @@ export function DashboardClient({
               value={stats.orders.value}
               subValue={stats.orders.subValue}
               icon={FileText}
-              iconColor="text-blue-400"
-              iconBg="bg-blue-500/20"
+              iconColor="text-[#004a99]"
+              iconBg="bg-[#dee8ff]"
               trend={stats.orders.trend}
             />
             <StatCard
@@ -187,47 +211,39 @@ export function DashboardClient({
               value={stats.inventory.value}
               subValue={stats.inventory.subValue}
               icon={Snowflake}
-              iconColor="text-cyan-400"
-              iconBg="bg-cyan-500/20"
+              iconColor="text-[#004a99]"
+              iconBg="bg-[#dee8ff]"
             />
             <StatCard
               title="Vỏ bao đang ở khách"
               value={stats.bags.value}
               subValue={stats.bags.subValue}
               icon={Package}
-              iconColor="text-amber-400"
-              iconBg="bg-amber-500/20"
+              iconColor="text-[#7f3700]"
+              iconBg="bg-[#ffdcc2]/50"
               trend={stats.bags.trend}
               trendValue={stats.bags.trendValue}
               warning={stats.bags.warning}
             />
           </div>
 
-          {/* ADMIN Subscription Status Card (5th card, full width on lg) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-            <div className="lg:col-span-1">
-              <SubscriptionStatusCard
-                subscription={subscriptionData.subscription}
-                driverCount={subscriptionData.driverCount}
-                isAdmin={currentUser?.role === 'ADMIN'}
-              />
-            </div>
-          </div>
-
-          {/* Tier 2: Action Hub */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
+          {/* Tier 2: Action Hub & Production Distribution */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
             {/* Hourly Chart - 60% */}
             <div className="lg:col-span-3">
               <HourlyChart orders={orders} />
             </div>
 
-            {/* Quick Actions - 40% */}
+            {/* Quick Actions Hub - 40% */}
             <div className="lg:col-span-2">
-              <QuickActions customers={customers} products={products} />
+              <QuickActions
+                pendingOrdersCount={pendingCount}
+                totalBagsOut={totalBagsOut}
+              />
             </div>
           </div>
 
-          {/* Tier 3: Recent Orders */}
+          {/* Tier 3: Recent Orders Table */}
           <RecentOrders orders={orders} />
         </div>
       </main>
