@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireActiveSubscription, requireRole } from '@/lib/auth/helpers';
@@ -45,7 +45,7 @@ async function ensureFactoryExists(factoryId: string): Promise<boolean> {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
+    const session = await requireRole(['ADMIN', 'ACCOUNTANT', 'STAFF']);
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }
@@ -79,14 +79,14 @@ export async function GET(request: NextRequest) {
     });
 
     return apiSuccess(people.map((person) => ({
-            id: person.id,
-            name: person.name,
-            role: person.role,
-            shifts: person.scheduleAssignments.map((assignment) => ({
-              shiftDate: assignment.shiftDate.toISOString().slice(0, 10),
-              shift: assignment.shift,
-            })),
-          })));
+      id: person.id,
+      name: person.name,
+      role: person.role,
+      shifts: person.scheduleAssignments.map((assignment) => ({
+        shiftDate: assignment.shiftDate.toISOString().slice(0, 10),
+        shift: assignment.shift,
+      })),
+    })));
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('[GET /api/schedule/assignments]', error);
@@ -94,9 +94,9 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function PATCH(request: NextRequest) {
+async function handleSaveAssignment(request: NextRequest) {
   try {
-    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
+    const session = await requireRole(['ADMIN', 'ACCOUNTANT', 'STAFF']);
     await requireActiveSubscription();
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
@@ -111,7 +111,7 @@ export async function PATCH(request: NextRequest) {
       return apiError('Invalid request. Required: userId, shift, shiftDate', 400);
     }
 
-    const { userId, shift } = parsed.data;
+    const { userId, shift, removeShift } = parsed.data;
     const shiftDate = parseDateOnly(parsed.data.shiftDate);
     if (!shiftDate) {
       return apiError('Invalid shiftDate. Expected YYYY-MM-DD', 400);
@@ -131,16 +131,20 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (shift === null) {
-      if (!parsed.data.removeShift) {
-        return apiError('Invalid request. removeShift is required when shift is null', 400);
+      const shiftToRemove = removeShift;
+      if (shiftToRemove) {
+        await prisma.scheduleAssignment.deleteMany({
+          where: { factoryId: session.factoryId, userId, shiftDate, shift: shiftToRemove },
+        });
+      } else {
+        await prisma.scheduleAssignment.deleteMany({
+          where: { factoryId: session.factoryId, userId, shiftDate },
+        });
       }
-      await prisma.scheduleAssignment.deleteMany({
-        where: { factoryId: session.factoryId, userId, shiftDate, shift: parsed.data.removeShift },
-      });
       return apiSuccess({
-              success: true,
-              assignment: { userId, shift: null, removeShift: parsed.data.removeShift, shiftDate: parsed.data.shiftDate },
-            });
+        success: true,
+        assignment: { userId, shift: null, removeShift: shiftToRemove, shiftDate: parsed.data.shiftDate },
+      });
     }
 
     if (person.role === 'DRIVER') {
@@ -177,16 +181,24 @@ export async function PATCH(request: NextRequest) {
     });
 
     return apiSuccess({
-          success: true,
-          assignment: {
-            userId: assignment.userId,
-            shift: assignment.shift,
-            shiftDate: assignment.shiftDate.toISOString().slice(0, 10),
-          },
-        });
+      success: true,
+      assignment: {
+        userId: assignment.userId,
+        shift: assignment.shift,
+        shiftDate: assignment.shiftDate.toISOString().slice(0, 10),
+      },
+    });
   } catch (error) {
     if (error instanceof Response) throw error;
-    console.error('[PATCH /api/schedule/assignments]', error);
+    console.error('[SAVE /api/schedule/assignments]', error);
     return apiError('Schedule update failed', 500);
   }
+}
+
+export async function POST(request: NextRequest) {
+  return handleSaveAssignment(request);
+}
+
+export async function PATCH(request: NextRequest) {
+  return handleSaveAssignment(request);
 }

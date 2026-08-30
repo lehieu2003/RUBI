@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
-import { Snowflake, Plus, Loader2, RefreshCw } from 'lucide-react';
+import { Snowflake, Plus, Loader2, RefreshCw, Download } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { exportToCSV } from '@/lib/export-excel';
 
 interface InventoryItem {
   productId: string;
@@ -93,7 +94,26 @@ export default function InventoryPage() {
             <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Kho Lạnh & Tồn Kho</h1>
             <p className="text-xs text-[#424751] mt-1">Theo dõi số lượng tồn kho theo từng loại đá thực tế</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
+            {data.items.length > 0 && (
+              <button
+                onClick={() => {
+                  const headers = ['Mã sản phẩm', 'Tên loại đá', 'Quy cách (Kg/Bao)', 'Tồn kho (Bao)', 'Tổng khối lượng (Kg)'];
+                  const rows = data.items.map(i => [
+                    i.productId,
+                    i.productName,
+                    i.sizeKg,
+                    i.quantityOnHand,
+                    i.totalKg,
+                  ]);
+                  exportToCSV('Ton_Kho_Lanh', headers, rows);
+                }}
+                className="flex items-center gap-2 px-3.5 py-2 border border-[#c2c6d3] bg-white hover:bg-[#dee8ff] text-[#00346f] font-bold text-xs rounded transition-all shadow-sm"
+              >
+                <Download className="h-4 w-4" />
+                XUẤT EXCEL
+              </button>
+            )}
             <button
               onClick={fetchInventory}
               disabled={loading}

@@ -103,15 +103,30 @@ export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemov
         <div className="sticky left-0 z-10 border-b border-r border-[#c2c6d3] bg-[#f9f9ff] p-3 text-xs font-bold uppercase tracking-wider text-[#424751]">
           Khung giờ
         </div>
-        {dayLabels.map((label, index) => (
-          <div
-            key={label}
-            className="border-b border-r border-[#c2c6d3] bg-[#f9f9ff] p-3 text-center"
-          >
-            <div className="text-xs font-bold text-[#111c2d]">{label}</div>
-            <div className="mt-0.5 text-[11px] font-mono text-[#737783]">{formatShortDate(weekDates[index])}</div>
-          </div>
-        ))}
+        {dayLabels.map((label, index) => {
+          const dateStr = weekDates[index];
+          const isToday = dateStr === new Date().toISOString().slice(0, 10);
+          return (
+            <div
+              key={label}
+              className={`border-b border-r border-[#c2c6d3] p-2.5 text-center transition-colors ${
+                isToday ? 'bg-[#dee8ff]/80 font-bold border-b-2 border-b-[#004a99]' : 'bg-[#f9f9ff]'
+              }`}
+            >
+              <div className="flex items-center justify-center gap-1">
+                <span className={`text-xs font-bold ${isToday ? 'text-[#004a99]' : 'text-[#111c2d]'}`}>{label}</span>
+                {isToday && (
+                  <span className="rounded bg-[#004a99] px-1 py-0.2 text-[9px] font-bold text-white uppercase tracking-wider">
+                    Hôm nay
+                  </span>
+                )}
+              </div>
+              <div className={`mt-0.5 text-[11px] font-mono ${isToday ? 'text-[#00346f] font-bold' : 'text-[#737783]'}`}>
+                {formatShortDate(dateStr)}
+              </div>
+            </div>
+          );
+        })}
 
         {shiftSlots.map((slot) => (
           <div key={slot.value} className="contents">
@@ -167,7 +182,13 @@ export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemov
                       className="h-7 w-full rounded border border-dashed border-[#c2c6d3] bg-white px-1.5 text-[11px] font-medium text-[#424751] outline-none hover:border-[#004a99] focus:border-[#004a99] disabled:opacity-40 cursor-pointer"
                       aria-label={`Chọn nhân sự cho ca ${slot.label} ${shiftDate}`}
                     >
-                      <option value="">{availablePeople.length === 0 ? 'Đã đủ ca' : '+ Gán người'}</option>
+                      <option value="">
+                        {people.length === 0
+                          ? 'Chưa có nhân sự'
+                          : availablePeople.length === 0
+                            ? 'Đã gán hết'
+                            : '+ Thêm vào ca'}
+                      </option>
                       {availablePeople.map((person) => (
                         <option key={person.id} value={person.id}>
                           {person.name} ({getRoleLabel(person.role)})
@@ -182,8 +203,14 @@ export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemov
         ))}
       </div>
       {people.length === 0 && (
-        <div className="border-t border-[#c2c6d3] bg-[#f9f9ff] px-4 py-3 text-xs text-[#737783]">
-          Thêm nhân viên hoặc tài xế trong phần Cài đặt &gt; Nhân sự trước, sau đó phân ca trực tiếp trên bảng này.
+        <div className="border-t border-[#c2c6d3] bg-[#dee8ff]/30 px-4 py-3 text-xs text-[#00346f] flex items-center justify-between">
+          <span>Chưa có nhân viên hoặc tài xế nào trong hệ thống nhà máy của bạn.</span>
+          <a
+            href="/settings?tab=staff"
+            className="font-bold text-[#004a99] hover:underline"
+          >
+            Thêm nhân sự ngay &rarr;
+          </a>
         </div>
       )}
     </div>

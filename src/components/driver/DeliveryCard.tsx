@@ -1,6 +1,8 @@
 'use client';
 
-import { Phone, MapPin, Check, Navigation } from 'lucide-react';
+import { useState } from 'react';
+import { Phone, MapPin, Check, Navigation, Camera, Image as ImageIcon } from 'lucide-react';
+import { toast } from '@/components/dashboard/toast';
 
 interface DeliveryCardProps {
   order: {
@@ -45,6 +47,19 @@ function callCustomer(phone: string) {
 
 export default function DeliveryCard({ order, index, onConfirm }: DeliveryCardProps) {
   const isDelivered = order.status === 'DELIVERED';
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+  const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+        toast({ type: 'success', title: 'Đã lưu ảnh bằng chứng giao hàng' });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <div
@@ -88,45 +103,80 @@ export default function DeliveryCard({ order, index, onConfirm }: DeliveryCardPr
         {/* Address (tappable) */}
         <button
           onClick={() => openGoogleMaps(order.customer.address)}
-          className="flex items-center gap-2 text-[#424751] hover:text-[#004a99] text-sm mb-4 w-full text-left py-2 px-2.5 rounded bg-[#f9f9ff] border border-[#e7eeff]"
+          className="flex items-center gap-2 text-[#424751] hover:text-[#004a99] text-sm mb-3 w-full text-left py-2 px-2.5 rounded bg-[#f9f9ff] border border-[#e7eeff]"
         >
           <MapPin className="h-4 w-4 shrink-0 text-[#004a99]" />
           <span className="flex-1 font-medium">{order.customer.address}</span>
           <Navigation className="h-4 w-4 shrink-0 text-[#004a99]" />
         </button>
 
+        {/* Photo Proof thumbnail if captured */}
+        {photoPreview && (
+          <div className="mb-3 p-2 rounded bg-[#dee8ff]/50 border border-[#004a99]/30 flex items-center gap-2">
+            <div className="h-12 w-12 rounded overflow-hidden bg-black shrink-0 border border-[#c2c6d3]">
+              <img src={photoPreview} alt="Ảnh giao hàng" className="h-full w-full object-cover" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold text-[#00346f] flex items-center gap-1">
+                <ImageIcon className="h-3.5 w-3.5" />
+                Ảnh xác nhận giao hàng
+              </p>
+              <p className="text-[11px] text-[#1b6d24] font-medium">Đã đính kèm bằng chứng</p>
+            </div>
+          </div>
+        )}
+
         {/* Money to collect */}
-        <div className="flex items-center justify-between bg-[#f8fafc] border border-[#cbd5e1] rounded-xl p-3.5 mb-4">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#475569]">
+        <div className="flex items-center justify-between bg-[#f9f9ff] border border-[#c2c6d3] rounded-xl p-3 mb-4">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#424751]">
             Tiền cần thu:
           </span>
-          <p className="font-mono text-xl font-black text-[#0f172a] tabular-nums">
+          <p className="font-mono text-xl font-bold text-[#111c2d] tabular-nums">
             {formatCurrency(order.total)}
           </p>
         </div>
 
-        {/* Action Buttons (Strict minimum 52px touch target for driver) */}
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => callCustomer(order.customer.phone)}
-            className="flex items-center justify-center gap-2 h-14 rounded-xl border-2 border-[#004a99] bg-white text-[#004a99] font-bold text-base hover:bg-[#dee8ff] active:scale-[0.98] transition-all shadow-sm"
-          >
-            <Phone className="h-5 w-5" />
-            Gọi khách
-          </button>
+        {/* Action Buttons */}
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => callCustomer(order.customer.phone)}
+              className="flex items-center justify-center gap-1.5 h-12 rounded-xl border border-[#004a99] bg-white text-[#004a99] font-bold text-sm hover:bg-[#dee8ff] active:scale-[0.98] transition-all shadow-2xs"
+            >
+              <Phone className="h-4 w-4" />
+              Gọi khách
+            </button>
+
+            {/* Camera Capture Input Button */}
+            <label
+              htmlFor={`camera-input-${order.id}`}
+              className="flex items-center justify-center gap-1.5 h-12 rounded-xl border border-[#c2c6d3] bg-[#f9f9ff] hover:bg-[#dee8ff] text-[#424751] font-bold text-sm cursor-pointer active:scale-[0.98] transition-all shadow-2xs"
+            >
+              <Camera className="h-4 w-4 text-[#004a99]" />
+              <span>Chụp ảnh</span>
+              <input
+                id={`camera-input-${order.id}`}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handlePhotoCapture}
+                className="hidden"
+              />
+            </label>
+          </div>
 
           {!isDelivered ? (
             <button
               onClick={() => onConfirm(order.id)}
-              className="flex items-center justify-center gap-2 h-14 rounded-xl bg-[#15803d] text-white font-bold text-base hover:bg-[#166534] active:scale-[0.98] transition-all shadow-md shadow-emerald-900/20"
+              className="w-full flex items-center justify-center gap-2 h-14 rounded-xl bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-base active:scale-[0.98] transition-all shadow-sm"
             >
               <Check className="h-6 w-6 stroke-[2.5]" />
-              Giao xong
+              XÁC NHẬN ĐÃ GIAO XONG
             </button>
           ) : (
-            <div className="flex items-center justify-center gap-2 h-14 rounded-xl bg-[#f0fdf4] border border-[#86efac] text-[#166534] font-bold text-sm">
+            <div className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-[#a0f399]/40 border border-[#1b6d24]/30 text-[#1b6d24] font-bold text-sm">
               <Check className="h-5 w-5 stroke-[2.5]" />
-              Đã hoàn tất
+              ĐÃ HOÀN TẤT GIAO HÀNG
             </div>
           )}
         </div>

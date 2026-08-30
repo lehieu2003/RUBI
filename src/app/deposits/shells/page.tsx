@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
-import { Plus, ArrowDownToLine, ArrowUpFromLine, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { Plus, ArrowDownToLine, ArrowUpFromLine, AlertCircle, CheckCircle2, Loader2, Download } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { exportToCSV } from '@/lib/export-excel';
 
 interface DepositRecord {
   customerId: string;
@@ -109,13 +110,35 @@ export default function ShellDepositsPage() {
               {deposits.length} khách hàng có ghi nhận giao dịch vỏ bao
             </p>
           </div>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-all shadow-sm"
-          >
-            <Plus className="h-4 w-4" />
-            THÊM GIAO DỊCH VỎ
-          </button>
+          <div className="flex items-center gap-2.5 self-start sm:self-auto">
+            {deposits.length > 0 && (
+              <button
+                onClick={() => {
+                  const headers = ['Mã khách hàng', 'Tên khách hàng', 'Vỏ xuất', 'Vỏ thu', 'Đang nợ vỏ', 'Tiền cọc nợ (VND)'];
+                  const rows = deposits.map(d => [
+                    d.customerId,
+                    d.customerName,
+                    d.shellsOut,
+                    d.shellsIn,
+                    d.shellsOut - d.shellsIn,
+                    d.netDepositOwed,
+                  ]);
+                  exportToCSV('Theo_Doi_Vo_Bao', headers, rows);
+                }}
+                className="flex items-center gap-2 px-3.5 py-2.5 border border-[#c2c6d3] bg-white hover:bg-[#dee8ff] text-[#00346f] font-bold text-xs rounded transition-all shadow-sm"
+              >
+                <Download className="h-4 w-4" />
+                XUẤT EXCEL
+              </button>
+            )}
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-all shadow-sm"
+            >
+              <Plus className="h-4 w-4" />
+              THÊM GIAO DỊCH VỎ
+            </button>
+          </div>
         </div>
 
         {/* Stats */}

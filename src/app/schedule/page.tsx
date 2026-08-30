@@ -68,7 +68,7 @@ export default function SchedulePage() {
         throw new Error(payload?.error ?? 'Không thể tải lịch trình');
       }
       const data = payload?.data !== undefined ? payload.data : payload;
-      setPeople(Array.isArray(data?.people) ? data.people : []);
+      setPeople(Array.isArray(data) ? data : Array.isArray(data?.people) ? data.people : []);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Không thể tải lịch trình');
     } finally {
@@ -91,7 +91,12 @@ export default function SchedulePage() {
       const response = await fetch(API_ENDPOINTS.SCHEDULE.ASSIGNMENTS, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, shiftDate, shift }),
+        body: JSON.stringify({
+          userId,
+          shiftDate,
+          shift,
+          removeShift: shift === null ? currentShift : undefined,
+        }),
       });
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
@@ -143,9 +148,13 @@ export default function SchedulePage() {
             <button
               type="button"
               onClick={() => setWeekStart(getMonday(new Date()))}
-              className="h-9 rounded border border-[#004a99] bg-[#dee8ff] px-3.5 text-xs font-bold text-[#00346f] hover:bg-[#c2d7ff] transition-colors shadow-2xs"
+              className={`h-9 rounded border px-3.5 text-xs font-bold transition-colors shadow-2xs ${
+                weekStartParam === toDateOnly(getMonday(new Date()))
+                  ? 'border-[#004a99] bg-[#004a99] text-white'
+                  : 'border-[#c2c6d3] bg-white text-[#00346f] hover:bg-[#dee8ff]'
+              }`}
             >
-              Hôm nay
+              Tuần này
             </button>
             <button
               type="button"
