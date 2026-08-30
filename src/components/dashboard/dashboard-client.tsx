@@ -27,6 +27,9 @@ interface DashboardClientProps {
   customers: Customer[];
   products: Product[];
   orders: DashboardOrder[];
+  inventoryStats?: { totalBags: number; details: string };
+  totalBagsOut?: number;
+  yesterdayRevenue?: number;
   currentUser: { id: string; role: string | undefined; factoryId: string | null } | null;
   showOnboardingPrompt?: boolean;
 }
@@ -40,6 +43,9 @@ export function DashboardClient({
   customers,
   products,
   orders: initialOrders,
+  inventoryStats = { totalBags: 0, details: 'Chưa có mẻ nhập kho' },
+  totalBagsOut = 0,
+  yesterdayRevenue = 0,
   currentUser,
   showOnboardingPrompt = false,
 }: DashboardClientProps) {
@@ -61,7 +67,7 @@ export function DashboardClient({
     }
   }, [currentUser]);
 
-  // Calculate stats
+  // Calculate real stats
   const today = new Date().toDateString();
   const todayOrders = orders.filter(
     (o) => new Date(o.createdAt).toDateString() === today
@@ -72,13 +78,31 @@ export function DashboardClient({
   );
   const deliveredCount = todayOrders.filter((o) => o.status === 'DELIVERED').length;
 
-  // Sample stats (would come from API in production)
+  let revenueTrend: 'up' | 'down' | 'neutral' = 'neutral';
+  let revenueTrendValue = 'Chưa có đơn';
+  if (yesterdayRevenue > 0) {
+    const diff = todayRevenue - yesterdayRevenue;
+    const percent = Math.round((Math.abs(diff) / yesterdayRevenue) * 100);
+    if (diff > 0) {
+      revenueTrend = 'up';
+      revenueTrendValue = `+${percent}% so với hôm qua`;
+    } else if (diff < 0) {
+      revenueTrend = 'down';
+      revenueTrendValue = `-${percent}% so với hôm qua`;
+    } else {
+      revenueTrendValue = 'Bằng hôm qua';
+    }
+  } else if (todayRevenue > 0) {
+    revenueTrend = 'up';
+    revenueTrendValue = 'Tăng trưởng hôm nay';
+  }
+
   const stats = {
     revenue: {
       value: todayRevenue.toLocaleString('vi-VN') + 'đ',
       subValue: 'Hôm nay',
-      trend: 'up' as const,
-      trendValue: '+5% so với hôm qua',
+      trend: revenueTrend,
+      trendValue: revenueTrendValue,
     },
     orders: {
       value: todayOrders.length.toString(),
@@ -86,22 +110,21 @@ export function DashboardClient({
       trend: 'neutral' as const,
     },
     inventory: {
-      bi: 500,
-      vien: 350,
+      value: `${inventoryStats.totalBags.toLocaleString('vi-VN')} bao`,
+      subValue: inventoryStats.details,
     },
     bags: {
-      value: '1,200 vỏ',
+      value: `${totalBagsOut.toLocaleString('vi-VN')} vỏ`,
       subValue: 'Đang ở khách',
-      trend: 'down' as const,
-      trendValue: 'Tăng cao',
-      warning: true,
+      trend: totalBagsOut > 500 ? ('down' as const) : ('neutral' as const),
+      trendValue: totalBagsOut > 500 ? 'Cần thu hồi' : 'Bình thường',
+      warning: totalBagsOut > 1000,
     },
   };
 
   return (
     <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d]">
       <Sidebar />
-
 
       <main className="pl-64">
         <div className="p-8 max-w-[1400px]">
@@ -161,8 +184,8 @@ export function DashboardClient({
             />
             <StatCard
               title="Tồn kho lạnh"
-              value={`${stats.inventory.bi + stats.inventory.vien} bao`}
-              subValue={`Đá Bi: ${stats.inventory.bi} | Đá Viên: ${stats.inventory.vien}`}
+              value={stats.inventory.value}
+              subValue={stats.inventory.subValue}
               icon={Snowflake}
               iconColor="text-cyan-400"
               iconBg="bg-cyan-500/20"
@@ -195,7 +218,7 @@ export function DashboardClient({
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
             {/* Hourly Chart - 60% */}
             <div className="lg:col-span-3">
-              <HourlyChart />
+              <HourlyChart orders={orders} />
             </div>
 
             {/* Quick Actions - 40% */}

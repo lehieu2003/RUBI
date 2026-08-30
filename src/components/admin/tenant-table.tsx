@@ -107,18 +107,21 @@ function ActionModal({
         body: JSON.stringify(body),
       });
 
-      const result = await response.json().catch(() => ({}));
+      const json = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const message = result.error ?? 'Không thể cập nhật subscription';
+        const message = json.error ?? 'Không thể cập nhật subscription';
         onError?.(message);
         toast({ type: 'error', title: 'Cập nhật thất bại', message });
         return;
       }
 
+      const result = json?.data !== undefined ? json.data : json;
+      const subPayload = result.subscription ?? result;
+
       const updatedSubscription = {
         ...factory.subscription,
-        ...result.subscription,
-        pricePerDriver: toNullableNumber(result.subscription.pricePerDriver),
+        ...subPayload,
+        pricePerDriver: toNullableNumber(subPayload.pricePerDriver),
       };
       const price = updatedSubscription.pricePerDriver ?? 0;
       const monthlyAmount = Math.max(0, updatedSubscription.driverCount - 1) * price;
@@ -220,12 +223,13 @@ export function TenantTable({ onError }: TenantTableProps) {
     const loadFactories = async () => {
       try {
         const response = await fetch(API_ENDPOINTS.ADMIN.FACTORIES);
-        const data = await response.json().catch(() => ({}));
+        const json = await response.json().catch(() => ({}));
         if (!response.ok) {
-          onError?.(data.error ?? 'Không thể tải danh sách nhà máy');
+          onError?.(json.error ?? 'Không thể tải danh sách nhà máy');
           setFactories([]);
           return;
         }
+        const data = json?.data !== undefined ? json.data : json;
         setFactories(data.factories ?? []);
       } catch {
         onError?.('Không thể tải danh sách nhà máy');

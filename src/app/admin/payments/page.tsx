@@ -50,7 +50,10 @@ export default function AdminPaymentsPage() {
   useEffect(() => {
     fetch(API_ENDPOINTS.ADMIN.FACTORIES)
       .then(response => response.json())
-      .then(data => setFactories(data.factories ?? []))
+      .then(json => {
+        const payload = json?.data !== undefined ? json.data : json;
+        setFactories(payload?.factories ?? []);
+      })
       .catch(() => setFactories([]));
   }, []);
 
@@ -66,10 +69,11 @@ export default function AdminPaymentsPage() {
     try {
       const response = await fetch(`${API_ENDPOINTS.ADMIN.PAYMENTS}?${params.toString()}`);
       if (response.ok) {
-        const data: PaymentsResponse = await response.json();
-        setPayments(data.payments);
-        setPage(data.page);
-        setTotalPages(data.totalPages);
+        const json = await response.json();
+        const data: PaymentsResponse = json?.data !== undefined ? json.data : json;
+        setPayments(data?.payments ?? []);
+        setPage(data?.page ?? 1);
+        setTotalPages(data?.totalPages ?? 1);
       }
     } finally {
       setLoading(false);
@@ -155,7 +159,7 @@ export default function AdminPaymentsPage() {
               </tr>
             </thead>
             <tbody>
-              {payments.map(payment => (
+              {(payments ?? []).map(payment => (
                 <tr key={payment.id} className="border-b border-white/10 hover:bg-white/5">
                   <td className="px-4 py-3 text-sm text-slate-300">{formatDate(payment.confirmedAt)}</td>
                   <td className="px-4 py-3 text-sm font-medium text-white">{payment.factoryName}</td>
@@ -166,7 +170,7 @@ export default function AdminPaymentsPage() {
                   <td className="px-4 py-3 text-sm text-slate-400">{payment.notes ?? '-'}</td>
                 </tr>
               ))}
-              {payments.length === 0 && (
+              {(payments ?? []).length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-4 py-10 text-center text-slate-400">Chưa có payment.</td>
                 </tr>

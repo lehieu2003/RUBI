@@ -23,6 +23,10 @@ export default function LoginPage() {
   useEffect(() => {
     if (!user) return;
 
+    // Auto redirect if user is already logged in
+    const target = user.role === 'SUPER_ADMIN' ? '/admin/dashboard' : user.role === 'DRIVER' ? '/driver' : '/dashboard';
+    router.replace(target);
+
     async function checkSubscription() {
       try {
         const res = await fetch(API_ENDPOINTS.AUTH.ME);
@@ -36,7 +40,7 @@ export default function LoginPage() {
       }
     }
     checkSubscription();
-  }, [user]);
+  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

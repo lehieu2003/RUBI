@@ -51,7 +51,10 @@ export default function AuditLogsPage() {
   useEffect(() => {
     fetch(API_ENDPOINTS.ADMIN.FACTORIES)
       .then(response => response.json())
-      .then(data => setFactories(data.factories ?? []))
+      .then(json => {
+        const payload = json?.data !== undefined ? json.data : json;
+        setFactories(payload?.factories ?? []);
+      })
       .catch(() => setFactories([]));
   }, []);
 
@@ -70,11 +73,12 @@ export default function AuditLogsPage() {
     try {
       const response = await fetch(`${API_ENDPOINTS.ADMIN.AUDIT_LOGS}?${buildQuery(pageNum)}`);
       if (response.ok) {
-        const data: LogsResponse = await response.json();
-        setLogs(data.logs);
-        setPage(data.page);
-        setTotalPages(data.totalPages);
-        setTotal(data.total);
+        const json = await response.json();
+        const data: LogsResponse = json?.data !== undefined ? json.data : json;
+        setLogs(data?.logs ?? []);
+        setPage(data?.page ?? 1);
+        setTotalPages(data?.totalPages ?? 1);
+        setTotal(data?.total ?? 0);
       }
     } finally {
       setLoading(false);

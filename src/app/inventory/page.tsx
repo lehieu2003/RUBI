@@ -1,38 +1,95 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from '@/components/dashboard/sidebar';
-import { Snowflake, Plus, History, TrendingUp, Package } from 'lucide-react';
+import { Snowflake, Plus, Loader2, RefreshCw } from 'lucide-react';
+import { toast } from '@/components/dashboard/toast';
+import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
-// Fake inventory data
-const fakeInventory = {
-  daBi: { totalKg: 2500, bags5: 200, bags10: 150, bags20: 50 },
-  daVien: { totalKg: 1800, bags5: 150, bags10: 120, bags20: 30 },
-};
+interface InventoryItem {
+  productId: string;
+  productName: string;
+  sizeKg: number;
+  unit: string;
+  quantityOnHand: number;
+  totalKg: number;
+}
 
-const fakeProductionLogs = [
-  { id: 1, time: '06:00', type: 'Đá Bi', size: '10kg', quantity: 30, worker: 'Anh Minh' },
-  { id: 2, time: '08:30', type: 'Đá Viên', size: '5kg', quantity: 25, worker: 'Anh Minh' },
-  { id: 3, time: '10:15', type: 'Đá Bi', size: '20kg', quantity: 20, worker: 'Chị Hương' },
-  { id: 4, time: '13:00', type: 'Đá Bi', size: '5kg', quantity: 40, worker: 'Chị Hương' },
-  { id: 5, time: '15:45', type: 'Đá Viên', size: '10kg', quantity: 35, worker: 'Anh Vinh' },
-];
-
-const inventoryTypes = [
-  { id: 'daBi5', label: 'Đá Bi 5kg', type: 'Đá Bi', size: 5 },
-  { id: 'daBi10', label: 'Đá Bi 10kg', type: 'Đá Bi', size: 10 },
-  { id: 'daBi20', label: 'Đá Bi 20kg', type: 'Đá Bi', size: 20 },
-  { id: 'daVien5', label: 'Đá Viên 5kg', type: 'Đá Viên', size: 5 },
-  { id: 'daVien10', label: 'Đá Viên 10kg', type: 'Đá Viên', size: 10 },
-  { id: 'daVien20', label: 'Đá Viên 20kg', type: 'Đá Viên', size: 20 },
-];
+interface InventoryResponse {
+  items: InventoryItem[];
+  totalBags: number;
+  totalKg: number;
+}
 
 export default function InventoryPage() {
+  const [data, setData] = useState<InventoryResponse>({ items: [], totalBags: 0, totalKg: 0 });
+  const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedType, setSelectedType] = useState(inventoryTypes[0]);
+  const [selectedProductId, setSelectedProductId] = useState<string>('');
   const [quantity, setQuantity] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const todayTotal = fakeProductionLogs.reduce((sum, log) => sum + log.quantity, 0);
+  const fetchInventory = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(API_ENDPOINTS.INVENTORY.BASE);
+      const json = await res.json();
+      const payload: InventoryResponse = json?.data !== undefined ? json.data : json;
+      if (res.ok && payload?.items) {
+        setData(payload);
+        if (payload.items.length > 0 && !selectedProductId) {
+          setSelectedProductId(payload.items[0].productId);
+        }
+      }
+    } catch {
+      toast({ type: 'error', title: 'Lỗi tải dữ liệu kho', message: 'Không thể kết nối đến máy chủ' });
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedProductId]);
+
+  useEffect(() => {
+    fetchInventory();
+  }, [fetchInventory]);
+
+  const handleAddStock = async () => {
+    const qtyNum = parseInt(quantity, 10);
+    if (!selectedProductId || isNaN(qtyNum) || qtyNum <= 0) {
+      toast({ type: 'error', title: 'Vui lòng nhập số lượng hợp lệ' });
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch(API_ENDPOINTS.INVENTORY.BASE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: selectedProductId,
+          quantity: qtyNum,
+          mode: 'ADD',
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json?.error ?? 'Không thể cập nhật sản lượng');
+      }
+
+      toast({ type: 'success', title: 'Đã nhập sản lượng vào kho thành công' });
+      setShowAddModal(false);
+      setQuantity('');
+      await fetchInventory();
+    } catch (err) {
+      toast({
+        type: 'error',
+        title: 'Thao tác thất bại',
+        message: err instanceof Error ? err.message : 'Lỗi khi nhập kho',
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d]">
@@ -44,117 +101,94 @@ export default function InventoryPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4 mb-6">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Kho Lạnh & Tồn Kho</h1>
-              <p className="text-xs text-[#424751] mt-1">Theo dõi tồn kho theo loại đá và nhật ký sản xuất</p>
+              <p className="text-xs text-[#424751] mt-1">Theo dõi số lượng tồn kho theo từng loại đá thực tế</p>
             </div>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-all shadow-sm"
-            >
-              <Plus className="h-4 w-4" />
-              NHẬP SẢN LƯỢNG MỚI
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={fetchInventory}
+                disabled={loading}
+                className="flex items-center gap-2 px-3 py-2 border border-[#c2c6d3] bg-white hover:bg-[#dee8ff] text-[#00346f] font-bold text-xs rounded transition-all shadow-sm"
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                LÀM MỚI
+              </button>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-all shadow-sm"
+              >
+                <Plus className="h-4 w-4" />
+                NHẬP SẢN LƯỢNG MỚI
+              </button>
+            </div>
           </div>
 
-          {/* Inventory Overview */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* Đá Bi */}
+          {/* Overview summary */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div className="rounded border border-[#c2c6d3] bg-white p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-4 border-b border-[#e7eeff] pb-3">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded bg-[#004a99] flex items-center justify-center text-white">
-                    <Snowflake className="h-5 w-5 text-[#9bbdff]" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-[#111c2d]">Đá Bi (Túi/Bao)</h3>
-                    <p className="text-xs text-[#737783]">Đá uống bia, cà phê</p>
-                  </div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="h-10 w-10 rounded bg-[#004a99] flex items-center justify-center text-white">
+                  <Snowflake className="h-5 w-5 text-[#9bbdff]" />
                 </div>
-                <p className="data-lg font-bold text-[#004a99]">{fakeInventory.daBi.totalKg.toLocaleString()} kg</p>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-[#f9f9ff] border border-[#e7eeff] rounded p-3 text-center">
-                  <p className="text-[#424751] text-xs font-bold mb-1">Bao 5kg</p>
-                  <p className="data-md font-bold text-[#111c2d]">{fakeInventory.daBi.bags5}</p>
-                </div>
-                <div className="bg-[#f9f9ff] border border-[#e7eeff] rounded p-3 text-center">
-                  <p className="text-[#424751] text-xs font-bold mb-1">Bao 10kg</p>
-                  <p className="data-md font-bold text-[#111c2d]">{fakeInventory.daBi.bags10}</p>
-                </div>
-                <div className="bg-[#f9f9ff] border border-[#e7eeff] rounded p-3 text-center">
-                  <p className="text-[#424751] text-xs font-bold mb-1">Bao 20kg</p>
-                  <p className="data-md font-bold text-[#111c2d]">{fakeInventory.daBi.bags20}</p>
+                <div>
+                  <h3 className="text-sm font-bold text-[#424751] uppercase">Tổng bao tồn kho</h3>
+                  <p className="text-2xl font-bold text-[#004a99]">{data.totalBags.toLocaleString('vi-VN')} bao</p>
                 </div>
               </div>
             </div>
-
-            {/* Đá Viên */}
             <div className="rounded border border-[#c2c6d3] bg-white p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-4 border-b border-[#e7eeff] pb-3">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded bg-[#004a99] flex items-center justify-center text-white">
-                    <Snowflake className="h-5 w-5 text-[#9bbdff]" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-[#111c2d]">Đá Viên / Đá Cây</h3>
-                    <p className="text-xs text-[#737783]">Đá ướp thực phẩm, hải sản</p>
-                  </div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="h-10 w-10 rounded bg-[#1b6d24] flex items-center justify-center text-white">
+                  <Snowflake className="h-5 w-5 text-[#9bbdff]" />
                 </div>
-                <p className="data-lg font-bold text-[#004a99]">{fakeInventory.daVien.totalKg.toLocaleString()} kg</p>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-[#f9f9ff] border border-[#e7eeff] rounded p-3 text-center">
-                  <p className="text-[#424751] text-xs font-bold mb-1">Bao 5kg</p>
-                  <p className="data-md font-bold text-[#111c2d]">{fakeInventory.daVien.bags5}</p>
-                </div>
-                <div className="bg-[#f9f9ff] border border-[#e7eeff] rounded p-3 text-center">
-                  <p className="text-[#424751] text-xs font-bold mb-1">Bao 10kg</p>
-                  <p className="data-md font-bold text-[#111c2d]">{fakeInventory.daVien.bags10}</p>
-                </div>
-                <div className="bg-[#f9f9ff] border border-[#e7eeff] rounded p-3 text-center">
-                  <p className="text-[#424751] text-xs font-bold mb-1">Bao 20kg</p>
-                  <p className="data-md font-bold text-[#111c2d]">{fakeInventory.daVien.bags20}</p>
+                <div>
+                  <h3 className="text-sm font-bold text-[#424751] uppercase">Tổng khối lượng tồn</h3>
+                  <p className="text-2xl font-bold text-[#1b6d24]">{data.totalKg.toLocaleString('vi-VN')} kg</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Production History */}
-          <div className="rounded border border-[#c2c6d3] bg-white shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-[#c2c6d3] bg-[#f9f9ff]">
-              <div className="flex items-center gap-2">
-                <History className="h-4 w-4 text-[#004a99]" />
-                <h3 className="text-sm font-bold text-[#111c2d]">Nhật Ký Cắt & Nhập Kho Hôm Nay</h3>
-              </div>
-              <span className="text-xs font-bold text-[#004a99] bg-[#dee8ff] px-2.5 py-1 rounded">
-                Tổng nhập: {todayTotal} bao
-              </span>
+          {/* Product Inventory Table */}
+          {loading && data.items.length === 0 ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-[#004a99]" />
             </div>
-
-            <table className="w-full text-left border-collapse table-industrial">
-              <thead>
-                <tr className="border-b border-[#c2c6d3] bg-[#f9f9ff] text-[12px] font-bold uppercase tracking-wider text-[#424751]">
-                  <th className="py-3 px-4">Giờ</th>
-                  <th className="py-3 px-4">Loại đá</th>
-                  <th className="py-3 px-4">Quy cách</th>
-                  <th className="py-3 px-4 text-right">Số lượng (Bao)</th>
-                  <th className="py-3 px-4 text-right">Người nhập</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#e7eeff] text-sm">
-                {fakeProductionLogs.map((log) => (
-                  <tr key={log.id} className="h-11 hover:bg-[#f0f3ff] transition-colors">
-                    <td className="py-3 px-4 data-sm font-bold text-[#737783]">{log.time}</td>
-                    <td className="py-3 px-4 font-bold text-[#111c2d]">{log.type}</td>
-                    <td className="py-3 px-4 text-xs font-mono text-[#004a99]">{log.size}</td>
-                    <td className="py-3 px-4 text-right data-md font-bold text-[#111c2d]">+{log.quantity}</td>
-                    <td className="py-3 px-4 text-right text-xs text-[#424751] font-medium">{log.worker}</td>
+          ) : data.items.length === 0 ? (
+            <div className="rounded border border-[#c2c6d3] bg-white p-8 text-center shadow-sm">
+              <Snowflake className="mx-auto mb-3 h-10 w-10 text-[#737783]" />
+              <p className="text-sm font-bold text-[#111c2d]">Chưa có sản phẩm nào trong kho</p>
+              <p className="mt-1 text-xs text-[#424751]">
+                Vui lòng cấu hình sản phẩm trong danh mục hoặc nhấn &quot;Nhập sản lượng mới&quot;
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-hidden rounded border border-[#c2c6d3] bg-white shadow-sm">
+              <table className="w-full text-left border-collapse table-industrial">
+                <thead>
+                  <tr className="border-b border-[#c2c6d3] bg-[#f9f9ff] text-[12px] font-bold uppercase tracking-wider text-[#424751]">
+                    <th className="py-3 px-4">Tên sản phẩm</th>
+                    <th className="py-3 px-4">Quy cách (Kg/Bao)</th>
+                    <th className="py-3 px-4 text-right">Tồn kho hiện tại (Bao)</th>
+                    <th className="py-3 px-4 text-right">Tổng khối lượng (Kg)</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-[#e7eeff] text-sm">
+                  {data.items.map((item) => (
+                    <tr key={item.productId} className="h-12 hover:bg-[#f0f3ff] transition-colors">
+                      <td className="py-3 px-4 font-bold text-[#111c2d]">{item.productName}</td>
+                      <td className="py-3 px-4 text-xs font-mono text-[#004a99]">{item.sizeKg} kg</td>
+                      <td className="py-3 px-4 text-right font-bold text-[#004a99]">
+                        {item.quantityOnHand.toLocaleString('vi-VN')} {item.unit || 'bao'}
+                      </td>
+                      <td className="py-3 px-4 text-right font-bold text-[#111c2d]">
+                        {item.totalKg.toLocaleString('vi-VN')} kg
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </main>
 
@@ -168,25 +202,23 @@ export default function InventoryPage() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1.5">Loại đá & Quy cách</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1.5">Sản phẩm</label>
                 <select
-                  value={selectedType.id}
-                  onChange={(e) => {
-                    const t = inventoryTypes.find(item => item.id === e.target.value);
-                    if (t) setSelectedType(t);
-                  }}
+                  value={selectedProductId}
+                  onChange={(e) => setSelectedProductId(e.target.value)}
                   className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99]"
                 >
-                  {inventoryTypes.map(t => (
-                    <option key={t.id} value={t.id}>{t.label}</option>
+                  {data.items.map(t => (
+                    <option key={t.productId} value={t.productId}>{t.productName} ({t.sizeKg}kg)</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1.5">Số lượng (Bao)</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1.5">Số lượng cộng thêm (Bao)</label>
                 <input
                   type="number"
+                  min="1"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
                   placeholder="Ví dụ: 50"
@@ -197,15 +229,20 @@ export default function InventoryPage() {
 
             <div className="flex gap-2.5 mt-6">
               <button
+                type="button"
+                disabled={submitting}
                 onClick={() => setShowAddModal(false)}
-                className="flex-1 py-2.5 border border-[#c2c6d3] text-[#424751] font-bold text-xs rounded hover:bg-[#dee8ff] transition-colors"
+                className="flex-1 py-2.5 border border-[#c2c6d3] text-[#424751] font-bold text-xs rounded hover:bg-[#dee8ff] transition-colors disabled:opacity-50"
               >
                 HỦY
               </button>
               <button
-                onClick={() => setShowAddModal(false)}
-                className="flex-1 py-2.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-colors shadow-sm"
+                type="button"
+                disabled={submitting || !quantity}
+                onClick={handleAddStock}
+                className="flex-1 py-2.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-colors shadow-sm disabled:opacity-50 inline-flex items-center justify-center gap-2"
               >
+                {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                 XÁC NHẬN NHẬP KHO
               </button>
             </div>

@@ -34,6 +34,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Redirect authenticated users away from login/register pages
+  const isAuthRoute = pathname === '/login' || pathname === '/register';
+  if (session && isAuthRoute) {
+    const userRole = (session as { role?: UserRole }).role as UserRole | undefined;
+    const url = request.nextUrl.clone();
+    url.pathname = userRole === 'SUPER_ADMIN' ? '/admin/dashboard' : userRole === 'DRIVER' ? '/driver' : '/dashboard';
+    return NextResponse.redirect(url);
+  }
+
   // Check role-based access in pure memory (0ms network delay)
   if (session) {
     const userRole = (session as { role?: UserRole }).role as UserRole | undefined;

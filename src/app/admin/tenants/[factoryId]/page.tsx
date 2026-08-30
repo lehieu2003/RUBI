@@ -77,7 +77,8 @@ export default function AdminTenantDetailPage() {
     try {
       const response = await fetch(API_ENDPOINTS.ADMIN.FACTORY_DETAIL(params.factoryId as string));
       if (!response.ok) throw new Error('Không thể tải tenant');
-      const result = await response.json();
+      const json = await response.json();
+      const result = json?.data !== undefined ? json.data : json;
       setData(result);
       setPricePerDriver(result.subscription?.pricePerDriver ?? 150000);
     } catch (err) {
@@ -102,9 +103,9 @@ export default function AdminTenantDetailPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      const result = await response.json().catch(() => ({}));
+      const json = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const message = result.error ?? 'Không thể cập nhật subscription';
+        const message = json.error ?? 'Không thể cập nhật subscription';
         setError(message);
         toast({ type: 'error', title: 'Cập nhật thất bại', message });
         return;
@@ -124,10 +125,11 @@ export default function AdminTenantDetailPage() {
     if (!data) return;
     try {
       const response = await fetch(API_ENDPOINTS.ADMIN.IMPERSONATE.START(data.factory.id), { method: 'POST' });
-      const result = await response.json().catch(() => ({}));
+      const json = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(result.error ?? 'Không thể impersonate');
+        throw new Error(json.error ?? 'Không thể impersonate');
       }
+      const result = json?.data !== undefined ? json.data : json;
       window.location.href =
         `/admin/tenants/${encodeURIComponent(data.factory.id)}?impersonating=${encodeURIComponent(result.factoryName)}&factoryId=${encodeURIComponent(result.factoryId)}`;
     } catch (err) {

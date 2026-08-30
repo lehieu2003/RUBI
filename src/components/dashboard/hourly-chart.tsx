@@ -1,6 +1,21 @@
 'use client';
 
+import { useMemo } from 'react';
 import { BarChart3 } from 'lucide-react';
+
+interface OrderItem {
+  quantity: number;
+}
+
+interface OrderForChart {
+  createdAt: Date | string;
+  total: string | number;
+  orderItems?: OrderItem[];
+}
+
+interface HourlyChartProps {
+  orders?: OrderForChart[];
+}
 
 interface HourlyData {
   hour: string;
@@ -8,32 +23,56 @@ interface HourlyData {
   revenue: number;
 }
 
-// Sample data - in production this would come from API
-const hourlyData: HourlyData[] = [
-  { hour: '6h', orders: 5, revenue: 2500000 },
-  { hour: '7h', orders: 8, revenue: 4000000 },
-  { hour: '8h', orders: 12, revenue: 6000000 },
-  { hour: '9h', orders: 15, revenue: 7500000 },
-  { hour: '10h', orders: 18, revenue: 9000000 },
-  { hour: '11h', orders: 14, revenue: 7000000 },
-  { hour: '12h', orders: 10, revenue: 5000000 },
-  { hour: '13h', orders: 8, revenue: 4000000 },
-  { hour: '14h', orders: 12, revenue: 6000000 },
-  { hour: '15h', orders: 16, revenue: 8000000 },
-  { hour: '16h', orders: 20, revenue: 10000000 },
-  { hour: '17h', orders: 18, revenue: 9000000 },
-];
+const HOURS = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 
-export function HourlyChart() {
-  const maxOrders = Math.max(...hourlyData.map((d) => d.orders));
+export function HourlyChart({ orders = [] }: HourlyChartProps) {
+  const hourlyData: HourlyData[] = useMemo(() => {
+    const today = new Date().toDateString();
+    const todayOrders = orders.filter(
+      (o) => new Date(o.createdAt).toDateString() === today
+    );
+
+    const map = new Map<number, { orders: number; revenue: number }>();
+    HOURS.forEach((h) => map.set(h, { orders: 0, revenue: 0 }));
+
+    todayOrders.forEach((o) => {
+      const orderDate = new Date(o.createdAt);
+      const h = orderDate.getHours();
+      if (map.has(h)) {
+        const current = map.get(h)!;
+        current.orders += 1;
+        current.revenue += Number(o.total) || 0;
+      }
+    });
+
+    return HOURS.map((h) => ({
+      hour: `${h}h`,
+      orders: map.get(h)?.orders ?? 0,
+      revenue: map.get(h)?.revenue ?? 0,
+    }));
+  }, [orders]);
+
+  const maxOrders = Math.max(...hourlyData.map((d) => d.orders), 1);
+  const totalTodayOrders = hourlyData.reduce((sum, d) => sum + d.orders, 0);
+
+  const peakHours = useMemo(() => {
+    if (totalTodayOrders === 0) return null;
+    const sorted = [...hourlyData].filter(d => d.orders > 0).sort((a, b) => b.orders - a.orders);
+    if (sorted.length === 0) return null;
+    return sorted.slice(0, 2).map(d => d.hour).join(' và ');
+  }, [hourlyData, totalTodayOrders]);
 
   return (
     <div className="relative overflow-hidden rounded border border-[#c2c6d3] bg-white p-5 shadow-sm">
       {/* Header */}
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <h3 className="text-base font-bold text-[#111c2d]">Sản Lượng Theo Khung Giờ</h3>
-          <p className="text-xs text-[#424751]">Số lượng đơn hàng phân bổ trong ngày</p>
+          <h3 className="text-base font-bold text-[#111c2d]">Sản Lượng Theo Khung Giờ Hôm Nay</h3>
+          <p className="text-xs text-[#424751]">
+            {totalTodayOrders > 0
+              ? `Phân bổ ${totalTodayOrders} đơn hàng thực tế trong ngày`
+              : 'Chưa có đơn hàng nào được tạo hôm nay'}
+          </p>
         </div>
         <div className="flex h-9 w-9 items-center justify-center rounded bg-[#dee8ff]">
           <BarChart3 className="h-5 w-5 text-[#004a99]" />
@@ -43,8 +82,8 @@ export function HourlyChart() {
       {/* Chart */}
       <div className="flex h-44 items-end justify-between gap-1.5 pt-4">
         {hourlyData.map((data) => {
-          const heightPercent = (data.orders / maxOrders) * 100;
-          const isPeak = data.orders >= maxOrders * 0.8;
+          const heightPercent = totalTodayOrders > 0 ? (data.orders / maxOrders) * 100 : 0;
+          const isPeak = totalTodayOrders > 0 && data.orders > 0 && data.orders >= maxOrders * 0.8;
 
           return (
             <div
@@ -52,27 +91,29 @@ export function HourlyChart() {
               className="group relative flex flex-1 flex-col items-center"
             >
               {/* Bar */}
-              <div className="relative w-full">
+              <div className="relative w-full flex items-end justify-center h-28">
                 <div
                   className={`w-full rounded-t transition-all duration-150 ${
-                    isPeak
+                    data.orders === 0
+                      ? 'bg-[#e7eeff] h-1'
+                      : isPeak
                       ? 'bg-[#004a99] hover:bg-[#00346f]'
                       : 'bg-[#9bbdff] hover:bg-[#004a99]'
                   }`}
-                  style={{ height: `${Math.max(heightPercent, 10)}%` }}
+                  style={data.orders > 0 ? { height: `${Math.max(heightPercent, 12)}%` } : undefined}
                 >
                   {/* Hover tooltip */}
                   <div className="absolute -top-12 left-1/2 -translate-x-1/2 hidden items-center gap-1.5 rounded bg-[#111c2d] text-white px-2.5 py-1 shadow-lg group-hover:flex whitespace-nowrap z-10">
-                    <span className="data-sm text-[#9bbdff]">{data.hour}:</span>
-                    <span className="data-sm font-bold text-white">
-                      {data.orders} đơn
+                    <span className="text-xs text-[#9bbdff]">{data.hour}:</span>
+                    <span className="text-xs font-bold text-white">
+                      {data.orders} đơn ({data.revenue.toLocaleString('vi-VN')}đ)
                     </span>
                   </div>
                 </div>
               </div>
 
               {/* Hour label */}
-              <span className="mt-2 data-sm text-[#424751] font-semibold">
+              <span className="mt-2 text-[11px] text-[#424751] font-semibold">
                 {data.hour}
               </span>
             </div>
@@ -84,10 +125,9 @@ export function HourlyChart() {
       <div className="mt-3 flex items-center justify-center gap-2 border-t border-[#e7eeff] pt-3">
         <div className="h-2 w-2 rounded-full bg-[#004a99]" />
         <span className="text-xs font-medium text-[#424751]">
-          Cao điểm giao hàng: 10h-11h và 16h-17h
+          {peakHours ? `Khung giờ cao điểm: ${peakHours}` : 'Tự động tính khung giờ cao điểm khi có đơn'}
         </span>
       </div>
     </div>
   );
 }
-

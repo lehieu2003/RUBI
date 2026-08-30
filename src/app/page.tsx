@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/lib/auth-provider';
 import {
   IceIcon,
   BagLossIcon,
@@ -16,8 +17,11 @@ import {
 import { StatItem, PainCard, LocalCard } from '@/components/landing/cards';
 
 export default function LandingPage() {
+  const { user } = useAuth();
   const [bagLoss, setBagLoss] = useState(50);
   const yearlyLoss = Math.round((bagLoss * 12 * 20000) / 1000000);
+
+  const dashboardUrl = user?.role === 'SUPER_ADMIN' ? '/admin/dashboard' : user?.role === 'DRIVER' ? '/driver' : '/dashboard';
 
   return (
     <div className="min-h-screen bg-[#0a0a1a] text-white font-system-ui overflow-x-hidden">
@@ -39,15 +43,23 @@ export default function LandingPage() {
           </div>
           <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">IceFlow</span>
         </div>
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-6">
           <a href="#pain" className="text-sm font-medium text-gray-400 hover:text-white transition-all duration-300 hover:scale-105">Nỗi đau</a>
           <a href="#features" className="text-sm font-medium text-gray-400 hover:text-white transition-all duration-300 hover:scale-105">Tính năng</a>
-          <Link href="/login" className="px-5 py-2.5 border border-white/20 text-gray-300 font-medium text-sm rounded-xl hover:border-white/40 hover:text-white transition-all duration-300 hover:bg-white/5">
-            Đăng nhập
-          </Link>
-          <Link href="/register" className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-semibold text-sm rounded-xl hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5">
-            Dùng thử
-          </Link>
+          {user ? (
+            <Link href={dashboardUrl} className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-semibold text-sm rounded-xl hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5">
+              Vào Bảng điều khiển
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" className="px-5 py-2.5 border border-white/20 text-gray-300 font-medium text-sm rounded-xl hover:border-white/40 hover:text-white transition-all duration-300 hover:bg-white/5">
+                Đăng nhập
+              </Link>
+              <Link href="/register" className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-semibold text-sm rounded-xl hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5">
+                Dùng thử
+              </Link>
+            </>
+          )}
         </div>
       </nav>
 
@@ -74,13 +86,22 @@ export default function LandingPage() {
         </p>
 
         <div className="flex items-center justify-center gap-4 flex-wrap animate-[fadeInUp_0.8s_ease-out_0.3s_both]">
-          <Link href="/register" className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold text-base rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/30 hover:-translate-y-1">
-            <span className="relative z-10">Dùng thử miễn phí 14 ngày</span>
-            <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          </Link>
-          <Link href="/login" className="px-8 py-4 text-gray-400 font-semibold text-base rounded-2xl border border-white/10 hover:border-white/20 hover:text-white hover:bg-white/5 transition-all duration-300">
-            Đăng nhập ngay
-          </Link>
+          {user ? (
+            <Link href={dashboardUrl} className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold text-base rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/30 hover:-translate-y-1">
+              <span className="relative z-10">Vào Bảng điều khiển &rarr;</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            </Link>
+          ) : (
+            <>
+              <Link href="/register" className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold text-base rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/30 hover:-translate-y-1">
+                <span className="relative z-10">Dùng thử miễn phí 14 ngày</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </Link>
+              <Link href="/login" className="px-8 py-4 text-gray-400 font-semibold text-base rounded-2xl border border-white/10 hover:border-white/20 hover:text-white hover:bg-white/5 transition-all duration-300">
+                Đăng nhập ngay
+              </Link>
+            </>
+          )}
         </div>
 
         <p className="mt-6 text-sm text-gray-500 animate-[fadeInUp_0.8s_ease-out_0.4s_both]">Không cần thẻ tín dụng • Không cần hỗ trợ kỹ thuật</p>
@@ -372,13 +393,22 @@ export default function LandingPage() {
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Bắt đầu trong 5 phút</h2>
           <p className="text-gray-400 leading-relaxed mb-10">Đăng ký, kết nối dữ liệu, bắt đầu nhập đơn. Không cần cài đặt phức tạp.</p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
-            <Link href="/register" className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold text-base rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/30 hover:-translate-y-1">
-              <span className="relative z-10">Dùng thử miễn phí 14 ngày</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            </Link>
-            <Link href="/login" className="px-8 py-4 text-gray-400 font-semibold text-base rounded-2xl border border-white/10 hover:border-white/20 hover:text-white hover:bg-white/5 transition-all duration-300">
-              Đăng nhập
-            </Link>
+            {user ? (
+              <Link href={dashboardUrl} className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold text-base rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/30 hover:-translate-y-1">
+                <span className="relative z-10">Tiếp tục quản lý xưởng &rarr;</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </Link>
+            ) : (
+              <>
+                <Link href="/register" className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold text-base rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/30 hover:-translate-y-1">
+                  <span className="relative z-10">Dùng thử miễn phí 14 ngày</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                </Link>
+                <Link href="/login" className="px-8 py-4 text-gray-400 font-semibold text-base rounded-2xl border border-white/10 hover:border-white/20 hover:text-white hover:bg-white/5 transition-all duration-300">
+                  Đăng nhập
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>

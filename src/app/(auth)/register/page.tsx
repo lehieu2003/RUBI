@@ -1,13 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/lib/auth-provider';
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 export default function RegisterPage() {
+  const { user } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (user) {
+      const target = user.role === 'SUPER_ADMIN' ? '/admin/dashboard' : user.role === 'DRIVER' ? '/driver' : '/dashboard';
+      router.replace(target);
+    }
+  }, [user, router]);
   const [factoryName, setFactoryName] = useState('');
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
