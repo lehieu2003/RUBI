@@ -39,17 +39,17 @@ export default function EmptyState({ driverName, onRefresh }: EmptyStateProps) {
       </div>
 
       {/* Message */}
-      <h2 className="text-xl font-bold text-white mb-2">
+      <h2 className="text-xl font-bold text-[#111c2d] mb-2">
         Chào {driverName}
       </h2>
-      <p className="text-slate-400 text-base mb-6 max-w-xs">
+      <p className="text-[#424751] text-base mb-6 max-w-xs">
         Hiện tại anh không có đơn hàng nào cần giao.
       </p>
 
       {/* Refresh Button */}
       <button
         onClick={onRefresh}
-        className="min-h-[44px] px-8 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl transition-colors flex items-center gap-2"
+        className="min-h-[44px] px-8 bg-[#004a99] hover:bg-[#00346f] text-white font-semibold rounded-xl transition-colors flex items-center gap-2"
       >
         <RefreshCw className="h-5 w-5" />
         Làm mới
