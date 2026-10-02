@@ -35,3 +35,27 @@ describe('security headers', () => {
     assert.match(nextConfig, /Strict-Transport-Security/);
   });
 });
+
+describe('rate limiter backends', () => {
+  const limiter = readFileSync(join(process.cwd(), 'src/lib/rate-limit.ts'), 'utf8');
+
+  it('uses shared Redis when REDIS_URL is set (multi-instance safe)', () => {
+    assert.match(limiter, /REDIS_URL/);
+    assert.match(limiter, /ioredis/);
+    assert.match(limiter, /ratelimit:/);
+  });
+
+  it('degrades to in-memory limiter when Redis is unavailable', () => {
+    assert.match(limiter, /in-memory limiter/);
+    assert.match(limiter, /memoryLimit/);
+  });
+
+  it('all rateLimit call sites await the async limiter', () => {
+    const { execSync } = require('child_process');
+    const hits = execSync(
+      "grep -rn '= rateLimit(' src/app --include='*.ts' | grep -v await || true",
+      { encoding: 'utf8' }
+    ).trim();
+    assert.equal(hits, '', 'rateLimit must be awaited: ' + hits);
+  });
+});

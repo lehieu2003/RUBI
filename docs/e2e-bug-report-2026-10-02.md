@@ -203,3 +203,15 @@
 | 🟠 Rate-limit per-process | ⏸ deferred — cần quyết định hạ tầng (Redis) nếu deploy multi-instance |
 
 Gates: 99/99 test · typecheck 0 · lint 0.
+
+### Batch 5 — 3 hạng mục backlog còn lại (2026-10-02)
+
+| Hạng mục | Kết quả |
+|---|---|
+| Password staff min 6→8 | ✅ Cả create route, reset route, UI settings — 1 chuẩn 8 ký tự |
+| Driver token rotation | ✅ Endpoint POST `/api/staff/[id]/rotate-link` (ADMIN) + nút Link2 trong tab Nhân sự cho dòng DRIVER: tạo UUID mới (link cũ chết ngay), copy link vào clipboard |
+| Rate-limit Redis multi-instance | ✅ `ioredis` + `REDIS_URL`: fixed-window INCR/PEXPIRE chia sẻ qua Redis; không set REDIS_URL → fallback in-memory như cũ; Redis chết → tự rớt về memory (không 500). docker-compose thêm service redis:7 + smoke test thật: 5×401 → 429, key `ratelimit:*` trong Redis |
+
+**Lưu ý triển khai (IP header):** `getIpFromRequest` chỉ tin `x-forwarded-for` khi IP proxy nằm trong `TRUSTED_PROXY_IPS`; trên Vercel dùng `x-real-ip` sẵn có. Deploy Docker sau nginx nhớ set `TRUSTED_PROXY_IPS` — nếu không mọi client không header sẽ rơi vào chung bucket 'unknown' (cẩn thận DoS login).
+
+Gates: 105/105 test · typecheck 0 · lint 0.

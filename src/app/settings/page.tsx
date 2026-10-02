@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
-import { User, Bell, Database, Shield, Palette, Save, Users, Key, Plus, X, CreditCard, LogOut } from 'lucide-react';
+import { User, Bell, Database, Shield, Palette, Save, Users, Key, Plus, X, CreditCard, LogOut, Link2 } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { useAuth } from '@/lib/auth-provider';
 import { useTheme } from '@/lib/theme';
@@ -253,7 +253,7 @@ export default function SettingsPage() {
                     <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Mật khẩu mới</label>
                     <input
                       type="password"
-                      placeholder="Ít nhất 6 ký tự"
+                      placeholder="Ít nhất 8 ký tự"
                       className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] outline-none"
                     />
                   </div>
@@ -346,6 +346,36 @@ export default function SettingsPage() {
                           </td>
                           <td className="py-3 px-4 text-right">
                             <div className="flex items-center justify-end gap-2">
+                              {staff.role === 'DRIVER' && (
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      const res = await fetch(`${API_ENDPOINTS.STAFF.DETAIL(staff.id)}/rotate-link`, {
+                                        method: 'POST',
+                                      });
+                                      const json = await res.json().catch(() => ({}));
+                                      if (!res.ok) throw new Error(json.error ?? 'Không thể tạo link mới');
+                                      const data = json?.data !== undefined ? json.data : json;
+                                      await navigator.clipboard.writeText(`${window.location.origin}${data.link}`).catch(() => {});
+                                      toast({
+                                        type: 'success',
+                                        title: `Đã đổi link cho ${staff.name}`,
+                                        message: 'Link mới đã copy — link cũ không còn dùng được.',
+                                      });
+                                    } catch (err) {
+                                      toast({
+                                        type: 'error',
+                                        title: 'Đổi link thất bại',
+                                        message: err instanceof Error ? err.message : 'Đã xảy ra lỗi',
+                                      });
+                                    }
+                                  }}
+                                  className="p-1.5 text-on-surface-variant hover:text-primary-accent hover:bg-container-high rounded transition-colors"
+                                  title="Tạo link giao hàng mới (hủy link cũ)"
+                                >
+                                  <Link2 className="h-4 w-4" />
+                                </button>
+                              )}
                               <button
                                 onClick={() => setShowPasswordModal(staff.id)}
                                 className="p-1.5 text-on-surface-variant hover:text-primary-accent hover:bg-container-high rounded transition-colors"
@@ -447,7 +477,7 @@ export default function SettingsPage() {
                         value={newPassword}
                         onChange={e => setNewPassword(e.target.value)}
                         className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] outline-none"
-                        placeholder="Ít nhất 6 ký tự"
+                        placeholder="Ít nhất 8 ký tự"
                       />
                     </div>
                     <div>
@@ -528,16 +558,16 @@ export default function SettingsPage() {
                         value={passwordInput}
                         onChange={e => setPasswordInput(e.target.value)}
                         className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] outline-none"
-                        placeholder="Ít nhất 6 ký tự"
+                        placeholder="Ít nhất 8 ký tự"
                       />
                     </div>
                     <button
                       onClick={async () => {
-                        if (!passwordInput || passwordInput.length < 6) {
+                        if (!passwordInput || passwordInput.length < 8) {
                           toast({
                             type: 'error',
                             title: 'Mật khẩu không hợp lệ',
-                            message: 'Mật khẩu phải có ít nhất 6 ký tự',
+                            message: 'Mật khẩu phải có ít nhất 8 ký tự',
                           });
                           return;
                         }

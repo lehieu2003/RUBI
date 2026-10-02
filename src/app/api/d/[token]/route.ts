@@ -11,7 +11,7 @@ export async function GET(
 ) {
   try {
     // Public endpoint: throttle per IP so leaked/shared links can't be scraped
-    const limit = rateLimit(`driver-link:${getIpFromRequest(request)}`, 30, 60 * 1000);
+    const limit = await rateLimit(`driver-link:${getIpFromRequest(request)}`, 30, 60 * 1000);
     if (!limit.success) {
       return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
     }

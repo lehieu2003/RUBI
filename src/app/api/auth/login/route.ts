@@ -11,7 +11,7 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 export async function POST(req: NextRequest) {
   // RATEL-01: Login rate limit - 5 per IP per minute
   const ip = getIpFromRequest(req);
-  const limit = rateLimit(ip, 5, 60 * 1000);
+  const limit = await rateLimit(ip, 5, 60 * 1000);
   if (!limit.success) {
     return apiError('Too Many Requests', 429);
   }

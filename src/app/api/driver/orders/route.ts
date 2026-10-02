@@ -9,7 +9,7 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 // Orders visible when status IN (SHIPPING, DELIVERED)
 export async function GET(request: NextRequest) {
   try {
-    const limit = rateLimit(`driver-orders:${getIpFromRequest(request)}`, 60, 60 * 1000);
+    const limit = await rateLimit(`driver-orders:${getIpFromRequest(request)}`, 60, 60 * 1000);
     if (!limit.success) {
       return apiError('Too Many Requests', 429);
     }

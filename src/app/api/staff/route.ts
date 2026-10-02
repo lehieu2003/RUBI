@@ -61,8 +61,8 @@ export async function POST(request: NextRequest) {
       return apiError('Thiếu thông tin bắt buộc', 400);
     }
 
-    if (password.length < 6) {
-      return apiError('Mật khẩu phải có ít nhất 6 ký tự', 400);
+    if (password.length < 8) {
+      return apiError('Mật khẩu phải có ít nhất 8 ký tự', 400);
     }
 
     if (!STAFF_ROLES.includes(role)) {

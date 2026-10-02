@@ -12,7 +12,7 @@ import { sendWelcomeEmail } from '@/lib/email/service';
 export async function POST(req: NextRequest) {
   // RATEL-02: Registration rate limit - 3 per IP per minute
   const ip = getIpFromRequest(req);
-  const limit = rateLimit(ip, 3, 60 * 1000);
+  const limit = await rateLimit(ip, 3, 60 * 1000);
   if (!limit.success) {
     return apiError('Too Many Requests', 429);
   }

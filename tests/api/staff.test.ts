@@ -18,3 +18,35 @@ describe('staff driver account source checks', () => {
     assert.match(staffIdRoute, /userId: updatedUser\.id/);
   });
 });
+
+describe('staff password policy', () => {
+  const createRoute = readFileSync('src/app/api/staff/route.ts', 'utf8');
+  const updateRoute = readFileSync('src/app/api/staff/[id]/route.ts', 'utf8');
+  const settingsPage = readFileSync('src/app/settings/page.tsx', 'utf8');
+
+  it('enforces minimum 8 characters everywhere (create, reset, UI)', () => {
+    for (const [name, source] of [['create', createRoute], ['update', updateRoute]]) {
+      assert.doesNotMatch(source, /length < 6/, `${name} route still allows 6-char passwords`);
+      assert.match(source, /length < 8|minimum: 8/, `${name} route must require 8 characters`);
+    }
+    assert.match(settingsPage, /length < 8/);
+    assert.doesNotMatch(settingsPage, /length < 6/);
+    assert.doesNotMatch(settingsPage, /ít nhất 6 ký tự/);
+  });
+});
+
+describe('driver share-link rotation', () => {
+  const route = readFileSync('src/app/api/staff/[id]/rotate-link/route.ts', 'utf8');
+  const settingsPage = readFileSync('src/app/settings/page.tsx', 'utf8');
+
+  it('has an ADMIN-only rotation endpoint that regenerates the driver token', () => {
+    assert.match(route, /requireRole\(\['ADMIN'\]\)/);
+    assert.match(route, /randomUUID/);
+    assert.match(route, /driver\.update/);
+    assert.match(route, /driverProfile/);
+  });
+
+  it('exposes a rotate action in the staff UI for DRIVER rows', () => {
+    assert.match(settingsPage, /rotate-link/);
+  });
+});

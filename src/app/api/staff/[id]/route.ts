@@ -54,8 +54,8 @@ export async function PATCH(
 
     // Reset password
     if (body.password) {
-      if (body.password.length < 6) {
-        return apiError('Mật khẩu phải có ít nhất 6 ký tự', 400);
+      if (body.password.length < 8) {
+        return apiError('Mật khẩu phải có ít nhất 8 ký tự', 400);
       }
       updateData.password = await bcrypt.hash(body.password, 12);
     }
