@@ -13,4 +13,5 @@ import './api/order-status.test';
 import './api/settle-page.test';
 import './api/driver-token-route.test';
 import './api/driver-confirm.test';
+import './rbac/impersonation-paths.test';
 import './pricing/scope.test';

@@ -107,7 +107,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
-      await fetch(API_ENDPOINTS.AUTH.LOGOUT, { method: 'POST' });
+      const res = await fetch(API_ENDPOINTS.AUTH.LOGOUT, { method: 'POST' });
+      if (!res.ok) {
+        toast({
+          type: 'error',
+          title: 'Không thể đăng xuất',
+          message: 'Vui lòng thử lại hoặc tắt trình duyệt để kết thúc phiên.',
+        });
+        return;
+      }
       setUser(null);
       toast({ type: 'info', title: 'Đã đăng xuất' });
       window.location.href = '/';

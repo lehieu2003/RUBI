@@ -46,22 +46,35 @@ export async function middleware(request: NextRequest) {
   // Check role-based access in pure memory (0ms network delay)
   if (session) {
     const userRole = (session as { role?: UserRole }).role as UserRole | undefined;
-    if (isAppRoute && !canAccessPath(userRole, pathname)) {
+    const impersonateToken = request.cookies.get('impersonate_token')?.value;
+
+    // During an impersonation session the SUPER_ADMIN acts as the tenant's
+    // ADMIN for page access — otherwise they could never reach tenant pages.
+    const effectiveRole: UserRole | undefined =
+      impersonateToken && userRole === 'SUPER_ADMIN' && !pathname.startsWith('/admin')
+        ? 'ADMIN'
+        : userRole;
+
+    if (isAppRoute && !canAccessPath(effectiveRole, pathname)) {
       const url = request.nextUrl.clone();
-      url.pathname = userRole === 'SUPER_ADMIN' ? '/admin/dashboard' : userRole === 'DRIVER' ? '/driver' : '/dashboard';
+      url.pathname = effectiveRole === 'SUPER_ADMIN' ? '/admin/dashboard' : effectiveRole === 'DRIVER' ? '/driver' : '/dashboard';
       url.searchParams.set('error', 'unauthorized');
       return NextResponse.redirect(url);
     }
 
-    // Fast memory-check for Impersonation (reject write if impersonation cookie exists)
-    if (request.method !== 'GET' && pathname.startsWith('/api/')) {
-      const impersonateToken = request.cookies.get('impersonate_token')?.value;
-      if (impersonateToken) {
-        return NextResponse.json(
-          { error: 'Read-only during impersonation. End impersonation to make changes.', code: 'READ_ONLY_IMPERSONATION' },
-          { status: 403 }
-        );
-      }
+    // Read-only during impersonation — except ending the impersonation
+    // itself and logging out, otherwise the session could never be left.
+    if (
+      request.method !== 'GET' &&
+      pathname.startsWith('/api/') &&
+      impersonateToken &&
+      pathname !== '/api/auth/logout' &&
+      pathname !== '/api/admin/impersonate/end'
+    ) {
+      return NextResponse.json(
+        { error: 'Read-only during impersonation. End impersonation to make changes.', code: 'READ_ONLY_IMPERSONATION' },
+        { status: 403 }
+      );
     }
   }
 
