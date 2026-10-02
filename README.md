@@ -123,4 +123,4 @@ Configure your `.env` file with the following Supabase credentials:
 
 ## Deployment
 
-The application is designed for deployment on Vercel. Configure the environment variables in your Vercel project settings.
+The app builds to a standalone Node server (`next.config.mjs` → `output: 'standalone'`) and ships as a Docker image (`Dockerfile`, multi-stage `node:20-alpine`). Configure at minimum `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET` and — in production — `PAYMENT_WEBHOOK_SECRET` (the payment webhook fails closed without it).
