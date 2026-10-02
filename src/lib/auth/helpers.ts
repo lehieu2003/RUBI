@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getSession } from '@/lib/auth';
-import { prisma } from '@/lib/db';
+import { prisma, prismaAuth } from '@/lib/db';
 import { isSubscriptionActive } from '@/lib/subscription-status';
 
 // NOTE: These helper functions throw NextResponse objects directly as exceptions.
@@ -25,8 +25,15 @@ export async function requireRole(roles: string[]) {
     // middleware's READ_ONLY_IMPERSONATION guard.
     if (session.role === 'SUPER_ADMIN') {
       const cookieStore = await cookies();
-      if (cookieStore.get('impersonate_token')?.value) {
-        return session;
+      const impersonateToken = cookieStore.get('impersonate_token')?.value;
+      if (impersonateToken) {
+        const impersonationLog = await prismaAuth.impersonationLog.findUnique({
+          where: { token: impersonateToken },
+          select: { endedAt: true },
+        });
+        if (impersonationLog && !impersonationLog.endedAt) {
+          return session;
+        }
       }
     }
     throw NextResponse.json({ error: 'Forbidden' }, { status: 403 });

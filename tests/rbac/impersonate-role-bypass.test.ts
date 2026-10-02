@@ -15,6 +15,10 @@ describe('requireRole impersonation support', () => {
     assert.match(helpers, /impersonate_token/);
     assert.match(helpers, /SUPER_ADMIN/);
   });
+
+  it('verifies the impersonation session is still active (endedAt) before bypassing roles', () => {
+    assert.match(helpers, /endedAt/);
+  });
 });
 
 describe('getSession impersonation tenant swap', () => {
