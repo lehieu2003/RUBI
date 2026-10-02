@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { setTenantContext } from '@/lib/tenant';
+import { prismaAuth } from '@/lib/db';
 
 // At module scope — throws immediately in production if JWT_SECRET is not configured
 if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
@@ -45,6 +46,20 @@ export async function getSession(): Promise<JWTPayload | null> {
   if (!token) return null;
   const session = await verifyJWT(token);
   if (session) {
+    // During an impersonation session the SUPER_ADMIN acts on the tenant:
+    // swap the session's factoryId to the impersonated factory so every
+    // tenant-scoped query targets the right data. Writes stay blocked by
+    // the middleware's READ_ONLY_IMPERSONATION guard.
+    const impersonateToken = cookieStore.get('impersonate_token')?.value;
+    if (session.role === 'SUPER_ADMIN' && impersonateToken) {
+      const impersonationLog = await prismaAuth.impersonationLog.findUnique({
+        where: { token: impersonateToken },
+        select: { factoryId: true, endedAt: true },
+      });
+      if (impersonationLog && !impersonationLog.endedAt) {
+        session.factoryId = impersonationLog.factoryId;
+      }
+    }
     // Propagate tenant context so Prisma $extends hooks work in API route handlers
     setTenantContext(session.factoryId ?? null, session.role as 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'DRIVER' | 'SUPER_ADMIN' | null);
   }

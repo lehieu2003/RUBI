@@ -8,9 +8,18 @@ const helpers = readFileSync(
   'utf-8',
 );
 
+const auth = readFileSync(join(process.cwd(), 'src/lib/auth.ts'), 'utf-8');
+
 describe('requireRole impersonation support', () => {
   it('lets an impersonating SUPER_ADMIN through role-gated reads', () => {
     assert.match(helpers, /impersonate_token/);
     assert.match(helpers, /SUPER_ADMIN/);
+  });
+});
+
+describe('getSession impersonation tenant swap', () => {
+  it('swaps session factoryId to the impersonated factory', () => {
+    assert.match(auth, /impersonate_token/);
+    assert.match(auth, /impersonationLog/);
   });
 });
