@@ -94,7 +94,6 @@ export default function OrdersPage() {
   const [selectedStatus, setSelectedStatus] = useState('Tất cả');
   const [filterDate, setFilterDate] = useState('');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
@@ -259,10 +258,6 @@ export default function OrdersPage() {
   const handleStatusChange = async (newStatus: string) => {
     if (!selectedOrderId) return;
 
-    if (newStatus === 'COMPLETED') {
-      setShowConfirmDialog(true);
-      return;
-    }
     if (newStatus === 'CANCELLED') {
       setShowCancelDialog(true);
       return;
@@ -286,7 +281,6 @@ export default function OrdersPage() {
       const result = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(result.error ?? 'Failed to update status');
       queryClient.invalidateQueries({ queryKey: ['orders'] });
-      setShowConfirmDialog(false);
       setShowCancelDialog(false);
       setCancelReason('');
       toast({ type: 'success', title: 'Đã cập nhật trạng thái đơn hàng' });
@@ -690,11 +684,18 @@ export default function OrdersPage() {
                   (updatingStatus ? ' opacity-50' : '')
                 }
               >
-                {Object.entries(statusConfig).map(([key, config]) => (
-                  <option key={key} value={key}>
-                    {config.label}
-                  </option>
-                ))}
+                {Object.entries(statusConfig)
+                  // COMPLETED is reached only through settlement (đối soát)
+                  .filter(
+                    ([key]) =>
+                      key !== 'COMPLETED' ||
+                      selectedOrder.status === 'COMPLETED'
+                  )
+                  .map(([key, config]) => (
+                    <option key={key} value={key}>
+                      {config.label}
+                    </option>
+                  ))}
               </select>
               {updatingStatus && (
                 <span className='text-xs text-[#737783]'>Đang cập nhật...</span>
@@ -798,36 +799,6 @@ export default function OrdersPage() {
             </div>
           </div>
         </Drawer>
-      )}
-
-      {/* COMPLETED Confirmation Dialog */}
-      {showConfirmDialog && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs'>
-          <div className='w-full max-w-sm rounded bg-white border border-[#c2c6d3] p-6 shadow-xl'>
-            <h3 className='text-base font-bold text-[#111c2d] mb-2'>
-              Xác nhận hoàn thành đơn hàng
-            </h3>
-            <p className='text-xs text-[#424751] mb-4'>
-              Khi xác nhận hoàn thành, hệ thống sẽ ghi nhận đã giao và cập nhật
-              sổ công nợ.
-            </p>
-            <div className='flex gap-2.5'>
-              <button
-                onClick={() => setShowConfirmDialog(false)}
-                className='flex-1 rounded border border-[#c2c6d3] px-3 py-2 text-xs font-bold text-[#424751] hover:bg-[#dee8ff]'
-              >
-                Hủy
-              </button>
-              <button
-                onClick={() => updateOrderStatus('COMPLETED')}
-                disabled={updatingStatus}
-                className='flex-1 rounded bg-[#1b6d24] hover:bg-[#217128] px-3 py-2 text-xs font-bold text-white disabled:opacity-50'
-              >
-                {updatingStatus ? 'Đang xử lý...' : 'Xác nhận'}
-              </button>
-            </div>
-          </div>
-        </div>
       )}
 
       {/* CANCELLED Reason Dialog */}
