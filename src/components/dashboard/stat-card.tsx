@@ -21,8 +21,8 @@ export function StatCard({
   value,
   subValue,
   icon: Icon,
-  iconColor = 'text-[#004a99]',
-  iconBg = 'bg-[#dee8ff]',
+  iconColor = 'text-primary-accent',
+  iconBg = 'bg-container-high',
   trend,
   trendValue,
   warning,
@@ -37,17 +37,17 @@ export function StatCard({
 
   const trendColor =
     trend === 'up'
-      ? 'text-[#1b6d24]'
+      ? 'text-secondary'
       : trend === 'down'
-        ? 'text-[#ba1a1a]'
-        : 'text-[#737783]';
+        ? 'text-error'
+        : 'text-faint';
 
   return (
     <div
       className={`relative overflow-hidden rounded border bg-[#ffffff] p-5 transition-all duration-150 ${
         warning
-          ? 'border-[#7f3700] bg-[#ffdad6]/20'
-          : 'border-[#c2c6d3] hover:border-[#004a99] shadow-sm'
+          ? 'border-tertiary-container bg-error-container/20'
+          : 'border-outline-variant hover:border-[#004a99] shadow-sm'
       }`}
     >
       <div className="flex items-start justify-between">
@@ -60,7 +60,7 @@ export function StatCard({
           {/* Main value (Data Mono) */}
           <p
             className={`font-mono text-2xl font-bold tracking-tight tabular-nums ${
-              warning ? 'text-[#ba1a1a]' : 'text-[#0f172a]'
+              warning ? 'text-error' : 'text-on-surface'
             }`}
           >
             {value}
@@ -68,7 +68,7 @@ export function StatCard({
 
           {/* Sub value */}
           {subValue && (
-            <p className="mt-1 text-xs text-[#64748b] font-medium">{subValue}</p>
+            <p className="mt-1 text-xs text-faint font-medium">{subValue}</p>
           )}
 
           {/* Trend indicator */}
@@ -92,7 +92,7 @@ export function StatCard({
 
       {/* Warning badge */}
       {warning && (
-        <div className="mt-3 inline-flex items-center gap-1 rounded bg-[#ffdad6] px-2 py-0.5 text-[11px] font-bold text-[#93000a]">
+        <div className="mt-3 inline-flex items-center gap-1 rounded bg-error-container px-2 py-0.5 text-[11px] font-bold text-on-error-container">
           ⚠️ Cần kiểm tra
         </div>
       )}

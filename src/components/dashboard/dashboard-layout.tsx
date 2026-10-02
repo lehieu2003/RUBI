@@ -15,21 +15,21 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { isSidebarCollapsed, openMobileSidebar } = useUIStore();
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d]">
+    <div className="min-h-screen bg-surface text-on-surface">
       <OfflineBanner />
       <Sidebar />
 
       {/* Top Mobile Bar for screens < 1024px */}
-      <div className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-[#c2c6d3] bg-white px-4 text-[#111c2d] lg:hidden shadow-xs">
+      <div className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-outline-variant bg-card px-4 text-on-surface lg:hidden shadow-xs">
         <div className="flex items-center gap-2.5">
           <button
             onClick={openMobileSidebar}
             aria-label="Mở menu"
-            className="flex h-9 w-9 items-center justify-center rounded border border-[#c2c6d3] text-[#424751] hover:bg-[#f0f3ff]"
+            className="flex h-9 w-9 items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:bg-container-low"
           >
             <Menu className="h-5 w-5" />
           </button>
-          <span className="font-bold text-sm text-[#002754]">IceFlow SaaS</span>
+          <span className="font-bold text-sm text-primary-dark">IceFlow SaaS</span>
         </div>
       </div>
 

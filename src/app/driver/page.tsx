@@ -120,12 +120,12 @@ export default function DriverPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f9f9ff]">
+      <div className="flex min-h-screen items-center justify-center bg-surface">
         <div className="text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 animate-pulse items-center justify-center rounded bg-[#004a99]">
             <Snowflake className="h-6 w-6 text-[#9bbdff]" />
           </div>
-          <p className="text-xs font-bold text-[#00346f]">Đang tải danh sách đơn...</p>
+          <p className="text-xs font-bold text-primary-deep">Đang tải danh sách đơn...</p>
         </div>
       </div>
     );
@@ -133,13 +133,13 @@ export default function DriverPage() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f9f9ff] p-4">
-        <div className="max-w-sm text-center bg-white p-6 rounded border border-[#c2c6d3] shadow-sm">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded bg-[#ffdad6] text-[#ba1a1a]">
+      <div className="flex min-h-screen items-center justify-center bg-surface p-4">
+        <div className="max-w-sm text-center bg-card p-6 rounded border border-outline-variant shadow-sm">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded bg-error-container text-error">
             <span className="text-2xl font-black">!</span>
           </div>
-          <p className="mb-2 font-bold text-sm text-[#111c2d]">{error}</p>
-          <p className="mb-6 text-xs text-[#424751]">Nhấn Làm mới để thử lại hoặc liên hệ văn phòng điều phối</p>
+          <p className="mb-2 font-bold text-sm text-on-surface">{error}</p>
+          <p className="mb-6 text-xs text-on-surface-variant">Nhấn Làm mới để thử lại hoặc liên hệ văn phòng điều phối</p>
           <button
             onClick={handleRefresh}
             className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded bg-[#004a99] font-bold text-white transition-colors hover:bg-[#00346f] text-sm shadow-sm"
@@ -153,7 +153,7 @@ export default function DriverPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d]">
+    <div className="min-h-screen bg-surface text-on-surface">
       <header className="sticky top-0 z-20 border-b border-[#002754] bg-[#00346f] px-4 py-3.5 text-white shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -176,19 +176,19 @@ export default function DriverPage() {
       </header>
 
       <div className="grid grid-cols-2 gap-3 p-4">
-        <div className="rounded border border-[#7f3700]/30 bg-[#dee8ff] p-3.5">
-          <div className="mb-1 flex items-center gap-1.5 text-[#00346f]">
+        <div className="rounded border border-tertiary-container/30 bg-container-high p-3.5">
+          <div className="mb-1 flex items-center gap-1.5 text-primary-deep">
             <Clock className="h-4 w-4" />
             <span className="text-xs font-bold uppercase">Chờ giao</span>
           </div>
-          <p className="data-lg font-bold text-[#111c2d]">{pendingCount}</p>
+          <p className="data-lg font-bold text-on-surface">{pendingCount}</p>
         </div>
         <div className="rounded border border-[#1b6d24]/30 bg-[#a0f399]/20 p-3.5">
-          <div className="mb-1 flex items-center gap-1.5 text-[#1b6d24]">
+          <div className="mb-1 flex items-center gap-1.5 text-secondary">
             <CheckCircle2 className="h-4 w-4" />
             <span className="text-xs font-bold uppercase">Đã giao</span>
           </div>
-          <p className="data-lg font-bold text-[#111c2d]">{deliveredCount}</p>
+          <p className="data-lg font-bold text-on-surface">{deliveredCount}</p>
         </div>
       </div>
 
@@ -196,7 +196,7 @@ export default function DriverPage() {
         <button
           onClick={handleRefresh}
           disabled={isRefreshing}
-          className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded border border-[#c2c6d3] bg-white text-xs font-bold text-[#00346f] hover:bg-[#dee8ff] transition-colors shadow-sm disabled:opacity-60"
+          className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded border border-outline-variant bg-card text-xs font-bold text-primary-deep hover:bg-container-high transition-colors shadow-sm disabled:opacity-60"
         >
           <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           {isRefreshing ? 'Đang cập nhật...' : 'CẬP NHẬT ĐƠN HÀNG'}

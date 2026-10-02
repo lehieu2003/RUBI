@@ -29,9 +29,9 @@ describe('schedule calendar grid source checks', () => {
   });
 
   it('uses the locked shift color coding', () => {
-    assert.match(source, /bg-\[#e7eeff\]/);
+    assert.match(source, /bg-container\b/);
     assert.match(source, /bg-\[#a0f399\]\/30/);
-    assert.match(source, /bg-\[#ffdcc2\]\/40/);
-    assert.match(source, /bg-\[#d8e3fb\]/);
+    assert.match(source, /bg-tertiary-fixed/);
+    assert.match(source, /bg-container-highest/);
   });
 });

@@ -136,7 +136,7 @@ export default function OnboardingPage() {
       </div>
 
       {step === 'upload' && (
-        <div className="bg-white rounded-lg border p-6">
+        <div className="bg-card rounded-lg border p-6">
           <h2 className="text-lg font-medium mb-2">Bước 1: Tải lên file CSV</h2>
           <p className="text-gray-600 text-sm mb-4">
             File CSV cần có các cột: Mã khách, Tên khách, Số điện thoại, Địa chỉ (có thể
@@ -155,7 +155,7 @@ export default function OnboardingPage() {
       )}
 
       {step === 'mapping' && (
-        <div className="bg-white rounded-lg border p-6">
+        <div className="bg-card rounded-lg border p-6">
           <h2 className="text-lg font-medium mb-4">Bước 2: Map cột dữ liệu</h2>
           <p className="text-sm text-gray-500 mb-4">
             Chọn cột tương ứng trong file CSV cho từng trường dữ liệu.
@@ -192,7 +192,7 @@ export default function OnboardingPage() {
       )}
 
       {step === 'preview' && (
-        <div className="bg-white rounded-lg border p-6">
+        <div className="bg-card rounded-lg border p-6">
           <h2 className="text-lg font-medium mb-4">
             Bước 3: Xác nhận ({customers.length} khách hàng)
           </h2>
@@ -245,14 +245,14 @@ export default function OnboardingPage() {
       )}
 
       {step === 'importing' && (
-        <div className="bg-white rounded-lg border p-12 text-center">
+        <div className="bg-card rounded-lg border p-12 text-center">
           <div className="text-4xl mb-3">...</div>
           <p className="text-gray-600">Đang nhập dữ liệu...</p>
         </div>
       )}
 
       {step === 'done' && importResult && (
-        <div className="bg-white rounded-lg border p-6">
+        <div className="bg-card rounded-lg border p-6">
           <h2 className="text-lg font-medium mb-4">Hoàn tất!</h2>
           <div className="space-y-2 mb-6">
             <p className="text-green-700 font-medium">

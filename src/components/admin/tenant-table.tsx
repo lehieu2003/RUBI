@@ -49,12 +49,12 @@ function toNullableNumber(value: unknown): number | null {
 
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { bg: string; text: string; label: string }> = {
-    ACTIVE: { bg: 'bg-[#a0f399]/40', text: 'text-[#1b6d24]', label: 'Hoạt động' },
-    CANCELLED: { bg: 'bg-[#ffdad6]', text: 'text-[#ba1a1a]', label: 'Đã tắt' },
-    EXPIRED: { bg: 'bg-[#ffdad6]', text: 'text-[#ba1a1a]', label: 'Hết hạn' },
-    NONE: { bg: 'bg-[#cfdaf2]', text: 'text-[#424751]', label: 'Chưa có gói' },
+    ACTIVE: { bg: 'bg-[#a0f399]/40', text: 'text-secondary', label: 'Hoạt động' },
+    CANCELLED: { bg: 'bg-error-container', text: 'text-error', label: 'Đã tắt' },
+    EXPIRED: { bg: 'bg-error-container', text: 'text-error', label: 'Hết hạn' },
+    NONE: { bg: 'bg-surface-dim', text: 'text-on-surface-variant', label: 'Chưa có gói' },
   };
-  const c = config[status] ?? { bg: 'bg-[#cfdaf2]', text: 'text-[#424751]', label: status };
+  const c = config[status] ?? { bg: 'bg-surface-dim', text: 'text-on-surface-variant', label: status };
   return <span className={`inline-flex rounded px-2 py-0.5 text-xs font-bold ${c.bg} ${c.text}`}>{c.label}</span>;
 }
 
@@ -148,12 +148,12 @@ function ActionModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
-      <div className="w-full max-w-md rounded border border-[#c2c6d3] bg-white p-6 shadow-xl">
-        <h2 className="text-base font-bold text-[#111c2d]">{title}</h2>
-        <p className="mt-0.5 text-xs text-[#424751]">{factory.name}</p>
+      <div className="w-full max-w-md rounded border border-outline-variant bg-card p-6 shadow-xl">
+        <h2 className="text-base font-bold text-on-surface">{title}</h2>
+        <p className="mt-0.5 text-xs text-on-surface-variant">{factory.name}</p>
 
         {action === 'extend' && (
-          <label className="mt-4 block text-xs font-bold uppercase tracking-wider text-[#424751]">
+          <label className="mt-4 block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
             Số ngày gia hạn thêm
             <input
               type="number"
@@ -161,29 +161,29 @@ function ActionModal({
               max={3650}
               value={extendDays}
               onChange={event => setExtendDays(Number(event.target.value))}
-              className="mt-1.5 w-full rounded border border-[#c2c6d3] bg-white px-3 py-2 text-sm text-[#111c2d] focus:border-[#004a99] outline-none"
+              className="mt-1.5 w-full rounded border border-outline-variant bg-card px-3 py-2 text-sm text-on-surface focus:border-[#004a99] outline-none"
             />
           </label>
         )}
 
         {action === 'price' && (
-          <label className="mt-4 block text-xs font-bold uppercase tracking-wider text-[#424751]">
+          <label className="mt-4 block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
             Giá mỗi tài xế (VND/tháng)
             <input
               type="number"
               min={0}
               value={pricePerDriver}
               onChange={event => setPricePerDriver(Number(event.target.value))}
-              className="mt-1.5 w-full rounded border border-[#c2c6d3] bg-white px-3 py-2 text-sm text-[#111c2d] focus:border-[#004a99] outline-none"
+              className="mt-1.5 w-full rounded border border-outline-variant bg-card px-3 py-2 text-sm text-on-surface focus:border-[#004a99] outline-none"
             />
           </label>
         )}
 
         {action === 'status' && (
-          <div className="mt-4 rounded border border-[#004a99]/20 bg-[#dee8ff]/50 p-3 text-xs text-[#00346f]">
-            Trạng thái hiện tại: <span className="font-bold text-[#002754]">{factory.subscription?.status}</span>.
+          <div className="mt-4 rounded border border-[#004a99]/20 bg-container-high/50 p-3 text-xs text-primary-deep">
+            Trạng thái hiện tại: <span className="font-bold text-primary-dark">{factory.subscription?.status}</span>.
             Hành động này sẽ chuyển sang trạng thái{' '}
-            <span className="font-bold text-[#002754]">
+            <span className="font-bold text-primary-dark">
               {factory.subscription?.status === 'ACTIVE' ? 'CANCELLED' : 'ACTIVE'}
             </span>
             .
@@ -193,7 +193,7 @@ function ActionModal({
         <div className="mt-6 flex justify-end gap-2.5">
           <button
             onClick={onClose}
-            className="rounded border border-[#c2c6d3] px-3.5 py-2 text-xs font-bold text-[#424751] hover:bg-[#dee8ff]"
+            className="rounded border border-outline-variant px-3.5 py-2 text-xs font-bold text-on-surface-variant hover:bg-container-high"
           >
             HỦY
           </button>
@@ -341,17 +341,17 @@ export function TenantTable({ onError }: TenantTableProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-8 w-8 animate-spin text-[#004a99]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary-accent" />
       </div>
     );
   }
 
   return (
     <>
-      <div className="overflow-x-auto rounded border border-[#c2c6d3] bg-white shadow-sm">
+      <div className="overflow-x-auto rounded border border-outline-variant bg-card shadow-sm">
         <table className="w-full min-w-[1100px] border-collapse table-industrial">
           <thead>
-            <tr className="border-b border-[#c2c6d3] bg-[#f9f9ff] text-[12px] font-bold uppercase tracking-wider text-[#424751]">
+            <tr className="border-b border-outline-variant bg-surface text-[12px] font-bold uppercase tracking-wider text-on-surface-variant">
               {[
                 ['name', 'Nhà máy'],
                 ['status', 'Trạng thái'],
@@ -363,7 +363,7 @@ export function TenantTable({ onError }: TenantTableProps) {
                 <th
                   key={field}
                   onClick={() => handleSort(field as SortField)}
-                  className="cursor-pointer px-4 py-3 text-left hover:text-[#004a99]"
+                  className="cursor-pointer px-4 py-3 text-left hover:text-primary-accent"
                 >
                   <span className="inline-flex items-center gap-1">
                     {label}{' '}
@@ -375,33 +375,33 @@ export function TenantTable({ onError }: TenantTableProps) {
               <th className="px-4 py-3 text-right">Thao tác</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#e7eeff] text-sm">
+          <tbody className="divide-y divide-outline-soft text-sm">
             {sortedFactories.map(factory => {
               const subscription = factory.subscription;
               const status = subscription?.status ?? 'NONE';
               return (
-                <tr key={factory.id} className="h-14 hover:bg-[#f0f3ff] transition-colors">
+                <tr key={factory.id} className="h-14 hover:bg-container-low transition-colors">
                   <td className="px-4 py-3">
-                    <div className="font-bold text-[#111c2d]">{factory.name}</div>
-                    <div className="text-xs font-mono text-[#737783]">{factory.phone ?? '—'}</div>
+                    <div className="font-bold text-on-surface">{factory.name}</div>
+                    <div className="text-xs font-mono text-faint">{factory.phone ?? '—'}</div>
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={status} />
                   </td>
-                  <td className="px-4 py-3 text-xs font-bold text-[#424751]">{subscription?.planType ?? '—'}</td>
-                  <td className="px-4 py-3 text-xs font-bold text-[#111c2d]">
+                  <td className="px-4 py-3 text-xs font-bold text-on-surface-variant">{subscription?.planType ?? '—'}</td>
+                  <td className="px-4 py-3 text-xs font-bold text-on-surface">
                     {factory.daysRemaining !== null ? `${factory.daysRemaining} ngày` : '—'}
                   </td>
-                  <td className="px-4 py-3 data-sm font-bold text-[#004a99]">{factory.activeDriverCount}</td>
-                  <td className="px-4 py-3 data-md font-bold text-[#1b6d24]">
+                  <td className="px-4 py-3 data-sm font-bold text-primary-accent">{factory.activeDriverCount}</td>
+                  <td className="px-4 py-3 data-md font-bold text-secondary">
                     {formatCurrency(factory.monthlyAmount)}
                   </td>
-                  <td className="px-4 py-3 text-xs text-[#737783]">{formatDate(factory.lastPaymentAt)}</td>
+                  <td className="px-4 py-3 text-xs text-faint">{formatDate(factory.lastPaymentAt)}</td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-1.5 whitespace-nowrap">
                       <Link
                         href={`/admin/tenants/${factory.id}`}
-                        className="inline-flex items-center gap-1 rounded border border-[#c2c6d3] bg-white px-2 py-1 text-xs font-bold text-[#00346f] hover:bg-[#dee8ff]"
+                        className="inline-flex items-center gap-1 rounded border border-outline-variant bg-card px-2 py-1 text-xs font-bold text-primary-deep hover:bg-container-high"
                       >
                         <Eye className="h-3 w-3" />
                         Xem
@@ -410,7 +410,7 @@ export function TenantTable({ onError }: TenantTableProps) {
                         <button
                           onClick={() => handleCreateTrial(factory)}
                           disabled={rowLoading === factory.id}
-                          className="rounded bg-[#a0f399]/40 px-2 py-1 text-xs font-bold text-[#1b6d24] hover:bg-[#a0f399]/60 disabled:opacity-60"
+                          className="rounded bg-[#a0f399]/40 px-2 py-1 text-xs font-bold text-secondary hover:bg-[#a0f399]/60 disabled:opacity-60"
                         >
                           {rowLoading === factory.id ? '...' : 'Tạo trial'}
                         </button>
@@ -418,19 +418,19 @@ export function TenantTable({ onError }: TenantTableProps) {
                         <>
                           <button
                             onClick={() => setModal({ factory, action: 'extend' })}
-                            className="rounded bg-[#dee8ff] px-2 py-1 text-xs font-bold text-[#004a99] hover:bg-[#c2d7ff]"
+                            className="rounded bg-container-high px-2 py-1 text-xs font-bold text-primary-accent hover:bg-[#c2d7ff]"
                           >
                             Gia hạn
                           </button>
                           <button
                             onClick={() => setModal({ factory, action: 'price' })}
-                            className="rounded border border-[#c2c6d3] bg-white px-2 py-1 text-xs font-bold text-[#424751] hover:bg-[#f0f3ff]"
+                            className="rounded border border-outline-variant bg-card px-2 py-1 text-xs font-bold text-on-surface-variant hover:bg-container-low"
                           >
                             Sửa giá
                           </button>
                           <button
                             onClick={() => setModal({ factory, action: 'status' })}
-                            className="rounded bg-[#ffdcc2]/50 px-2 py-1 text-xs font-bold text-[#7f3700] hover:bg-[#ffdcc2]"
+                            className="rounded bg-tertiary-fixed/50 px-2 py-1 text-xs font-bold text-tertiary-container hover:bg-tertiary-fixed"
                           >
                             {subscription.status === 'ACTIVE' ? 'Tắt' : 'Bật'}
                           </button>
@@ -453,7 +453,7 @@ export function TenantTable({ onError }: TenantTableProps) {
       </div>
 
       {factories.length === 0 && (
-        <div className="py-12 text-center text-xs font-bold text-[#737783]">Chưa có nhà máy nào.</div>
+        <div className="py-12 text-center text-xs font-bold text-faint">Chưa có nhà máy nào.</div>
       )}
 
       {modal && (

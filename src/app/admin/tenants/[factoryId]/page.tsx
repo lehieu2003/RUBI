@@ -144,22 +144,22 @@ export default function AdminTenantDetailPage() {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#004a99]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary-accent" />
       </div>
     );
   }
 
   if (!data) {
-    return <div className="rounded border border-[#ba1a1a]/30 bg-[#ffdad6]/50 p-4 text-xs font-bold text-[#93000a]">{error}</div>;
+    return <div className="rounded border border-[#ba1a1a]/30 bg-error-container/50 p-4 text-xs font-bold text-on-error-container">{error}</div>;
   }
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-start justify-between gap-4 border-b border-[#c2c6d3] pb-4">
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4 border-b border-outline-variant pb-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">{data.factory.name}</h1>
-          <p className="mt-1 text-xs text-[#424751]">
-            Điện thoại: <span className="font-mono font-bold text-[#111c2d]">{data.factory.phone ?? '—'}</span> · Địa chỉ: {data.factory.address ?? '—'}
+          <h1 className="text-2xl font-bold tracking-tight text-on-surface">{data.factory.name}</h1>
+          <p className="mt-1 text-xs text-on-surface-variant">
+            Điện thoại: <span className="font-mono font-bold text-on-surface">{data.factory.phone ?? '—'}</span> · Địa chỉ: {data.factory.address ?? '—'}
           </p>
         </div>
         <button
@@ -171,56 +171,56 @@ export default function AdminTenantDetailPage() {
       </div>
 
       {error && (
-        <div className="mb-6 rounded border border-[#ba1a1a]/30 bg-[#ffdad6]/50 p-4 text-xs font-bold text-[#93000a]">
+        <div className="mb-6 rounded border border-[#ba1a1a]/30 bg-error-container/50 p-4 text-xs font-bold text-on-error-container">
           {error}
         </div>
       )}
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         {/* Subscription */}
-        <section className="rounded border border-[#c2c6d3] bg-white p-5 shadow-sm">
-          <h2 className="flex items-center gap-2 text-base font-bold text-[#111c2d]">
-            <CreditCard className="h-4 w-4 text-[#004a99]" />
+        <section className="rounded border border-outline-variant bg-card p-5 shadow-sm">
+          <h2 className="flex items-center gap-2 text-base font-bold text-on-surface">
+            <CreditCard className="h-4 w-4 text-primary-accent" />
             Gói Thuê Bao & Cấu Hình
           </h2>
           {data.subscription ? (
             <div className="mt-4 space-y-2.5 text-xs">
-              <div className="flex justify-between"><span className="text-[#737783]">Loại gói</span><span className="font-bold text-[#111c2d]">{data.subscription.planType}</span></div>
-              <div className="flex justify-between"><span className="text-[#737783]">Trạng thái</span><span className="font-bold text-[#1b6d24]">{data.subscription.status}</span></div>
-              <div className="flex justify-between"><span className="text-[#737783]">Hết hạn ngày</span><span className="font-medium text-[#111c2d]">{formatDate(data.subscription.endDate)}</span></div>
-              <div className="flex justify-between"><span className="text-[#737783]">Thời gian còn lại</span><span className="font-bold text-[#004a99]">{data.daysRemaining ?? '—'} ngày</span></div>
-              <div className="flex justify-between"><span className="text-[#737783]">Số tài xế active</span><span className="font-bold text-[#004a99]">{data.activeDriverCount}</span></div>
-              <div className="flex justify-between"><span className="text-[#737783]">Mức phí / tháng</span><span className="font-bold text-[#1b6d24]">{formatCurrency(data.monthlyAmount)}</span></div>
+              <div className="flex justify-between"><span className="text-faint">Loại gói</span><span className="font-bold text-on-surface">{data.subscription.planType}</span></div>
+              <div className="flex justify-between"><span className="text-faint">Trạng thái</span><span className="font-bold text-secondary">{data.subscription.status}</span></div>
+              <div className="flex justify-between"><span className="text-faint">Hết hạn ngày</span><span className="font-medium text-on-surface">{formatDate(data.subscription.endDate)}</span></div>
+              <div className="flex justify-between"><span className="text-faint">Thời gian còn lại</span><span className="font-bold text-primary-accent">{data.daysRemaining ?? '—'} ngày</span></div>
+              <div className="flex justify-between"><span className="text-faint">Số tài xế active</span><span className="font-bold text-primary-accent">{data.activeDriverCount}</span></div>
+              <div className="flex justify-between"><span className="text-faint">Mức phí / tháng</span><span className="font-bold text-secondary">{formatCurrency(data.monthlyAmount)}</span></div>
 
-              <div className="border-t border-[#e7eeff] pt-3 mt-3">
-                <label className="text-xs font-bold uppercase tracking-wider text-[#424751]">
+              <div className="border-t border-outline-soft pt-3 mt-3">
+                <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                   Giá mỗi tài xế
                   <input
                     type="number"
                     value={pricePerDriver}
                     onChange={event => setPricePerDriver(Number(event.target.value))}
-                    className="mt-1.5 w-full rounded border border-[#c2c6d3] bg-white px-3 py-1.5 text-xs text-[#111c2d] focus:border-[#004a99] outline-none"
+                    className="mt-1.5 w-full rounded border border-outline-variant bg-card px-3 py-1.5 text-xs text-on-surface focus:border-[#004a99] outline-none"
                   />
                 </label>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
                     onClick={() => updateSubscription({ extendDays: 30, recordPayment: true })}
                     disabled={actionLoading}
-                    className="rounded bg-[#dee8ff] hover:bg-[#c2d7ff] px-3 py-1.5 text-xs font-bold text-[#004a99] disabled:opacity-60"
+                    className="rounded bg-container-high hover:bg-[#c2d7ff] px-3 py-1.5 text-xs font-bold text-primary-accent disabled:opacity-60"
                   >
                     +30 ngày
                   </button>
                   <button
                     onClick={() => updateSubscription({ pricePerDriver })}
                     disabled={actionLoading}
-                    className="rounded border border-[#c2c6d3] bg-white hover:bg-[#f0f3ff] px-3 py-1.5 text-xs font-bold text-[#424751] disabled:opacity-60"
+                    className="rounded border border-outline-variant bg-card hover:bg-container-low px-3 py-1.5 text-xs font-bold text-on-surface-variant disabled:opacity-60"
                   >
                     Lưu giá
                   </button>
                   <button
                     onClick={() => updateSubscription({ status: data.subscription?.status === 'ACTIVE' ? 'CANCELLED' : 'ACTIVE' })}
                     disabled={actionLoading}
-                    className="rounded bg-[#ffdcc2]/50 hover:bg-[#ffdcc2] px-3 py-1.5 text-xs font-bold text-[#7f3700] disabled:opacity-60"
+                    className="rounded bg-tertiary-fixed/50 hover:bg-tertiary-fixed px-3 py-1.5 text-xs font-bold text-tertiary-container disabled:opacity-60"
                   >
                     {data.subscription.status === 'ACTIVE' ? 'Tắt' : 'Bật'}
                   </button>
@@ -228,36 +228,36 @@ export default function AdminTenantDetailPage() {
               </div>
             </div>
           ) : (
-            <p className="mt-4 text-xs text-[#737783]">Nhà máy chưa khởi tạo gói thuê bao.</p>
+            <p className="mt-4 text-xs text-faint">Nhà máy chưa khởi tạo gói thuê bao.</p>
           )}
         </section>
 
         {/* Operation Stats */}
-        <section className="rounded border border-[#c2c6d3] bg-white p-5 shadow-sm">
-          <h2 className="flex items-center gap-2 text-base font-bold text-[#111c2d]">
-            <Users className="h-4 w-4 text-[#1b6d24]" />
+        <section className="rounded border border-outline-variant bg-card p-5 shadow-sm">
+          <h2 className="flex items-center gap-2 text-base font-bold text-on-surface">
+            <Users className="h-4 w-4 text-secondary" />
             Chỉ Số Vận Hành
           </h2>
           <div className="mt-4 space-y-2.5 text-xs">
-            <div className="flex justify-between"><span className="text-[#737783]">Tổng tài khoản</span><span className="font-bold text-[#111c2d]">{data.usersCount}</span></div>
-            <div className="flex justify-between"><span className="text-[#737783]">Nhân viên VP</span><span className="font-bold text-[#111c2d]">{data.staffCount}</span></div>
-            <div className="flex justify-between"><span className="text-[#737783]">Đơn hàng 30 ngày</span><span className="font-bold text-[#004a99]">{data.totalOrders}</span></div>
-            <div className="flex justify-between"><span className="text-[#737783]">Đơn đang xử lý</span><span className="font-bold text-[#7f3700]">{data.pendingOrders}</span></div>
-            <div className="flex justify-between"><span className="text-[#737783]">Lần thanh toán cuối</span><span className="font-medium text-[#111c2d]">{formatDate(data.lastPaymentAt)}</span></div>
+            <div className="flex justify-between"><span className="text-faint">Tổng tài khoản</span><span className="font-bold text-on-surface">{data.usersCount}</span></div>
+            <div className="flex justify-between"><span className="text-faint">Nhân viên VP</span><span className="font-bold text-on-surface">{data.staffCount}</span></div>
+            <div className="flex justify-between"><span className="text-faint">Đơn hàng 30 ngày</span><span className="font-bold text-primary-accent">{data.totalOrders}</span></div>
+            <div className="flex justify-between"><span className="text-faint">Đơn đang xử lý</span><span className="font-bold text-tertiary-container">{data.pendingOrders}</span></div>
+            <div className="flex justify-between"><span className="text-faint">Lần thanh toán cuối</span><span className="font-medium text-on-surface">{formatDate(data.lastPaymentAt)}</span></div>
           </div>
         </section>
 
         {/* Personnel */}
-        <section className="rounded border border-[#c2c6d3] bg-white p-5 shadow-sm">
-          <h2 className="text-base font-bold text-[#111c2d] mb-4">Danh Sách Nhân Sự</h2>
+        <section className="rounded border border-outline-variant bg-card p-5 shadow-sm">
+          <h2 className="text-base font-bold text-on-surface mb-4">Danh Sách Nhân Sự</h2>
           <div className="space-y-2.5">
             {data.users.slice(0, 5).map(user => (
-              <div key={user.id} className="flex items-center justify-between border-b border-[#e7eeff] pb-2 last:border-0 text-xs">
+              <div key={user.id} className="flex items-center justify-between border-b border-outline-soft pb-2 last:border-0 text-xs">
                 <div>
-                  <p className="font-bold text-[#111c2d]">{user.name}</p>
-                  <p className="text-[11px] text-[#737783]">{user.email}</p>
+                  <p className="font-bold text-on-surface">{user.name}</p>
+                  <p className="text-[11px] text-faint">{user.email}</p>
                 </div>
-                <span className="rounded bg-[#dee8ff] px-2 py-0.5 font-bold text-[#004a99]">{user.role}</span>
+                <span className="rounded bg-container-high px-2 py-0.5 font-bold text-primary-accent">{user.role}</span>
               </div>
             ))}
           </div>
@@ -266,38 +266,38 @@ export default function AdminTenantDetailPage() {
 
       <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
         {/* Recent Payments */}
-        <section className="rounded border border-[#c2c6d3] bg-white p-5 shadow-sm">
-          <h2 className="text-base font-bold text-[#111c2d] mb-3">Lịch Sử Thanh Toán Gần Đây</h2>
+        <section className="rounded border border-outline-variant bg-card p-5 shadow-sm">
+          <h2 className="text-base font-bold text-on-surface mb-3">Lịch Sử Thanh Toán Gần Đây</h2>
           <div className="space-y-2.5">
             {data.recentPayments.length === 0 ? (
-              <p className="text-xs text-[#737783]">Chưa có thanh toán nào được ghi nhận.</p>
+              <p className="text-xs text-faint">Chưa có thanh toán nào được ghi nhận.</p>
             ) : data.recentPayments.map(payment => (
-              <div key={payment.id} className="flex justify-between border-b border-[#e7eeff] pb-2 text-xs last:border-0">
+              <div key={payment.id} className="flex justify-between border-b border-outline-soft pb-2 text-xs last:border-0">
                 <div>
-                  <p className="font-bold text-[#1b6d24]">{formatCurrency(payment.amount)}</p>
-                  <p className="text-[11px] text-[#737783]">{payment.adminName} · {payment.notes ?? '—'}</p>
+                  <p className="font-bold text-secondary">{formatCurrency(payment.amount)}</p>
+                  <p className="text-[11px] text-faint">{payment.adminName} · {payment.notes ?? '—'}</p>
                 </div>
-                <span className="text-[#737783]">{formatDate(payment.confirmedAt)}</span>
+                <span className="text-faint">{formatDate(payment.confirmedAt)}</span>
               </div>
             ))}
           </div>
         </section>
 
         {/* Recent Orders */}
-        <section className="rounded border border-[#c2c6d3] bg-white p-5 shadow-sm">
-          <h2 className="text-base font-bold text-[#111c2d] mb-3">Đơn Hàng Gần Đây</h2>
+        <section className="rounded border border-outline-variant bg-card p-5 shadow-sm">
+          <h2 className="text-base font-bold text-on-surface mb-3">Đơn Hàng Gần Đây</h2>
           <div className="space-y-2.5">
             {data.recentOrders.length === 0 ? (
-              <p className="text-xs text-[#737783]">Không có đơn hàng trong 30 ngày gần đây.</p>
+              <p className="text-xs text-faint">Không có đơn hàng trong 30 ngày gần đây.</p>
             ) : data.recentOrders.map(order => (
-              <div key={order.id} className="flex justify-between border-b border-[#e7eeff] pb-2 text-xs last:border-0">
+              <div key={order.id} className="flex justify-between border-b border-outline-soft pb-2 text-xs last:border-0">
                 <div>
-                  <p className="font-bold text-[#111c2d]">{order.customerName}</p>
-                  <p className="text-[11px] font-bold text-[#004a99]">{order.status}</p>
+                  <p className="font-bold text-on-surface">{order.customerName}</p>
+                  <p className="text-[11px] font-bold text-primary-accent">{order.status}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-[#111c2d]">{formatCurrency(order.total)}</p>
-                  <p className="text-[11px] text-[#737783]">{formatDate(order.createdAt)}</p>
+                  <p className="font-bold text-on-surface">{formatCurrency(order.total)}</p>
+                  <p className="text-[11px] text-faint">{formatDate(order.createdAt)}</p>
                 </div>
               </div>
             ))}

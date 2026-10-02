@@ -16,13 +16,13 @@ export default function GlobalError({
 
   return (
     <html lang="vi">
-      <body className="min-h-screen bg-[#f9f9ff] text-[#111c2d] flex items-center justify-center p-4 font-sans">
-        <div className="w-full max-w-md rounded border border-[#c2c6d3] bg-white p-8 text-center shadow-lg">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded bg-[#ffdad6] text-[#ba1a1a]">
-            <AlertCircle className="h-7 w-7 text-[#ba1a1a]" />
+      <body className="min-h-screen bg-surface text-on-surface flex items-center justify-center p-4 font-sans">
+        <div className="w-full max-w-md rounded border border-outline-variant bg-card p-8 text-center shadow-lg">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded bg-error-container text-error">
+            <AlertCircle className="h-7 w-7 text-error" />
           </div>
-          <h1 className="text-xl font-bold text-[#111c2d]">Lỗi Hệ Thống Toàn Cục</h1>
-          <p className="mt-2 text-xs text-[#737783]">
+          <h1 className="text-xl font-bold text-on-surface">Lỗi Hệ Thống Toàn Cục</h1>
+          <p className="mt-2 text-xs text-faint">
             Ứng dụng gặp sự cố cấp khung giao diện. Vui lòng bấm làm mới ứng dụng.
           </p>
           <button

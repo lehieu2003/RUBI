@@ -10,9 +10,9 @@ import { API_ENDPOINTS } from '@/lib/api-endpoints';
 const MapInner = dynamic(() => import('@/components/driver/MapInner'), {
   ssr: false,
   loading: () => (
-    <div className="h-full flex items-center justify-center bg-[#f9f9ff]">
-      <div className="flex items-center gap-2 text-xs font-bold text-[#424751]">
-        <Loader2 className="h-4 w-4 animate-spin text-[#004a99]" />
+    <div className="h-full flex items-center justify-center bg-surface">
+      <div className="flex items-center gap-2 text-xs font-bold text-on-surface-variant">
+        <Loader2 className="h-4 w-4 animate-spin text-primary-accent" />
         Đang tải bản đồ...
       </div>
     </div>
@@ -102,17 +102,17 @@ export default function AdminMapPage() {
     <DashboardLayout>
       <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px]">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-outline-variant pb-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Bản Đồ Giao Hàng & GPS</h1>
-            <p className="text-xs text-[#424751] mt-1">
+            <h1 className="text-2xl font-bold tracking-tight text-on-surface">Bản Đồ Giao Hàng & GPS</h1>
+            <p className="text-xs text-on-surface-variant mt-1">
               {orders.length} đơn có GPS hôm nay (SHIPPING/DELIVERED) • {ordersWithGps.length} đơn đang hiển thị trên bản đồ
             </p>
           </div>
           <button
             onClick={fetchMapData}
             disabled={loading}
-            className="flex items-center gap-2 px-3 py-2 border border-[#c2c6d3] bg-white hover:bg-[#dee8ff] text-[#00346f] font-bold text-xs rounded transition-all shadow-sm"
+            className="flex items-center gap-2 px-3 py-2 border border-outline-variant bg-card hover:bg-container-high text-primary-deep font-bold text-xs rounded transition-all shadow-sm"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             LÀM MỚI
@@ -120,21 +120,21 @@ export default function AdminMapPage() {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3 mb-6 bg-white p-3 rounded border border-[#c2c6d3] shadow-2xs">
+        <div className="flex flex-wrap items-center gap-3 mb-6 bg-card p-3 rounded border border-outline-variant shadow-2xs">
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-[#737783]" />
+            <Calendar className="h-4 w-4 text-faint" />
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="px-3 py-1.5 bg-[#f9f9ff] border border-[#c2c6d3] rounded text-xs text-[#111c2d] focus:border-[#004a99] outline-none"
+              className="px-3 py-1.5 bg-surface border border-outline-variant rounded text-xs text-on-surface focus:border-[#004a99] outline-none"
             />
           </div>
 
           <select
             value={selectedDriverId}
             onChange={(e) => setSelectedDriverId(e.target.value)}
-            className="px-3 py-1.5 bg-[#f9f9ff] border border-[#c2c6d3] rounded text-xs text-[#111c2d] focus:border-[#004a99] outline-none"
+            className="px-3 py-1.5 bg-surface border border-outline-variant rounded text-xs text-on-surface focus:border-[#004a99] outline-none"
           >
             <option value="all">Tất cả tài xế</option>
             {drivers.map((d) => (
@@ -142,7 +142,7 @@ export default function AdminMapPage() {
             ))}
           </select>
 
-          <div className="ml-auto flex items-center gap-4 text-xs font-medium text-[#424751]">
+          <div className="ml-auto flex items-center gap-4 text-xs font-medium text-on-surface-variant">
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-full bg-[#f59e0b] border border-white shadow-2xs"></span>
               <span>Đang giao</span>
@@ -155,15 +155,15 @@ export default function AdminMapPage() {
         </div>
 
         {/* Map */}
-        <div className="rounded border border-[#c2c6d3] bg-white overflow-hidden shadow-sm">
+        <div className="rounded border border-outline-variant bg-card overflow-hidden shadow-sm">
           <div className="h-[calc(100vh-280px)] min-h-[500px]">
             {loading && orders.length === 0 ? (
-              <div className="h-full flex items-center justify-center bg-[#f9f9ff]">
-                <Loader2 className="h-8 w-8 animate-spin text-[#004a99]" />
+              <div className="h-full flex items-center justify-center bg-surface">
+                <Loader2 className="h-8 w-8 animate-spin text-primary-accent" />
               </div>
             ) : error ? (
-              <div className="h-full flex items-center justify-center bg-[#f9f9ff]">
-                <div className="text-xs font-bold text-[#ba1a1a]">Lỗi: {error}</div>
+              <div className="h-full flex items-center justify-center bg-surface">
+                <div className="text-xs font-bold text-error">Lỗi: {error}</div>
               </div>
             ) : (
               <MapInner

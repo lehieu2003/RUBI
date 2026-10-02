@@ -24,11 +24,11 @@ export default function LandingPage() {
   const dashboardUrl = user?.role === 'SUPER_ADMIN' ? '/admin/dashboard' : user?.role === 'DRIVER' ? '/driver' : '/dashboard';
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d] overflow-x-hidden">
+    <div className="min-h-screen bg-surface text-on-surface overflow-x-hidden">
       {/* Background Soft Glows */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[#dee8ff]/60 rounded-full blur-[140px]" />
-        <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-[#d8e3fb]/50 rounded-full blur-[120px]" />
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-container-high/60 rounded-full blur-[140px]" />
+        <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-container-highest/50 rounded-full blur-[120px]" />
       </div>
 
       {/* Grid Pattern Overlay */}
@@ -41,18 +41,18 @@ export default function LandingPage() {
       />
 
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 flex items-center justify-between px-6 py-3 max-w-[1200px] mx-auto bg-white/90 backdrop-blur-md border border-[#c2c6d3] shadow-xs rounded-xl mt-4 transition-all">
+      <nav className="sticky top-0 z-50 flex items-center justify-between px-6 py-3 max-w-[1200px] mx-auto bg-card/90 backdrop-blur-md border border-outline-variant shadow-xs rounded-xl mt-4 transition-all">
         <div className="flex items-center gap-2.5 text-xl font-bold">
           <div className="w-8 h-8 bg-[#004a99] rounded flex items-center justify-center text-white shadow-2xs">
             <IceIcon />
           </div>
-          <span className="text-[#002754] font-black tracking-tight">IceFlow</span>
+          <span className="text-primary-dark font-black tracking-tight">IceFlow</span>
         </div>
         <div className="flex items-center gap-6">
-          <a href="#pain" className="text-xs font-bold uppercase tracking-wider text-[#424751] hover:text-[#004a99] transition-colors">
+          <a href="#pain" className="text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:text-primary-accent transition-colors">
             Nỗi đau
           </a>
-          <a href="#features" className="text-xs font-bold uppercase tracking-wider text-[#424751] hover:text-[#004a99] transition-colors">
+          <a href="#features" className="text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:text-primary-accent transition-colors">
             Tính năng
           </a>
           {user ? (
@@ -66,7 +66,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-2.5">
               <Link
                 href="/login"
-                className="px-3.5 py-1.5 border border-[#c2c6d3] bg-white text-[#00346f] font-bold text-xs rounded hover:bg-[#dee8ff] transition-all"
+                className="px-3.5 py-1.5 border border-outline-variant bg-card text-primary-deep font-bold text-xs rounded hover:bg-container-high transition-all"
               >
                 Đăng nhập
               </Link>
@@ -83,22 +83,22 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="relative max-w-[900px] mx-auto px-6 pt-20 pb-16 text-center">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#ffdcc2]/60 border border-[#7f3700]/20 rounded-full text-xs text-[#7f3700] font-bold mb-6">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-tertiary-fixed/60 border border-tertiary-container/20 rounded-full text-xs text-tertiary-container font-bold mb-6">
           <span className="w-2 h-2 bg-[#ba1a1a] rounded-full animate-pulse" />
           <span>Chủ xưởng đá đang thất thoát tiền & vỏ bao mỗi ngày</span>
         </div>
 
-        <h1 className="text-[clamp(2.2rem,5vw,3.5rem)] font-black leading-[1.15] tracking-tight text-[#111c2d] mb-6">
+        <h1 className="text-[clamp(2.2rem,5vw,3.5rem)] font-black leading-[1.15] tracking-tight text-on-surface mb-6">
           Quản Lý Xưởng Đá Thảnh Thơi
           <br />
-          <span className="text-[#004a99]">
+          <span className="text-primary-accent">
             Chống Thất Thoát Tuyệt Đối
           </span>
         </h1>
 
-        <p className="text-base text-[#424751] leading-relaxed mb-8 max-w-[620px] mx-auto">
+        <p className="text-base text-on-surface-variant leading-relaxed mb-8 max-w-[620px] mx-auto">
           Số hóa đơn hàng chỉ 30 giây, theo dõi công nợ đại lý và quản lý vỏ bao tự động.
-          <span className="text-[#111c2d] font-semibold"> Dễ dùng hơn Zalo, nhanh hơn sổ tay.</span>
+          <span className="text-on-surface font-semibold"> Dễ dùng hơn Zalo, nhanh hơn sổ tay.</span>
         </p>
 
         <div className="flex items-center justify-center gap-3 flex-wrap">
@@ -119,7 +119,7 @@ export default function LandingPage() {
               </Link>
               <Link
                 href="/login"
-                className="px-7 py-3.5 bg-white text-[#00346f] font-bold text-sm rounded border border-[#c2c6d3] hover:bg-[#dee8ff] transition-all"
+                className="px-7 py-3.5 bg-card text-primary-deep font-bold text-sm rounded border border-outline-variant hover:bg-container-high transition-all"
               >
                 ĐĂNG NHẬP NGAY
               </Link>
@@ -127,9 +127,9 @@ export default function LandingPage() {
           )}
         </div>
 
-        <p className="mt-4 text-xs text-[#737783]">Không cần thẻ tín dụng • Không cần cài đặt phức tạp</p>
+        <p className="mt-4 text-xs text-faint">Không cần thẻ tín dụng • Không cần cài đặt phức tạp</p>
 
-        <div className="mt-14 flex items-center justify-center gap-8 flex-wrap border-t border-[#c2c6d3] pt-8">
+        <div className="mt-14 flex items-center justify-center gap-8 flex-wrap border-t border-outline-variant pt-8">
           <StatItem value="50+" label="Nhà máy đá" />
           <div className="w-px h-10 bg-[#c2c6d3]" />
           <StatItem value="1,000+" label="Đơn hàng / ngày" />
@@ -139,14 +139,14 @@ export default function LandingPage() {
       </section>
 
       {/* Pain Points */}
-      <section id="pain" className="relative py-16 px-6 bg-white border-y border-[#c2c6d3]">
+      <section id="pain" className="relative py-16 px-6 bg-card border-y border-outline-variant">
         <div className="max-w-[1200px] mx-auto">
           <div className="text-center mb-12">
-            <span className="inline-block px-3 py-1 bg-[#ffdad6] border border-[#ba1a1a]/20 rounded text-xs font-bold text-[#ba1a1a] mb-2 uppercase tracking-wider">
+            <span className="inline-block px-3 py-1 bg-error-container border border-[#ba1a1a]/20 rounded text-xs font-bold text-error mb-2 uppercase tracking-wider">
               Nỗi đau thực tế
             </span>
-            <h2 className="text-2xl md:text-3xl font-black text-[#111c2d] mb-2">Những Vấn Đề Khiến Chủ Xưởng Mất Tiền</h2>
-            <p className="text-xs text-[#424751] max-w-[500px] mx-auto">Ghi sổ tay và chốt Zalo thủ công gây ra hàng loạt sai sót.</p>
+            <h2 className="text-2xl md:text-3xl font-black text-on-surface mb-2">Những Vấn Đề Khiến Chủ Xưởng Mất Tiền</h2>
+            <p className="text-xs text-on-surface-variant max-w-[500px] mx-auto">Ghi sổ tay và chốt Zalo thủ công gây ra hàng loạt sai sót.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -181,20 +181,20 @@ export default function LandingPage() {
       {/* Loss Calculator */}
       <section className="relative py-16 px-6">
         <div className="max-w-[700px] mx-auto">
-          <div className="bg-white border border-[#c2c6d3] rounded-2xl p-6 md:p-8 shadow-sm">
+          <div className="bg-card border border-outline-variant rounded-2xl p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-[#dee8ff] rounded flex items-center justify-center text-[#004a99]">
+              <div className="w-10 h-10 bg-container-high rounded flex items-center justify-center text-primary-accent">
                 <CalculatorIcon />
               </div>
               <div>
-                <h3 className="text-base font-bold text-[#111c2d]">Tính Toán Thất Thoát Của Xưởng Bạn</h3>
-                <p className="text-xs text-[#424751]">Ước tính số tiền thất thoát từ vỏ bao trôi nổi mỗi năm</p>
+                <h3 className="text-base font-bold text-on-surface">Tính Toán Thất Thoát Của Xưởng Bạn</h3>
+                <p className="text-xs text-on-surface-variant">Ước tính số tiền thất thoát từ vỏ bao trôi nổi mỗi năm</p>
               </div>
             </div>
 
             <div className="flex gap-6 items-center flex-wrap">
               <div className="flex-1 min-w-[200px]">
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">
                   Số vỏ bao mất mỗi tháng
                 </label>
                 <div className="flex items-center gap-2">
@@ -203,23 +203,23 @@ export default function LandingPage() {
                     value={bagLoss}
                     onChange={(e) => setBagLoss(Number(e.target.value) || 0)}
                     min="0"
-                    className="w-28 px-3 py-2 bg-white border border-[#004a99] rounded text-xl font-bold text-center text-[#111c2d] focus:outline-none"
+                    className="w-28 px-3 py-2 bg-card border border-[#004a99] rounded text-xl font-bold text-center text-on-surface focus:outline-none"
                     placeholder="0"
                   />
-                  <span className="text-xs font-bold text-[#424751]">vỏ bao / tháng</span>
+                  <span className="text-xs font-bold text-on-surface-variant">vỏ bao / tháng</span>
                 </div>
               </div>
 
-              <div className="flex-1 min-w-[200px] text-center p-4 bg-[#ffdcc2]/50 border border-[#7f3700]/20 rounded-xl">
-                <p className="text-xs font-bold text-[#7f3700] uppercase tracking-wider mb-1">Thất thoát ước tính / năm</p>
-                <p className="data-lg text-3xl font-black text-[#ba1a1a] mb-0.5">
+              <div className="flex-1 min-w-[200px] text-center p-4 bg-tertiary-fixed/50 border border-tertiary-container/20 rounded-xl">
+                <p className="text-xs font-bold text-tertiary-container uppercase tracking-wider mb-1">Thất thoát ước tính / năm</p>
+                <p className="data-lg text-3xl font-black text-error mb-0.5">
                   ~{yearlyLoss} triệu đ
                 </p>
-                <p className="text-[11px] text-[#737783]">*Tính định mức 20,000đ / vỏ bao</p>
+                <p className="text-[11px] text-faint">*Tính định mức 20,000đ / vỏ bao</p>
               </div>
             </div>
 
-            <p className="mt-5 text-xs text-[#004a99] text-center font-bold">
+            <p className="mt-5 text-xs text-primary-accent text-center font-bold">
               IceFlow giúp theo dõi từng vỏ bao trả ra / thu về — biết chính xác đại lý nào nợ.
             </p>
           </div>
@@ -227,100 +227,100 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section id="features" className="relative py-16 px-6 bg-white border-y border-[#c2c6d3]">
+      <section id="features" className="relative py-16 px-6 bg-card border-y border-outline-variant">
         <div className="max-w-[1200px] mx-auto">
           <div className="text-center mb-12">
-            <span className="inline-block px-3 py-1 bg-[#dee8ff] border border-[#004a99]/20 rounded text-xs font-bold text-[#004a99] mb-2 uppercase tracking-wider">
+            <span className="inline-block px-3 py-1 bg-container-high border border-[#004a99]/20 rounded text-xs font-bold text-primary-accent mb-2 uppercase tracking-wider">
               Tính năng cốt lõi
             </span>
-            <h2 className="text-2xl md:text-3xl font-black text-[#111c2d] mb-2">Được Thiết Kế Cho Chủ Lò Đá Việt Nam</h2>
-            <p className="text-xs text-[#424751] max-w-[500px] mx-auto">Tập trung vào tốc độ, độ chính xác và tính dễ dùng.</p>
+            <h2 className="text-2xl md:text-3xl font-black text-on-surface mb-2">Được Thiết Kế Cho Chủ Lò Đá Việt Nam</h2>
+            <p className="text-xs text-on-surface-variant max-w-[500px] mx-auto">Tập trung vào tốc độ, độ chính xác và tính dễ dùng.</p>
           </div>
 
           <div className="flex flex-col gap-6">
             {/* Feature 1: Speed */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-6 md:p-8 bg-[#f9f9ff] border border-[#c2c6d3] rounded-2xl">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-6 md:p-8 bg-surface border border-outline-variant rounded-2xl">
               <div>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#a0f399]/40 text-[#1b6d24] text-xs font-bold rounded mb-3">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#a0f399]/40 text-secondary text-xs font-bold rounded mb-3">
                   ✓ TỐC ĐỘ CAO
                 </span>
-                <h3 className="text-xl font-bold text-[#111c2d] mb-2">Lên đơn siêu tốc — chỉ 30 giây</h3>
-                <p className="text-xs text-[#424751] leading-relaxed mb-4">Vừa nghe điện thoại vừa gõ đơn. Tìm khách hàng bằng tên, số điện thoại hoặc mã đại lý. Tự động áp giá riêng theo từng đại lý.</p>
-                <ul className="flex flex-col gap-2 text-xs text-[#424751]">
+                <h3 className="text-xl font-bold text-on-surface mb-2">Lên đơn siêu tốc — chỉ 30 giây</h3>
+                <p className="text-xs text-on-surface-variant leading-relaxed mb-4">Vừa nghe điện thoại vừa gõ đơn. Tìm khách hàng bằng tên, số điện thoại hoặc mã đại lý. Tự động áp giá riêng theo từng đại lý.</p>
+                <ul className="flex flex-col gap-2 text-xs text-on-surface-variant">
                   <li className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded bg-[#a0f399]/40 text-[#1b6d24] flex items-center justify-center font-bold text-[10px]">✓</span>
+                    <span className="w-4 h-4 rounded bg-[#a0f399]/40 text-secondary flex items-center justify-center font-bold text-[10px]">✓</span>
                     Tìm kiếm thông minh (Fuzzy Search)
                   </li>
                   <li className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded bg-[#a0f399]/40 text-[#1b6d24] flex items-center justify-center font-bold text-[10px]">✓</span>
+                    <span className="w-4 h-4 rounded bg-[#a0f399]/40 text-secondary flex items-center justify-center font-bold text-[10px]">✓</span>
                     Bảng giá riêng theo từng đại lý
                   </li>
                   <li className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded bg-[#a0f399]/40 text-[#1b6d24] flex items-center justify-center font-bold text-[10px]">✓</span>
+                    <span className="w-4 h-4 rounded bg-[#a0f399]/40 text-secondary flex items-center justify-center font-bold text-[10px]">✓</span>
                     Tự động tính tiền và lưu đơn tức thì
                   </li>
                 </ul>
               </div>
-              <div className="bg-white rounded border border-[#c2c6d3] p-4 shadow-sm">
-                <div className="flex items-center gap-2 pb-3 border-b border-[#e7eeff] text-xs font-bold text-[#004a99]">
+              <div className="bg-card rounded border border-outline-variant p-4 shadow-sm">
+                <div className="flex items-center gap-2 pb-3 border-b border-outline-soft text-xs font-bold text-primary-accent">
                   <span>🔍</span>
                   <span>Đại lý Minh Tuấn (0912 345 678)</span>
                 </div>
                 <div className="py-2.5 space-y-2 text-xs">
-                  <div className="flex justify-between font-medium text-[#111c2d]">
+                  <div className="flex justify-between font-medium text-on-surface">
                     <span>Đá Bi (20kg) × 10 bao</span>
-                    <span className="font-bold text-[#004a99]">120,000 đ</span>
+                    <span className="font-bold text-primary-accent">120,000 đ</span>
                   </div>
-                  <div className="flex justify-between font-medium text-[#111c2d]">
+                  <div className="flex justify-between font-medium text-on-surface">
                     <span>Đá Viên (20kg) × 5 bao</span>
-                    <span className="font-bold text-[#004a99]">110,000 đ</span>
+                    <span className="font-bold text-primary-accent">110,000 đ</span>
                   </div>
-                  <div className="flex justify-between pt-2 border-t border-[#e7eeff] font-bold text-sm">
-                    <span className="text-[#424751]">TỔNG CỘNG:</span>
-                    <span className="text-[#1b6d24]">230,000 đ</span>
+                  <div className="flex justify-between pt-2 border-t border-outline-soft font-bold text-sm">
+                    <span className="text-on-surface-variant">TỔNG CỘNG:</span>
+                    <span className="text-secondary">230,000 đ</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Feature 2: Reconciliation */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-6 md:p-8 bg-[#f9f9ff] border border-[#c2c6d3] rounded-2xl">
-              <div className="bg-white rounded border border-[#c2c6d3] p-4 shadow-sm order-2 lg:order-1">
-                <div className="text-xs font-bold uppercase text-[#424751] mb-2 pb-2 border-b border-[#e7eeff]">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-6 md:p-8 bg-surface border border-outline-variant rounded-2xl">
+              <div className="bg-card rounded border border-outline-variant p-4 shadow-sm order-2 lg:order-1">
+                <div className="text-xs font-bold uppercase text-on-surface-variant mb-2 pb-2 border-b border-outline-soft">
                   Đối soát ca xe cuối ngày
                 </div>
                 <div className="space-y-2 text-xs">
-                  <div className="flex justify-between py-1 border-b border-[#e7eeff]">
-                    <span className="text-[#737783]">Tiền mặt tài xế nộp</span>
-                    <span className="font-bold text-[#1b6d24]">+3,200,000 đ</span>
+                  <div className="flex justify-between py-1 border-b border-outline-soft">
+                    <span className="text-faint">Tiền mặt tài xế nộp</span>
+                    <span className="font-bold text-secondary">+3,200,000 đ</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-[#e7eeff]">
-                    <span className="text-[#737783]">Vỏ bao thu về</span>
-                    <span className="font-bold text-[#004a99]">45 / 50 vỏ</span>
+                  <div className="flex justify-between py-1 border-b border-outline-soft">
+                    <span className="text-faint">Vỏ bao thu về</span>
+                    <span className="font-bold text-primary-accent">45 / 50 vỏ</span>
                   </div>
                   <div className="flex justify-between py-1 font-bold">
-                    <span className="text-[#737783]">Đơn hoàn tất</span>
-                    <span className="text-[#111c2d]">12 / 12 đơn</span>
+                    <span className="text-faint">Đơn hoàn tất</span>
+                    <span className="text-on-surface">12 / 12 đơn</span>
                   </div>
                 </div>
               </div>
               <div className="order-1 lg:order-2">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#dee8ff] text-[#004a99] text-xs font-bold rounded mb-3">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-container-high text-primary-accent text-xs font-bold rounded mb-3">
                   ✓ ĐỐI SOÁT TỰ ĐỘNG
                 </span>
-                <h3 className="text-xl font-bold text-[#111c2d] mb-2">Chốt sổ cuối ca chỉ 5 phút</h3>
-                <p className="text-xs text-[#424751] leading-relaxed mb-4">Tự động đối chiếu đơn giao, tiền mặt tài xế thu về và số vỏ bao thu hồi. Không cần cộng sổ tay, không sợ thất thoát.</p>
-                <ul className="flex flex-col gap-2 text-xs text-[#424751]">
+                <h3 className="text-xl font-bold text-on-surface mb-2">Chốt sổ cuối ca chỉ 5 phút</h3>
+                <p className="text-xs text-on-surface-variant leading-relaxed mb-4">Tự động đối chiếu đơn giao, tiền mặt tài xế thu về và số vỏ bao thu hồi. Không cần cộng sổ tay, không sợ thất thoát.</p>
+                <ul className="flex flex-col gap-2 text-xs text-on-surface-variant">
                   <li className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded bg-[#a0f399]/40 text-[#1b6d24] flex items-center justify-center font-bold text-[10px]">✓</span>
+                    <span className="w-4 h-4 rounded bg-[#a0f399]/40 text-secondary flex items-center justify-center font-bold text-[10px]">✓</span>
                     Tài xế bấm giao hàng trên điện thoại
                   </li>
                   <li className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded bg-[#a0f399]/40 text-[#1b6d24] flex items-center justify-center font-bold text-[10px]">✓</span>
+                    <span className="w-4 h-4 rounded bg-[#a0f399]/40 text-secondary flex items-center justify-center font-bold text-[10px]">✓</span>
                     Công nợ cập nhật ngay lập tức
                   </li>
                   <li className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded bg-[#a0f399]/40 text-[#1b6d24] flex items-center justify-center font-bold text-[10px]">✓</span>
+                    <span className="w-4 h-4 rounded bg-[#a0f399]/40 text-secondary flex items-center justify-center font-bold text-[10px]">✓</span>
                     Báo cáo doanh thu và nợ rõ ràng
                   </li>
                 </ul>
@@ -334,10 +334,10 @@ export default function LandingPage() {
       <section className="relative py-16 px-6">
         <div className="max-w-[1200px] mx-auto">
           <div className="text-center mb-10">
-            <span className="inline-block px-3 py-1 bg-[#dee8ff] border border-[#004a99]/20 rounded text-xs font-bold text-[#004a99] mb-2 uppercase tracking-wider">
+            <span className="inline-block px-3 py-1 bg-container-high border border-[#004a99]/20 rounded text-xs font-bold text-primary-accent mb-2 uppercase tracking-wider">
               Cam kết
             </span>
-            <h2 className="text-2xl md:text-3xl font-black text-[#111c2d] mb-2">Tối Ưu Cho Môi Trường Nhà Máy Đá</h2>
+            <h2 className="text-2xl md:text-3xl font-black text-on-surface mb-2">Tối Ưu Cho Môi Trường Nhà Máy Đá</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -394,21 +394,21 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-6 border-t border-[#c2c6d3] bg-white">
+      <footer className="py-8 px-6 border-t border-outline-variant bg-card">
         <div className="max-w-[1200px] mx-auto flex flex-col items-center gap-3">
           <div className="flex items-center gap-2 text-lg font-bold">
             <div className="w-6 h-6 bg-[#004a99] rounded flex items-center justify-center text-white">
               <IceIcon />
             </div>
-            <span className="text-[#002754] font-black">IceFlow</span>
+            <span className="text-primary-dark font-black">IceFlow</span>
           </div>
-          <p className="text-xs text-[#424751]">Quản lý lò đá thảnh thơi — Chống thất thoát tiền & vỏ bao</p>
-          <div className="flex items-center gap-4 text-xs font-bold text-[#004a99]">
+          <p className="text-xs text-on-surface-variant">Quản lý lò đá thảnh thơi — Chống thất thoát tiền & vỏ bao</p>
+          <div className="flex items-center gap-4 text-xs font-bold text-primary-accent">
             <Link href="/terms" className="hover:underline">Điều khoản dịch vụ</Link>
             <span className="text-[#c2c6d3]">•</span>
             <Link href="/privacy" className="hover:underline">Chính sách bảo mật</Link>
           </div>
-          <p className="text-[11px] text-[#737783] mt-1">© 2026 IceFlow SaaS • Dành cho xưởng sản xuất đá Việt Nam</p>
+          <p className="text-[11px] text-faint mt-1">© 2026 IceFlow SaaS • Dành cho xưởng sản xuất đá Việt Nam</p>
         </div>
       </footer>
     </div>

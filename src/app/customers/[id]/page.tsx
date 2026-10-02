@@ -58,7 +58,7 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
       </nav>
 
       {/* Customer header */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+      <div className="bg-card rounded-lg border border-gray-200 p-6 mb-6">
         <h1 className="text-xl font-bold mb-4">{customer.name}</h1>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
@@ -77,7 +77,7 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
       </div>
 
       {/* Price table */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="bg-card rounded-lg border border-gray-200 p-6">
         <h2 className="text-lg font-semibold mb-4">Bảng giá cho {customer.name}</h2>
         <p className="text-sm text-gray-600 mb-6">
           Giá riêng (màu xanh) ghi đè giá cơ bản. Xóa giá riêng để quay về giá cơ bản.

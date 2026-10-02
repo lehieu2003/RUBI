@@ -63,19 +63,19 @@ export function HourlyChart({ orders = [] }: HourlyChartProps) {
   }, [hourlyData, totalTodayOrders]);
 
   return (
-    <div className="relative overflow-hidden rounded border border-[#c2c6d3] bg-white p-5 shadow-sm">
+    <div className="relative overflow-hidden rounded border border-outline-variant bg-card p-5 shadow-sm">
       {/* Header */}
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <h3 className="text-base font-bold text-[#111c2d]">Sản Lượng Theo Khung Giờ Hôm Nay</h3>
-          <p className="text-xs text-[#424751]">
+          <h3 className="text-base font-bold text-on-surface">Sản Lượng Theo Khung Giờ Hôm Nay</h3>
+          <p className="text-xs text-on-surface-variant">
             {totalTodayOrders > 0
               ? `Phân bổ ${totalTodayOrders} đơn hàng thực tế trong ngày`
               : 'Chưa có đơn hàng nào được tạo hôm nay'}
           </p>
         </div>
-        <div className="flex h-9 w-9 items-center justify-center rounded bg-[#dee8ff]">
-          <BarChart3 className="h-5 w-5 text-[#004a99]" />
+        <div className="flex h-9 w-9 items-center justify-center rounded bg-container-high">
+          <BarChart3 className="h-5 w-5 text-primary-accent" />
         </div>
       </div>
 
@@ -95,7 +95,7 @@ export function HourlyChart({ orders = [] }: HourlyChartProps) {
                 <div
                   className={`w-full rounded-t transition-all duration-150 ${
                     data.orders === 0
-                      ? 'bg-[#e7eeff] h-1'
+                      ? 'bg-container h-1'
                       : isPeak
                       ? 'bg-[#004a99] hover:bg-[#00346f]'
                       : 'bg-[#9bbdff] hover:bg-[#004a99]'
@@ -113,7 +113,7 @@ export function HourlyChart({ orders = [] }: HourlyChartProps) {
               </div>
 
               {/* Hour label */}
-              <span className="mt-2 text-[11px] text-[#424751] font-semibold">
+              <span className="mt-2 text-[11px] text-on-surface-variant font-semibold">
                 {data.hour}
               </span>
             </div>
@@ -122,9 +122,9 @@ export function HourlyChart({ orders = [] }: HourlyChartProps) {
       </div>
 
       {/* Peak indicator */}
-      <div className="mt-3 flex items-center justify-center gap-2 border-t border-[#e7eeff] pt-3">
+      <div className="mt-3 flex items-center justify-center gap-2 border-t border-outline-soft pt-3">
         <div className="h-2 w-2 rounded-full bg-[#004a99]" />
-        <span className="text-xs font-medium text-[#424751]">
+        <span className="text-xs font-medium text-on-surface-variant">
           {peakHours ? `Khung giờ cao điểm: ${peakHours}` : 'Tự động tính khung giờ cao điểm khi có đơn'}
         </span>
       </div>

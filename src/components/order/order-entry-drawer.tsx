@@ -117,7 +117,7 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
         <div className="flex flex-col gap-5">
           {/* Customer search */}
           <div>
-            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#424751]">
+            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
               Khách hàng
             </label>
             <SearchBar
@@ -129,9 +129,9 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
 
           {/* Selected customer display */}
           {customer && (
-            <div className="rounded border border-[#004a99]/30 bg-[#dee8ff]/50 p-3.5">
-              <div className="font-bold text-base text-[#002754]">{customer.name}</div>
-              <div className="text-xs text-[#004a99] font-mono mt-0.5 font-medium">
+            <div className="rounded border border-[#004a99]/30 bg-container-high/50 p-3.5">
+              <div className="font-bold text-base text-primary-dark">{customer.name}</div>
+              <div className="text-xs text-primary-accent font-mono mt-0.5 font-medium">
                 Mã: {customer.code} • SĐT: {customer.phone}
               </div>
             </div>
@@ -141,7 +141,7 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
           {customer && (
             <>
               <div>
-                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#424751]">
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                   Số lượng bao đá đặt
                 </label>
                 <OrderMatrix
@@ -155,16 +155,16 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
               </div>
 
               {/* Total display */}
-              <div className="flex items-center justify-between rounded border border-[#c2c6d3] bg-[#f9f9ff] px-4 py-3.5">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#424751]">Tổng cộng</span>
-                <span className="text-2xl font-bold font-mono text-[#004a99]">
+              <div className="flex items-center justify-between rounded border border-outline-variant bg-surface px-4 py-3.5">
+                <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Tổng cộng</span>
+                <span className="text-2xl font-bold font-mono text-primary-accent">
                   {total.toLocaleString('vi-VN')}đ
                 </span>
               </div>
 
               {/* Error display */}
               {saveError && (
-                <div className="flex items-center gap-2 rounded border border-[#ba1a1a]/30 bg-[#ffdad6] p-3 text-xs font-bold text-[#93000a]">
+                <div className="flex items-center gap-2 rounded border border-[#ba1a1a]/30 bg-error-container p-3 text-xs font-bold text-on-error-container">
                   <AlertCircle className="h-4 w-4 shrink-0" />
                   <span>{saveError}</span>
                 </div>

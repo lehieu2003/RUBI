@@ -33,7 +33,7 @@ export function OfflineBanner() {
       </div>
       <button
         onClick={() => window.location.reload()}
-        className="inline-flex items-center gap-1.5 rounded bg-white/20 hover:bg-white/30 px-2.5 py-1 text-xs font-bold transition-colors"
+        className="inline-flex items-center gap-1.5 rounded bg-card/20 hover:bg-card/30 px-2.5 py-1 text-xs font-bold transition-colors"
       >
         <RefreshCw className="h-3 w-3" />
         Thử lại

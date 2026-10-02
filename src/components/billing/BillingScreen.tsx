@@ -65,7 +65,7 @@ export function BillingScreen() {
     return (
       <DashboardLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#004a99]" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary-accent" />
         </div>
       </DashboardLayout>
     );
@@ -129,9 +129,9 @@ export function BillingScreen() {
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 lg:p-8 max-w-[1000px]">
-        <div className="mb-6 border-b border-[#c2c6d3] pb-4">
-          <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Thanh Toán & Thuê Bao</h1>
-          <p className="text-xs text-[#424751] mt-1">
+        <div className="mb-6 border-b border-outline-variant pb-4">
+          <h1 className="text-2xl font-bold tracking-tight text-on-surface">Thanh Toán & Thuê Bao</h1>
+          <p className="text-xs text-on-surface-variant mt-1">
             Theo dõi trạng thái gói cước, số lượng tài xế và thông tin thanh toán cho nhà máy.
           </p>
         </div>
@@ -147,7 +147,7 @@ export function BillingScreen() {
           </div>
 
           {!subscription && (
-            <div className="rounded border border-[#7f3700]/30 bg-[#ffdcc2]/40 p-4 text-xs font-bold text-[#7f3700]">
+            <div className="rounded border border-tertiary-container/30 bg-tertiary-fixed/40 p-4 text-xs font-bold text-tertiary-container">
               Chưa có hồ sơ thuê bao cho nhà máy này. Vui lòng liên hệ IceFlow để kích hoạt gói trước khi thanh toán.
             </div>
           )}
@@ -159,9 +159,9 @@ export function BillingScreen() {
           />
 
           {canSelfUpgrade && (
-            <div className="rounded border border-[#c2c6d3] bg-white p-5 shadow-sm">
-              <h2 className="text-base font-bold text-[#111c2d]">Kích Hoạt Nâng Cấp Gói</h2>
-              <p className="mt-1 text-xs text-[#424751]">
+            <div className="rounded border border-outline-variant bg-card p-5 shadow-sm">
+              <h2 className="text-base font-bold text-on-surface">Kích Hoạt Nâng Cấp Gói</h2>
+              <p className="mt-1 text-xs text-on-surface-variant">
                 Sau khi chuyển khoản đúng số tiền và nội dung bên trên, nhấn nút xác nhận bên dưới để hệ thống kích hoạt gói trả phí và gia hạn thêm 30 ngày.
               </p>
 
@@ -180,13 +180,13 @@ export function BillingScreen() {
               </button>
 
               {paymentMessage && (
-                <div className="mt-3 rounded border border-[#1b6d24]/30 bg-[#a0f399]/30 p-3 text-xs font-bold text-[#1b6d24]">
+                <div className="mt-3 rounded border border-[#1b6d24]/30 bg-[#a0f399]/30 p-3 text-xs font-bold text-secondary">
                   {paymentMessage}
                 </div>
               )}
 
               {paymentError && (
-                <div className="mt-3 rounded border border-[#ba1a1a]/30 bg-[#ffdad6]/60 p-3 text-xs font-bold text-[#93000a]">
+                <div className="mt-3 rounded border border-[#ba1a1a]/30 bg-error-container/60 p-3 text-xs font-bold text-on-error-container">
                   {paymentError}
                 </div>
               )}
@@ -194,7 +194,7 @@ export function BillingScreen() {
           )}
 
           {!canSelfUpgrade && (
-            <p className="text-xs text-[#737783]">
+            <p className="text-xs text-faint">
               Chỉ tài khoản Quản lý (ADMIN) của nhà máy mới được thực hiện nâng cấp gói.
             </p>
           )}

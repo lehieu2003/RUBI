@@ -34,57 +34,57 @@ export const shiftSlots: Array<{
     value: 'SLOT_00_03',
     label: 'Ca 1',
     time: '00:00-03:00',
-    headerBg: 'bg-[#dee8ff]',
-    headerText: 'text-[#00346f]',
+    headerBg: 'bg-container-high',
+    headerText: 'text-primary-deep',
   },
   {
     value: 'SLOT_03_06',
     label: 'Ca 2',
     time: '03:00-06:00',
-    headerBg: 'bg-[#e7eeff]',
-    headerText: 'text-[#00346f]',
+    headerBg: 'bg-container',
+    headerText: 'text-primary-deep',
   },
   {
     value: 'SLOT_06_09',
     label: 'Ca 3',
     time: '06:00-09:00',
     headerBg: 'bg-[#a0f399]/30',
-    headerText: 'text-[#1b6d24]',
+    headerText: 'text-secondary',
   },
   {
     value: 'SLOT_09_12',
     label: 'Ca 4',
     time: '09:00-12:00',
     headerBg: 'bg-[#a0f399]/40',
-    headerText: 'text-[#1b6d24]',
+    headerText: 'text-secondary',
   },
   {
     value: 'SLOT_12_15',
     label: 'Ca 5',
     time: '12:00-15:00',
-    headerBg: 'bg-[#ffdcc2]/40',
-    headerText: 'text-[#7f3700]',
+    headerBg: 'bg-tertiary-fixed/40',
+    headerText: 'text-tertiary-container',
   },
   {
     value: 'SLOT_15_18',
     label: 'Ca 6',
     time: '15:00-18:00',
-    headerBg: 'bg-[#ffdcc2]/60',
-    headerText: 'text-[#7f3700]',
+    headerBg: 'bg-tertiary-fixed/60',
+    headerText: 'text-tertiary-container',
   },
   {
     value: 'SLOT_18_21',
     label: 'Ca 7',
     time: '18:00-21:00',
-    headerBg: 'bg-[#dee8ff]',
-    headerText: 'text-[#004a99]',
+    headerBg: 'bg-container-high',
+    headerText: 'text-primary-accent',
   },
   {
     value: 'SLOT_21_24',
     label: 'Ca 8',
     time: '21:00-24:00',
-    headerBg: 'bg-[#d8e3fb]',
-    headerText: 'text-[#00346f]',
+    headerBg: 'bg-container-highest',
+    headerText: 'text-primary-deep',
   },
 ];
 
@@ -98,9 +98,9 @@ type CalendarGridProps = {
 
 export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemove }: CalendarGridProps) {
   return (
-    <div className="overflow-x-auto rounded border border-[#c2c6d3] bg-white shadow-sm">
+    <div className="overflow-x-auto rounded border border-outline-variant bg-card shadow-sm">
       <div className="grid min-w-[920px] grid-cols-8">
-        <div className="sticky left-0 z-10 border-b border-r border-[#c2c6d3] bg-[#f9f9ff] p-3 text-xs font-bold uppercase tracking-wider text-[#424751]">
+        <div className="sticky left-0 z-10 border-b border-r border-outline-variant bg-surface p-3 text-xs font-bold uppercase tracking-wider text-on-surface-variant">
           Khung giờ
         </div>
         {dayLabels.map((label, index) => {
@@ -109,19 +109,19 @@ export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemov
           return (
             <div
               key={label}
-              className={`border-b border-r border-[#c2c6d3] p-2.5 text-center transition-colors ${
-                isToday ? 'bg-[#dee8ff]/80 font-bold border-b-2 border-b-[#004a99]' : 'bg-[#f9f9ff]'
+              className={`border-b border-r border-outline-variant p-2.5 text-center transition-colors ${
+                isToday ? 'bg-container-high/80 font-bold border-b-2 border-b-[#004a99]' : 'bg-surface'
               }`}
             >
               <div className="flex items-center justify-center gap-1">
-                <span className={`text-xs font-bold ${isToday ? 'text-[#004a99]' : 'text-[#111c2d]'}`}>{label}</span>
+                <span className={`text-xs font-bold ${isToday ? 'text-primary-accent' : 'text-on-surface'}`}>{label}</span>
                 {isToday && (
                   <span className="rounded bg-[#004a99] px-1 py-0.2 text-[9px] font-bold text-white uppercase tracking-wider">
                     Hôm nay
                   </span>
                 )}
               </div>
-              <div className={`mt-0.5 text-[11px] font-mono ${isToday ? 'text-[#00346f] font-bold' : 'text-[#737783]'}`}>
+              <div className={`mt-0.5 text-[11px] font-mono ${isToday ? 'text-primary-deep font-bold' : 'text-faint'}`}>
                 {formatShortDate(dateStr)}
               </div>
             </div>
@@ -130,9 +130,9 @@ export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemov
 
         {shiftSlots.map((slot) => (
           <div key={slot.value} className="contents">
-            <div className={`sticky left-0 z-10 flex min-h-24 flex-col justify-center border-r border-t border-[#c2c6d3] p-3 ${slot.headerBg}`}>
+            <div className={`sticky left-0 z-10 flex min-h-24 flex-col justify-center border-r border-t border-outline-variant p-3 ${slot.headerBg}`}>
               <span className={`text-xs font-bold ${slot.headerText}`}>{slot.label}</span>
-              <span className="mt-0.5 text-[10px] font-mono text-[#424751]">{slot.time}</span>
+              <span className="mt-0.5 text-[10px] font-mono text-on-surface-variant">{slot.time}</span>
             </div>
             {weekDates.map((shiftDate) => {
               const assignedPeople = people.filter((person) =>
@@ -147,17 +147,17 @@ export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemov
               return (
                 <div
                   key={shiftDate}
-                  className="min-h-24 border-r border-t border-[#e7eeff] bg-white p-1.5 hover:bg-[#f9f9ff] transition-colors"
+                  className="min-h-24 border-r border-t border-outline-soft bg-card p-1.5 hover:bg-surface transition-colors"
                 >
                   <div className="space-y-1.5">
                     {assignedPeople.map((person) => (
                       <div
                         key={person.id}
-                        className="flex items-center justify-between gap-1.5 rounded border border-[#c2c6d3] bg-[#f0f3ff] px-2 py-1 shadow-2xs"
+                        className="flex items-center justify-between gap-1.5 rounded border border-outline-variant bg-container-low px-2 py-1 shadow-2xs"
                       >
                         <div className="min-w-0" title={person.name}>
-                          <span className="block truncate text-xs font-bold text-[#111c2d]">{person.name}</span>
-                          <span className={`inline-flex rounded px-1 text-[10px] font-bold ${person.role === 'DRIVER' ? 'bg-[#a0f399]/40 text-[#1b6d24]' : 'bg-[#dee8ff] text-[#004a99]'}`}>
+                          <span className="block truncate text-xs font-bold text-on-surface">{person.name}</span>
+                          <span className={`inline-flex rounded px-1 text-[10px] font-bold ${person.role === 'DRIVER' ? 'bg-[#a0f399]/40 text-secondary' : 'bg-container-high text-primary-accent'}`}>
                             {getRoleLabel(person.role)}
                           </span>
                         </div>
@@ -165,7 +165,7 @@ export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemov
                           type="button"
                           disabled={isPending}
                           onClick={() => onRemove(person.id, shiftDate, slot.value)}
-                          className="flex h-4 w-4 shrink-0 items-center justify-center rounded text-[#737783] hover:bg-[#ffdad6] hover:text-[#ba1a1a] transition-colors disabled:opacity-50"
+                          className="flex h-4 w-4 shrink-0 items-center justify-center rounded text-faint hover:bg-error-container hover:text-error transition-colors disabled:opacity-50"
                           aria-label={`Bỏ ${person.name} khỏi ca ${slot.label} ${shiftDate}`}
                         >
                           ×
@@ -179,7 +179,7 @@ export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemov
                       onChange={(event) => {
                         if (event.target.value) onAssign(event.target.value, shiftDate, slot.value);
                       }}
-                      className="h-7 w-full rounded border border-dashed border-[#c2c6d3] bg-white px-1.5 text-[11px] font-medium text-[#424751] outline-none hover:border-[#004a99] focus:border-[#004a99] disabled:opacity-40 cursor-pointer"
+                      className="h-7 w-full rounded border border-dashed border-outline-variant bg-card px-1.5 text-[11px] font-medium text-on-surface-variant outline-none hover:border-[#004a99] focus:border-[#004a99] disabled:opacity-40 cursor-pointer"
                       aria-label={`Chọn nhân sự cho ca ${slot.label} ${shiftDate}`}
                     >
                       <option value="">
@@ -203,11 +203,11 @@ export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemov
         ))}
       </div>
       {people.length === 0 && (
-        <div className="border-t border-[#c2c6d3] bg-[#dee8ff]/30 px-4 py-3 text-xs text-[#00346f] flex items-center justify-between">
+        <div className="border-t border-outline-variant bg-container-high/30 px-4 py-3 text-xs text-primary-deep flex items-center justify-between">
           <span>Chưa có nhân viên hoặc tài xế nào trong hệ thống nhà máy của bạn.</span>
           <a
             href="/settings?tab=staff"
-            className="font-bold text-[#004a99] hover:underline"
+            className="font-bold text-primary-accent hover:underline"
           >
             Thêm nhân sự ngay &rarr;
           </a>

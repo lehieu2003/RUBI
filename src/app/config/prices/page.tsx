@@ -28,14 +28,14 @@ export default async function GlobalPricesPage() {
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 lg:p-8 max-w-[1000px]">
-        <div className="mb-6 border-b border-[#c2c6d3] pb-4">
-          <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Cấu Hình Bảng Giá Cơ Bản</h1>
-          <p className="text-xs text-[#424751] mt-1">
+        <div className="mb-6 border-b border-outline-variant pb-4">
+          <h1 className="text-2xl font-bold tracking-tight text-on-surface">Cấu Hình Bảng Giá Cơ Bản</h1>
+          <p className="text-xs text-on-surface-variant mt-1">
             Giá cơ bản áp dụng chung cho tất cả khách hàng (đại lý có giá riêng sẽ áp dụng giá riêng).
           </p>
         </div>
 
-        <div className="rounded border border-[#c2c6d3] bg-white p-6 shadow-sm">
+        <div className="rounded border border-outline-variant bg-card p-6 shadow-sm">
           <GlobalPricesTable products={products} globalPrices={priceMap} />
         </div>
       </div>

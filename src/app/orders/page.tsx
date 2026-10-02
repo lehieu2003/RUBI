@@ -63,17 +63,17 @@ const statusConfig = {
   PENDING: {
     label: 'Chờ giao',
     icon: Clock,
-    color: 'text-[#7f3700] bg-[#dee8ff]',
+    color: 'text-tertiary-container bg-container-high',
   },
   SHIPPING: {
     label: 'Đang giao',
     icon: Truck,
-    color: 'text-[#004a99] bg-[#dee8ff]',
+    color: 'text-primary-accent bg-container-high',
   },
   DELIVERED: {
     label: 'Đã giao',
     icon: Package,
-    color: 'text-[#1b6d24] bg-[#a0f399]/40',
+    color: 'text-secondary bg-[#a0f399]/40',
   },
   COMPLETED: {
     label: 'Hoàn thành',
@@ -83,7 +83,7 @@ const statusConfig = {
   CANCELLED: {
     label: 'Đã hủy',
     icon: XCircle,
-    color: 'text-[#ba1a1a] bg-[#ffdad6]',
+    color: 'text-error bg-error-container',
   },
 };
 
@@ -349,16 +349,16 @@ export default function OrdersPage() {
 
   if (loading && orders.length === 0) {
     return (
-      <div className='min-h-screen bg-[#f9f9ff] flex items-center justify-center'>
-        <div className='text-[#004a99] font-bold'>Đang tải đơn hàng...</div>
+      <div className='min-h-screen bg-surface flex items-center justify-center'>
+        <div className='text-primary-accent font-bold'>Đang tải đơn hàng...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className='min-h-screen bg-[#f9f9ff] flex items-center justify-center'>
-        <div className='text-[#ba1a1a] font-bold'>Lỗi: {error}</div>
+      <div className='min-h-screen bg-surface flex items-center justify-center'>
+        <div className='text-error font-bold'>Lỗi: {error}</div>
       </div>
     );
   }
@@ -367,12 +367,12 @@ export default function OrdersPage() {
     <DashboardLayout>
       <div className='p-4 sm:p-6 lg:p-8 max-w-[1400px]'>
         {/* Header */}
-        <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4 mb-6'>
+        <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-outline-variant pb-4 mb-6'>
           <div>
-            <h1 className='text-2xl font-bold tracking-tight text-[#111c2d]'>
+            <h1 className='text-2xl font-bold tracking-tight text-on-surface'>
               Quản Lý Đơn Hàng
             </h1>
-            <p className='text-xs text-[#424751] mt-1'>
+            <p className='text-xs text-on-surface-variant mt-1'>
               {mappedOrders.length} đơn hàng trong ca trực
             </p>
           </div>
@@ -389,7 +389,7 @@ export default function OrdersPage() {
               'px-3.5 py-1.5 rounded text-xs font-bold whitespace-nowrap transition-all ' +
               (selectedStatus === 'Tất cả'
                 ? 'bg-[#004a99] text-white shadow-sm'
-                : 'bg-[#dee8ff] text-[#00346f] hover:bg-[#d8e3fb]')
+                : 'bg-container-high text-primary-deep hover:bg-container-highest')
             }
           >
             Tất cả ({counts.all})
@@ -400,7 +400,7 @@ export default function OrdersPage() {
               'px-3.5 py-1.5 rounded text-xs font-bold whitespace-nowrap transition-all ' +
               (selectedStatus === 'PENDING'
                 ? 'bg-[#7f3700] text-white shadow-sm'
-                : 'bg-[#dee8ff] text-[#00346f] hover:bg-[#d8e3fb]')
+                : 'bg-container-high text-primary-deep hover:bg-container-highest')
             }
           >
             Chờ giao ({counts.pending})
@@ -411,7 +411,7 @@ export default function OrdersPage() {
               'px-3.5 py-1.5 rounded text-xs font-bold whitespace-nowrap transition-all ' +
               (selectedStatus === 'SHIPPING'
                 ? 'bg-[#004a99] text-white shadow-sm'
-                : 'bg-[#dee8ff] text-[#00346f] hover:bg-[#d8e3fb]')
+                : 'bg-container-high text-primary-deep hover:bg-container-highest')
             }
           >
             Đang giao ({counts.shipping})
@@ -422,7 +422,7 @@ export default function OrdersPage() {
               'px-3.5 py-1.5 rounded text-xs font-bold whitespace-nowrap transition-all ' +
               (selectedStatus === 'DELIVERED'
                 ? 'bg-[#1b6d24] text-white shadow-sm'
-                : 'bg-[#dee8ff] text-[#00346f] hover:bg-[#d8e3fb]')
+                : 'bg-container-high text-primary-deep hover:bg-container-highest')
             }
           >
             Đã giao ({counts.delivered})
@@ -433,7 +433,7 @@ export default function OrdersPage() {
               'px-3.5 py-1.5 rounded text-xs font-bold whitespace-nowrap transition-all ' +
               (selectedStatus === 'COMPLETED'
                 ? 'bg-[#217128] text-white shadow-sm'
-                : 'bg-[#dee8ff] text-[#00346f] hover:bg-[#d8e3fb]')
+                : 'bg-container-high text-primary-deep hover:bg-container-highest')
             }
           >
             Hoàn thành ({counts.completed})
@@ -444,7 +444,7 @@ export default function OrdersPage() {
               'px-3.5 py-1.5 rounded text-xs font-bold whitespace-nowrap transition-all ' +
               (selectedStatus === 'CANCELLED'
                 ? 'bg-[#ba1a1a] text-white shadow-sm'
-                : 'bg-[#dee8ff] text-[#00346f] hover:bg-[#d8e3fb]')
+                : 'bg-container-high text-primary-deep hover:bg-container-highest')
             }
           >
             Đã hủy ({counts.cancelled})
@@ -453,14 +453,14 @@ export default function OrdersPage() {
 
         {/* Bulk Assign Bar */}
         {selectedOrderIds.size > 0 && (
-          <div className='flex items-center gap-4 mb-4 p-4 rounded bg-[#dee8ff] border border-[#004a99]'>
-            <span className='text-sm text-[#00346f] font-bold'>
+          <div className='flex items-center gap-4 mb-4 p-4 rounded bg-container-high border border-[#004a99]'>
+            <span className='text-sm text-primary-deep font-bold'>
               Đã chọn {selectedOrderIds.size} đơn hàng
             </span>
             <select
               value={bulkAssignDriverId}
               onChange={(e) => setBulkAssignDriverId(e.target.value)}
-              className='px-3 py-1.5 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d]'
+              className='px-3 py-1.5 bg-card border border-outline-variant rounded text-sm text-on-surface'
             >
               <option value=''>-- Chọn tài xế --</option>
               {drivers.map((d) => (
@@ -482,7 +482,7 @@ export default function OrdersPage() {
                 setSelectedOrderIds(new Set());
                 setBulkAssignDriverId('');
               }}
-              className='px-3 py-1.5 text-xs font-bold text-[#424751] hover:text-[#111c2d]'
+              className='px-3 py-1.5 text-xs font-bold text-on-surface-variant hover:text-on-surface'
             >
               Hủy
             </button>
@@ -490,22 +490,22 @@ export default function OrdersPage() {
         )}
 
         {/* Filters Row */}
-        <div className='flex flex-wrap items-center gap-3 mb-6 bg-white p-4 rounded border border-[#c2c6d3] shadow-sm'>
+        <div className='flex flex-wrap items-center gap-3 mb-6 bg-card p-4 rounded border border-outline-variant shadow-sm'>
           <div className='relative flex-1 min-w-[240px]'>
-            <Search className='absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#737783]' />
+            <Search className='absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-faint' />
             <input
               type='text'
               placeholder='Tìm mã đơn, tên khách...'
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className='w-full pl-10 pr-4 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] placeholder-[#737783] focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99]'
+              className='w-full pl-10 pr-4 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface placeholder-faint focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99]'
             />
           </div>
 
           <select
             value={selectedDriverId}
             onChange={(e) => setSelectedDriverId(e.target.value)}
-            className='px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d]'
+            className='px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface'
           >
             <option value='all'>Tất cả tài xế</option>
             <option value='unassigned'>Chưa giao</option>
@@ -520,12 +520,12 @@ export default function OrdersPage() {
             type='date'
             value={filterDate}
             onChange={(e) => setFilterDate(e.target.value)}
-            className='px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d]'
+            className='px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface'
           />
 
           <a
             href='/dashboard/map'
-            className='px-3.5 py-2 bg-[#dee8ff] text-[#00346f] hover:bg-[#d8e3fb] font-bold text-xs rounded border border-[#c2c6d3] transition-colors flex items-center gap-1.5'
+            className='px-3.5 py-2 bg-container-high text-primary-deep hover:bg-container-highest font-bold text-xs rounded border border-outline-variant transition-colors flex items-center gap-1.5'
           >
             <MapPin className='h-4 w-4' />
             Bản đồ
@@ -533,18 +533,18 @@ export default function OrdersPage() {
         </div>
 
         {/* Orders Table */}
-        <div className='overflow-hidden rounded border border-[#c2c6d3] bg-white shadow-sm'>
+        <div className='overflow-hidden rounded border border-outline-variant bg-card shadow-sm'>
           <table className='w-full text-left border-collapse table-industrial'>
             <thead>
-              <tr className='border-b border-[#c2c6d3] bg-[#f0f4fc] text-[12px] font-bold uppercase tracking-wider text-[#1e293b]'>
+              <tr className='border-b border-outline-variant bg-[#f0f4fc] text-[12px] font-bold uppercase tracking-wider text-[#1e293b]'>
                 <th className='py-2.5 px-3 w-10'>
                   <button
                     onClick={toggleAllSelection}
-                    className='text-[#475569] hover:text-[#00346f] transition-colors'
+                    className='text-on-surface-variant hover:text-primary-deep transition-colors'
                   >
                     {selectedOrderIds.size === filteredOrders.length &&
                     filteredOrders.length > 0 ? (
-                      <CheckSquare className='h-4 w-4 text-[#004a99]' />
+                      <CheckSquare className='h-4 w-4 text-primary-accent' />
                     ) : (
                       <Square className='h-4 w-4' />
                     )}
@@ -572,29 +572,29 @@ export default function OrdersPage() {
                     key={order.id}
                     className={
                       'h-11 hover:bg-[#f1f5f9] transition-colors ' +
-                      (selectedOrderIds.has(order.id) ? 'bg-[#dee8ff]/40' : '')
+                      (selectedOrderIds.has(order.id) ? 'bg-container-high/40' : '')
                     }
                   >
                     <td className='py-2.5 px-3'>
                       <button
                         onClick={() => toggleOrderSelection(order.id)}
-                        className='text-[#64748b] hover:text-[#00346f] transition-colors'
+                        className='text-faint hover:text-primary-deep transition-colors'
                       >
                         {selectedOrderIds.has(order.id) ? (
-                          <CheckSquare className='h-4 w-4 text-[#004a99]' />
+                          <CheckSquare className='h-4 w-4 text-primary-accent' />
                         ) : (
                           <Square className='h-4 w-4' />
                         )}
                       </button>
                     </td>
-                    <td className='py-2.5 px-3 font-mono font-bold text-xs text-[#004a99]'>
+                    <td className='py-2.5 px-3 font-mono font-bold text-xs text-primary-accent'>
                       #{order.code}
                     </td>
                     <td className='py-2.5 px-3'>
-                      <p className='font-semibold text-[#0f172a] leading-tight'>
+                      <p className='font-semibold text-on-surface leading-tight'>
                         {order.customer}
                       </p>
-                      <p className='text-xs text-[#475569] font-mono leading-tight mt-0.5'>
+                      <p className='text-xs text-on-surface-variant font-mono leading-tight mt-0.5'>
                         {order.codeCus}
                       </p>
                     </td>
@@ -608,17 +608,17 @@ export default function OrdersPage() {
                       <span
                         className={
                           order.driverId
-                            ? 'text-[#0f172a]'
+                            ? 'text-on-surface'
                             : 'text-[#b45309] font-bold'
                         }
                       >
                         {order.driverName}
                       </span>
                     </td>
-                    <td className='py-2.5 px-3 text-xs font-mono text-[#475569] tabular-nums'>
+                    <td className='py-2.5 px-3 text-xs font-mono text-on-surface-variant tabular-nums'>
                       {order.createdAt}
                     </td>
-                    <td className='py-2.5 px-3 text-right font-mono font-bold text-[#0f172a] tabular-nums'>
+                    <td className='py-2.5 px-3 text-right font-mono font-bold text-on-surface tabular-nums'>
                       {order.total.toLocaleString('vi-VN')}đ
                     </td>
                     <td className='py-2.5 px-3 text-center'>
@@ -635,7 +635,7 @@ export default function OrdersPage() {
                     <td className='py-2.5 px-3 text-right'>
                       <button
                         onClick={() => setSelectedOrderId(order.id)}
-                        className='inline-flex items-center gap-1 px-2.5 py-1 rounded border border-[#004a99] text-[#004a99] hover:bg-[#dee8ff] text-xs font-semibold transition-colors'
+                        className='inline-flex items-center gap-1 px-2.5 py-1 rounded border border-[#004a99] text-primary-accent hover:bg-container-high text-xs font-semibold transition-colors'
                       >
                         <Printer className='h-3.5 w-3.5' />
                         Xem / In
@@ -652,10 +652,10 @@ export default function OrdersPage() {
               <div className='mx-auto w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3'>
                 <FileText className='h-6 w-6 text-slate-400' />
               </div>
-              <p className='text-sm font-semibold text-[#0f172a]'>
+              <p className='text-sm font-semibold text-on-surface'>
                 Không tìm thấy đơn hàng
               </p>
-              <p className='text-xs text-[#64748b] mt-1'>
+              <p className='text-xs text-faint mt-1'>
                 Không có đơn hàng nào khớp với điều kiện lọc hiện tại
               </p>
             </div>
@@ -677,7 +677,7 @@ export default function OrdersPage() {
                 onChange={(e) => handleStatusChange(e.target.value)}
                 disabled={updatingStatus}
                 className={
-                  'inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-bold border border-[#c2c6d3] cursor-pointer ' +
+                  'inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-bold border border-outline-variant cursor-pointer ' +
                   (statusConfig[
                     selectedOrder.status as keyof typeof statusConfig
                   ]?.color || statusConfig.PENDING.color) +
@@ -698,37 +698,37 @@ export default function OrdersPage() {
                   ))}
               </select>
               {updatingStatus && (
-                <span className='text-xs text-[#737783]'>Đang cập nhật...</span>
+                <span className='text-xs text-faint'>Đang cập nhật...</span>
               )}
             </div>
 
             {/* Customer info */}
-            <div className='rounded border border-[#c2c6d3] bg-[#f9f9ff] p-4'>
-              <h3 className='text-xs font-bold text-[#424751] uppercase mb-2'>
+            <div className='rounded border border-outline-variant bg-surface p-4'>
+              <h3 className='text-xs font-bold text-on-surface-variant uppercase mb-2'>
                 Thông tin khách hàng
               </h3>
               <div className='grid grid-cols-2 gap-3 text-xs'>
                 <div>
-                  <p className='text-[#737783]'>Tên khách hàng</p>
-                  <p className='font-bold text-[#111c2d]'>
+                  <p className='text-faint'>Tên khách hàng</p>
+                  <p className='font-bold text-on-surface'>
                     {selectedOrder.customer.name}
                   </p>
                 </div>
                 <div>
-                  <p className='text-[#737783]'>Mã khách hàng</p>
-                  <p className='font-mono text-[#004a99] font-bold'>
+                  <p className='text-faint'>Mã khách hàng</p>
+                  <p className='font-mono text-primary-accent font-bold'>
                     {selectedOrder.customer.code}
                   </p>
                 </div>
                 <div>
-                  <p className='text-[#737783]'>Địa chỉ</p>
-                  <p className='text-[#111c2d]'>
+                  <p className='text-faint'>Địa chỉ</p>
+                  <p className='text-on-surface'>
                     {selectedOrder.customer.address}
                   </p>
                 </div>
                 <div>
-                  <p className='text-[#737783]'>Điện thoại</p>
-                  <p className='text-[#111c2d] font-mono'>
+                  <p className='text-faint'>Điện thoại</p>
+                  <p className='text-on-surface font-mono'>
                     {selectedOrder.customer.phone}
                   </p>
                 </div>
@@ -736,23 +736,23 @@ export default function OrdersPage() {
             </div>
 
             {/* Order items */}
-            <div className='rounded border border-[#c2c6d3] bg-white p-4 shadow-sm'>
-              <h3 className='text-xs font-bold text-[#424751] uppercase mb-2'>
+            <div className='rounded border border-outline-variant bg-card p-4 shadow-sm'>
+              <h3 className='text-xs font-bold text-on-surface-variant uppercase mb-2'>
                 Sản phẩm đặt
               </h3>
               <table className='w-full text-xs'>
                 <thead>
-                  <tr className='text-left text-[#737783] border-b border-[#e7eeff]'>
+                  <tr className='text-left text-faint border-b border-outline-soft'>
                     <th className='pb-2'>Sản phẩm</th>
                     <th className='pb-2 text-center'>SL</th>
                     <th className='pb-2 text-right'>Đơn giá</th>
                     <th className='pb-2 text-right'>Thành tiền</th>
                   </tr>
                 </thead>
-                <tbody className='divide-y divide-[#e7eeff]'>
+                <tbody className='divide-y divide-outline-soft'>
                   {selectedOrder.orderItems.map((item) => (
                     <tr key={item.id}>
-                      <td className='py-2 text-[#111c2d] font-medium'>
+                      <td className='py-2 text-on-surface font-medium'>
                         {item.product.name} {item.product.sizeKg}kg
                       </td>
                       <td className='py-2 text-center font-bold'>
@@ -761,7 +761,7 @@ export default function OrdersPage() {
                       <td className='py-2 text-right data-sm'>
                         {Number(item.unitPrice).toLocaleString('vi-VN')}đ
                       </td>
-                      <td className='py-2 text-right data-sm font-bold text-[#111c2d]'>
+                      <td className='py-2 text-right data-sm font-bold text-on-surface'>
                         {Number(item.lineTotal).toLocaleString('vi-VN')}đ
                       </td>
                     </tr>
@@ -771,11 +771,11 @@ export default function OrdersPage() {
             </div>
 
             {/* Total */}
-            <div className='flex justify-between items-center bg-[#f9f9ff] p-3 rounded border border-[#c2c6d3]'>
-              <span className='text-xs font-bold uppercase text-[#424751]'>
+            <div className='flex justify-between items-center bg-surface p-3 rounded border border-outline-variant'>
+              <span className='text-xs font-bold uppercase text-on-surface-variant'>
                 Tổng cộng
               </span>
-              <span className='data-lg font-bold text-[#111c2d]'>
+              <span className='data-lg font-bold text-on-surface'>
                 {Number(selectedOrder.total).toLocaleString('vi-VN')}đ
               </span>
             </div>
@@ -784,7 +784,7 @@ export default function OrdersPage() {
             <div className='flex gap-2.5 pt-2'>
               <a
                 href={'/orders/' + selectedOrder.id}
-                className='flex-1 flex items-center justify-center gap-1.5 rounded border border-[#c2c6d3] px-3 py-2 text-xs font-bold text-[#424751] hover:bg-[#dee8ff] hover:text-[#00346f] transition-all'
+                className='flex-1 flex items-center justify-center gap-1.5 rounded border border-outline-variant px-3 py-2 text-xs font-bold text-on-surface-variant hover:bg-container-high hover:text-primary-deep transition-all'
               >
                 <FileText className='h-4 w-4' />
                 Chi tiết
@@ -804,18 +804,18 @@ export default function OrdersPage() {
       {/* CANCELLED Reason Dialog */}
       {showCancelDialog && (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs'>
-          <div className='w-full max-w-sm rounded bg-white border border-[#c2c6d3] p-6 shadow-xl'>
-            <h3 className='text-base font-bold text-[#ba1a1a] mb-2'>
+          <div className='w-full max-w-sm rounded bg-card border border-outline-variant p-6 shadow-xl'>
+            <h3 className='text-base font-bold text-error mb-2'>
               Lý do hủy đơn hàng
             </h3>
-            <p className='text-xs text-[#424751] mb-4'>
+            <p className='text-xs text-on-surface-variant mb-4'>
               Vui lòng nhập lý do hủy đơn hàng này.
             </p>
             <textarea
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               placeholder='VD: Khách gọi báo dời ngày, Xe sự cố...'
-              className='w-full rounded border border-[#c2c6d3] bg-white px-3 py-2 text-xs text-[#111c2d] focus:border-[#ba1a1a] focus:outline-none resize-none'
+              className='w-full rounded border border-outline-variant bg-card px-3 py-2 text-xs text-on-surface focus:border-[#ba1a1a] focus:outline-none resize-none'
               rows={3}
             />
             <div className='flex gap-2.5 mt-4'>
@@ -824,7 +824,7 @@ export default function OrdersPage() {
                   setShowCancelDialog(false);
                   setCancelReason('');
                 }}
-                className='flex-1 rounded border border-[#c2c6d3] px-3 py-2 text-xs font-bold text-[#424751] hover:bg-[#dee8ff]'
+                className='flex-1 rounded border border-outline-variant px-3 py-2 text-xs font-bold text-on-surface-variant hover:bg-container-high'
               >
                 Hủy
               </button>

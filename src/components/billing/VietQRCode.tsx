@@ -16,34 +16,34 @@ export function VietQRCode({ amount, factoryName, subscriptionId }: VietQRCodePr
     amount > 0 ? new Intl.NumberFormat('vi-VN').format(amount) : '0';
 
   return (
-    <div className="rounded border border-[#c2c6d3] bg-white p-5 shadow-sm">
-      <h2 className="mb-4 text-base font-bold text-[#111c2d]">Thông Tin Chuyển Khoản</h2>
+    <div className="rounded border border-outline-variant bg-card p-5 shadow-sm">
+      <h2 className="mb-4 text-base font-bold text-on-surface">Thông Tin Chuyển Khoản</h2>
 
       <div className="space-y-3">
         <div className="flex items-center gap-2 text-sm">
-          <span className="w-36 text-[#737783]">Ngân hàng:</span>
-          <span className="font-bold text-[#111c2d]">Vietcombank</span>
+          <span className="w-36 text-faint">Ngân hàng:</span>
+          <span className="font-bold text-on-surface">Vietcombank</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <span className="w-36 text-[#737783]">Số tài khoản:</span>
-          <span className="font-mono font-bold text-[#004a99]">1234567890</span>
+          <span className="w-36 text-faint">Số tài khoản:</span>
+          <span className="font-mono font-bold text-primary-accent">1234567890</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <span className="w-36 text-[#737783]">Tên tài khoản:</span>
-          <span className="font-bold text-[#111c2d]">CTY TNHH ICEFLOW</span>
+          <span className="w-36 text-faint">Tên tài khoản:</span>
+          <span className="font-bold text-on-surface">CTY TNHH ICEFLOW</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <span className="w-36 text-[#737783]">Số tiền:</span>
-          <span className="data-lg font-bold text-[#1b6d24]">{formattedAmount} đ</span>
+          <span className="w-36 text-faint">Số tiền:</span>
+          <span className="data-lg font-bold text-secondary">{formattedAmount} đ</span>
         </div>
 
-        <div className="rounded border border-[#004a99]/20 bg-[#dee8ff]/50 p-3">
-          <p className="mb-1 text-xs font-bold text-[#00346f] uppercase">Nội dung chuyển khoản (Copy):</p>
-          <code className="select-all break-all text-sm font-mono font-bold text-[#002754]">{content}</code>
+        <div className="rounded border border-[#004a99]/20 bg-container-high/50 p-3">
+          <p className="mb-1 text-xs font-bold text-primary-deep uppercase">Nội dung chuyển khoản (Copy):</p>
+          <code className="select-all break-all text-sm font-mono font-bold text-primary-dark">{content}</code>
         </div>
       </div>
 
-      <p className="mt-4 text-xs text-[#737783]">
+      <p className="mt-4 text-xs text-faint">
         Quý khách vui lòng chuyển khoản đúng số tiền và nội dung bên trên để hệ thống tự động kích hoạt.
       </p>
     </div>

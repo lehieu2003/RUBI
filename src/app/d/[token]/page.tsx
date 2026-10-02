@@ -119,12 +119,12 @@ export default function DriverViewPage({ params }: DriverViewPageProps) {
 
   if (loading || !token) {
     return (
-      <div className="min-h-screen bg-[#f9f9ff] flex items-center justify-center">
+      <div className="min-h-screen bg-surface flex items-center justify-center">
         <div className="text-center">
           <div className="h-12 w-12 rounded bg-[#004a99] flex items-center justify-center mx-auto mb-4 animate-pulse">
             <Snowflake className="h-6 w-6 text-[#9bbdff]" />
           </div>
-          <p className="text-xs font-bold text-[#00346f]">Đang tải danh sách đơn...</p>
+          <p className="text-xs font-bold text-primary-deep">Đang tải danh sách đơn...</p>
         </div>
       </div>
     );
@@ -132,11 +132,11 @@ export default function DriverViewPage({ params }: DriverViewPageProps) {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#f9f9ff] flex items-center justify-center p-4">
-        <div className="text-center max-w-sm bg-white p-6 rounded border border-[#c2c6d3] shadow-sm">
-          <AlertCircle className="h-12 w-12 text-[#ba1a1a] mx-auto mb-3" />
-          <p className="text-sm font-bold text-[#111c2d] mb-1">{error}</p>
-          <p className="text-xs text-[#424751] mb-5">
+      <div className="min-h-screen bg-surface flex items-center justify-center p-4">
+        <div className="text-center max-w-sm bg-card p-6 rounded border border-outline-variant shadow-sm">
+          <AlertCircle className="h-12 w-12 text-error mx-auto mb-3" />
+          <p className="text-sm font-bold text-on-surface mb-1">{error}</p>
+          <p className="text-xs text-on-surface-variant mb-5">
             Nhấn Làm mới để thử lại hoặc liên hệ văn phòng nhà máy
           </p>
           <button
@@ -152,7 +152,7 @@ export default function DriverViewPage({ params }: DriverViewPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d]">
+    <div className="min-h-screen bg-surface text-on-surface">
       {/* Header */}
       <header className="sticky top-0 z-20 bg-[#00346f] border-b border-[#002754] px-4 py-3.5 text-white shadow-sm">
         <div className="flex items-center justify-between">
@@ -190,19 +190,19 @@ export default function DriverViewPage({ params }: DriverViewPageProps) {
       <main className="max-w-md mx-auto p-4 pb-20">
         {/* Quick Stats */}
         <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="bg-white rounded border border-[#c2c6d3] p-3 shadow-2xs">
-            <div className="flex items-center gap-2 text-xs font-bold text-[#7f3700] mb-1">
+          <div className="bg-card rounded border border-outline-variant p-3 shadow-2xs">
+            <div className="flex items-center gap-2 text-xs font-bold text-tertiary-container mb-1">
               <Clock className="h-3.5 w-3.5" />
               <span>Chờ giao</span>
             </div>
-            <p className="text-2xl font-bold text-[#111c2d]">{pendingCount}</p>
+            <p className="text-2xl font-bold text-on-surface">{pendingCount}</p>
           </div>
-          <div className="bg-white rounded border border-[#c2c6d3] p-3 shadow-2xs">
-            <div className="flex items-center gap-2 text-xs font-bold text-[#1b6d24] mb-1">
+          <div className="bg-card rounded border border-outline-variant p-3 shadow-2xs">
+            <div className="flex items-center gap-2 text-xs font-bold text-secondary mb-1">
               <CheckCircle2 className="h-3.5 w-3.5" />
               <span>Đã giao</span>
             </div>
-            <p className="text-2xl font-bold text-[#111c2d]">{deliveredCount}</p>
+            <p className="text-2xl font-bold text-on-surface">{deliveredCount}</p>
           </div>
         </div>
 

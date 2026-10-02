@@ -99,23 +99,23 @@ export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="drawer-title"
-        className="fixed right-0 top-0 z-50 flex h-full w-full max-w-lg flex-col border-l border-[#c2c6d3] bg-white shadow-2xl transition-transform"
+        className="fixed right-0 top-0 z-50 flex h-full w-full max-w-lg flex-col border-l border-outline-variant bg-card shadow-2xl transition-transform"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#e7eeff] bg-[#f9f9ff] px-6 py-4">
-          <h2 id="drawer-title" className="text-base font-bold text-[#002754]">
+        <div className="flex items-center justify-between border-b border-outline-soft bg-surface px-6 py-4">
+          <h2 id="drawer-title" className="text-base font-bold text-primary-dark">
             {title}
           </h2>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded text-[#737783] hover:bg-[#dee8ff] hover:text-[#004a99] transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded text-faint hover:bg-container-high hover:text-primary-accent transition-colors"
             aria-label="Đóng bảng"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 text-[#111c2d]">{children}</div>
+        <div className="flex-1 overflow-y-auto px-6 py-5 text-on-surface">{children}</div>
       </div>
     </>
   );

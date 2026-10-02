@@ -39,10 +39,10 @@ export default function EmptyState({ driverName, onRefresh }: EmptyStateProps) {
       </div>
 
       {/* Message */}
-      <h2 className="text-xl font-bold text-[#111c2d] mb-2">
+      <h2 className="text-xl font-bold text-on-surface mb-2">
         Chào {driverName}
       </h2>
-      <p className="text-[#424751] text-base mb-6 max-w-xs">
+      <p className="text-on-surface-variant text-base mb-6 max-w-xs">
         Hiện tại anh không có đơn hàng nào cần giao.
       </p>
 

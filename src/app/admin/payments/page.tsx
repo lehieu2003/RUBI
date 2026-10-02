@@ -81,21 +81,21 @@ export default function AdminPaymentsPage() {
 
   return (
     <div>
-      <div className="mb-6 border-b border-[#c2c6d3] pb-4">
-        <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Lịch Sử Giao Dịch & Thanh Toán</h1>
-        <p className="text-xs text-[#424751] mt-1">
+      <div className="mb-6 border-b border-outline-variant pb-4">
+        <h1 className="text-2xl font-bold tracking-tight text-on-surface">Lịch Sử Giao Dịch & Thanh Toán</h1>
+        <p className="text-xs text-on-surface-variant mt-1">
           Nhật ký thanh toán phí duy trì gói từ các nhà máy và ghi nhận thủ công của Super Admin.
         </p>
       </div>
 
-      <div className="mb-6 rounded border border-[#c2c6d3] bg-white p-4 shadow-2xs">
+      <div className="mb-6 rounded border border-outline-variant bg-card p-4 shadow-2xs">
         <div className="flex flex-wrap items-end gap-3">
-          <label className="flex min-w-56 flex-col gap-1 text-xs font-bold uppercase tracking-wider text-[#424751]">
+          <label className="flex min-w-56 flex-col gap-1 text-xs font-bold uppercase tracking-wider text-on-surface-variant">
             Nhà máy
             <select
               value={selectedFactory}
               onChange={event => setSelectedFactory(event.target.value)}
-              className="rounded border border-[#c2c6d3] bg-white px-3 py-2 text-xs font-medium text-[#111c2d] focus:border-[#004a99] outline-none"
+              className="rounded border border-outline-variant bg-card px-3 py-2 text-xs font-medium text-on-surface focus:border-[#004a99] outline-none"
             >
               <option value="">Tất cả nhà máy</option>
               {factories.map(factory => (
@@ -103,22 +103,22 @@ export default function AdminPaymentsPage() {
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-[#424751]">
+          <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-on-surface-variant">
             Từ ngày
             <input
               type="date"
               value={startDate}
               onChange={event => setStartDate(event.target.value)}
-              className="rounded border border-[#c2c6d3] bg-white px-3 py-2 text-xs font-medium text-[#111c2d] focus:border-[#004a99] outline-none"
+              className="rounded border border-outline-variant bg-card px-3 py-2 text-xs font-medium text-on-surface focus:border-[#004a99] outline-none"
             />
           </label>
-          <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-[#424751]">
+          <label className="flex flex-col gap-1 text-xs font-bold uppercase tracking-wider text-on-surface-variant">
             Đến ngày
             <input
               type="date"
               value={endDate}
               onChange={event => setEndDate(event.target.value)}
-              className="rounded border border-[#c2c6d3] bg-white px-3 py-2 text-xs font-medium text-[#111c2d] focus:border-[#004a99] outline-none"
+              className="rounded border border-outline-variant bg-card px-3 py-2 text-xs font-medium text-on-surface focus:border-[#004a99] outline-none"
             />
           </label>
           <button
@@ -134,15 +134,15 @@ export default function AdminPaymentsPage() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded border border-[#c2c6d3] bg-white shadow-sm">
+      <div className="overflow-x-auto rounded border border-outline-variant bg-card shadow-sm">
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-[#004a99]" />
+            <Loader2 className="h-8 w-8 animate-spin text-primary-accent" />
           </div>
         ) : (
           <table className="w-full min-w-[1000px] border-collapse table-industrial">
             <thead>
-              <tr className="border-b border-[#c2c6d3] bg-[#f9f9ff] text-[12px] font-bold uppercase tracking-wider text-[#424751]">
+              <tr className="border-b border-outline-variant bg-surface text-[12px] font-bold uppercase tracking-wider text-on-surface-variant">
                 <th className="px-4 py-3 text-left">Thời gian</th>
                 <th className="px-4 py-3 text-left">Nhà máy</th>
                 <th className="px-4 py-3 text-left">Người duyệt</th>
@@ -152,21 +152,21 @@ export default function AdminPaymentsPage() {
                 <th className="px-4 py-3 text-left">Ghi chú</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e7eeff] text-sm">
+            <tbody className="divide-y divide-outline-soft text-sm">
               {(payments ?? []).map(payment => (
-                <tr key={payment.id} className="h-12 hover:bg-[#f0f3ff] transition-colors">
-                  <td className="px-4 py-3 text-xs text-[#737783]">{formatDate(payment.confirmedAt)}</td>
-                  <td className="px-4 py-3 text-xs font-bold text-[#111c2d]">{payment.factoryName}</td>
-                  <td className="px-4 py-3 text-xs text-[#424751]">{payment.adminName}</td>
-                  <td className="px-4 py-3 text-right data-md font-bold text-[#1b6d24]">{formatCurrency(payment.amount)}</td>
-                  <td className="px-4 py-3 text-center data-sm font-bold text-[#004a99]">{payment.driverCount ?? '—'}</td>
-                  <td className="px-4 py-3 text-xs font-bold text-[#004a99]">{payment.source}</td>
-                  <td className="px-4 py-3 text-xs text-[#737783]">{payment.notes ?? '—'}</td>
+                <tr key={payment.id} className="h-12 hover:bg-container-low transition-colors">
+                  <td className="px-4 py-3 text-xs text-faint">{formatDate(payment.confirmedAt)}</td>
+                  <td className="px-4 py-3 text-xs font-bold text-on-surface">{payment.factoryName}</td>
+                  <td className="px-4 py-3 text-xs text-on-surface-variant">{payment.adminName}</td>
+                  <td className="px-4 py-3 text-right data-md font-bold text-secondary">{formatCurrency(payment.amount)}</td>
+                  <td className="px-4 py-3 text-center data-sm font-bold text-primary-accent">{payment.driverCount ?? '—'}</td>
+                  <td className="px-4 py-3 text-xs font-bold text-primary-accent">{payment.source}</td>
+                  <td className="px-4 py-3 text-xs text-faint">{payment.notes ?? '—'}</td>
                 </tr>
               ))}
               {(payments ?? []).length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-xs font-bold text-[#737783]">Chưa có lịch sử giao dịch.</td>
+                  <td colSpan={7} className="px-4 py-12 text-center text-xs font-bold text-faint">Chưa có lịch sử giao dịch.</td>
                 </tr>
               )}
             </tbody>
@@ -174,20 +174,20 @@ export default function AdminPaymentsPage() {
         )}
       </div>
 
-      <div className="mt-4 flex items-center justify-between text-xs text-[#424751]">
+      <div className="mt-4 flex items-center justify-between text-xs text-on-surface-variant">
         <span>Trang {page} / {Math.max(1, totalPages)}</span>
         <div className="flex gap-2">
           <button
             onClick={() => setPage(current => Math.max(1, current - 1))}
             disabled={page <= 1}
-            className="rounded border border-[#c2c6d3] bg-white px-3 py-1.5 text-xs font-bold hover:bg-[#dee8ff] disabled:opacity-40"
+            className="rounded border border-outline-variant bg-card px-3 py-1.5 text-xs font-bold hover:bg-container-high disabled:opacity-40"
           >
             Trang trước
           </button>
           <button
             onClick={() => setPage(current => Math.min(totalPages, current + 1))}
             disabled={page >= totalPages}
-            className="rounded border border-[#c2c6d3] bg-white px-3 py-1.5 text-xs font-bold hover:bg-[#dee8ff] disabled:opacity-40"
+            className="rounded border border-outline-variant bg-card px-3 py-1.5 text-xs font-bold hover:bg-container-high disabled:opacity-40"
           >
             Trang sau
           </button>

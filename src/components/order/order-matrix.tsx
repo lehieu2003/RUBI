@@ -62,20 +62,20 @@ export function OrderMatrix({
   );
 
   return (
-    <div className="overflow-x-auto rounded border border-[#c2c6d3] bg-white p-3 shadow-2xs">
+    <div className="overflow-x-auto rounded border border-outline-variant bg-card p-3 shadow-2xs">
       <table className="w-full text-sm border-collapse">
         <thead>
-          <tr className="border-b border-[#e7eeff]">
-            <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-[#424751]">Loại đá</th>
-            <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-[#424751]">5kg</th>
-            <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-[#424751]">10kg</th>
-            <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-[#424751]">20kg</th>
+          <tr className="border-b border-outline-soft">
+            <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-on-surface-variant">Loại đá</th>
+            <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-on-surface-variant">5kg</th>
+            <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-on-surface-variant">10kg</th>
+            <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-on-surface-variant">20kg</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#e7eeff]">
+        <tbody className="divide-y divide-outline-soft">
           {grid.map((row, rowIdx) => (
-            <tr key={row.label} className="hover:bg-[#f9f9ff] transition-colors">
-              <td className="whitespace-nowrap px-3 py-3 font-bold text-[#111c2d]">
+            <tr key={row.label} className="hover:bg-surface transition-colors">
+              <td className="whitespace-nowrap px-3 py-3 font-bold text-on-surface">
                 {row.label}
               </td>
               {row.cells.map((cell, colIdx) => {
@@ -108,13 +108,13 @@ export function OrderMatrix({
                         onKeyDown={handleKeyDown}
                         disabled={disabled}
                         tabIndex={0}
-                        className="w-20 rounded border border-[#c2c6d3] bg-white px-2 py-1.5 text-center text-sm font-bold text-[#111c2d] focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99] disabled:bg-[#f0f3ff] transition-all shadow-2xs font-mono"
+                        className="w-20 rounded border border-outline-variant bg-card px-2 py-1.5 text-center text-sm font-bold text-on-surface focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99] disabled:bg-container-low transition-all shadow-2xs font-mono"
                       />
-                      <span className="text-[11px] font-mono text-[#737783]">
+                      <span className="text-[11px] font-mono text-faint">
                         {price > 0 ? `${price.toLocaleString('vi-VN')}đ` : 'Chưa có giá'}
                       </span>
                       {lineTotal > 0 && (
-                        <span className="text-xs font-bold text-[#1b6d24] font-mono">
+                        <span className="text-xs font-bold text-secondary font-mono">
                           {lineTotal.toLocaleString('vi-VN')}đ
                         </span>
                       )}

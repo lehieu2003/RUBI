@@ -83,18 +83,18 @@ export default function LoginPage() {
       {showTrialWarning && subscription && (
         <TrialWarningModal subscription={subscription} />
       )}
-      <div className="relative rounded border border-[#c2c6d3] bg-white p-8 shadow-sm">
+      <div className="relative rounded border border-outline-variant bg-card p-8 shadow-sm">
         {/* Header */}
         <div className="text-center mb-6">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded bg-[#004a99] text-white">
             <Snowflake className="h-6 w-6 text-[#9bbdff]" />
           </div>
-          <h1 className="text-2xl font-bold text-[#111c2d]">Đăng nhập hệ thống</h1>
-          <p className="text-xs text-[#424751] mt-1">IceFlow SaaS — Quản lý lò đá tốc độ cao</p>
+          <h1 className="text-2xl font-bold text-on-surface">Đăng nhập hệ thống</h1>
+          <p className="text-xs text-on-surface-variant mt-1">IceFlow SaaS — Quản lý lò đá tốc độ cao</p>
         </div>
 
         {error && (
-          <div className="mb-5 p-3.5 bg-[#ffdad6] border border-[#ba1a1a]/30 rounded text-xs font-bold text-[#93000a] flex items-center gap-2">
+          <div className="mb-5 p-3.5 bg-error-container border border-[#ba1a1a]/30 rounded text-xs font-bold text-on-error-container flex items-center gap-2">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10" />
               <path d="M12 8v4M12 16h.01" />
@@ -105,7 +105,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} onKeyDown={handleEnterKey} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1.5">
+            <label htmlFor="email" className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">
               Email tài khoản
             </label>
             <input
@@ -115,12 +115,12 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@miendong.vn"
               required
-              className="w-full px-3.5 py-3 rounded border border-[#c2c6d3] bg-white text-[#111c2d] placeholder-[#737783] focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99] text-sm font-medium"
+              className="w-full px-3.5 py-3 rounded border border-outline-variant bg-card text-on-surface placeholder-faint focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99] text-sm font-medium"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1.5">
+            <label htmlFor="password" className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">
               Mật khẩu
             </label>
             <input
@@ -130,7 +130,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
-              className="w-full px-3.5 py-3 rounded border border-[#c2c6d3] bg-white text-[#111c2d] placeholder-[#737783] focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99] text-sm font-medium"
+              className="w-full px-3.5 py-3 rounded border border-outline-variant bg-card text-on-surface placeholder-faint focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99] text-sm font-medium"
             />
           </div>
 
@@ -153,9 +153,9 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-[#424751]">
+        <p className="mt-6 text-center text-xs text-on-surface-variant">
           Chưa có tài khoản xưởng?{' '}
-          <Link href="/register" className="text-[#004a99] hover:underline font-bold">
+          <Link href="/register" className="text-primary-accent hover:underline font-bold">
             Đăng ký dùng thử 14 ngày
           </Link>
         </p>

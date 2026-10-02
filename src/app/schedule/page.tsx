@@ -130,17 +130,17 @@ export default function SchedulePage() {
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px]">
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-outline-variant pb-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Lịch Trình & Phân Ca</h1>
-            <p className="text-xs text-[#424751] mt-1">{formatWeekLabel(weekStart)}</p>
+            <h1 className="text-2xl font-bold tracking-tight text-on-surface">Lịch Trình & Phân Ca</h1>
+            <p className="text-xs text-on-surface-variant mt-1">{formatWeekLabel(weekStart)}</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={() => setWeekStart((current) => addDays(current, -7))}
-              className="flex h-9 w-9 items-center justify-center rounded border border-[#c2c6d3] bg-white text-[#424751] hover:bg-[#dee8ff] transition-colors shadow-2xs"
+              className="flex h-9 w-9 items-center justify-center rounded border border-outline-variant bg-card text-on-surface-variant hover:bg-container-high transition-colors shadow-2xs"
               aria-label="Tuần trước"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -151,7 +151,7 @@ export default function SchedulePage() {
               className={`h-9 rounded border px-3.5 text-xs font-bold transition-colors shadow-2xs ${
                 weekStartParam === toDateOnly(getMonday(new Date()))
                   ? 'border-[#004a99] bg-[#004a99] text-white'
-                  : 'border-[#c2c6d3] bg-white text-[#00346f] hover:bg-[#dee8ff]'
+                  : 'border-outline-variant bg-card text-primary-deep hover:bg-container-high'
               }`}
             >
               Tuần này
@@ -159,14 +159,14 @@ export default function SchedulePage() {
             <button
               type="button"
               onClick={() => setWeekStart((current) => addDays(current, 7))}
-              className="flex h-9 w-9 items-center justify-center rounded border border-[#c2c6d3] bg-white text-[#424751] hover:bg-[#dee8ff] transition-colors shadow-2xs"
+              className="flex h-9 w-9 items-center justify-center rounded border border-outline-variant bg-card text-on-surface-variant hover:bg-container-high transition-colors shadow-2xs"
               aria-label="Tuần sau"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
             <Link
               href="/settings"
-              className="ml-2 flex items-center gap-1.5 rounded border border-[#c2c6d3] bg-white px-3 py-2 text-xs font-bold text-[#00346f] hover:bg-[#dee8ff] transition-colors shadow-2xs"
+              className="ml-2 flex items-center gap-1.5 rounded border border-outline-variant bg-card px-3 py-2 text-xs font-bold text-primary-deep hover:bg-container-high transition-colors shadow-2xs"
             >
               <Users className="h-4 w-4" />
               QUẢN LÝ NHÂN SỰ
@@ -176,13 +176,13 @@ export default function SchedulePage() {
 
         {loading ? (
           <div className="flex items-center justify-center py-24">
-            <Loader2 className="h-8 w-8 animate-spin text-[#004a99]" />
+            <Loader2 className="h-8 w-8 animate-spin text-primary-accent" />
           </div>
         ) : loadError ? (
-          <div className="rounded border border-[#ba1a1a]/30 bg-[#ffdad6]/50 p-8 text-center">
-            <AlertCircle className="h-8 w-8 text-[#ba1a1a] mx-auto mb-2" />
-            <h2 className="text-base font-bold text-[#93000a]">Không tải được lịch trình</h2>
-            <p className="mt-1 text-xs text-[#424751]">{loadError}</p>
+          <div className="rounded border border-[#ba1a1a]/30 bg-error-container/50 p-8 text-center">
+            <AlertCircle className="h-8 w-8 text-error mx-auto mb-2" />
+            <h2 className="text-base font-bold text-on-error-container">Không tải được lịch trình</h2>
+            <p className="mt-1 text-xs text-on-surface-variant">{loadError}</p>
             <button
               type="button"
               onClick={() => void loadSchedule()}

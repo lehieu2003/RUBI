@@ -138,10 +138,10 @@ export function DashboardClient({
     <DashboardLayout>
       <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px]">
         {/* Header */}
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-outline-variant pb-4">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">
+              <h1 className="text-2xl font-bold tracking-tight text-on-surface">
                 Bảng Điều Khiển Vận Hành
               </h1>
               {currentUser?.role === 'ADMIN' && subscriptionData.subscription && (
@@ -149,8 +149,8 @@ export function DashboardClient({
                   href="/billing"
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold transition-colors ${
                     isExpiringSoon
-                      ? 'bg-[#ffdcc2] text-[#7f3700] border border-[#7f3700]/30 hover:bg-[#ffdcc2]/80'
-                      : 'bg-[#dee8ff] text-[#004a99] border border-[#004a99]/20 hover:bg-[#dee8ff]/80'
+                      ? 'bg-tertiary-fixed text-tertiary-container border border-tertiary-container/30 hover:bg-tertiary-fixed/80'
+                      : 'bg-container-high text-primary-accent border border-[#004a99]/20 hover:bg-container-high/80'
                   }`}
                 >
                   <CreditCard className="h-3.5 w-3.5" />
@@ -161,7 +161,7 @@ export function DashboardClient({
                 </Link>
               )}
             </div>
-            <p className="text-xs text-[#424751] mt-1">
+            <p className="text-xs text-on-surface-variant mt-1">
               Theo dõi tình trạng đơn hàng, tồn kho và sản lượng tức thời
             </p>
           </div>
@@ -172,10 +172,10 @@ export function DashboardClient({
 
         {/* Onboarding prompt for new factories with no customers */}
         {showOnboardingPrompt && (
-          <div className="mb-6 rounded border border-[#ffdcc2] bg-[#ffdcc2]/40 px-5 py-4 flex items-center justify-between">
+          <div className="mb-6 rounded border border-[#ffdcc2] bg-tertiary-fixed/40 px-5 py-4 flex items-center justify-between">
             <div>
-              <p className="text-[#7f3700] font-bold text-sm">Bạn chưa có khách hàng nào trong hệ thống.</p>
-              <p className="text-[#424751] text-xs mt-0.5">
+              <p className="text-tertiary-container font-bold text-sm">Bạn chưa có khách hàng nào trong hệ thống.</p>
+              <p className="text-on-surface-variant text-xs mt-0.5">
                 Nhập danh sách khách hàng từ file CSV để bắt đầu tạo đơn hàng nhanh chóng.
               </p>
             </div>
@@ -195,7 +195,7 @@ export function DashboardClient({
             value={stats.revenue.value}
             subValue={stats.revenue.subValue}
             icon={DollarSign}
-            iconColor="text-[#1b6d24]"
+            iconColor="text-secondary"
             iconBg="bg-[#a0f399]/40"
             trend={stats.revenue.trend}
             trendValue={stats.revenue.trendValue}
@@ -205,8 +205,8 @@ export function DashboardClient({
             value={stats.orders.value}
             subValue={stats.orders.subValue}
             icon={FileText}
-            iconColor="text-[#004a99]"
-            iconBg="bg-[#dee8ff]"
+            iconColor="text-primary-accent"
+            iconBg="bg-container-high"
             trend={stats.orders.trend}
           />
           <StatCard
@@ -214,16 +214,16 @@ export function DashboardClient({
             value={stats.inventory.value}
             subValue={stats.inventory.subValue}
             icon={Snowflake}
-            iconColor="text-[#004a99]"
-            iconBg="bg-[#dee8ff]"
+            iconColor="text-primary-accent"
+            iconBg="bg-container-high"
           />
           <StatCard
             title="Vỏ bao đang ở khách"
             value={stats.bags.value}
             subValue={stats.bags.subValue}
             icon={Package}
-            iconColor="text-[#7f3700]"
-            iconBg="bg-[#ffdcc2]/50"
+            iconColor="text-tertiary-container"
+            iconBg="bg-tertiary-fixed/50"
             trend={stats.bags.trend}
             trendValue={stats.bags.trendValue}
             warning={stats.bags.warning}

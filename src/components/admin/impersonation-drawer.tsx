@@ -67,7 +67,7 @@ export function ImpersonationDrawer({ factoryId, factoryName, onClose }: Imperso
       />
 
       {/* Drawer */}
-      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white border-l border-[#c2c6d3] z-50 shadow-2xl animate-in slide-in-from-right duration-300 flex flex-col">
+      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-card border-l border-outline-variant z-50 shadow-2xl animate-in slide-in-from-right duration-300 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#002754] bg-[#00346f] text-white">
           <div>
@@ -84,44 +84,44 @@ export function ImpersonationDrawer({ factoryId, factoryName, onClose }: Imperso
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto flex-1 space-y-6 bg-[#f9f9ff]">
+        <div className="p-6 overflow-y-auto flex-1 space-y-6 bg-surface">
           {loading ? (
             <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-8 w-8 animate-spin text-[#004a99]" />
+              <Loader2 className="h-8 w-8 animate-spin text-primary-accent" />
             </div>
           ) : data ? (
             <div className="space-y-5">
               {/* Subscription Info */}
               {data.subscription && (
-                <div className="bg-white rounded border border-[#c2c6d3] p-4 shadow-2xs">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#424751] mb-3 flex items-center gap-1.5">
-                    <Building2 className="w-4 h-4 text-[#004a99]" />
+                <div className="bg-card rounded border border-outline-variant p-4 shadow-2xs">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-3 flex items-center gap-1.5">
+                    <Building2 className="w-4 h-4 text-primary-accent" />
                     Thông tin gói thuê bao
                   </h3>
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
-                      <p className="text-[#737783]">Gói</p>
-                      <p className="font-bold text-[#111c2d]">{data.subscription.planType}</p>
+                      <p className="text-faint">Gói</p>
+                      <p className="font-bold text-on-surface">{data.subscription.planType}</p>
                     </div>
                     <div>
-                      <p className="text-[#737783]">Trạng thái</p>
-                      <p className="font-bold text-[#1b6d24]">{data.subscription.status}</p>
+                      <p className="text-faint">Trạng thái</p>
+                      <p className="font-bold text-secondary">{data.subscription.status}</p>
                     </div>
                     <div>
-                      <p className="text-[#737783]">Bắt đầu</p>
-                      <p className="text-[#111c2d]">{formatDate(data.subscription.startDate)}</p>
+                      <p className="text-faint">Bắt đầu</p>
+                      <p className="text-on-surface">{formatDate(data.subscription.startDate)}</p>
                     </div>
                     <div>
-                      <p className="text-[#737783]">Kết thúc</p>
-                      <p className="text-[#111c2d]">{formatDate(data.subscription.endDate)}</p>
+                      <p className="text-faint">Kết thúc</p>
+                      <p className="text-on-surface">{formatDate(data.subscription.endDate)}</p>
                     </div>
                     <div>
-                      <p className="text-[#737783]">Số tài xế</p>
-                      <p className="font-bold text-[#004a99]">{data.subscription.driverCount}</p>
+                      <p className="text-faint">Số tài xế</p>
+                      <p className="font-bold text-primary-accent">{data.subscription.driverCount}</p>
                     </div>
                     <div>
-                      <p className="text-[#737783]">Giá/tài xế</p>
-                      <p className="font-bold text-[#111c2d]">{formatCurrency(data.subscription.pricePerDriver)}</p>
+                      <p className="text-faint">Giá/tài xế</p>
+                      <p className="font-bold text-on-surface">{formatCurrency(data.subscription.pricePerDriver)}</p>
                     </div>
                   </div>
                 </div>
@@ -129,73 +129,73 @@ export function ImpersonationDrawer({ factoryId, factoryName, onClose }: Imperso
 
               {/* Drivers & Orders */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white rounded border border-[#c2c6d3] p-3 shadow-2xs">
-                  <h3 className="text-[11px] font-bold uppercase text-[#424751] mb-1 flex items-center gap-1">
-                    <Truck className="w-3.5 h-3.5 text-[#004a99]" />
+                <div className="bg-card rounded border border-outline-variant p-3 shadow-2xs">
+                  <h3 className="text-[11px] font-bold uppercase text-on-surface-variant mb-1 flex items-center gap-1">
+                    <Truck className="w-3.5 h-3.5 text-primary-accent" />
                     Tài xế active
                   </h3>
-                  <p className="data-lg font-bold text-[#004a99]">{data.activeDriverCount}</p>
+                  <p className="data-lg font-bold text-primary-accent">{data.activeDriverCount}</p>
                 </div>
-                <div className="bg-white rounded border border-[#c2c6d3] p-3 shadow-2xs">
-                  <h3 className="text-[11px] font-bold uppercase text-[#424751] mb-1 flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5 text-[#7f3700]" />
+                <div className="bg-card rounded border border-outline-variant p-3 shadow-2xs">
+                  <h3 className="text-[11px] font-bold uppercase text-on-surface-variant mb-1 flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-tertiary-container" />
                     Đang xử lý
                   </h3>
-                  <p className="data-lg font-bold text-[#7f3700]">{data.pendingOrders}</p>
+                  <p className="data-lg font-bold text-tertiary-container">{data.pendingOrders}</p>
                 </div>
               </div>
 
               {/* Factory Info */}
-              <div className="bg-white rounded border border-[#c2c6d3] p-4 shadow-2xs">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[#424751] mb-2.5">Hồ sơ nhà máy</h3>
+              <div className="bg-card rounded border border-outline-variant p-4 shadow-2xs">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2.5">Hồ sơ nhà máy</h3>
                 <div className="space-y-2 text-xs">
                   {data.factory.phone && (
                     <div className="flex justify-between">
-                      <span className="text-[#737783]">Điện thoại</span>
-                      <span className="font-mono font-bold text-[#111c2d]">{data.factory.phone}</span>
+                      <span className="text-faint">Điện thoại</span>
+                      <span className="font-mono font-bold text-on-surface">{data.factory.phone}</span>
                     </div>
                   )}
                   {data.factory.address && (
                     <div className="flex justify-between">
-                      <span className="text-[#737783]">Địa chỉ</span>
-                      <span className="text-[#111c2d] text-right max-w-[200px]">{data.factory.address}</span>
+                      <span className="text-faint">Địa chỉ</span>
+                      <span className="text-on-surface text-right max-w-[200px]">{data.factory.address}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span className="text-[#737783]">Ngày tạo</span>
-                    <span className="text-[#111c2d]">{formatDate(data.factory.createdAt)}</span>
+                    <span className="text-faint">Ngày tạo</span>
+                    <span className="text-on-surface">{formatDate(data.factory.createdAt)}</span>
                   </div>
                 </div>
               </div>
 
               {/* Navigation Links */}
               <div className="space-y-2">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-[#424751]">Truy cập nhanh dữ liệu nhà máy</p>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Truy cập nhanh dữ liệu nhà máy</p>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <a
                     href={`/orders?factoryId=${factoryId}`}
-                    className="flex items-center justify-between px-3 py-2.5 bg-white border border-[#c2c6d3] rounded font-bold text-[#004a99] hover:bg-[#dee8ff] transition-colors"
+                    className="flex items-center justify-between px-3 py-2.5 bg-card border border-outline-variant rounded font-bold text-primary-accent hover:bg-container-high transition-colors"
                   >
                     <span>Đơn hàng</span>
                     <ChevronRight className="w-4 h-4" />
                   </a>
                   <a
                     href={`/settings?factoryId=${factoryId}`}
-                    className="flex items-center justify-between px-3 py-2.5 bg-white border border-[#c2c6d3] rounded font-bold text-[#004a99] hover:bg-[#dee8ff] transition-colors"
+                    className="flex items-center justify-between px-3 py-2.5 bg-card border border-outline-variant rounded font-bold text-primary-accent hover:bg-container-high transition-colors"
                   >
                     <span>Nhân sự</span>
                     <ChevronRight className="w-4 h-4" />
                   </a>
                   <a
                     href={`/inventory?factoryId=${factoryId}`}
-                    className="flex items-center justify-between px-3 py-2.5 bg-white border border-[#c2c6d3] rounded font-bold text-[#004a99] hover:bg-[#dee8ff] transition-colors"
+                    className="flex items-center justify-between px-3 py-2.5 bg-card border border-outline-variant rounded font-bold text-primary-accent hover:bg-container-high transition-colors"
                   >
                     <span>Kho hàng</span>
                     <ChevronRight className="w-4 h-4" />
                   </a>
                   <a
                     href={`/customers?factoryId=${factoryId}`}
-                    className="flex items-center justify-between px-3 py-2.5 bg-white border border-[#c2c6d3] rounded font-bold text-[#004a99] hover:bg-[#dee8ff] transition-colors"
+                    className="flex items-center justify-between px-3 py-2.5 bg-card border border-outline-variant rounded font-bold text-primary-accent hover:bg-container-high transition-colors"
                   >
                     <span>Khách hàng</span>
                     <ChevronRight className="w-4 h-4" />
@@ -212,7 +212,7 @@ export function ImpersonationDrawer({ factoryId, factoryName, onClose }: Imperso
               </button>
             </div>
           ) : (
-            <p className="text-xs text-[#737783] text-center py-12">Không thể tải thông tin nhà máy</p>
+            <p className="text-xs text-faint text-center py-12">Không thể tải thông tin nhà máy</p>
           )}
         </div>
       </div>

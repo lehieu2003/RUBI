@@ -67,7 +67,7 @@ export default function DeliveryCard({ order, index, onConfirm }: DeliveryCardPr
       className={`rounded border overflow-hidden transition-all duration-150 ${
         isDelivered
           ? 'bg-[#a0f399]/15 border-[#1b6d24]'
-          : 'bg-white border-[#c2c6d3] shadow-sm'
+          : 'bg-card border-outline-variant shadow-sm'
       }`}
     >
       {/* Card Header */}
@@ -75,10 +75,10 @@ export default function DeliveryCard({ order, index, onConfirm }: DeliveryCardPr
         {/* STT and Status Row */}
         <div className="flex items-start justify-between mb-2">
           <div>
-            <span className="inline-block px-2 py-0.5 bg-[#d8e3fb] text-[#00346f] data-sm font-bold rounded mb-1">
+            <span className="inline-block px-2 py-0.5 bg-container-highest text-primary-deep data-sm font-bold rounded mb-1">
               ĐIỂM GIAO #{index}
             </span>
-            <h3 className="text-lg font-bold text-[#111c2d] leading-snug">
+            <h3 className="text-lg font-bold text-on-surface leading-snug">
               {order.customer.name}
             </h3>
           </div>
@@ -92,11 +92,11 @@ export default function DeliveryCard({ order, index, onConfirm }: DeliveryCardPr
         </div>
 
         {/* Items */}
-        <div className="rounded bg-[#f0f3ff] p-2.5 my-3 border border-[#dee8ff]">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#424751] block mb-1">
+        <div className="rounded bg-container-low p-2.5 my-3 border border-[#dee8ff]">
+          <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant block mb-1">
             Hàng cần giao:
           </span>
-          <p className="data-md font-bold text-[#00346f]">
+          <p className="data-md font-bold text-primary-deep">
             {formatItems(order.orderItems)}
           </p>
         </div>
@@ -104,35 +104,35 @@ export default function DeliveryCard({ order, index, onConfirm }: DeliveryCardPr
         {/* Address (tappable) */}
         <button
           onClick={() => openGoogleMaps(order.customer.address)}
-          className="flex items-center gap-2 text-[#424751] hover:text-[#004a99] text-sm mb-3 w-full text-left py-2 px-2.5 rounded bg-[#f9f9ff] border border-[#e7eeff]"
+          className="flex items-center gap-2 text-on-surface-variant hover:text-primary-accent text-sm mb-3 w-full text-left py-2 px-2.5 rounded bg-surface border border-outline-soft"
         >
-          <MapPin className="h-4 w-4 shrink-0 text-[#004a99]" />
+          <MapPin className="h-4 w-4 shrink-0 text-primary-accent" />
           <span className="flex-1 font-medium">{order.customer.address}</span>
-          <Navigation className="h-4 w-4 shrink-0 text-[#004a99]" />
+          <Navigation className="h-4 w-4 shrink-0 text-primary-accent" />
         </button>
 
         {/* Photo Proof thumbnail if captured */}
         {photoPreview && (
-          <div className="mb-3 p-2 rounded bg-[#dee8ff]/50 border border-[#004a99]/30 flex items-center gap-2">
-            <div className="relative h-12 w-12 rounded overflow-hidden bg-black shrink-0 border border-[#c2c6d3]">
+          <div className="mb-3 p-2 rounded bg-container-high/50 border border-[#004a99]/30 flex items-center gap-2">
+            <div className="relative h-12 w-12 rounded overflow-hidden bg-black shrink-0 border border-outline-variant">
               <Image src={photoPreview} alt="Ảnh giao hàng" width={48} height={48} unoptimized className="h-full w-full object-cover" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-[#00346f] flex items-center gap-1">
+              <p className="text-xs font-bold text-primary-deep flex items-center gap-1">
                 <ImageIcon className="h-3.5 w-3.5" />
                 Ảnh xác nhận giao hàng
               </p>
-              <p className="text-[11px] text-[#1b6d24] font-medium">Đã đính kèm bằng chứng</p>
+              <p className="text-[11px] text-secondary font-medium">Đã đính kèm bằng chứng</p>
             </div>
           </div>
         )}
 
         {/* Money to collect */}
-        <div className="flex items-center justify-between bg-[#f9f9ff] border border-[#c2c6d3] rounded-xl p-3 mb-4">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#424751]">
+        <div className="flex items-center justify-between bg-surface border border-outline-variant rounded-xl p-3 mb-4">
+          <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
             Tiền cần thu:
           </span>
-          <p className="font-mono text-xl font-bold text-[#111c2d] tabular-nums">
+          <p className="font-mono text-xl font-bold text-on-surface tabular-nums">
             {formatCurrency(order.total)}
           </p>
         </div>
@@ -142,7 +142,7 @@ export default function DeliveryCard({ order, index, onConfirm }: DeliveryCardPr
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => callCustomer(order.customer.phone)}
-              className="flex items-center justify-center gap-1.5 h-12 rounded-xl border border-[#004a99] bg-white text-[#004a99] font-bold text-sm hover:bg-[#dee8ff] active:scale-[0.98] transition-all shadow-2xs"
+              className="flex items-center justify-center gap-1.5 h-12 rounded-xl border border-[#004a99] bg-card text-primary-accent font-bold text-sm hover:bg-container-high active:scale-[0.98] transition-all shadow-2xs"
             >
               <Phone className="h-4 w-4" />
               Gọi khách
@@ -151,9 +151,9 @@ export default function DeliveryCard({ order, index, onConfirm }: DeliveryCardPr
             {/* Camera Capture Input Button */}
             <label
               htmlFor={`camera-input-${order.id}`}
-              className="flex items-center justify-center gap-1.5 h-12 rounded-xl border border-[#c2c6d3] bg-[#f9f9ff] hover:bg-[#dee8ff] text-[#424751] font-bold text-sm cursor-pointer active:scale-[0.98] transition-all shadow-2xs"
+              className="flex items-center justify-center gap-1.5 h-12 rounded-xl border border-outline-variant bg-surface hover:bg-container-high text-on-surface-variant font-bold text-sm cursor-pointer active:scale-[0.98] transition-all shadow-2xs"
             >
-              <Camera className="h-4 w-4 text-[#004a99]" />
+              <Camera className="h-4 w-4 text-primary-accent" />
               <span>Chụp ảnh</span>
               <input
                 id={`camera-input-${order.id}`}
@@ -175,7 +175,7 @@ export default function DeliveryCard({ order, index, onConfirm }: DeliveryCardPr
               XÁC NHẬN ĐÃ GIAO XONG
             </button>
           ) : (
-            <div className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-[#a0f399]/40 border border-[#1b6d24]/30 text-[#1b6d24] font-bold text-sm">
+            <div className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-[#a0f399]/40 border border-[#1b6d24]/30 text-secondary font-bold text-sm">
               <Check className="h-5 w-5 stroke-[2.5]" />
               ĐÃ HOÀN TẤT GIAO HÀNG
             </div>

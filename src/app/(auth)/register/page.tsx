@@ -63,7 +63,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
+    <div className="relative bg-card/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-white mb-2">Tạo tài khoản</h1>
         <p className="text-sm text-gray-400">Bắt đầu dùng thử miễn phí 14 ngày</p>
@@ -93,7 +93,7 @@ export default function RegisterPage() {
             required
             minLength={2}
             maxLength={100}
-            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all text-sm"
+            className="w-full px-4 py-3 bg-card/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-card/10 transition-all text-sm"
           />
         </div>
 
@@ -110,7 +110,7 @@ export default function RegisterPage() {
             required
             minLength={9}
             maxLength={15}
-            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all text-sm"
+            className="w-full px-4 py-3 bg-card/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-card/10 transition-all text-sm"
           />
         </div>
 
@@ -125,7 +125,7 @@ export default function RegisterPage() {
             onChange={(e) => setName(e.target.value)}
             placeholder="Nguyễn Văn A"
             required
-            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all text-sm"
+            className="w-full px-4 py-3 bg-card/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-card/10 transition-all text-sm"
           />
         </div>
 
@@ -140,7 +140,7 @@ export default function RegisterPage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="contact@abcice.vn"
             required
-            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all text-sm"
+            className="w-full px-4 py-3 bg-card/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-card/10 transition-all text-sm"
           />
         </div>
 
@@ -156,7 +156,7 @@ export default function RegisterPage() {
             placeholder="Ít nhất 8 ký tự"
             required
             minLength={8}
-            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all text-sm"
+            className="w-full px-4 py-3 bg-card/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-card/10 transition-all text-sm"
           />
         </div>
 

@@ -103,10 +103,10 @@ export default function CustomersPage() {
     <DashboardLayout>
       <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px]">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-outline-variant pb-4 mb-6">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Danh Sách Khách Hàng</h1>
-              <p className="text-xs text-[#424751] mt-1">{customers.length} đại lý / khách hàng trong hệ thống</p>
+              <h1 className="text-2xl font-bold tracking-tight text-on-surface">Danh Sách Khách Hàng</h1>
+              <p className="text-xs text-on-surface-variant mt-1">{customers.length} đại lý / khách hàng trong hệ thống</p>
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
@@ -119,13 +119,13 @@ export default function CustomersPage() {
 
           {/* Search */}
           <div className="relative mb-6">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#737783]" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
             <input
               type="text"
               placeholder="Tìm theo tên, SĐT hoặc mã KH..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] placeholder-[#737783] focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99]"
+              className="w-full pl-10 pr-4 py-2.5 bg-card border border-outline-variant rounded text-sm text-on-surface placeholder-faint focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99]"
             />
           </div>
 
@@ -140,32 +140,32 @@ export default function CustomersPage() {
                 <div
                   key={customer.id}
                   onClick={() => setSelectedCustomer(customer)}
-                  className="group cursor-pointer rounded border border-[#c2c6d3] bg-white p-4 hover:border-[#004a99] hover:bg-[#f0f3ff] transition-all shadow-sm flex flex-col justify-between"
+                  className="group cursor-pointer rounded border border-outline-variant bg-card p-4 hover:border-[#004a99] hover:bg-container-low transition-all shadow-sm flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold font-mono text-[#004a99] bg-[#dee8ff] px-2 py-0.5 rounded">
+                        <span className="text-xs font-bold font-mono text-primary-accent bg-container-high px-2 py-0.5 rounded">
                           {customer.code}
                         </span>
                         {!customer.isActive && (
-                          <span className="text-xs font-mono text-[#737783] bg-[#cfdaf2] px-2 py-0.5 rounded">
+                          <span className="text-xs font-mono text-faint bg-surface-dim px-2 py-0.5 rounded">
                             inactive
                           </span>
                         )}
                       </div>
-                      <ChevronRight className="h-4 w-4 text-[#737783] group-hover:text-[#004a99] transition-colors" />
+                      <ChevronRight className="h-4 w-4 text-faint group-hover:text-primary-accent transition-colors" />
                     </div>
-                    <h3 className="text-base font-bold text-[#111c2d] mb-2">{customer.name}</h3>
+                    <h3 className="text-base font-bold text-on-surface mb-2">{customer.name}</h3>
                   </div>
 
-                  <div className="space-y-1.5 border-t border-[#e7eeff] pt-2 text-xs text-[#424751]">
+                  <div className="space-y-1.5 border-t border-outline-soft pt-2 text-xs text-on-surface-variant">
                     <div className="flex items-center gap-1.5">
-                      <Phone className="h-3.5 w-3.5 text-[#737783]" />
+                      <Phone className="h-3.5 w-3.5 text-faint" />
                       <span className="font-mono font-medium">{customer.phone || '—'}</span>
                     </div>
                     <div className="flex items-center gap-1.5 truncate">
-                      <MapPin className="h-3.5 w-3.5 text-[#737783] shrink-0" />
+                      <MapPin className="h-3.5 w-3.5 text-faint shrink-0" />
                       <span className="truncate">{customer.address || '—'}</span>
                     </div>
                   </div>
@@ -183,49 +183,49 @@ export default function CustomersPage() {
             role="dialog"
             aria-modal="true"
             aria-label="Thêm khách hàng"
-            className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white border border-[#c2c6d3] rounded shadow-xl p-6"
+            className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-card border border-outline-variant rounded shadow-xl p-6"
           >
-            <h3 className="text-lg font-bold text-[#111c2d] mb-1">Thêm khách hàng</h3>
-            <p className="text-[#424751] text-xs mb-5">Tạo thông tin đại lý hoặc khách lấy đá mới</p>
+            <h3 className="text-lg font-bold text-on-surface mb-1">Thêm khách hàng</h3>
+            <p className="text-on-surface-variant text-xs mb-5">Tạo thông tin đại lý hoặc khách lấy đá mới</p>
 
             <div className="space-y-3.5">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1">Mã khách hàng *</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Mã khách hàng *</label>
                 <input
                   type="text"
                   value={formData.code}
                   onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
-                  className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99]"
+                  className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99]"
                   placeholder="KH001"
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1">Tên khách hàng *</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Tên khách hàng *</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99]"
+                  className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99]"
                   placeholder="Đại lý Minh Tuấn"
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1">Số điện thoại</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Số điện thoại</label>
                 <input
                   type="text"
                   value={formData.phone}
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99]"
+                  className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99]"
                   placeholder="0909123456"
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1">Địa chỉ giao hàng</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Địa chỉ giao hàng</label>
                 <input
                   type="text"
                   value={formData.address}
                   onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                  className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99]"
+                  className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99]"
                   placeholder="123 Lê Lợi, Quận 1"
                 />
               </div>
@@ -235,16 +235,16 @@ export default function CustomersPage() {
                   id="isActive"
                   checked={formData.isActive}
                   onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
-                  className="w-4 h-4 rounded border-[#c2c6d3] text-[#004a99] focus:ring-[#004a99]"
+                  className="w-4 h-4 rounded border-outline-variant text-primary-accent focus:ring-[#004a99]"
                 />
-                <label htmlFor="isActive" className="text-xs font-medium text-[#111c2d]">Kích hoạt ngay</label>
+                <label htmlFor="isActive" className="text-xs font-medium text-on-surface">Kích hoạt ngay</label>
               </div>
             </div>
 
             <div className="flex gap-2.5 mt-6">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="flex-1 py-2.5 border border-[#c2c6d3] text-[#424751] font-bold text-xs rounded hover:bg-[#dee8ff] transition-colors"
+                className="flex-1 py-2.5 border border-outline-variant text-on-surface-variant font-bold text-xs rounded hover:bg-container-high transition-colors"
               >
                 HỦY
               </button>
@@ -264,17 +264,17 @@ export default function CustomersPage() {
       {selectedCustomer && (
         <>
           <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs" onClick={() => setSelectedCustomer(null)} />
-          <div className="fixed right-0 top-0 z-50 h-full w-full max-w-lg bg-white border-l border-[#c2c6d3] shadow-2xl overflow-y-auto">
-            <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-[#f9f9ff] border-b border-[#c2c6d3]">
+          <div className="fixed right-0 top-0 z-50 h-full w-full max-w-lg bg-card border-l border-outline-variant shadow-2xl overflow-y-auto">
+            <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-surface border-b border-outline-variant">
               <div>
-                <span className="text-xs font-bold font-mono text-[#004a99] bg-[#dee8ff] px-2 py-0.5 rounded">
+                <span className="text-xs font-bold font-mono text-primary-accent bg-container-high px-2 py-0.5 rounded">
                   {selectedCustomer.code}
                 </span>
-                <h2 className="text-lg font-bold text-[#111c2d] mt-1">{selectedCustomer.name}</h2>
+                <h2 className="text-lg font-bold text-on-surface mt-1">{selectedCustomer.name}</h2>
               </div>
               <button
                 onClick={() => setSelectedCustomer(null)}
-                className="p-1.5 rounded hover:bg-[#dee8ff] text-[#737783] hover:text-[#111c2d] transition-colors"
+                className="p-1.5 rounded hover:bg-container-high text-faint hover:text-on-surface transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -282,16 +282,16 @@ export default function CustomersPage() {
 
             <div className="p-6 space-y-5">
               {/* Contact Info */}
-              <div className="rounded border border-[#c2c6d3] bg-[#f9f9ff] p-4">
-                <h3 className="text-xs font-bold text-[#424751] uppercase tracking-wider mb-3">Thông tin liên hệ</h3>
+              <div className="rounded border border-outline-variant bg-surface p-4">
+                <h3 className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-3">Thông tin liên hệ</h3>
                 <div className="space-y-2 text-xs">
                   <div className="flex items-center gap-2.5">
-                    <Phone className="h-4 w-4 text-[#737783]" />
-                    <span className="text-[#111c2d] font-mono font-medium">{selectedCustomer.phone || '—'}</span>
+                    <Phone className="h-4 w-4 text-faint" />
+                    <span className="text-on-surface font-mono font-medium">{selectedCustomer.phone || '—'}</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <MapPin className="h-4 w-4 text-[#737783]" />
-                    <span className="text-[#111c2d]">{selectedCustomer.address || '—'}</span>
+                    <MapPin className="h-4 w-4 text-faint" />
+                    <span className="text-on-surface">{selectedCustomer.address || '—'}</span>
                   </div>
                 </div>
               </div>

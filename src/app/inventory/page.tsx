@@ -88,10 +88,10 @@ export default function InventoryPage() {
     <DashboardLayout>
       <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px]">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#c2c6d3] pb-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-outline-variant pb-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Kho Lạnh & Tồn Kho</h1>
-            <p className="text-xs text-[#424751] mt-1">Theo dõi số lượng tồn kho theo từng loại đá thực tế</p>
+            <h1 className="text-2xl font-bold tracking-tight text-on-surface">Kho Lạnh & Tồn Kho</h1>
+            <p className="text-xs text-on-surface-variant mt-1">Theo dõi số lượng tồn kho theo từng loại đá thực tế</p>
           </div>
           <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
             {data.items.length > 0 && (
@@ -107,7 +107,7 @@ export default function InventoryPage() {
                   ]);
                   exportToCSV('Ton_Kho_Lanh', headers, rows);
                 }}
-                className="flex items-center gap-2 px-3.5 py-2 border border-[#c2c6d3] bg-white hover:bg-[#dee8ff] text-[#00346f] font-bold text-xs rounded transition-all shadow-sm"
+                className="flex items-center gap-2 px-3.5 py-2 border border-outline-variant bg-card hover:bg-container-high text-primary-deep font-bold text-xs rounded transition-all shadow-sm"
               >
                 <Download className="h-4 w-4" />
                 XUẤT CSV
@@ -116,7 +116,7 @@ export default function InventoryPage() {
             <button
               onClick={fetchInventory}
               disabled={loading}
-              className="flex items-center gap-2 px-3 py-2 border border-[#c2c6d3] bg-white hover:bg-[#dee8ff] text-[#00346f] font-bold text-xs rounded transition-all shadow-sm"
+              className="flex items-center gap-2 px-3 py-2 border border-outline-variant bg-card hover:bg-container-high text-primary-deep font-bold text-xs rounded transition-all shadow-sm"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               LÀM MỚI
@@ -133,25 +133,25 @@ export default function InventoryPage() {
 
         {/* Overview summary */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6">
-          <div className="rounded border border-[#c2c6d3] bg-white p-5 shadow-sm">
+          <div className="rounded border border-outline-variant bg-card p-5 shadow-sm">
             <div className="flex items-center gap-3 mb-2">
               <div className="h-10 w-10 rounded bg-[#004a99] flex items-center justify-center text-white">
                 <Snowflake className="h-5 w-5 text-[#9bbdff]" />
               </div>
               <div>
-                <h3 className="text-xs font-bold text-[#424751] uppercase">Tổng bao tồn kho</h3>
-                <p className="text-2xl font-bold text-[#004a99] font-mono">{data.totalBags.toLocaleString('vi-VN')} bao</p>
+                <h3 className="text-xs font-bold text-on-surface-variant uppercase">Tổng bao tồn kho</h3>
+                <p className="text-2xl font-bold text-primary-accent font-mono">{data.totalBags.toLocaleString('vi-VN')} bao</p>
               </div>
             </div>
           </div>
-          <div className="rounded border border-[#c2c6d3] bg-white p-5 shadow-sm">
+          <div className="rounded border border-outline-variant bg-card p-5 shadow-sm">
             <div className="flex items-center gap-3 mb-2">
               <div className="h-10 w-10 rounded bg-[#1b6d24] flex items-center justify-center text-white">
                 <Snowflake className="h-5 w-5 text-[#9bbdff]" />
               </div>
               <div>
-                <h3 className="text-xs font-bold text-[#424751] uppercase">Tổng khối lượng tồn</h3>
-                <p className="text-2xl font-bold text-[#1b6d24] font-mono">{data.totalKg.toLocaleString('vi-VN')} kg</p>
+                <h3 className="text-xs font-bold text-on-surface-variant uppercase">Tổng khối lượng tồn</h3>
+                <p className="text-2xl font-bold text-secondary font-mono">{data.totalKg.toLocaleString('vi-VN')} kg</p>
               </div>
             </div>
           </div>
@@ -160,36 +160,36 @@ export default function InventoryPage() {
         {/* Product Inventory Table */}
         {loading && data.items.length === 0 ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-[#004a99]" />
+            <Loader2 className="h-8 w-8 animate-spin text-primary-accent" />
           </div>
         ) : data.items.length === 0 ? (
-          <div className="rounded border border-[#c2c6d3] bg-white p-8 text-center shadow-sm">
-            <Snowflake className="mx-auto mb-3 h-10 w-10 text-[#737783]" />
-            <p className="text-sm font-bold text-[#111c2d]">Chưa có sản phẩm nào trong kho</p>
-            <p className="mt-1 text-xs text-[#424751]">
+          <div className="rounded border border-outline-variant bg-card p-8 text-center shadow-sm">
+            <Snowflake className="mx-auto mb-3 h-10 w-10 text-faint" />
+            <p className="text-sm font-bold text-on-surface">Chưa có sản phẩm nào trong kho</p>
+            <p className="mt-1 text-xs text-on-surface-variant">
               Vui lòng cấu hình sản phẩm trong danh mục hoặc nhấn &quot;Nhập sản lượng mới&quot;
             </p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded border border-[#c2c6d3] bg-white shadow-sm">
+          <div className="overflow-hidden rounded border border-outline-variant bg-card shadow-sm">
             <table className="w-full text-left border-collapse table-industrial">
               <thead>
-                <tr className="border-b border-[#c2c6d3] bg-[#f9f9ff] text-[12px] font-bold uppercase tracking-wider text-[#424751]">
+                <tr className="border-b border-outline-variant bg-surface text-[12px] font-bold uppercase tracking-wider text-on-surface-variant">
                   <th className="py-3 px-4">Tên sản phẩm</th>
                   <th className="py-3 px-4">Quy cách (Kg/Bao)</th>
                   <th className="py-3 px-4 text-right">Tồn kho hiện tại (Bao)</th>
                   <th className="py-3 px-4 text-right">Tổng khối lượng (Kg)</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#e7eeff] text-sm">
+              <tbody className="divide-y divide-outline-soft text-sm">
                 {data.items.map((item) => (
-                  <tr key={item.productId} className="h-12 hover:bg-[#f0f3ff] transition-colors">
-                    <td className="py-3 px-4 font-bold text-[#111c2d]">{item.productName}</td>
-                    <td className="py-3 px-4 text-xs font-mono text-[#004a99]">{item.sizeKg} kg</td>
-                    <td className="py-3 px-4 text-right font-bold text-[#004a99] font-mono">
+                  <tr key={item.productId} className="h-12 hover:bg-container-low transition-colors">
+                    <td className="py-3 px-4 font-bold text-on-surface">{item.productName}</td>
+                    <td className="py-3 px-4 text-xs font-mono text-primary-accent">{item.sizeKg} kg</td>
+                    <td className="py-3 px-4 text-right font-bold text-primary-accent font-mono">
                       {item.quantityOnHand.toLocaleString('vi-VN')} {item.unit || 'bao'}
                     </td>
-                    <td className="py-3 px-4 text-right font-bold text-[#111c2d] font-mono">
+                    <td className="py-3 px-4 text-right font-bold text-on-surface font-mono">
                       {item.totalKg.toLocaleString('vi-VN')} kg
                     </td>
                   </tr>
@@ -204,17 +204,17 @@ export default function InventoryPage() {
       {showAddModal && (
         <>
           <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs" onClick={() => setShowAddModal(false)} />
-          <div className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white border border-[#c2c6d3] rounded shadow-xl p-6">
-            <h3 className="text-lg font-bold text-[#111c2d] mb-1">Nhập sản lượng kho</h3>
-            <p className="text-[#424751] text-xs mb-5">Ghi nhận mẻ đá vừa ra lò vào kho lạnh</p>
+          <div className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-card border border-outline-variant rounded shadow-xl p-6">
+            <h3 className="text-lg font-bold text-on-surface mb-1">Nhập sản lượng kho</h3>
+            <p className="text-on-surface-variant text-xs mb-5">Ghi nhận mẻ đá vừa ra lò vào kho lạnh</p>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1.5">Sản phẩm</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">Sản phẩm</label>
                 <select
                   value={selectedProductId}
                   onChange={(e) => setSelectedProductId(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99]"
+                  className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99]"
                 >
                   {data.items.map(t => (
                     <option key={t.productId} value={t.productId}>{t.productName} ({t.sizeKg}kg)</option>
@@ -223,14 +223,14 @@ export default function InventoryPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1.5">Số lượng cộng thêm (Bao)</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">Số lượng cộng thêm (Bao)</label>
                 <input
                   type="number"
                   min="1"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
                   placeholder="Ví dụ: 50"
-                  className="w-full px-3 py-2 bg-white border border-[#c2c6d3] rounded text-sm text-[#111c2d] focus:border-[#004a99]"
+                  className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99]"
                 />
               </div>
             </div>
@@ -240,7 +240,7 @@ export default function InventoryPage() {
                 type="button"
                 disabled={submitting}
                 onClick={() => setShowAddModal(false)}
-                className="flex-1 py-2.5 border border-[#c2c6d3] text-[#424751] font-bold text-xs rounded hover:bg-[#dee8ff] transition-colors disabled:opacity-50"
+                className="flex-1 py-2.5 border border-outline-variant text-on-surface-variant font-bold text-xs rounded hover:bg-container-high transition-colors disabled:opacity-50"
               >
                 HỦY
               </button>

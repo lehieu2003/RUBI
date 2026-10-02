@@ -126,33 +126,33 @@ export function SearchBar({ customers, onSelect, recentCustomerIds }: SearchBarP
           onFocus={handleFocus}
           onBlur={handleBlur}
           placeholder="Tìm khách hàng (tên, mã, SĐT, địa chỉ)..."
-          className="w-full rounded border border-[#c2c6d3] bg-white px-3.5 py-2.5 pr-10 text-sm text-[#111c2d] placeholder:text-[#737783] focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99] transition-all shadow-2xs"
+          className="w-full rounded border border-outline-variant bg-card px-3.5 py-2.5 pr-10 text-sm text-on-surface placeholder:text-faint focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99] transition-all shadow-2xs"
         />
         {/* Search icon */}
-        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#737783]">
+        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-faint">
           <Search className="h-4 w-4" />
         </span>
       </div>
 
       {/* Single result hint */}
       {singleResultHint && (
-        <div className="mt-1 text-xs font-bold text-[#004a99]">{singleResultHint}</div>
+        <div className="mt-1 text-xs font-bold text-primary-accent">{singleResultHint}</div>
       )}
 
       {/* Dropdown results */}
       {isOpen && (
         <ul
           ref={listRef}
-          className="absolute z-30 mt-1 max-h-72 w-full overflow-auto rounded border border-[#c2c6d3] bg-white py-1 shadow-xl divide-y divide-[#e7eeff]"
+          className="absolute z-30 mt-1 max-h-72 w-full overflow-auto rounded border border-outline-variant bg-card py-1 shadow-xl divide-y divide-outline-soft"
           role="listbox"
         >
           {/* Header */}
-          <li className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-[#424751] bg-[#f9f9ff] flex items-center justify-between sticky top-0 z-10">
+          <li className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-on-surface-variant bg-surface flex items-center justify-between sticky top-0 z-10">
             <span className="flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5 text-[#004a99]" />
+              <Users className="h-3.5 w-3.5 text-primary-accent" />
               {query.trim() ? `Kết quả tìm kiếm (${results.length})` : `Tất cả khách hàng (${results.length})`}
             </span>
-            <span className="text-[10px] text-[#737783] font-normal lowercase">Dùng phím mũi tên & Enter</span>
+            <span className="text-[10px] text-faint font-normal lowercase">Dùng phím mũi tên & Enter</span>
           </li>
 
           {results.map((customer, idx) => {
@@ -161,7 +161,7 @@ export function SearchBar({ customers, onSelect, recentCustomerIds }: SearchBarP
               <li
                 key={customer.id}
                 className={`cursor-pointer px-3.5 py-2.5 transition-colors ${
-                  idx === selectedIndex ? 'bg-[#dee8ff]' : 'hover:bg-[#f0f3ff]'
+                  idx === selectedIndex ? 'bg-container-high' : 'hover:bg-container-low'
                 }`}
                 onMouseDown={(e) => {
                   e.preventDefault();
@@ -174,22 +174,22 @@ export function SearchBar({ customers, onSelect, recentCustomerIds }: SearchBarP
                 <div className="flex items-center justify-between">
                   <div className="min-w-0 flex-1 pr-2">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="font-bold text-sm text-[#111c2d]">{customer.name}</span>
-                      <span className="rounded bg-[#dee8ff] px-1.5 py-0.2 font-mono text-[11px] font-bold text-[#004a99]">
+                      <span className="font-bold text-sm text-on-surface">{customer.name}</span>
+                      <span className="rounded bg-container-high px-1.5 py-0.2 font-mono text-[11px] font-bold text-primary-accent">
                         {customer.code}
                       </span>
                       {isRecent && (
-                        <span className="rounded bg-[#a0f399]/40 px-1.5 py-0.2 text-[10px] font-bold text-[#1b6d24]">
+                        <span className="rounded bg-[#a0f399]/40 px-1.5 py-0.2 text-[10px] font-bold text-secondary">
                           Vừa gọi
                         </span>
                       )}
                     </div>
                     {customer.address && (
-                      <p className="text-xs text-[#737783] truncate mt-0.5">{customer.address}</p>
+                      <p className="text-xs text-faint truncate mt-0.5">{customer.address}</p>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 text-xs text-[#424751] font-mono shrink-0">
-                    <Phone className="h-3.5 w-3.5 text-[#004a99]" />
+                  <div className="flex items-center gap-1 text-xs text-on-surface-variant font-mono shrink-0">
+                    <Phone className="h-3.5 w-3.5 text-primary-accent" />
                     {customer.phone}
                   </div>
                 </div>
@@ -198,7 +198,7 @@ export function SearchBar({ customers, onSelect, recentCustomerIds }: SearchBarP
           })}
 
           {results.length === 0 && (
-            <li className="px-3.5 py-4 text-xs text-[#737783] text-center">
+            <li className="px-3.5 py-4 text-xs text-faint text-center">
               {query.trim() ? `Không tìm thấy khách hàng nào khớp với "${query}"` : 'Chưa có khách hàng nào trong hệ thống'}
             </li>
           )}

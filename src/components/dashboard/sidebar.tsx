@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   FileText,
+  Moon,
   Users,
   Snowflake,
   Truck,
@@ -17,9 +18,11 @@ import {
   BarChart3,
   Package,
   Calendar,
+  Sun,
   X,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-provider';
+import { useTheme } from '@/lib/theme';
 import {
   getVisibleTenantRoutes,
   type TenantRole,
@@ -52,6 +55,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, signOut } = useAuth();
+  const { resolved, toggle: toggleTheme } = useTheme();
 
   const role = user?.role as TenantRole | undefined;
 
@@ -89,24 +93,24 @@ export function Sidebar() {
       )}
 
       <aside
-        className={`fixed left-0 top-0 z-30 flex h-full flex-col border-r border-[#c2c6d3] bg-white text-[#111c2d] transition-all duration-300 shadow-xs ${
+        className={`fixed left-0 top-0 z-30 flex h-full flex-col border-r border-outline-variant bg-card text-on-surface transition-all duration-300 shadow-xs ${
           isMobileSidebarOpen
             ? 'translate-x-0'
             : '-translate-x-full lg:translate-x-0'
         } ${isSidebarCollapsed ? 'lg:w-20' : 'w-64 lg:w-64'}`}
       >
         {/* Logo Header */}
-        <div className="flex items-center justify-between border-b border-[#e7eeff] px-5 py-4 bg-white">
+        <div className="flex items-center justify-between border-b border-outline-soft px-5 py-4 bg-card">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-[#004a99] text-white shadow-2xs">
               <Snowflake className="h-5 w-5 text-white" />
             </div>
             {!isSidebarCollapsed && (
               <div className="flex flex-col">
-                <span className="text-xl font-black tracking-tight text-[#002754] font-sans">
+                <span className="text-xl font-black tracking-tight text-primary-dark font-sans">
                   IceFlow
                 </span>
-                <span className="text-[10px] uppercase tracking-wider text-[#004a99] font-bold">
+                <span className="text-[10px] uppercase tracking-wider text-primary-accent font-bold">
                   Quản Lý Xưởng Đá
                 </span>
               </div>
@@ -115,7 +119,7 @@ export function Sidebar() {
           {/* Close button on mobile */}
           <button
             onClick={closeMobileSidebar}
-            className="flex h-8 w-8 items-center justify-center rounded text-[#737783] hover:bg-[#f0f3ff] hover:text-[#111c2d] lg:hidden"
+            className="flex h-8 w-8 items-center justify-center rounded text-faint hover:bg-container-low hover:text-on-surface lg:hidden"
           >
             <X className="h-5 w-5" />
           </button>
@@ -137,7 +141,7 @@ export function Sidebar() {
                 className={`group flex items-center gap-3 rounded px-3 py-2 transition-all text-xs font-bold ${
                   isActive
                     ? 'bg-[#004a99] text-white shadow-2xs'
-                    : 'text-[#424751] hover:bg-[#f0f3ff] hover:text-[#004a99]'
+                    : 'text-on-surface-variant hover:bg-container-low hover:text-primary-accent'
                 }`}
                 title={isSidebarCollapsed ? item.label : undefined}
               >
@@ -145,7 +149,7 @@ export function Sidebar() {
                   className={`h-4 w-4 shrink-0 transition-transform ${
                     isActive
                       ? 'text-white'
-                      : 'text-[#737783] group-hover:text-[#004a99] group-hover:scale-105'
+                      : 'text-faint group-hover:text-primary-accent group-hover:scale-105'
                   }`}
                 />
                 {!isSidebarCollapsed && (
@@ -156,33 +160,43 @@ export function Sidebar() {
           })}
         </nav>
 
-        {/* Collapse toggle (hidden on mobile) */}
-        <button
-          onClick={toggleSidebarCollapse}
-          className="hidden lg:flex items-center justify-center border-t border-[#e7eeff] py-2.5 text-[#737783] hover:bg-[#f0f3ff] hover:text-[#004a99] transition-colors"
-          title={isSidebarCollapsed ? 'Mở rộng menu' : 'Thu gọn menu'}
-        >
-          {isSidebarCollapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
-          )}
-        </button>
+        {/* Collapse toggle + Theme toggle (hidden on mobile) */}
+        <div className="hidden lg:flex border-t border-outline-soft">
+          <button
+            onClick={toggleTheme}
+            className="flex-1 flex items-center justify-center border-r border-outline-soft py-2.5 text-faint hover:bg-container-low hover:text-primary-accent transition-colors"
+            title={resolved === 'dark' ? 'Chế độ sáng' : 'Chế độ tối'}
+            aria-label={resolved === 'dark' ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'}
+          >
+            {resolved === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
+          <button
+            onClick={toggleSidebarCollapse}
+            className="flex-1 flex items-center justify-center py-2.5 text-faint hover:bg-container-low hover:text-primary-accent transition-colors"
+            title={isSidebarCollapsed ? 'Mở rộng menu' : 'Thu gọn menu'}
+          >
+            {isSidebarCollapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </button>
+        </div>
 
         {/* Bottom Section: User Profile & Logout */}
-        <div className="border-t border-[#e7eeff] bg-[#f9f9ff] px-3 py-3 space-y-2">
+        <div className="border-t border-outline-soft bg-surface px-3 py-3 space-y-2">
           {/* User Profile & Logout Row */}
-          <div className={`pt-2 border-t border-[#e7eeff] flex items-center justify-between gap-2 px-1 ${isSidebarCollapsed ? 'flex-col' : ''}`}>
+          <div className={`pt-2 border-t border-outline-soft flex items-center justify-between gap-2 px-1 ${isSidebarCollapsed ? 'flex-col' : ''}`}>
             <div className={`flex items-center gap-2.5 min-w-0 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-[#dee8ff] text-[#004a99] text-xs font-bold">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-container-high text-primary-accent text-xs font-bold">
                 {user?.name?.charAt(0).toUpperCase() || 'U'}
               </div>
               {!isSidebarCollapsed && (
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-bold text-[#111c2d] leading-tight">
+                  <p className="truncate text-xs font-bold text-on-surface leading-tight">
                     {user?.name || 'User'}
                   </p>
-                  <p className="truncate text-[10px] text-[#737783] font-mono mt-0.5">
+                  <p className="truncate text-[10px] text-faint font-mono mt-0.5">
                     {user?.role === 'ADMIN' ? 'Quản lý' : user?.role === 'ACCOUNTANT' ? 'Kế toán' : user?.role === 'DRIVER' ? 'Tài xế' : 'Nhân viên'}
                   </p>
                 </div>
@@ -194,7 +208,7 @@ export function Sidebar() {
               onClick={handleSignOut}
               disabled={signingOut}
               title="Đăng xuất"
-              className={`flex items-center gap-1.5 rounded px-2 py-1.5 text-xs font-bold text-[#ba1a1a] hover:bg-[#ffdad6] transition-colors disabled:opacity-50 ${
+              className={`flex items-center gap-1.5 rounded px-2 py-1.5 text-xs font-bold text-error hover:bg-error-container transition-colors disabled:opacity-50 ${
                 isSidebarCollapsed ? 'w-full justify-center' : ''
               }`}
             >

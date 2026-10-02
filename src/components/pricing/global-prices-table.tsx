@@ -77,29 +77,29 @@ export function GlobalPricesTable({ products, globalPrices }: GlobalPricesTableP
     <div className="space-y-6">
       {groups.map(({ label, products: rowProducts }) => (
         <div key={label}>
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[#424751] mb-2">{label}</h3>
-          <div className="overflow-hidden rounded border border-[#c2c6d3] bg-white">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">{label}</h3>
+          <div className="overflow-hidden rounded border border-outline-variant bg-card">
             <table className="w-full text-left border-collapse table-industrial">
               <thead>
-                <tr className="border-b border-[#c2c6d3] bg-[#f9f9ff] text-[12px] font-bold uppercase tracking-wider text-[#424751]">
+                <tr className="border-b border-outline-variant bg-surface text-[12px] font-bold uppercase tracking-wider text-on-surface-variant">
                   <th className="py-2.5 px-4">Quy cách</th>
                   <th className="py-2.5 px-4 text-right">Giá niêm yết hiện tại</th>
                   <th className="py-2.5 px-4 text-right">Nhập giá mới</th>
                   <th className="py-2.5 px-4 text-center w-28">Thao tác</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#e7eeff] text-sm">
+              <tbody className="divide-y divide-outline-soft text-sm">
                 {rowProducts.map((product) => {
                   const currentPrice = prices.get(product.id) ?? 0;
                   const isEditing = editingId === product.id;
                   const isSavingNow = saving === product.id;
 
                   return (
-                    <tr key={product.id} className="h-12 hover:bg-[#f0f3ff] transition-colors">
-                      <td className="py-2.5 px-4 font-bold text-[#111c2d]">
+                    <tr key={product.id} className="h-12 hover:bg-container-low transition-colors">
+                      <td className="py-2.5 px-4 font-bold text-on-surface">
                         {product.name} ({product.sizeKg}kg)
                       </td>
-                      <td className="py-2.5 px-4 text-right data-md font-bold text-[#004a99]">
+                      <td className="py-2.5 px-4 text-right data-md font-bold text-primary-accent">
                         {currentPrice.toLocaleString('vi-VN')} đ
                       </td>
                       <td className="py-2.5 px-4 text-right">
@@ -108,12 +108,12 @@ export function GlobalPricesTable({ products, globalPrices }: GlobalPricesTableP
                             type="number"
                             value={editValue}
                             onChange={(e) => setEditValue(e.target.value)}
-                            className="w-32 text-right border border-[#004a99] rounded px-2.5 py-1 text-sm font-bold text-[#111c2d] outline-none"
+                            className="w-32 text-right border border-[#004a99] rounded px-2.5 py-1 text-sm font-bold text-on-surface outline-none"
                             autoFocus
                             min="0"
                           />
                         ) : (
-                          <span className="text-[#737783] text-xs">—</span>
+                          <span className="text-faint text-xs">—</span>
                         )}
                       </td>
                       <td className="py-2.5 px-4 text-center">
@@ -128,7 +128,7 @@ export function GlobalPricesTable({ products, globalPrices }: GlobalPricesTableP
                             </button>
                             <button
                               onClick={handleCancelEdit}
-                              className="px-2.5 py-1 border border-[#c2c6d3] text-[#424751] font-bold text-xs rounded hover:bg-[#dee8ff] transition-colors"
+                              className="px-2.5 py-1 border border-outline-variant text-on-surface-variant font-bold text-xs rounded hover:bg-container-high transition-colors"
                             >
                               Hủy
                             </button>
@@ -136,7 +136,7 @@ export function GlobalPricesTable({ products, globalPrices }: GlobalPricesTableP
                         ) : (
                           <button
                             onClick={() => handleStartEdit(product.id, currentPrice)}
-                            className="px-3 py-1 text-xs font-bold text-[#004a99] bg-[#dee8ff] hover:bg-[#c2d7ff] rounded transition-colors"
+                            className="px-3 py-1 text-xs font-bold text-primary-accent bg-container-high hover:bg-[#c2d7ff] rounded transition-colors"
                           >
                             Chỉnh sửa
                           </button>

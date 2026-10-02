@@ -62,17 +62,17 @@ export default function AdminDashboardPage() {
 
   return (
     <div>
-      <div className="mb-6 border-b border-[#c2c6d3] pb-4">
-        <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">
+      <div className="mb-6 border-b border-outline-variant pb-4">
+        <h1 className="text-2xl font-bold tracking-tight text-on-surface">
           Tổng Quan Toàn Hệ Thống
         </h1>
-        <p className="text-xs text-[#424751] mt-1">
+        <p className="text-xs text-on-surface-variant mt-1">
           Theo dõi tình trạng nhà máy (tenants), gói thuê bao và doanh thu toàn nền tảng.
         </p>
       </div>
 
       {error && (
-        <div className="mb-6 rounded border border-[#ba1a1a]/30 bg-[#ffdad6]/50 p-4 text-xs font-bold text-[#93000a]">
+        <div className="mb-6 rounded border border-[#ba1a1a]/30 bg-error-container/50 p-4 text-xs font-bold text-on-error-container">
           {error}
         </div>
       )}
@@ -83,15 +83,15 @@ export default function AdminDashboardPage() {
           value={loading ? '...' : String(stats?.totalFactoryCount ?? 0)}
           subValue="Nhà máy đã đăng ký"
           icon={Building2}
-          iconColor="text-[#004a99]"
-          iconBg="bg-[#dee8ff]"
+          iconColor="text-primary-accent"
+          iconBg="bg-container-high"
         />
         <StatCard
           title="Nhà máy Active"
           value={loading ? '...' : String(stats?.activeFactoryCount ?? 0)}
           subValue="Thuê bao còn hiệu lực"
           icon={Snowflake}
-          iconColor="text-[#1b6d24]"
+          iconColor="text-secondary"
           iconBg="bg-[#a0f399]/40"
         />
         <StatCard
@@ -99,16 +99,16 @@ export default function AdminDashboardPage() {
           value={loading ? '...' : String(stats?.trialFactoryCount ?? 0)}
           subValue="Gói trial đang hoạt động"
           icon={Timer}
-          iconColor="text-[#7f3700]"
-          iconBg="bg-[#ffdcc2]/50"
+          iconColor="text-tertiary-container"
+          iconBg="bg-tertiary-fixed/50"
         />
         <StatCard
           title="Hết hạn / Tạm dừng"
           value={loading ? '...' : String(stats?.expiredFactoryCount ?? 0)}
           subValue="Cần hỗ trợ hoặc gia hạn"
           icon={AlertTriangle}
-          iconColor="text-[#ba1a1a]"
-          iconBg="bg-[#ffdad6]"
+          iconColor="text-error"
+          iconBg="bg-error-container"
           warning={(stats?.expiredFactoryCount ?? 0) > 0}
         />
         <StatCard
@@ -116,15 +116,15 @@ export default function AdminDashboardPage() {
           value={loading ? '...' : String(stats?.activeDriverCount ?? 0)}
           subValue="Toàn hệ thống"
           icon={Truck}
-          iconColor="text-[#004a99]"
-          iconBg="bg-[#dee8ff]"
+          iconColor="text-primary-accent"
+          iconBg="bg-container-high"
         />
         <StatCard
           title="Doanh thu dự kiến"
           value={loading ? '...' : `${formatCurrency(stats?.monthlyRevenue ?? 0)} đ`}
           subValue="Theo thuê bao active"
           icon={CreditCard}
-          iconColor="text-[#1b6d24]"
+          iconColor="text-secondary"
           iconBg="bg-[#a0f399]/40"
         />
         <StatCard
@@ -134,16 +134,16 @@ export default function AdminDashboardPage() {
           }
           subValue="Đã xác nhận thanh toán"
           icon={CreditCard}
-          iconColor="text-[#004a99]"
-          iconBg="bg-[#dee8ff]"
+          iconColor="text-primary-accent"
+          iconBg="bg-container-high"
         />
         <StatCard
           title="Sắp hết hạn"
           value={loading ? '...' : String(stats?.nearExpiryCount ?? 0)}
           subValue="Trong 7 ngày tới"
           icon={AlertTriangle}
-          iconColor="text-[#7f3700]"
-          iconBg="bg-[#ffdcc2]/50"
+          iconColor="text-tertiary-container"
+          iconBg="bg-tertiary-fixed/50"
           warning={(stats?.nearExpiryCount ?? 0) > 0}
         />
       </div>

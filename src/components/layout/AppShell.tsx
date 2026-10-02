@@ -16,7 +16,7 @@ export function AppShell({ children }: AppShellProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff] text-[#111c2d]">
+    <div className="min-h-screen bg-surface text-on-surface">
       <Sidebar />
       <div className="pl-64 transition-all duration-300">
         <TrialBanner />

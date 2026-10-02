@@ -19,8 +19,8 @@ export function SubscriptionStatusCard({ subscription, driverCount, isAdmin }: S
   const isInactive = !isSubscriptionActive(subscription);
   const maxDrivers = 1 + (subscription?.driverCount ?? 0);
 
-  const statusColor = isInactive ? 'text-[#ba1a1a]' : 'text-[#1b6d24]';
-  const statusBg = isInactive ? 'bg-[#ffdad6]' : 'bg-[#dee8ff]';
+  const statusColor = isInactive ? 'text-error' : 'text-secondary';
+  const statusBg = isInactive ? 'bg-error-container' : 'bg-container-high';
 
   const statusText = isInactive
     ? 'Hết hạn — Chỉ đọc'
@@ -28,8 +28,8 @@ export function SubscriptionStatusCard({ subscription, driverCount, isAdmin }: S
     ? `Còn ${daysRemaining} ngày — Cần gia hạn`
     : 'Gói hoạt động';
 
-  const iconColor = isWarning ? 'text-[#7f3700]' : isInactive ? 'text-[#ba1a1a]' : 'text-[#004a99]';
-  const iconBg = isWarning ? 'bg-[#ffdbca]' : isInactive ? 'bg-[#ffdad6]' : 'bg-[#dee8ff]';
+  const iconColor = isWarning ? 'text-tertiary-container' : isInactive ? 'text-error' : 'text-primary-accent';
+  const iconBg = isWarning ? 'bg-[#ffdbca]' : isInactive ? 'bg-error-container' : 'bg-container-high';
 
   return (
     <StatCard
@@ -42,13 +42,13 @@ export function SubscriptionStatusCard({ subscription, driverCount, isAdmin }: S
       warning={isWarning || isInactive}
     >
       {/* Driver count detail */}
-      <div className="mt-3 pt-3 border-t border-[#e7eeff]">
+      <div className="mt-3 pt-3 border-t border-outline-soft">
         <div className="flex justify-between text-xs font-semibold">
-          <span className="text-[#424751]">Tài xế sử dụng</span>
-          <span className="data-sm text-[#00346f]">{driverCount} / {maxDrivers}</span>
+          <span className="text-on-surface-variant">Tài xế sử dụng</span>
+          <span className="data-sm text-primary-deep">{driverCount} / {maxDrivers}</span>
         </div>
         <div className="flex justify-between text-xs font-semibold mt-1">
-          <span className="text-[#424751]">Trạng thái</span>
+          <span className="text-on-surface-variant">Trạng thái</span>
           <span className={`font-bold ${statusColor}`}>{subscription?.status ?? 'ACTIVE'}</span>
         </div>
       </div>
