@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useOrderStore } from '@/stores/order-store';
 import { Drawer } from '@/components/ui/drawer';
 import { SearchBar } from '@/components/order/search-bar';
@@ -17,6 +19,8 @@ interface OrderEntryDrawerProps {
 
 export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps) {
   const { isOpen, customer, recentCustomerIds, openDrawer, closeDrawer } = useOrderStore();
+  const queryClient = useQueryClient();
+  const router = useRouter();
   const [prices, setPrices] = useState<Record<string, number>>({});
   const [values, setValues] = useState<Map<string, number>>(new Map());
   const [isSaving, setIsSaving] = useState(false);
@@ -85,6 +89,10 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
 
     if (result.success) {
       toast({ type: 'success', title: `Đã lên đơn thành công cho ${customer.name}` });
+      // Refresh lists so the new order shows up immediately (TanStack Query
+      // cache + RSC pages like the dashboard)
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      router.refresh();
       // Reset and close
       setValues(new Map());
       setPrices({});
@@ -93,7 +101,7 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
     } else {
       setSaveError(result.error);
     }
-  }, [customer, values, prices, isSaving, closeDrawer]);
+  }, [customer, values, prices, isSaving, closeDrawer, queryClient, router]);
 
   return (
     <>

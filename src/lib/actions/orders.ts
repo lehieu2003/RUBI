@@ -70,7 +70,16 @@ const SaveOrderSchema = z.object({
 export type SaveOrderInput = z.infer<typeof SaveOrderSchema>;
 
 export type SaveOrderResult =
-  | { success: true; order: Awaited<ReturnType<typeof saveOrderInternal>> }
+  | {
+      success: true;
+      order: {
+        id: string;
+        status: string;
+        total: number;
+        createdAt: string;
+        customerName: string;
+      };
+    }
   | { success: false; error: string };
 
 async function saveOrderInternal(
@@ -106,14 +115,19 @@ async function saveOrderInternal(
         },
       },
       include: {
-        customer: true,
-        orderItems: {
-          include: { product: true },
-        },
+        customer: { select: { name: true } },
       },
     });
 
-    return order;
+    // Return a plain serializable object: Prisma Decimals cannot cross the
+    // Server -> Client Component boundary.
+    return {
+      id: order.id,
+      status: order.status,
+      total: Number(order.total),
+      createdAt: order.createdAt.toISOString(),
+      customerName: order.customer.name,
+    };
   });
 }
 
