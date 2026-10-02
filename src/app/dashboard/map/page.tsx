@@ -174,6 +174,7 @@ export default function AdminMapPage() {
                   deliveryGps: o.deliveryGps,
                 }))}
                 center={center}
+                onMarkerClick={() => {}}
               />
             )}
           </div>

@@ -4,6 +4,7 @@ import './rbac/permissions.test';
 import './api/schedule/assignments.test';
 import './api/staff.test';
 import './app/vehicles.test';
+import './app/inventory-export.test';
 import './components/schedule/calendar-grid.test';
 import './components/sidebar.test';
 import './lib/subscription.test';

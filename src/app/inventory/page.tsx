@@ -61,14 +61,13 @@ export default function InventoryPage() {
 
     try {
       setSubmitting(true);
-      const res = await fetch(API_ENDPOINTS.INVENTORY.TRANSACTIONS, {
+      const res = await fetch(API_ENDPOINTS.INVENTORY.BASE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          mode: 'ADD',
           productId: selectedProductId,
-          type: 'IN',
           quantity: Number(quantity),
-          reason: 'PRODUCED',
         }),
       });
 
