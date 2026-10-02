@@ -159,3 +159,22 @@
 | **Bug mới: Nhập kho đá hỏng hoàn toàn** | ✅ FIXED — page gọi `API_ENDPOINTS.INVENTORY.TRANSACTIONS` (không tồn tại → fetch luôn fail) VÀ gửi sai body (`type/reason`, thiếu `mode` → nếu sửa mỗi URL thì tồn kho bị GHI ĐÈ thay vì cộng). Đã sửa: dùng BASE + `mode: 'ADD'` |
 | Dead code `CancelSubscriptionFlow.tsx` (import export không tồn tại) | ✅ xoá — cùng với fix map page, **typecheck về 0 lỗi** (trước là 3 lỗi baseline) |
 | Label "XUẤT EXCEL" | ✅ đổi thành "XUẤT CSV" (file thật là .csv có BOM, mở tốt bằng Excel) |
+
+## PHỤ: Batch 3 — "làm hết" các vấn đề còn lại (2026-10-02)
+
+| Hạng mục | Kết quả |
+|---|---|
+| PAYMENT_WEBHOOK_SECRET | ✅ Fail-closed khi NODE_ENV=production (503 nếu unset) + unit-pattern test |
+| 5 test fail có sẵn trên master | ✅ TRIAGED — 77→85/85 PASS: (1) status route cho STAFF là đúng thiết kế → sửa test; (2) schedule API siết về ADMIN+ACCOUNTANT (khớp permission table) + thêm code `DRIVER_LIMIT_EXCEEDED` → sửa code; (3) vehicles/calendar-grid → test stale theo UI redesign → cập nhật test |
+| isSubscriptionActive PAID | ✅ PAID hết hạn theo endDate (không cần status flip) + unit test |
+| Bug #14 Enter submit | ✅ FIXED + VERIFIED — form auth thêm `onKeyDown` + `requestSubmit()` (implicit submission không đáng tin trên nhiều runtime); Enter submit thật trên browser |
+| **Bulk-assign: BUG THẬT mới tìm thấy** | ✅ API chỉ nhận `status: 'SHIPPING'` trong khi workflow văn phòng chọn đơn **Chờ giao (PENDING)** → toast thành công nhưng `assignedCount: 0` âm thầm. Fix: nhận PENDING + SHIPPING, vẫn chặn trạng thái cuối (DELIVERED/COMPLETED/CANCELLED) |
+| Rate-limit driver public endpoints | ✅ `/api/d/[token]` 30 req/phút/IP, `/api/driver/orders` 60 req/phút/IP |
+| Docs stale | ✅ README ghi đúng Docker standalone + env bắt buộc; TESTING.md viết lại theo node:test |
+| Staff CRUD (coverage) | ✅ Tạo user DRIVER qua UI → user + driver profile tự tạo trong DB |
+| Super admin actions (coverage) | ✅ Gia hạn (+30 ngày), Sửa giá (200k → 400.000đ/tháng đúng công thức), Tắt/Bật khôi phục |
+| Onboarding CSV import (coverage, API) | ✅ imported=1, skipped=2 (trùng mã + thiếu mã) đúng logic |
+| Settings tabs (coverage) | ✅ Thông báo / Sản phẩm mẫu / Bảo mật / Giao diện render OK |
+| Camera chụp ảnh + In phiếu K80 | ⚠️ Không test được qua harness (file input / native print dialog). Code-level: camera input + capture đã có trong DeliveryCard; print slip + react-to-print verified render ở batch 1 |
+
+**Gates cuối batch:** 85/85 test pass · typecheck 0 lỗi · lint 0 errors.
