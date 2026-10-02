@@ -155,7 +155,7 @@ export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemov
                         key={person.id}
                         className="flex items-center justify-between gap-1.5 rounded border border-[#c2c6d3] bg-[#f0f3ff] px-2 py-1 shadow-2xs"
                       >
-                        <div className="min-w-0">
+                        <div className="min-w-0" title={person.name}>
                           <span className="block truncate text-xs font-bold text-[#111c2d]">{person.name}</span>
                           <span className={`inline-flex rounded px-1 text-[10px] font-bold ${person.role === 'DRIVER' ? 'bg-[#a0f399]/40 text-[#1b6d24]' : 'bg-[#dee8ff] text-[#004a99]'}`}>
                             {getRoleLabel(person.role)}

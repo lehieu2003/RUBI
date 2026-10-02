@@ -106,7 +106,7 @@ export default function AdminMapPage() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[#111c2d]">Bản Đồ Giao Hàng & GPS</h1>
             <p className="text-xs text-[#424751] mt-1">
-              {orders.length} đơn hàng hôm nay • {ordersWithGps.length} đơn có định vị GPS
+              {orders.length} đơn có GPS hôm nay (SHIPPING/DELIVERED) • {ordersWithGps.length} đơn đang hiển thị trên bản đồ
             </p>
           </div>
           <button

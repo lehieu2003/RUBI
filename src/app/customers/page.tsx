@@ -179,7 +179,12 @@ export default function CustomersPage() {
       {isModalOpen && (
         <>
           <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs" onClick={() => setIsModalOpen(false)} />
-          <div className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white border border-[#c2c6d3] rounded shadow-xl p-6">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Thêm khách hàng"
+            className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white border border-[#c2c6d3] rounded shadow-xl p-6"
+          >
             <h3 className="text-lg font-bold text-[#111c2d] mb-1">Thêm khách hàng</h3>
             <p className="text-[#424751] text-xs mb-5">Tạo thông tin đại lý hoặc khách lấy đá mới</p>
 

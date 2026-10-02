@@ -398,7 +398,7 @@ export function TenantTable({ onError }: TenantTableProps) {
                   </td>
                   <td className="px-4 py-3 text-xs text-[#737783]">{formatDate(factory.lastPaymentAt)}</td>
                   <td className="px-4 py-3">
-                    <div className="flex justify-end gap-1.5">
+                    <div className="flex justify-end gap-1.5 whitespace-nowrap">
                       <Link
                         href={`/admin/tenants/${factory.id}`}
                         className="inline-flex items-center gap-1 rounded border border-[#c2c6d3] bg-white px-2 py-1 text-xs font-bold text-[#00346f] hover:bg-[#dee8ff]"

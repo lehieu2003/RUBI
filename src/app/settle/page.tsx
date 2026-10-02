@@ -393,7 +393,12 @@ export default function SettlePage() {
             className='fixed inset-0 z-40 bg-black/40 backdrop-blur-xs'
             onClick={() => setReconcileOrder(null)}
           />
-          <div className='fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white border border-[#c2c6d3] rounded shadow-xl p-6'>
+          <div
+            role='dialog'
+            aria-modal='true'
+            aria-label='Chốt đơn đối soát'
+            className='fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white border border-[#c2c6d3] rounded shadow-xl p-6'
+          >
             <h3 className='text-lg font-bold text-[#111c2d] mb-1'>
               Chốt đơn{' '}
               {reconcileOrder.code ||
