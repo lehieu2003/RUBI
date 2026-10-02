@@ -110,7 +110,7 @@ export default function InventoryPage() {
                 className="flex items-center gap-2 px-3.5 py-2 border border-[#c2c6d3] bg-white hover:bg-[#dee8ff] text-[#00346f] font-bold text-xs rounded transition-all shadow-sm"
               >
                 <Download className="h-4 w-4" />
-                XUẤT EXCEL
+                XUẤT CSV
               </button>
             )}
             <button

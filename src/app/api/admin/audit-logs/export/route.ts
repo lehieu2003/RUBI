@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prismaAuth } from '@/lib/db';
 import { apiSuccess, apiError } from "@/lib/api-response";
+import { buildCsv } from '@/lib/export-excel';
 
 const basePrisma = prismaAuth;
 
@@ -113,10 +114,7 @@ export async function GET(request: Request) {
     ];
   });
 
-  const csv = [
-    headers.join(','),
-    ...rows.map(row => row.map(cell => `"${cell}"`).join(',')),
-  ].join('\n');
+  const csv = buildCsv(headers, rows);
 
   // Generate filename with current date
   const today = new Date();

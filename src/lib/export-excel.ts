@@ -1,21 +1,32 @@
 /**
- * Utility to export tabular data to CSV with UTF-8 BOM
- * ensuring Vietnamese characters open cleanly in Microsoft Excel & Google Sheets.
+ * CSV utilities for report exports. Output is UTF-8 with BOM so Vietnamese
+ * text opens cleanly in Microsoft Excel & Google Sheets.
  */
+
+function escapeCell(cell: string | number | boolean | null | undefined): string {
+  if (cell === null || cell === undefined) return '""';
+  const str = String(cell).replace(/"/g, '""');
+  return `"${str}"`;
+}
+
+/**
+ * Pure CSV builder shared by the client download helper and server route
+ * handlers: UTF-8 BOM + fully quoted, escaped cells + CRLF line endings.
+ */
+export function buildCsv(
+  headers: string[],
+  rows: Array<Array<string | number | boolean | null | undefined>>
+): string {
+  const lines = [headers, ...rows].map((row) => row.map(escapeCell).join(','));
+  return '\uFEFF' + lines.join('\r\n');
+}
+
 export function exportToCSV(
   filename: string,
   headers: string[],
   rows: Array<Array<string | number | boolean | null | undefined>>
 ) {
-  const escapeCell = (cell: string | number | boolean | null | undefined) => {
-    if (cell === null || cell === undefined) return '""';
-    const str = String(cell).replace(/"/g, '""');
-    return `"${str}"`;
-  };
-
-  const headerLine = headers.map(escapeCell).join(',');
-  const rowLines = rows.map((row) => row.map(escapeCell).join(','));
-  const csvContent = '\uFEFF' + [headerLine, ...rowLines].join('\r\n');
+  const csvContent = buildCsv(headers, rows);
 
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
