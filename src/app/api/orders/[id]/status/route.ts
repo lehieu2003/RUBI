@@ -5,9 +5,11 @@ import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 // PATCH /api/orders/[id]/status - Update order status (D-05)
-// Valid statuses: PENDING, SHIPPING, DELIVERED, COMPLETED, CANCELLED
+// COMPLETED is intentionally not settable here: it is reached only through
+// the settlement (đối soát) reconcile endpoint, which records actual
+// quantities, debt ledger and inventory in one transaction.
 const StatusSchema = z.object({
-  status: z.enum(['PENDING', 'SHIPPING', 'DELIVERED', 'COMPLETED', 'CANCELLED']),
+  status: z.enum(['PENDING', 'SHIPPING', 'DELIVERED', 'CANCELLED']),
   cancellationReason: z.string().optional(),
 });
 
@@ -25,10 +27,15 @@ export async function PATCH(
       return apiError('Bad Request: factoryId not found', 400);
     }
 
+    // Explicit guard so callers get a meaningful message, not a schema error
+    if ((body as { status?: string })?.status === 'COMPLETED') {
+      return apiError('Đơn hoàn thành phải qua Đối soát (settlement)', 400);
+    }
+
     const parsed = StatusSchema.safeParse(body);
 
     if (!parsed.success) {
-      return apiError('Invalid status. Must be PENDING, SHIPPING, DELIVERED, COMPLETED, or CANCELLED', 400);
+      return apiError('Invalid status. Must be PENDING, SHIPPING, DELIVERED, or CANCELLED. Use settlement (Đối soát) to complete an order', 400);
     }
 
     // Require cancellation reason when cancelling
