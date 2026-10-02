@@ -5,6 +5,7 @@ import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { CheckCircle2, Clock, Search, Download, Package } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { unwrapEnvelope } from '@/lib/api-response';
 import { exportToCSV } from '@/lib/export-excel';
 
 // Types for API response
@@ -75,13 +76,15 @@ export default function SettlePage() {
   useEffect(() => {
     async function fetchOrders() {
       try {
+        // Fetch all of today's orders: the stat cards need every status,
+        // the reconcile list filters DELIVERED client-side.
         const res = await fetch(
-          `${API_ENDPOINTS.ORDERS.BASE}?status=DELIVERED&date=${todayStr}`,
+          `${API_ENDPOINTS.ORDERS.BASE}?date=${todayStr}`,
         );
         if (!res.ok) throw new Error('Failed to fetch orders');
         const json = await res.json();
-        const data = json?.data !== undefined ? json.data : json;
-        setOrders(Array.isArray(data) ? data : []);
+        const data = unwrapEnvelope<unknown[]>(json);
+        setOrders(Array.isArray(data) ? (data as OrderFromAPI[]) : []);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
@@ -97,7 +100,7 @@ export default function SettlePage() {
     code: order.code || `DH-${order.id.slice(-6).toUpperCase()}`,
     customerName: order.customer?.name || 'Unknown',
     customerCode: order.customer?.code || '',
-    driverName: order.driver?.name || order.driverId || 'Chưa giao',
+    driverName: order.driver?.name || 'Chưa giao',
     items:
       order.orderItems
         ?.map(
@@ -116,7 +119,9 @@ export default function SettlePage() {
       : '--:--',
   }));
 
+  // Reconciliation list = only DELIVERED orders of today
   const filteredOrders = mappedOrders.filter((order) => {
+    if (order.status !== 'DELIVERED') return false;
     if (
       search &&
       !order.customerName.toLowerCase().includes(search.toLowerCase()) &&
@@ -163,10 +168,10 @@ export default function SettlePage() {
       }
       // Refresh orders
       const ordersRes = await fetch(
-        `${API_ENDPOINTS.ORDERS.BASE}?status=DELIVERED&date=${todayStr}`,
+        `${API_ENDPOINTS.ORDERS.BASE}?date=${todayStr}`,
       );
-      const ordersData = await ordersRes.json();
-      setOrders(ordersData);
+      const refreshed = unwrapEnvelope<unknown[]>(await ordersRes.json());
+      setOrders(Array.isArray(refreshed) ? (refreshed as OrderFromAPI[]) : []);
       setReconcileOrder(null);
       toast({ type: 'success', title: 'Đã chốt đơn thành công' });
     } catch (err) {

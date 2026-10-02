@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
       where,
       include: {
         customer: true,
+        driver: { select: { id: true, name: true } },
         orderItems: { include: { product: true } },
       },
       orderBy: { createdAt: 'desc' },
