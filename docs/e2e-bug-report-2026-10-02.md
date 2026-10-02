@@ -178,3 +178,12 @@
 | Camera chụp ảnh + In phiếu K80 | ⚠️ Không test được qua harness (file input / native print dialog). Code-level: camera input + capture đã có trong DeliveryCard; print slip + react-to-print verified render ở batch 1 |
 
 **Gates cuối batch:** 85/85 test pass · typecheck 0 lỗi · lint 0 errors.
+
+## PHỤ: Dark mode (2026-10-02)
+
+- **Kiến trúc**: token semantic var-based trong `globals.css` (`@theme inline` → `bg-card`, `text-on-surface`, `bg-container-*`, `border-outline-*`...), 2 bộ giá trị `:root` (light) / `.dark`. Brand blue giữ tĩnh. Print CSS luôn light.
+- **Sweep**: 63 file .tsx chuyển từ hex literal → token utility.
+- **Toggle**: nút mặt trời/mặt trăng ở đáy sidebar (cạnh nút thu gọn) + 3 lựa chọn (Sáng/Tối/Theo hệ điều hành) trong Cài đặt > Giao diện.
+- **No-flash**: inline script trong layout head áp `.dark` trước first paint; provider lưu `localStorage['iceflow-theme']`, mặc định 'system' và theo prefers-color-scheme.
+- **QA browser**: dashboard, orders + drawer, settle, settings, admin tenants, landing — cả light và dark đều ổn (screenshots `gui-test-screenshots/dark-*.png`, `light-*.png`).
+- Gates: 94/94 test (thêm suite theme), typecheck 0, lint 0.
