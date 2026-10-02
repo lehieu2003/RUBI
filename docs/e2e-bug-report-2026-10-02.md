@@ -149,3 +149,13 @@
 **Bug mới phát hiện khi fix:** impersonation còn 2 lớp thiếu (requireRole chặn SUPER_ADMIN đọc API; session.factoryId trúng system factory) — đã fix trong cùng batch.
 
 **Deferred (đánh giá reviewer, ngoài scope):** PAYMENT_WEBHOOK_SECRET optional; driver token không có expiry/rate-limit; 5 source-pattern test fail có sẵn trên master; 3 lỗi type có sẵn (inventory TRANSACTIONS, CancelSubscriptionFlow dead-code, map page overload).
+
+## PHỤ: Kiểm tra tính năng xuất báo cáo (2026-10-02, batch 2)
+
+| Điểm | Kết quả |
+|---|---|
+| Nút xuất (settle / shells / inventory / debt) | ✅ download event fired; mapping headers/values đúng (settle 8/8 — nghi vấn lệch cột ban đầu là do xem code bị cắt) |
+| Audit-logs export (server CSV) | ✅ sau fix: BOM + CRLF + escape `"`. Trước fix thiếu BOM + không escape → Excel lỗi font / CSV vỡ khi notes chứa dấu " |
+| **Bug mới: Nhập kho đá hỏng hoàn toàn** | ✅ FIXED — page gọi `API_ENDPOINTS.INVENTORY.TRANSACTIONS` (không tồn tại → fetch luôn fail) VÀ gửi sai body (`type/reason`, thiếu `mode` → nếu sửa mỗi URL thì tồn kho bị GHI ĐÈ thay vì cộng). Đã sửa: dùng BASE + `mode: 'ADD'` |
+| Dead code `CancelSubscriptionFlow.tsx` (import export không tồn tại) | ✅ xoá — cùng với fix map page, **typecheck về 0 lỗi** (trước là 3 lỗi baseline) |
+| Label "XUẤT EXCEL" | ✅ đổi thành "XUẤT CSV" (file thật là .csv có BOM, mở tốt bằng Excel) |
