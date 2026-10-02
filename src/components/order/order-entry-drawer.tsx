@@ -111,9 +111,6 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
       >
         <span className="text-lg leading-none">+</span>
         <span>LÊN ĐƠN NHANH</span>
-        <span className="ml-auto rounded bg-[#00346f] px-1.5 py-0.5 text-[10px] font-mono text-[#9bbdff]">
-          F2
-        </span>
       </button>
 
       <Drawer isOpen={isOpen} onClose={closeDrawer} title="Tạo Đơn Hàng Tốc Độ Cao">

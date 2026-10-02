@@ -82,7 +82,7 @@ export function RecentOrders({ orders }: RecentOrdersProps) {
           Hôm nay chưa có đơn hàng nào
         </h3>
         <p className="text-xs text-[#737783] max-w-sm">
-          Nhấn <strong>F2</strong> hoặc nút <strong>Lên Đơn Nhanh</strong> để tạo đơn hàng mới cho xưởng!
+          Nhấn nút <strong>Lên Đơn Nhanh</strong> ở góc phải để tạo đơn hàng mới cho xưởng!
         </p>
       </div>
     );

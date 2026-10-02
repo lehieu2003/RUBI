@@ -99,7 +99,7 @@ export async function sendWelcomeEmail({ to, name, factoryName, loginUrl = 'http
     <div style="background-color: #dee8ff; border: 1px solid #c2c6d3; border-radius: 4px; padding: 15px; margin: 20px 0;">
       <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; color: ${BRAND_COLOR};">⚡ HƯỚNG DẪN BẮT ĐẦU NHANH (DƯỚI 2 PHÚT):</p>
       <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #111c2d; line-height: 1.6;">
-        <li>Nhấn <strong>F2</strong> ở bất kỳ đâu để tạo đơn hàng giao đá trong 30 giây.</li>
+        <li>Dùng nút <strong>Lên Đơn Nhanh</strong> để tạo đơn hàng giao đá trong 30 giây.</li>
         <li>In phiếu giao hàng chuẩn máy in nhiệt K80/A5 mang theo xe.</li>
         <li>Tài xế mở đường link trên điện thoại để xem danh sách giao và gọi khách 1 chạm.</li>
       </ul>

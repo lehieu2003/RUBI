@@ -31,10 +31,7 @@ export function KeyboardShortcutsModal() {
   if (!isOpen) return null;
 
   const shortcuts = [
-    { key: 'F2', desc: 'Mở Drawer Lên Đơn Siêu Tốc' },
     { key: 'F1 hoặc ?', desc: 'Xem Bảng Hướng Dẫn Phím Tắt Này' },
-    { key: 'Ctrl + K', desc: 'Nhảy nhanh đến ô Tìm Kiếm' },
-    { key: 'Ctrl + P', desc: 'In Phiếu Giao Hàng (Khổ K80 / A5)' },
     { key: 'Tab', desc: 'Chuyển nhanh giữa các ô nhập liệu' },
     { key: 'Enter', desc: 'Xác nhận tạo đơn / Lưu mẻ đá' },
     { key: 'Esc', desc: 'Đóng Modal / Hủy thao tác' },
