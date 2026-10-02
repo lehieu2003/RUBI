@@ -215,3 +215,16 @@ Gates: 99/99 test · typecheck 0 · lint 0.
 **Lưu ý triển khai (IP header):** `getIpFromRequest` chỉ tin `x-forwarded-for` khi IP proxy nằm trong `TRUSTED_PROXY_IPS`; trên Vercel dùng `x-real-ip` sẵn có. Deploy Docker sau nginx nhớ set `TRUSTED_PROXY_IPS` — nếu không mọi client không header sẽ rơi vào chung bucket 'unknown' (cẩn thận DoS login).
 
 Gates: 105/105 test · typecheck 0 · lint 0.
+
+## PHỤ: Mobile responsive QA (375×812, 2026-10-02)
+
+| Trang | Kết quả |
+|---|---|
+| Landing | 🐞 header vỡ (anchors đè logo, CTA cắt mép) → ✅ ẩn anchors <sm + CTA gọn |
+| Login / Register | ✅ |
+| Dashboard | ✅ topbar + cards dọc |
+| Sidebar mobile | 🐞 **REGRESSION**: backdrop z-40 phủ sidebar z-30 (từ batch stacking fix) → menu không bấm được → ✅ backdrop hạ z-20 + test chốt |
+| Menu điều hướng | 🐞 không tự đóng sau khi chọn trang → ✅ onClick closeMobileSidebar |
+| Orders + drawer lên đơn | ✅ full flow 375px (search → Enter → matrix scroll ngang → xác nhận, toast + list refresh 6→7) |
+| Customers / Settle / Schedule | ✅ (schedule scroll ngang + sticky cột, chấp nhận được) |
+| Driver app | ✅ xuất sắc — mobile-first đúng thiết kế |
