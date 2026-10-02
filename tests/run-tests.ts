@@ -7,6 +7,7 @@ import './app/vehicles.test';
 import './app/inventory-export.test';
 import './api/webhook-secret.test';
 import './auth/enter-submit.test';
+import './auth/session-validity.test';
 import './lib/theme.test';
 import './components/schedule/calendar-grid.test';
 import './components/sidebar.test';

@@ -46,6 +46,17 @@ export async function getSession(): Promise<JWTPayload | null> {
   if (!token) return null;
   const session = await verifyJWT(token);
   if (session) {
+    // A JWT stays valid for 7 days — re-check the account state so a
+    // deactivated (Khóa) or deleted user loses access immediately instead
+    // of riding out the token lifetime.
+    const userState = await prismaAuth.user.findUnique({
+      where: { id: session.userId },
+      select: { isActive: true },
+    });
+    if (!userState || !userState.isActive) {
+      return null;
+    }
+
     // During an impersonation session the SUPER_ADMIN acts on the tenant:
     // swap the session's factoryId to the impersonated factory so every
     // tenant-scoped query targets the right data. Writes stay blocked by

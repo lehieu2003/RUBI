@@ -190,3 +190,16 @@
 
 ### Bổ sung dark mode (sau QA): sweep đợt 2
 - 22 file dùng Tailwind palette chuẩn (text-gray-*, slate-*, blue-600, orange-*, emerald-*...) + hex sót → token. Register page bỏ style dark-glass (bg-card/5, border-white/10, text-gray-300) chuyển về token chuẩn; nút gradient blue→violet đổi thành brand solid. Sửa hover pink-on-pink ở nút đăng xuất settings.
+
+## PHỤ: Batch 4 — Bảo mật (2026-10-02)
+
+| Hạng mục | Kết quả |
+|---|---|
+| 🔴 Khóa tài khoản / reset mật khẩu không hiệu lực tức thì | ✅ FIXED — `getSession()` re-check `isActive` từ DB mỗi request; verify hành vi: deactivate xong JWT cũ trả `user: null` ngay |
+| 🟠 Security headers | ✅ FIXED — X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy, Permissions-Policy (camera/geo=self cho driver), HSTS; verify qua curl |
+| 🟡 Account enumeration ở register | ⏸ deferred (fix làm hỏng UX đăng ký thật) |
+| 🟡 Driver token vĩnh viễn | ⏸ deferred (cần migration + quyết định sản phẩm) |
+| 🟡 Password staff min 6 vs register 8 | ⏸ deferred |
+| 🟠 Rate-limit per-process | ⏸ deferred — cần quyết định hạ tầng (Redis) nếu deploy multi-instance |
+
+Gates: 99/99 test · typecheck 0 · lint 0.
