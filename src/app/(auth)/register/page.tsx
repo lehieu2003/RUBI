@@ -54,6 +54,14 @@ export default function RegisterPage() {
     router.push('/dashboard');
   };
 
+  // Explicit Enter handling: some embedded browsers never fire the implicit
+  // form submission on Enter.
+  const handleEnterKey = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === 'Enter' && !loading) {
+      e.currentTarget.requestSubmit();
+    }
+  };
+
   return (
     <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
       <div className="text-center mb-8">
@@ -71,7 +79,7 @@ export default function RegisterPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} onKeyDown={handleEnterKey} className="space-y-5">
         <div>
           <label htmlFor="factoryName" className="block text-sm font-medium text-gray-300 mb-2">
             Tên nhà máy / Doanh nghiệp

@@ -70,6 +70,14 @@ export default function LoginPage() {
     }
   };
 
+  // Explicit Enter handling: some embedded browsers never fire the implicit
+  // form submission on Enter, which left staff staring at a silent form.
+  const handleEnterKey = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === 'Enter' && !loading) {
+      e.currentTarget.requestSubmit();
+    }
+  };
+
   return (
     <>
       {showTrialWarning && subscription && (
@@ -95,7 +103,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} onKeyDown={handleEnterKey} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-xs font-bold uppercase tracking-wider text-[#424751] mb-1.5">
               Email tài khoản
