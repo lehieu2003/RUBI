@@ -45,7 +45,7 @@ async function ensureFactoryExists(factoryId: string): Promise<boolean> {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await requireRole(['ADMIN', 'ACCOUNTANT', 'STAFF']);
+    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
 
 async function handleSaveAssignment(request: NextRequest) {
   try {
-    const session = await requireRole(['ADMIN', 'ACCOUNTANT', 'STAFF']);
+    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
     await requireActiveSubscription();
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
@@ -165,7 +165,7 @@ async function handleSaveAssignment(request: NextRequest) {
       });
 
       if (scheduledDrivers.length >= maxDrivers) {
-        return apiError('Cần nâng cấp subscription để thêm driver', 403);
+        return apiError('Cần nâng cấp subscription để thêm driver', 403, 'DRIVER_LIMIT_EXCEEDED');
       }
     }
 

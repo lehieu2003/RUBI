@@ -34,9 +34,13 @@ describe('RBAC API guard source checks', () => {
   });
 
   it('uses requireRole in ADMIN/ACCOUNTANT operational write route files', () => {
-    for (const route of operationalWriteRoutes) {
+    for (const route of operationalWriteRoutes.filter((r) => !r.includes('orders/[id]/status'))) {
       assert.match(read(route), /requireRole\(\['ADMIN', 'ACCOUNTANT'\]\)/, `${route} should use ops requireRole`);
     }
+  });
+
+  it('lets STAFF update order status (matches /orders = all tenant roles)', () => {
+    assert.match(read('src/app/api/orders/[id]/status/route.ts'), /requireRole\(\['ADMIN', 'ACCOUNTANT', 'STAFF'\]\)/);
   });
 
   it('removes manual session.role comparisons from migrated route files', () => {

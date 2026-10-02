@@ -8,7 +8,7 @@ describe('vehicles page source checks', () => {
   it('is read-only and sends driver creation to staff management', () => {
     assert.doesNotMatch(source, /fetch\('\/api\/drivers', \{\s*method: 'POST'/);
     assert.doesNotMatch(source, /Thêm tài xế/);
-    assert.match(source, /Quản lý nhân sự/);
-    assert.match(source, /Tạo account role Tài xế/);
+    assert.match(source, /QUẢN LÝ NHÂN SỰ/);
+    assert.match(source, /Tài xế \(DRIVER\) trong phần Cài đặt/);
   });
 });
