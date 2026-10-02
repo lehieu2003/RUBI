@@ -5,10 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-provider';
 import { toast } from '@/components/dashboard/toast';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 export default function RegisterPage() {
-  const { user } = useAuth();
+  const { user, signUp } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -44,28 +43,15 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    try {
-      const res = await fetch(API_ENDPOINTS.AUTH.REGISTER, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name, factoryName, phone }),
-      });
-      const data = await res.json();
-      if (data.error) {
-        setError(data.error);
-        toast({ type: 'error', title: 'Đăng ký thất bại', message: data.error });
-        setLoading(false);
-        return;
-      }
-      toast({ type: 'success', title: 'Đăng ký thành công' });
-      // REG-02: Redirect to nextUrl from response instead of hardcoded /dashboard
-      router.push(data.nextUrl || '/dashboard');
-    } catch {
-      const message = 'Lỗi kết nối';
-      setError(message);
-      toast({ type: 'error', title: 'Đăng ký thất bại', message });
-      setLoading(false);
+    // signUp refreshes the auth-provider session (checkAuth) before
+    // resolving, so the dashboard renders with the real identity.
+    const result = await signUp(email, password, name, factoryName, phone);
+    setLoading(false);
+    if (result.error) {
+      setError(result.error);
+      return;
     }
+    router.push('/dashboard');
   };
 
   return (
