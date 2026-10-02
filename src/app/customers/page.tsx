@@ -251,7 +251,7 @@ export default function CustomersPage() {
               <button
                 onClick={handleAddCustomer}
                 disabled={submitting}
-                className="flex-1 py-2.5 bg-[#004a99] hover:bg-[#00346f] disabled:bg-slate-300 text-white font-bold text-xs rounded transition-colors shadow-sm"
+                className="flex-1 py-2.5 bg-[#004a99] hover:bg-[#00346f] disabled:bg-container-highest text-white font-bold text-xs rounded transition-colors shadow-sm"
               >
                 {submitting ? 'Đang lưu...' : 'XÁC NHẬN'}
               </button>

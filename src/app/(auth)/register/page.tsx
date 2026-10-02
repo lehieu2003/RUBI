@@ -63,14 +63,14 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="relative bg-card/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
+    <div className="relative bg-card shadow-sm border border-outline-variant rounded-2xl p-8 shadow-2xl">
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-white mb-2">Tạo tài khoản</h1>
-        <p className="text-sm text-gray-400">Bắt đầu dùng thử miễn phí 14 ngày</p>
+        <h1 className="text-2xl font-bold text-on-surface mb-2">Tạo tài khoản</h1>
+        <p className="text-sm text-faint">Bắt đầu dùng thử miễn phí 14 ngày</p>
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400 flex items-center gap-2">
+        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-error flex items-center gap-2">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="12" cy="12" r="10" />
             <path d="M12 8v4M12 16h.01" />
@@ -81,7 +81,7 @@ export default function RegisterPage() {
 
       <form onSubmit={handleSubmit} onKeyDown={handleEnterKey} className="space-y-5">
         <div>
-          <label htmlFor="factoryName" className="block text-sm font-medium text-gray-300 mb-2">
+          <label htmlFor="factoryName" className="block text-sm font-medium text-on-surface-variant mb-2">
             Tên nhà máy / Doanh nghiệp
           </label>
           <input
@@ -93,12 +93,12 @@ export default function RegisterPage() {
             required
             minLength={2}
             maxLength={100}
-            className="w-full px-4 py-3 bg-card/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-card/10 transition-all text-sm"
+            className="w-full px-4 py-3 bg-card/5 border border-outline-variant rounded-xl text-on-surface placeholder-faint focus:outline-none focus:border-primary-accent/50 focus:bg-card transition-all text-sm"
           />
         </div>
 
         <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-2">
+          <label htmlFor="phone" className="block text-sm font-medium text-on-surface-variant mb-2">
             Số điện thoại liên hệ
           </label>
           <input
@@ -110,12 +110,12 @@ export default function RegisterPage() {
             required
             minLength={9}
             maxLength={15}
-            className="w-full px-4 py-3 bg-card/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-card/10 transition-all text-sm"
+            className="w-full px-4 py-3 bg-card/5 border border-outline-variant rounded-xl text-on-surface placeholder-faint focus:outline-none focus:border-primary-accent/50 focus:bg-card transition-all text-sm"
           />
         </div>
 
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
+          <label htmlFor="name" className="block text-sm font-medium text-on-surface-variant mb-2">
             Tên người quản lý
           </label>
           <input
@@ -125,12 +125,12 @@ export default function RegisterPage() {
             onChange={(e) => setName(e.target.value)}
             placeholder="Nguyễn Văn A"
             required
-            className="w-full px-4 py-3 bg-card/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-card/10 transition-all text-sm"
+            className="w-full px-4 py-3 bg-card/5 border border-outline-variant rounded-xl text-on-surface placeholder-faint focus:outline-none focus:border-primary-accent/50 focus:bg-card transition-all text-sm"
           />
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+          <label htmlFor="email" className="block text-sm font-medium text-on-surface-variant mb-2">
             Email
           </label>
           <input
@@ -140,12 +140,12 @@ export default function RegisterPage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="contact@abcice.vn"
             required
-            className="w-full px-4 py-3 bg-card/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-card/10 transition-all text-sm"
+            className="w-full px-4 py-3 bg-card/5 border border-outline-variant rounded-xl text-on-surface placeholder-faint focus:outline-none focus:border-primary-accent/50 focus:bg-card transition-all text-sm"
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+          <label htmlFor="password" className="block text-sm font-medium text-on-surface-variant mb-2">
             Mật khẩu
           </label>
           <input
@@ -156,14 +156,14 @@ export default function RegisterPage() {
             placeholder="Ít nhất 8 ký tự"
             required
             minLength={8}
-            className="w-full px-4 py-3 bg-card/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-card/10 transition-all text-sm"
+            className="w-full px-4 py-3 bg-card/5 border border-outline-variant rounded-xl text-on-surface placeholder-faint focus:outline-none focus:border-primary-accent/50 focus:bg-card transition-all text-sm"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white font-semibold rounded-xl transition-all duration-300 disabled:opacity-50 text-sm hover:shadow-lg hover:shadow-blue-500/20 hover:-translate-y-0.5"
+          className="w-full py-3.5 bg-primary-container hover:bg-primary text-white font-semibold rounded-xl transition-all duration-300 disabled:opacity-50 text-sm"
         >
           {loading ? (
             <span className="flex items-center justify-center gap-2">
@@ -177,9 +177,9 @@ export default function RegisterPage() {
         </button>
       </form>
 
-      <p className="mt-8 text-center text-sm text-gray-400">
+      <p className="mt-8 text-center text-sm text-faint">
         Đã có tài khoản?{' '}
-        <Link href="/login" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+        <Link href="/login" className="text-primary-accent hover:text-blue-300 font-medium transition-colors">
           Đăng nhập
         </Link>
       </p>

@@ -78,7 +78,7 @@ const statusConfig = {
   COMPLETED: {
     label: 'Hoàn thành',
     icon: CheckCircle2,
-    color: 'text-[#217128] bg-[#a0f399]/40',
+    color: 'text-secondary bg-[#a0f399]/40',
   },
   CANCELLED: {
     label: 'Đã hủy',
@@ -472,7 +472,7 @@ export default function OrdersPage() {
             <button
               onClick={handleBulkAssign}
               disabled={!bulkAssignDriverId || bulkAssigning}
-              className='px-4 py-1.5 bg-[#004a99] hover:bg-[#00346f] disabled:bg-slate-300 text-white text-xs font-bold rounded transition-colors flex items-center gap-1.5'
+              className='px-4 py-1.5 bg-[#004a99] hover:bg-[#00346f] disabled:bg-container-highest text-white text-xs font-bold rounded transition-colors flex items-center gap-1.5'
             >
               <TruckIcon className='h-4 w-4' />
               {bulkAssigning ? 'Đang giao...' : 'Giao đơn đã chọn'}
@@ -536,7 +536,7 @@ export default function OrdersPage() {
         <div className='overflow-hidden rounded border border-outline-variant bg-card shadow-sm'>
           <table className='w-full text-left border-collapse table-industrial'>
             <thead>
-              <tr className='border-b border-outline-variant bg-[#f0f4fc] text-[12px] font-bold uppercase tracking-wider text-[#1e293b]'>
+              <tr className='border-b border-outline-variant bg-[#f0f4fc] text-[12px] font-bold uppercase tracking-wider text-on-surface'>
                 <th className='py-2.5 px-3 w-10'>
                   <button
                     onClick={toggleAllSelection}
@@ -571,7 +571,7 @@ export default function OrdersPage() {
                   <tr
                     key={order.id}
                     className={
-                      'h-11 hover:bg-[#f1f5f9] transition-colors ' +
+                      'h-11 hover:bg-container-low transition-colors ' +
                       (selectedOrderIds.has(order.id) ? 'bg-container-high/40' : '')
                     }
                   >
@@ -599,7 +599,7 @@ export default function OrdersPage() {
                       </p>
                     </td>
                     <td
-                      className='py-2.5 px-3 text-xs text-[#334155] truncate max-w-xs font-medium'
+                      className='py-2.5 px-3 text-xs text-on-surface truncate max-w-xs font-medium'
                       title={order.items}
                     >
                       {order.items || '-'}
@@ -609,7 +609,7 @@ export default function OrdersPage() {
                         className={
                           order.driverId
                             ? 'text-on-surface'
-                            : 'text-[#b45309] font-bold'
+                            : 'text-tertiary-container font-bold'
                         }
                       >
                         {order.driverName}
@@ -650,7 +650,7 @@ export default function OrdersPage() {
           {filteredOrders.length === 0 && (
             <div className='py-16 text-center'>
               <div className='mx-auto w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3'>
-                <FileText className='h-6 w-6 text-slate-400' />
+                <FileText className='h-6 w-6 text-faint' />
               </div>
               <p className='text-sm font-semibold text-on-surface'>
                 Không tìm thấy đơn hàng

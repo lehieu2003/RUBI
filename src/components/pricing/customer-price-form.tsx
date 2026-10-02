@@ -124,10 +124,10 @@ export function CustomerPriceForm({
         { label: 'Đá Viên (Ice Cube)', products: daVien },
       ].map(({ label, products: rowProducts }) => (
         <div key={label}>
-          <h3 className="text-sm font-medium text-gray-500 mb-3">{label}</h3>
+          <h3 className="text-sm font-medium text-faint mb-3">{label}</h3>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-200">
+              <tr className="border-b border-outline-variant">
                 <th className="text-left py-2 font-medium">Sản phẩm</th>
                 <th className="text-right py-2 font-medium">Giá cơ bản (VND)</th>
                 <th className="text-right py-2 font-medium">Giá riêng (VND)</th>
@@ -147,9 +147,9 @@ export function CustomerPriceForm({
                   <tr key={product.id} className="border-b border-gray-100">
                     <td className="py-2">
                       <span className="font-medium">{product.name}</span>
-                      <span className="text-gray-500 ml-1">{product.sizeKg}kg</span>
+                      <span className="text-faint ml-1">{product.sizeKg}kg</span>
                     </td>
-                    <td className="text-right py-2 text-gray-600">
+                    <td className="text-right py-2 text-on-surface-variant">
                       {globalPrice.toLocaleString('vi-VN')}
                     </td>
                     <td className="text-right py-2">
@@ -158,15 +158,15 @@ export function CustomerPriceForm({
                           type="number"
                           value={editValue}
                           onChange={(e) => setEditValue(e.target.value)}
-                          className="w-28 text-right border border-gray-300 rounded px-2 py-1"
+                          className="w-28 text-right border border-outline-variant rounded px-2 py-1"
                           autoFocus
                           min="0"
                         />
                       ) : (
-                        <span className={hasOverride ? 'text-blue-600 font-medium' : 'text-gray-400'}>
+                        <span className={hasOverride ? 'text-primary-accent font-medium' : 'text-faint'}>
                           {effectivePrice.toLocaleString('vi-VN')}
-                          {hasOverride && <span className="text-xs ml-1 text-gray-400">(riêng)</span>}
-                          {!hasOverride && <span className="text-xs ml-1 text-gray-400">(cơ bản)</span>}
+                          {hasOverride && <span className="text-xs ml-1 text-faint">(riêng)</span>}
+                          {!hasOverride && <span className="text-xs ml-1 text-faint">(cơ bản)</span>}
                         </span>
                       )}
                     </td>
@@ -176,13 +176,13 @@ export function CustomerPriceForm({
                           <button
                             onClick={() => handleSaveOverride(product.id)}
                             disabled={isSavingNow}
-                            className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 disabled:opacity-50"
+                            className="px-2 py-1 bg-primary-container text-white text-xs rounded hover:bg-primary disabled:opacity-50"
                           >
                             {isSavingNow ? '...' : 'Lưu'}
                           </button>
                           <button
                             onClick={handleCancelEdit}
-                            className="px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded hover:bg-gray-300"
+                            className="px-2 py-1 bg-gray-200 text-on-surface-variant text-xs rounded hover:bg-gray-300"
                           >
                             Hủy
                           </button>
@@ -191,14 +191,14 @@ export function CustomerPriceForm({
                         <div className="flex gap-1 justify-end">
                           <button
                             onClick={() => handleStartEdit(product.id, effectivePrice)}
-                            className="px-2 py-1 text-xs text-blue-600 hover:text-blue-800"
+                            className="px-2 py-1 text-xs text-primary-accent hover:text-blue-800"
                           >
                             Sửa
                           </button>
                           <button
                             onClick={() => handleRemoveOverride(product.id)}
                             disabled={isRemovingNow}
-                            className="px-2 py-1 text-xs text-red-600 hover:text-red-800 disabled:opacity-50"
+                            className="px-2 py-1 text-xs text-error hover:text-error disabled:opacity-50"
                           >
                             {isRemovingNow ? '...' : 'Xóa'}
                           </button>
@@ -206,7 +206,7 @@ export function CustomerPriceForm({
                       ) : (
                         <button
                           onClick={() => handleStartEdit(product.id, globalPrice)}
-                          className="px-2 py-1 text-xs text-blue-600 hover:text-blue-800"
+                          className="px-2 py-1 text-xs text-primary-accent hover:text-blue-800"
                         >
                           Đặt giá riêng
                         </button>

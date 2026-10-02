@@ -12,7 +12,7 @@ export function StatItem({ value, label }: { value: string; label: string }) {
 export function PainCard({ icon, title, desc, delay }: { icon: React.ReactNode; title: string; desc: string; delay: number }) {
   return (
     <div
-      className="group relative p-6 bg-card border border-outline-variant rounded-2xl hover:border-[#ba1a1a]/40 hover:bg-[#fffbfb] transition-all duration-300 hover:-translate-y-1 shadow-sm"
+      className="group relative p-6 bg-card border border-outline-variant rounded-2xl hover:border-[#ba1a1a]/40 hover:bg-card transition-all duration-300 hover:-translate-y-1 shadow-sm"
       style={{ animationDelay: `${delay}ms` }}
     >
       <div className="w-12 h-12 bg-error-container rounded-xl flex items-center justify-center text-error mb-4 group-hover:scale-110 transition-transform duration-300 shadow-2xs">

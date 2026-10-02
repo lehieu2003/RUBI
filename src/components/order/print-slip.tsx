@@ -37,7 +37,7 @@ export function PrintSlip({ order }: PrintSlipProps) {
       <div className="text-center font-bold text-base mb-2">
         CÔNG TY TNHH ĐÁ LẠNH ICEFLOW
       </div>
-      <div className="text-center text-xs text-gray-500 mb-4">
+      <div className="text-center text-xs text-faint mb-4">
         123 Đường ABC, Quận XYZ, TP.HCM | Tel: 0909 123 456
       </div>
 
@@ -71,7 +71,7 @@ export function PrintSlip({ order }: PrintSlipProps) {
         </thead>
         <tbody>
           {order.orderItems.map((item, i) => (
-            <tr key={i} className="border-b border-dashed border-gray-300">
+            <tr key={i} className="border-b border-dashed border-outline-variant">
               <td className="py-1">{item.product.name} {item.product.sizeKg}kg</td>
               <td className="text-center py-1">{item.quantity}</td>
               <td className="text-right py-1">{formatCurrency(item.unitPrice)}đ</td>

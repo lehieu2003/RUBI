@@ -97,7 +97,7 @@ export function QuickActions({ pendingOrdersCount = 0, totalBagsOut = 0 }: Quick
         {can('/reports/debt') && (
         <Link
           href="/reports/debt"
-          className="mt-3 flex items-center justify-between px-3 py-2 rounded bg-container-low border border-[#dee8ff] hover:bg-container-high text-xs font-bold text-primary-deep transition-colors"
+          className="mt-3 flex items-center justify-between px-3 py-2 rounded bg-container-low border border-outline-soft hover:bg-container-high text-xs font-bold text-primary-deep transition-colors"
         >
           <span className="flex items-center gap-1.5">
             <FileSpreadsheet className="h-4 w-4 text-primary-accent" />

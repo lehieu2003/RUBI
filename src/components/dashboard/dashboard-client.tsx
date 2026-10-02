@@ -172,7 +172,7 @@ export function DashboardClient({
 
         {/* Onboarding prompt for new factories with no customers */}
         {showOnboardingPrompt && (
-          <div className="mb-6 rounded border border-[#ffdcc2] bg-tertiary-fixed/40 px-5 py-4 flex items-center justify-between">
+          <div className="mb-6 rounded border border-tertiary-fixed bg-tertiary-fixed/40 px-5 py-4 flex items-center justify-between">
             <div>
               <p className="text-tertiary-container font-bold text-sm">Bạn chưa có khách hàng nào trong hệ thống.</p>
               <p className="text-on-surface-variant text-xs mt-0.5">

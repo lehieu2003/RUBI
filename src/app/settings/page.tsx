@@ -106,7 +106,7 @@ export default function SettingsPage() {
           <button
             onClick={handleSignOut}
             disabled={signingOut}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded bg-error-container hover:bg-[#ffb4ab] text-error font-bold text-xs transition-colors shadow-2xs self-start sm:self-auto"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded bg-error-container hover:bg-error/20 text-error font-bold text-xs transition-colors shadow-2xs self-start sm:self-auto"
           >
             <LogOut className="h-4 w-4" />
             <span>{signingOut ? 'Đang đăng xuất...' : 'ĐĂNG XUẤT TÀI KHOẢN'}</span>
@@ -380,7 +380,7 @@ export default function SettingsPage() {
                                 }}
                                 className={`px-2.5 py-1 rounded text-xs font-bold transition-colors ${
                                   staff.isActive
-                                    ? 'bg-error-container text-error hover:bg-[#ffb4ab]'
+                                    ? 'bg-error-container text-error hover:bg-error/20'
                                     : 'bg-[#a0f399]/40 text-secondary hover:bg-[#a0f399]'
                                 }`}
                               >

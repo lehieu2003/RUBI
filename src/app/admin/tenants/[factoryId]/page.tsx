@@ -206,7 +206,7 @@ export default function AdminTenantDetailPage() {
                   <button
                     onClick={() => updateSubscription({ extendDays: 30, recordPayment: true })}
                     disabled={actionLoading}
-                    className="rounded bg-container-high hover:bg-[#c2d7ff] px-3 py-1.5 text-xs font-bold text-primary-accent disabled:opacity-60"
+                    className="rounded bg-container-high hover:bg-container-highest px-3 py-1.5 text-xs font-bold text-primary-accent disabled:opacity-60"
                   >
                     +30 ngày
                   </button>

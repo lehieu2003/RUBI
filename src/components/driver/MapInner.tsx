@@ -90,12 +90,12 @@ export default function MapInner({ orders, center, onMarkerClick }: MapInnerProp
             <Popup>
               <div className="text-center">
                 <strong className="text-base">{order.customer.name}</strong>
-                <p className="text-sm text-slate-600">{order.customer.address}</p>
+                <p className="text-sm text-faint">{order.customer.address}</p>
                 <span
                   className={`inline-block mt-1 px-2 py-0.5 rounded text-xs font-medium ${
                     order.status === 'SHIPPING'
                       ? 'bg-amber-100 text-amber-700'
-                      : 'bg-emerald-100 text-emerald-700'
+                      : 'bg-emerald-100 text-secondary'
                   }`}
                 >
                   {order.status === 'SHIPPING' ? 'Chờ giao' : 'Đã giao'}

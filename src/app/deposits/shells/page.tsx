@@ -150,7 +150,7 @@ export default function ShellDepositsPage() {
               </div>
               <div>
                 <p className="text-xs font-bold text-tertiary-container uppercase">Tiền cọc khách còn nợ</p>
-                <p className="data-lg font-bold text-[#5c2500]">{totalOwedByCustomers.toLocaleString('vi-VN')}đ</p>
+                <p className="data-lg font-bold text-tertiary-container">{totalOwedByCustomers.toLocaleString('vi-VN')}đ</p>
               </div>
             </div>
           </div>

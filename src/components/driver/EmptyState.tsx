@@ -18,7 +18,7 @@ export default function EmptyState({ driverName, onRefresh }: EmptyStateProps) {
           viewBox="0 0 120 80"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="text-slate-600"
+          className="text-faint"
         >
           {/* Truck body */}
           <rect x="10" y="25" width="70" height="35" rx="4" fill="currentColor" opacity="0.3" />

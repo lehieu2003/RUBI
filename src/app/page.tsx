@@ -131,9 +131,9 @@ export default function LandingPage() {
 
         <div className="mt-14 flex items-center justify-center gap-8 flex-wrap border-t border-outline-variant pt-8">
           <StatItem value="50+" label="Nhà máy đá" />
-          <div className="w-px h-10 bg-[#c2c6d3]" />
+          <div className="w-px h-10 bg-container-highest" />
           <StatItem value="1,000+" label="Đơn hàng / ngày" />
-          <div className="w-px h-10 bg-[#c2c6d3]" />
+          <div className="w-px h-10 bg-container-highest" />
           <StatItem value="30s" label="Thời gian lên đơn" />
         </div>
       </section>

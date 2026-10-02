@@ -30,23 +30,23 @@ export function TrialWarningModal({ subscription, onDismiss }: TrialWarningModal
         <div className="flex items-start gap-4">
           <div className="text-4xl">⚠️</div>
           <div className="flex-1">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
+            <h2 className="text-lg font-semibold text-on-surface mb-2">
               Thời gian dùng thử sắp kết thúc
             </h2>
-            <p className="text-gray-600 mb-4">
+            <p className="text-on-surface-variant mb-4">
               Còn <strong>{daysRemaining} ngày</strong> trước khi tài khoản chuyển sang chế độ chỉ đọc.
               Để không gián đoạn công việc, vui lòng nâng cấp hoặc liên hệ hỗ trợ.
             </p>
             <div className="flex flex-col gap-2">
               <button
                 onClick={handleUpgrade}
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+                className="w-full px-4 py-2 bg-primary-container text-white rounded-lg font-medium hover:bg-primary"
               >
                 Nâng cấp ngay
               </button>
               <button
                 onClick={handleContact}
-                className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200"
+                className="w-full px-4 py-2 bg-container-low text-on-surface-variant rounded-lg font-medium hover:bg-gray-200"
               >
                 Liên hệ hỗ trợ
               </button>

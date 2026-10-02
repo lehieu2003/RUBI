@@ -418,7 +418,7 @@ export function TenantTable({ onError }: TenantTableProps) {
                         <>
                           <button
                             onClick={() => setModal({ factory, action: 'extend' })}
-                            className="rounded bg-container-high px-2 py-1 text-xs font-bold text-primary-accent hover:bg-[#c2d7ff]"
+                            className="rounded bg-container-high px-2 py-1 text-xs font-bold text-primary-accent hover:bg-container-highest"
                           >
                             Gia hạn
                           </button>

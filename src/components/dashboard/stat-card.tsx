@@ -53,7 +53,7 @@ export function StatCard({
       <div className="flex items-start justify-between">
         <div className="flex-1">
           {/* Title */}
-          <p className="text-xs font-bold uppercase tracking-wider text-[#334155] mb-1.5">
+          <p className="text-xs font-bold uppercase tracking-wider text-on-surface mb-1.5">
             {title}
           </p>
 

@@ -46,14 +46,14 @@ interface OrderFromAPI {
 }
 
 const statusConfig = {
-  PENDING: { label: 'Chờ giao', color: 'bg-slate-500/20 text-slate-400' },
+  PENDING: { label: 'Chờ giao', color: 'bg-slate-500/20 text-faint' },
   SHIPPING: { label: 'Đang giao', color: 'bg-amber-500/20 text-amber-400' },
-  DELIVERED: { label: 'Đã giao', color: 'bg-blue-500/20 text-blue-400' },
+  DELIVERED: { label: 'Đã giao', color: 'bg-blue-500/20 text-primary-accent' },
   COMPLETED: {
     label: 'Hoàn thành',
-    color: 'bg-emerald-500/20 text-emerald-400',
+    color: 'bg-emerald-500/20 text-secondary',
   },
-  CANCELLED: { label: 'Đã hủy', color: 'bg-red-500/20 text-red-400' },
+  CANCELLED: { label: 'Đã hủy', color: 'bg-red-500/20 text-error' },
 };
 
 export default function SettlePage() {
@@ -329,7 +329,7 @@ export default function SettlePage() {
               return (
                 <div
                   key={order.id}
-                  className='rounded border border-outline-variant p-4 bg-card hover:bg-[#f8fafc] transition-all shadow-sm'
+                  className='rounded border border-outline-variant p-4 bg-card hover:bg-container-low transition-all shadow-sm'
                 >
                   <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
                     <div className='flex-1'>
@@ -346,7 +346,7 @@ export default function SettlePage() {
                       <h3 className='text-base font-bold text-on-surface'>
                         {order.customerName}
                       </h3>
-                      <p className='text-[#334155] text-xs font-medium mt-1'>
+                      <p className='text-on-surface text-xs font-medium mt-1'>
                         {order.items}
                       </p>
                       <div className='flex items-center gap-4 mt-2 text-xs text-on-surface-variant'>
@@ -458,7 +458,7 @@ export default function SettlePage() {
               <button
                 onClick={handleReconcile}
                 disabled={reconcileLoading}
-                className='flex-1 py-2.5 bg-[#1b6d24] hover:bg-[#217128] disabled:bg-slate-300 text-white font-bold text-xs rounded transition-colors shadow-sm'
+                className='flex-1 py-2.5 bg-[#1b6d24] hover:bg-[#217128] disabled:bg-container-highest text-white font-bold text-xs rounded transition-colors shadow-sm'
               >
                 {reconcileLoading ? 'Đang chốt...' : 'XÁC NHẬN CHỐT'}
               </button>

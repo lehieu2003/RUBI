@@ -111,7 +111,7 @@ export default function OnboardingPage() {
   return (
     <div className="max-w-2xl mx-auto py-8 px-4">
       <h1 className="text-2xl font-bold mb-2">Nhập dữ liệu khách hàng</h1>
-      <p className="text-gray-500 mb-6">
+      <p className="text-faint mb-6">
         Nhập danh sách khách hàng từ file CSV để bắt đầu sử dụng IceFlow.
       </p>
 
@@ -125,8 +125,8 @@ export default function OnboardingPage() {
               key={label}
               className={`px-3 py-1 rounded-full font-medium ${
                 active
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-500'
+                  ? 'bg-primary-container text-white'
+                  : 'bg-container-low text-faint'
               }`}
             >
               {i + 1}. {label}
@@ -138,7 +138,7 @@ export default function OnboardingPage() {
       {step === 'upload' && (
         <div className="bg-card rounded-lg border p-6">
           <h2 className="text-lg font-medium mb-2">Bước 1: Tải lên file CSV</h2>
-          <p className="text-gray-600 text-sm mb-4">
+          <p className="text-on-surface-variant text-sm mb-4">
             File CSV cần có các cột: Mã khách, Tên khách, Số điện thoại, Địa chỉ (có thể
             theo bất kỳ thứ tự nào — bạn sẽ map ở bước tiếp theo).
           </p>
@@ -148,7 +148,7 @@ export default function OnboardingPage() {
               type="file"
               accept=".csv,text/csv"
               onChange={handleFileUpload}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              className="block w-full text-sm text-faint file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
             />
           </label>
         </div>
@@ -157,13 +157,13 @@ export default function OnboardingPage() {
       {step === 'mapping' && (
         <div className="bg-card rounded-lg border p-6">
           <h2 className="text-lg font-medium mb-4">Bước 2: Map cột dữ liệu</h2>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-faint mb-4">
             Chọn cột tương ứng trong file CSV cho từng trường dữ liệu.
           </p>
           <div className="space-y-3">
             {FIELD_KEYS.map(key => (
               <div key={key} className="flex items-center gap-4">
-                <span className="w-36 text-sm font-medium text-gray-700">
+                <span className="w-36 text-sm font-medium text-on-surface-variant">
                   {FIELD_LABELS[key]}:
                 </span>
                 <select
@@ -184,7 +184,7 @@ export default function OnboardingPage() {
           </div>
           <button
             onClick={handleMapping}
-            className="mt-5 px-5 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            className="mt-5 px-5 py-2 bg-primary-container text-white rounded-lg font-medium hover:bg-primary transition-colors"
           >
             Tiếp tục
           </button>
@@ -200,12 +200,12 @@ export default function OnboardingPage() {
             <table className="w-full text-sm mb-4">
               <thead>
                 <tr className="border-b bg-gray-50">
-                  <th className="text-left py-2 px-3 font-medium text-gray-600">Mã</th>
-                  <th className="text-left py-2 px-3 font-medium text-gray-600">Tên</th>
-                  <th className="text-left py-2 px-3 font-medium text-gray-600">
+                  <th className="text-left py-2 px-3 font-medium text-on-surface-variant">Mã</th>
+                  <th className="text-left py-2 px-3 font-medium text-on-surface-variant">Tên</th>
+                  <th className="text-left py-2 px-3 font-medium text-on-surface-variant">
                     Điện thoại
                   </th>
-                  <th className="text-left py-2 px-3 font-medium text-gray-600">Địa chỉ</th>
+                  <th className="text-left py-2 px-3 font-medium text-on-surface-variant">Địa chỉ</th>
                 </tr>
               </thead>
               <tbody>
@@ -213,8 +213,8 @@ export default function OnboardingPage() {
                   <tr key={i} className="border-b last:border-0">
                     <td className="py-2 px-3 font-mono text-xs">{c.code}</td>
                     <td className="py-2 px-3">{c.name}</td>
-                    <td className="py-2 px-3 text-gray-500">{c.phone}</td>
-                    <td className="py-2 px-3 text-gray-500 truncate max-w-xs">
+                    <td className="py-2 px-3 text-faint">{c.phone}</td>
+                    <td className="py-2 px-3 text-faint truncate max-w-xs">
                       {c.address}
                     </td>
                   </tr>
@@ -223,14 +223,14 @@ export default function OnboardingPage() {
             </table>
           </div>
           {customers.length > 8 && (
-            <p className="text-gray-500 text-sm mb-4">
+            <p className="text-faint text-sm mb-4">
               ... và {customers.length - 8} khách hàng nữa
             </p>
           )}
           <div className="flex gap-3">
             <button
               onClick={() => setStep('mapping')}
-              className="px-4 py-2 border rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 border rounded-lg text-sm text-on-surface-variant hover:bg-container-low transition-colors"
             >
               Quay lại
             </button>
@@ -247,7 +247,7 @@ export default function OnboardingPage() {
       {step === 'importing' && (
         <div className="bg-card rounded-lg border p-12 text-center">
           <div className="text-4xl mb-3">...</div>
-          <p className="text-gray-600">Đang nhập dữ liệu...</p>
+          <p className="text-on-surface-variant">Đang nhập dữ liệu...</p>
         </div>
       )}
 
@@ -255,11 +255,11 @@ export default function OnboardingPage() {
         <div className="bg-card rounded-lg border p-6">
           <h2 className="text-lg font-medium mb-4">Hoàn tất!</h2>
           <div className="space-y-2 mb-6">
-            <p className="text-green-700 font-medium">
+            <p className="text-secondary font-medium">
               Đã nhập thành công: <strong>{importResult.imported}</strong> khách hàng
             </p>
             {importResult.skipped > 0 && (
-              <p className="text-gray-500 text-sm">
+              <p className="text-faint text-sm">
                 Đã bỏ qua: {importResult.skipped} khách hàng (trùng mã hoặc thiếu dữ liệu)
               </p>
             )}
@@ -267,13 +267,13 @@ export default function OnboardingPage() {
           <div className="flex gap-3">
             <button
               onClick={() => router.push('/customers')}
-              className="px-5 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              className="px-5 py-2 bg-primary-container text-white rounded-lg font-medium hover:bg-primary transition-colors"
             >
               Xem danh sách khách hàng
             </button>
             <button
               onClick={() => router.push('/dashboard')}
-              className="px-4 py-2 border rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 border rounded-lg text-sm text-on-surface-variant hover:bg-container-low transition-colors"
             >
               Về trang chủ
             </button>

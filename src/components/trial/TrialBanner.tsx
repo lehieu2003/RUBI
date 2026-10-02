@@ -67,9 +67,9 @@ export function TrialBanner() {
 
   const bannerStyles = {
     trial: 'bg-yellow-50 border-yellow-400 text-yellow-800',
-    expired: 'bg-red-50 border-red-400 text-red-800',
-    cancelled: 'bg-orange-50 border-orange-400 text-orange-800',
-    grace: 'bg-orange-50 border-orange-400 text-orange-800',
+    expired: 'bg-red-50 border-red-400 text-error',
+    cancelled: 'bg-tertiary-fixed border-tertiary-container text-tertiary-container',
+    grace: 'bg-tertiary-fixed border-tertiary-container text-tertiary-container',
   };
 
   const bannerText = {

@@ -136,7 +136,7 @@ export function GlobalPricesTable({ products, globalPrices }: GlobalPricesTableP
                         ) : (
                           <button
                             onClick={() => handleStartEdit(product.id, currentPrice)}
-                            className="px-3 py-1 text-xs font-bold text-primary-accent bg-container-high hover:bg-[#c2d7ff] rounded transition-colors"
+                            className="px-3 py-1 text-xs font-bold text-primary-accent bg-container-high hover:bg-container-highest rounded transition-colors"
                           >
                             Chỉnh sửa
                           </button>

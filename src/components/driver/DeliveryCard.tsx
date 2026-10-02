@@ -92,7 +92,7 @@ export default function DeliveryCard({ order, index, onConfirm }: DeliveryCardPr
         </div>
 
         {/* Items */}
-        <div className="rounded bg-container-low p-2.5 my-3 border border-[#dee8ff]">
+        <div className="rounded bg-container-low p-2.5 my-3 border border-outline-soft">
           <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant block mb-1">
             Hàng cần giao:
           </span>
