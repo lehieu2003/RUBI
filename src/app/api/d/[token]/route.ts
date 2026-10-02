@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prismaAuth } from '@/lib/db';
+import { rateLimit, getIpFromRequest } from '@/lib/rate-limit';
 
 // GET /api/d/[token] - Public driver share-link payload (no login).
 // Backs /d/[token]: the client reads { orders, driverName } at top level,
@@ -9,6 +10,12 @@ export async function GET(
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
+    // Public endpoint: throttle per IP so leaked/shared links can't be scraped
+    const limit = rateLimit(`driver-link:${getIpFromRequest(request)}`, 30, 60 * 1000);
+    if (!limit.success) {
+      return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+    }
+
     const { token } = await params;
     if (!token) {
       return NextResponse.json({ error: 'Invalid link' }, { status: 404 });

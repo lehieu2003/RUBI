@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma, prismaAuth } from '@/lib/db';
+import { rateLimit, getIpFromRequest } from '@/lib/rate-limit';
 import { requireRole } from '@/lib/auth/helpers';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
@@ -8,6 +9,11 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 // Orders visible when status IN (SHIPPING, DELIVERED)
 export async function GET(request: NextRequest) {
   try {
+    const limit = rateLimit(`driver-orders:${getIpFromRequest(request)}`, 60, 60 * 1000);
+    if (!limit.success) {
+      return apiError('Too Many Requests', 429);
+    }
+
     const { searchParams } = new URL(request.url);
     const token = searchParams.get('token');
     const dateParam = searchParams.get('date');
