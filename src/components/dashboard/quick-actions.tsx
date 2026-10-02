@@ -2,13 +2,29 @@
 
 import Link from 'next/link';
 import { MapPin, DollarSign, Package, Snowflake, FileSpreadsheet, AlertCircle, ArrowRight } from 'lucide-react';
+import { useAuth } from '@/lib/auth-provider';
+import type { TenantRole } from '@/lib/rbac/permissions';
 
 interface QuickActionsProps {
   pendingOrdersCount?: number;
   totalBagsOut?: number;
 }
 
+// Keep in sync with src/lib/rbac/permissions.ts route table.
+const ACTION_ROLES: Record<string, TenantRole[]> = {
+  '/dashboard/map': ['ADMIN', 'ACCOUNTANT'],
+  '/settle': ['ADMIN', 'ACCOUNTANT'],
+  '/deposits/shells': ['ADMIN', 'ACCOUNTANT'],
+  '/inventory': ['ADMIN', 'ACCOUNTANT'],
+  '/reports/debt': ['ADMIN', 'ACCOUNTANT'],
+};
+
 export function QuickActions({ pendingOrdersCount = 0, totalBagsOut = 0 }: QuickActionsProps) {
+  const { user } = useAuth();
+  const role = (user?.role as TenantRole | undefined) ?? null;
+  const can = (href: string) =>
+    !role || (ACTION_ROLES[href]?.includes(role) ?? true);
+
   return (
     <div className="flex flex-col gap-4">
       {/* Quick Access Shortcuts Grid */}
@@ -17,6 +33,7 @@ export function QuickActions({ pendingOrdersCount = 0, totalBagsOut = 0 }: Quick
           Lối tắt nghiệp vụ nhanh
         </h4>
         <div className="grid grid-cols-2 gap-2.5">
+          {can('/dashboard/map') && (
           <Link
             href="/dashboard/map"
             className="flex items-center gap-2.5 p-2.5 rounded border border-[#e7eeff] bg-[#f9f9ff] hover:bg-[#dee8ff] hover:border-[#004a99] transition-all group"
@@ -29,7 +46,9 @@ export function QuickActions({ pendingOrdersCount = 0, totalBagsOut = 0 }: Quick
               <p className="text-[10px] text-[#737783]">Vị trí xe & đơn</p>
             </div>
           </Link>
+          )}
 
+          {can('/settle') && (
           <Link
             href="/settle"
             className="flex items-center gap-2.5 p-2.5 rounded border border-[#e7eeff] bg-[#f9f9ff] hover:bg-[#dee8ff] hover:border-[#004a99] transition-all group"
@@ -42,7 +61,9 @@ export function QuickActions({ pendingOrdersCount = 0, totalBagsOut = 0 }: Quick
               <p className="text-[10px] text-[#737783]">Thu tiền tài xế</p>
             </div>
           </Link>
+          )}
 
+          {can('/deposits/shells') && (
           <Link
             href="/deposits/shells"
             className="flex items-center gap-2.5 p-2.5 rounded border border-[#e7eeff] bg-[#f9f9ff] hover:bg-[#dee8ff] hover:border-[#004a99] transition-all group"
@@ -55,7 +76,9 @@ export function QuickActions({ pendingOrdersCount = 0, totalBagsOut = 0 }: Quick
               <p className="text-[10px] text-[#737783]">Quản lý vỏ nợ</p>
             </div>
           </Link>
+          )}
 
+          {can('/inventory') && (
           <Link
             href="/inventory"
             className="flex items-center gap-2.5 p-2.5 rounded border border-[#e7eeff] bg-[#f9f9ff] hover:bg-[#dee8ff] hover:border-[#004a99] transition-all group"
@@ -68,8 +91,10 @@ export function QuickActions({ pendingOrdersCount = 0, totalBagsOut = 0 }: Quick
               <p className="text-[10px] text-[#737783]">Ghi nhận mẻ đá</p>
             </div>
           </Link>
+          )}
         </div>
 
+        {can('/reports/debt') && (
         <Link
           href="/reports/debt"
           className="mt-3 flex items-center justify-between px-3 py-2 rounded bg-[#f0f3ff] border border-[#dee8ff] hover:bg-[#dee8ff] text-xs font-bold text-[#00346f] transition-colors"
@@ -80,6 +105,7 @@ export function QuickActions({ pendingOrdersCount = 0, totalBagsOut = 0 }: Quick
           </span>
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
+        )}
       </div>
 
       {/* Realtime Operational Status / Alerts */}
