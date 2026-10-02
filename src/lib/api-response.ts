@@ -50,3 +50,20 @@ export function apiError(
   };
   return NextResponse.json(body, { status });
 }
+
+/**
+ * Client-side counterpart to the envelope: unwraps `data` from a standard
+ * response body, passing through anything that is not an envelope (plain
+ * arrays, already-unwrapped payloads, null).
+ */
+export function unwrapEnvelope<T = unknown>(json: unknown): T {
+  if (
+    json &&
+    typeof json === 'object' &&
+    'data' in json &&
+    (json as { data?: unknown }).data !== undefined
+  ) {
+    return (json as { data: T }).data;
+  }
+  return json as T;
+}
