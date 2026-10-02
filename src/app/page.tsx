@@ -49,10 +49,10 @@ export default function LandingPage() {
           <span className="text-primary-dark font-black tracking-tight">IceFlow</span>
         </div>
         <div className="flex items-center gap-6">
-          <a href="#pain" className="text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:text-primary-accent transition-colors">
+          <a href="#pain" className="hidden sm:block text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:text-primary-accent transition-colors">
             Nỗi đau
           </a>
-          <a href="#features" className="text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:text-primary-accent transition-colors">
+          <a href="#features" className="hidden sm:block text-xs font-bold uppercase tracking-wider text-on-surface-variant hover:text-primary-accent transition-colors">
             Tính năng
           </a>
           {user ? (
@@ -63,18 +63,18 @@ export default function LandingPage() {
               VÀO BẢNG ĐIỀU KHIỂN &rarr;
             </Link>
           ) : (
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               <Link
                 href="/login"
-                className="px-3.5 py-1.5 border border-outline-variant bg-card text-primary-deep font-bold text-xs rounded hover:bg-container-high transition-all"
+                className="px-3 py-1.5 border border-outline-variant bg-card text-primary-deep font-bold text-xs rounded hover:bg-container-high transition-all"
               >
                 Đăng nhập
               </Link>
               <Link
                 href="/register"
-                className="px-4 py-1.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-all shadow-xs"
+                className="hidden sm:block px-3 py-1.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-all shadow-xs whitespace-nowrap"
               >
-                Dùng thử 14 ngày
+                Dùng thử
               </Link>
             </div>
           )}

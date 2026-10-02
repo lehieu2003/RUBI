@@ -34,3 +34,14 @@ describe('settings lives inside the main menu', () => {
     assert.doesNotMatch(sidebar, /title="Cài đặt hệ thống"/);
   });
 });
+
+describe('mobile menu stacking', () => {
+  const sidebar = readFileSync('src/components/dashboard/sidebar.tsx', 'utf8');
+
+  it('mobile backdrop sits BELOW the sidebar so menu items stay clickable', () => {
+    const backdropLine = sidebar.split('\n').find((l) => l.includes('bg-black/50') && l.includes('lg:hidden'));
+    assert.ok(backdropLine, 'mobile backdrop not found');
+    assert.match(backdropLine, /z-20/);
+    assert.doesNotMatch(backdropLine, /z-40|z-50/);
+  });
+});

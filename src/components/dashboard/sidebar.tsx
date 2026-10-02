@@ -88,7 +88,7 @@ export function Sidebar() {
       {isMobileSidebarOpen && (
         <div
           onClick={closeMobileSidebar}
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs lg:hidden transition-opacity"
+          className="fixed inset-0 z-20 bg-black/50 backdrop-blur-xs lg:hidden transition-opacity"
         />
       )}
 
@@ -137,6 +137,7 @@ export function Sidebar() {
                 key={item.label}
                 href={item.href}
                 prefetch={true}
+                onClick={closeMobileSidebar}
                 onMouseEnter={() => router.prefetch(item.href)}
                 className={`group flex items-center gap-3 rounded px-3 py-2 transition-all text-xs font-bold ${
                   isActive
