@@ -187,3 +187,6 @@
 - **No-flash**: inline script trong layout head áp `.dark` trước first paint; provider lưu `localStorage['iceflow-theme']`, mặc định 'system' và theo prefers-color-scheme.
 - **QA browser**: dashboard, orders + drawer, settle, settings, admin tenants, landing — cả light và dark đều ổn (screenshots `gui-test-screenshots/dark-*.png`, `light-*.png`).
 - Gates: 94/94 test (thêm suite theme), typecheck 0, lint 0.
+
+### Bổ sung dark mode (sau QA): sweep đợt 2
+- 22 file dùng Tailwind palette chuẩn (text-gray-*, slate-*, blue-600, orange-*, emerald-*...) + hex sót → token. Register page bỏ style dark-glass (bg-card/5, border-white/10, text-gray-300) chuyển về token chuẩn; nút gradient blue→violet đổi thành brand solid. Sửa hover pink-on-pink ở nút đăng xuất settings.
