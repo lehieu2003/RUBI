@@ -7,6 +7,7 @@ import DriverMap from '@/components/driver/DriverMap';
 import { Snowflake, RefreshCw, Clock, CheckCircle2, MapPin, AlertCircle } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { getCurrentPosition } from '@/lib/geolocation';
 
 interface OrderItem {
   quantity: number;
@@ -77,10 +78,19 @@ export default function DriverViewPage({ params }: DriverViewPageProps) {
     fetchOrders();
   };
 
-  const handleConfirm = async (orderId: string, gps: { lat: number; lng: number } | null) => {
+  const handleConfirm = async (orderId: string) => {
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: 'DELIVERED' as const } : o))
     );
+
+    const gps = await getCurrentPosition();
+    if (!gps) {
+      toast({
+        type: 'warning',
+        title: 'Không lấy được vị trí GPS',
+        message: 'Đơn vẫn được xác nhận nhưng không ghi được tọa độ giao hàng.',
+      });
+    }
 
     try {
       const response = await fetch(API_ENDPOINTS.ORDERS.CONFIRM(orderId), {
@@ -201,10 +211,11 @@ export default function DriverViewPage({ params }: DriverViewPageProps) {
           <EmptyState driverName={driverName} onRefresh={handleRefresh} />
         ) : (
           <div className="space-y-3">
-            {orders.map((order) => (
+            {orders.map((order, orderIndex) => (
               <DeliveryCard
                 key={order.id}
                 order={order}
+                index={orderIndex + 1}
                 onConfirm={handleConfirm}
               />
             ))}

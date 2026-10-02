@@ -3,7 +3,7 @@
 import { Toaster, toast as hotToast } from 'react-hot-toast';
 
 export interface ToastMessage {
-  type: 'success' | 'error' | 'info';
+  type: 'success' | 'error' | 'info' | 'warning';
   title: string;
   message?: string;
 }
@@ -25,6 +25,10 @@ export function toast(input: Omit<ToastMessage, 'id'>) {
   }
   if (input.type === 'error') {
     hotToast.error(message);
+    return;
+  }
+  if (input.type === 'warning') {
+    hotToast(message, { icon: '⚠️' });
     return;
   }
   hotToast(message);

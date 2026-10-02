@@ -12,4 +12,5 @@ import './api/debt-report.test';
 import './api/order-status.test';
 import './api/settle-page.test';
 import './api/driver-token-route.test';
+import './api/driver-confirm.test';
 import './pricing/scope.test';

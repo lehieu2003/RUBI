@@ -58,6 +58,7 @@ export async function PATCH(
       data: {
         status: 'DELIVERED',
         deliveryGps: gpsValue,
+        deliveredAt: new Date(),
       },
     });
 

@@ -8,6 +8,7 @@ import EmptyState from '@/components/driver/EmptyState';
 import { useAuth } from '@/lib/auth-provider';
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { getCurrentPosition } from '@/lib/geolocation';
 
 interface DriverInfo {
   id: string;
@@ -82,11 +83,20 @@ export default function DriverPage() {
       (previous || []).map((order) => (order.id === orderId ? { ...order, status: 'DELIVERED' as const } : order))
     );
 
+    const gps = await getCurrentPosition();
+    if (!gps) {
+      toast({
+        type: 'warning',
+        title: 'Không lấy được vị trí GPS',
+        message: 'Đơn vẫn được xác nhận nhưng không ghi được tọa độ giao hàng.',
+      });
+    }
+
     try {
       const response = await fetch(API_ENDPOINTS.ORDERS.CONFIRM(orderId), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gps: null }),
+        body: JSON.stringify({ gps }),
       });
 
       if (!response.ok) {
