@@ -16,4 +16,5 @@ import './api/driver-confirm.test';
 import './rbac/impersonation-paths.test';
 import './api/payment-webhook.test';
 import './auth/register-session.test';
+import './rbac/impersonate-role-bypass.test';
 import './pricing/scope.test';

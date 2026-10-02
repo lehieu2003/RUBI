@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { isSubscriptionActive } from '@/lib/subscription-status';
@@ -19,6 +20,15 @@ export async function requireSession() {
 export async function requireRole(roles: string[]) {
   const session = await requireSession();
   if (!session.role || !roles.includes(session.role)) {
+    // During an active impersonation session the SUPER_ADMIN reads tenant
+    // data as support staff; write attempts are still rejected by the
+    // middleware's READ_ONLY_IMPERSONATION guard.
+    if (session.role === 'SUPER_ADMIN') {
+      const cookieStore = await cookies();
+      if (cookieStore.get('impersonate_token')?.value) {
+        return session;
+      }
+    }
     throw NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
   return session;
