@@ -78,8 +78,14 @@ export function DashboardClient({
     (sum, o) => sum + Number(o.total),
     0
   );
-  const deliveredCount = todayOrders.filter((o) => o.status === 'DELIVERED').length;
-  const pendingCount = todayOrders.length - deliveredCount;
+  // Delivered includes completed (settled) orders; pending = still waiting
+  // for a driver or on the way.
+  const deliveredCount = todayOrders.filter(
+    (o) => o.status === 'DELIVERED' || o.status === 'COMPLETED'
+  ).length;
+  const pendingCount = todayOrders.filter(
+    (o) => o.status === 'PENDING' || o.status === 'SHIPPING'
+  ).length;
 
   let revenueTrend: 'up' | 'down' | 'neutral' = 'neutral';
   let revenueTrendValue = 'Chưa có đơn';
