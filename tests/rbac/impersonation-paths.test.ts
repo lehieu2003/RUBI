@@ -15,10 +15,10 @@ const authProvider = readFileSync(
 
 describe('impersonation middleware source checks', () => {
   it('exempts exactly logout and impersonate-end from the read-only block', () => {
-    assert.match(
-      middleware,
-      /pathname === '\/api\/auth\/logout' \|\| pathname === '\/api\/admin\/impersonate\/end'/
-    );
+    // Block condition is negated (de Morgan): the write block applies only
+    // when the path is neither of the two exemption paths.
+    assert.match(middleware, /pathname !== '\/api\/auth\/logout'/);
+    assert.match(middleware, /pathname !== '\/api\/admin\/impersonate\/end'/);
   });
 
   it('treats impersonating super admin as tenant ADMIN for path access', () => {
