@@ -198,7 +198,7 @@ export default function DriverViewPage({ params }: DriverViewPageProps) {
 
         {/* Order List */}
         {orders.length === 0 ? (
-          <EmptyState />
+          <EmptyState driverName={driverName} onRefresh={handleRefresh} />
         ) : (
           <div className="space-y-3">
             {orders.map((order) => (

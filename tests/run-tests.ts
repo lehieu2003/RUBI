@@ -11,4 +11,5 @@ import './lib/unwrap-envelope.test';
 import './api/debt-report.test';
 import './api/order-status.test';
 import './api/settle-page.test';
+import './api/driver-token-route.test';
 import './pricing/scope.test';
