@@ -54,12 +54,14 @@ export async function POST(req: NextRequest) {
     const extractedId = match ? match[1] : null;
 
     // Preferred resolution: the payment note carries the subscription id
-    // prefix (8 chars, see formatPaymentNote) — unique per tenant, immune
-    // to name collisions or diacritics stripping.
+    // prefix (8 chars, see formatPaymentNote) as the last whitespace token —
+    // unique per tenant, immune to name collisions or diacritics stripping.
     let factory = null;
-    const subIdMatch = content.match(/([a-z0-9]{8,})\s*$/i) || (extractedId ? [null, extractedId] : null);
-    const subIdPrefix = subIdMatch ? subIdMatch[1].slice(0, 8).toLowerCase() : null;
-    if (subIdPrefix && subIdPrefix.length === 8) {
+    const lastToken = content.trim().split(/\s+/).pop() || '';
+    const subIdPrefix = /^[A-Za-z0-9_-]{8,}$/.test(lastToken)
+      ? lastToken.slice(0, 8).toLowerCase()
+      : null;
+    if (subIdPrefix) {
       const sub = await prismaAuth.subscription.findFirst({
         where: { id: { startsWith: subIdPrefix } },
         include: { factory: { include: { subscriptions: { orderBy: { createdAt: 'desc' }, take: 1 } } } },
