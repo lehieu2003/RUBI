@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       const totalPayment = customer.debtLedger
         .filter(e => e.type === 'PAYMENT')
         .reduce((sum, e) => sum + e.amount.toNumber(), 0);
-      const outstanding = totalPayment - totalDebt; // Positive = customer owes
+      const outstanding = totalDebt - totalPayment; // Positive = customer owes
 
       // Find last payment date
       const paymentEntries = customer.debtLedger.filter(e => e.type === 'PAYMENT');
