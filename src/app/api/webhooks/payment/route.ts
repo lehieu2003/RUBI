@@ -10,6 +10,14 @@ import { sendPaymentSuccessEmail } from '@/lib/email/service';
 export async function POST(req: NextRequest) {
   try {
     const webhookSecret = process.env.PAYMENT_WEBHOOK_SECRET;
+
+    // Fail closed in production: an unauthenticated payment webhook would
+    // let anyone activate paid subscriptions (revenue loss).
+    if (process.env.NODE_ENV === 'production' && !webhookSecret) {
+      console.error('[POST /api/webhooks/payment] PAYMENT_WEBHOOK_SECRET is required in production');
+      return apiError('Webhook not configured', 503);
+    }
+
     const authHeader = req.headers.get('authorization') || req.headers.get('x-api-key');
 
     // Verify webhook secret if configured in environment
