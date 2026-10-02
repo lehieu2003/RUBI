@@ -26,6 +26,8 @@ model Factory {
   payments      Payment[]
   impersonationLogs ImpersonationLog[]
   scheduleAssignments ScheduleAssignment[]
+  assets             Asset[]
+  maintenanceRecords MaintenanceRecord[]
 
   @@map("factories")
 }
@@ -321,4 +323,61 @@ enum Shift {
 enum LedgerType {
   DEBT
   PAYMENT
+}
+
+enum AssetType {
+  MACHINE
+  VEHICLE
+}
+
+enum AssetStatus {
+  ACTIVE
+  MAINTENANCE
+  BROKEN
+  INACTIVE
+}
+
+enum MaintenanceType {
+  ROUTINE
+  INSPECTION
+  INSURANCE
+  REPAIR
+}
+
+model Asset {
+  id           String   @id @default(cuid())
+  factoryId    String   @map("factory_id")
+  factory      Factory  @relation(fields: [factoryId], references: [id])
+  type         AssetType
+  name         String
+  code         String
+  licensePlate String?  @map("license_plate")
+  capacityTons Float?   @map("capacity_tons")
+  status       AssetStatus @default(ACTIVE)
+  notes        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  maintenanceRecords MaintenanceRecord[]
+
+  @@unique([factoryId, code])
+  @@index([factoryId])
+  @@map("assets")
+}
+
+model MaintenanceRecord {
+  id          String @id @default(cuid())
+  factoryId   String @map("factory_id")
+  factory     Factory @relation(fields: [factoryId], references: [id])
+  assetId     String @map("asset_id")
+  asset       Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  type        MaintenanceType
+  performedAt DateTime @map("performed_at")
+  dueAt       DateTime? @map("due_at")
+  cost        Float?
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([factoryId, dueAt])
+  @@index([assetId])
+  @@map("maintenance_records")
 }

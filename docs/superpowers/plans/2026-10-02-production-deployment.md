@@ -126,7 +126,7 @@
   TRUSTED_PROXY_IPS=127.0.0.1
   ```
   `chmod 600 .env.production`.
-- [ ] **3.3 Chạy migration vào Supabase prod**: `npx prisma migrate deploy` (dùng DIRECT_URL). Verify: `\dt` trong Supabase SQL editor thấy đủ 16 bảng.
+- [ ] **3.3 Chạy migration vào Supabase prod**: lịch sử migrate cũ không replay được (shadow-db fail) — áp dụng file SQL trực tiếp: `prisma/migrations/20261002234613_add_asset_management/migration.sql` qua Supabase SQL Editor (hoặc psql với DIRECT_URL). Verify: bảng `assets` + `maintenance_records` tồn tại.
 - [ ] **3.4 Seed system factory + superadmin**: `npx tsx prisma/seed-system-factory.ts` (env SUPER_ADMIN_EMAIL + SUPER_ADMIN_PASSWORD mạnh từ 0.3 — **không dùng 12345678**). Verify: login superadmin qua UI được.
 - [ ] **3.5 Build + up**: `docker compose -f docker-compose.prod.yml up -d --build`. Verify: `docker compose ps` healthy; `curl -s http://127.0.0.1:3000/login -o /dev/null -w '%{http_code}'` = 200 từ trong VPS.
 - [ ] **3.6 Smoke test qua HTTPS**: `https://yourdomain.com` load; login superadmin; tạo 1 factory test; tạo 1 đơn; in phiếu K80 từ Chrome máy thật; đăng ký 1 factory mới bằng email thật (nhận email Resend).
