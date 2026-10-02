@@ -54,13 +54,15 @@ export async function PATCH(request: NextRequest) {
       return apiError('Cần nâng cấp subscription để thêm driver', 403);
     }
 
-    // Bulk update orders to assign to driver
-    // Only updates orders that are in SHIPPING status (driver loaded, ready for delivery)
+    // Bulk update orders to assign to driver.
+    // The office workflow selects PENDING (Chờ giao) orders right after
+    // taking them, or SHIPPING orders to reassign. Terminal states
+    // (DELIVERED/COMPLETED/CANCELLED) must never be reassigned.
     const result = await prisma.order.updateMany({
       where: {
         factoryId: session.factoryId,
         id: { in: orderIds },
-        status: 'SHIPPING', // Only assign to SHIPPING orders
+        status: { in: ['PENDING', 'SHIPPING'] },
       },
       data: {
         driverId: driverId,

@@ -85,3 +85,19 @@ describe('RBAC API guard source checks', () => {
     assert.doesNotMatch(source, /JWT token/);
   });
 });
+
+describe('bulk-assign status gate', () => {
+  const source = readFileSync('src/app/api/orders/bulk-assign/route.ts', 'utf8');
+
+  it('assigns PENDING and SHIPPING orders (the office workflow)', () => {
+    assert.match(source, /status:\s*\{\s*in:\s*\['PENDING',\s*'SHIPPING'\]\s*\}/);
+  });
+
+  it('never reassigns terminal orders (DELIVERED/COMPLETED/CANCELLED)', () => {
+    assert.doesNotMatch(source, /status:\s*'SHIPPING'/);
+    const filterMatch = source.match(/status:\s*\{\s*in:\s*\[([^\]]+)\]/);
+    assert.ok(filterMatch, 'status filter required');
+    const statuses = filterMatch[1].split(',').map(s => s.trim().replace(/'/g, ''));
+    assert.deepEqual(statuses.sort(), ['PENDING', 'SHIPPING']);
+  });
+});
