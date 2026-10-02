@@ -55,7 +55,8 @@ export function Sidebar() {
 
   const role = user?.role as TenantRole | undefined;
 
-  // Operational menu items (excluding settings and billing)
+  // Operational menu items (excluding billing shortcuts; Cài đặt stays in
+  // the menu, role-gated by the route permission table)
   const operationalMenuItems = getVisibleTenantRoutes(role)
     .map((route) => ({
       href: route.href,
@@ -68,11 +69,8 @@ export function Sidebar() {
       (item) =>
         item.href !== '/settings/billing' &&
         item.href !== '/billing' &&
-        item.href !== '/config/prices' &&
-        item.href !== '/settings',
+        item.href !== '/config/prices',
     );
-
-  const hasSettingsAccess = getVisibleTenantRoutes(role).some((r) => r.href === '/settings');
 
   const handleSignOut = async () => {
     if (signingOut) return;
@@ -126,7 +124,10 @@ export function Sidebar() {
         {/* Main Operational Navigation */}
         <nav className="flex-1 space-y-1 px-3 py-3 overflow-y-auto">
           {operationalMenuItems.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive =
+              item.href === '/settings'
+                ? pathname.startsWith('/settings')
+                : pathname === item.href;
             return (
               <Link
                 key={item.label}
@@ -168,25 +169,8 @@ export function Sidebar() {
           )}
         </button>
 
-        {/* Bottom Section: Settings, User Profile & Logout */}
+        {/* Bottom Section: User Profile & Logout */}
         <div className="border-t border-[#e7eeff] bg-[#f9f9ff] px-3 py-3 space-y-2">
-          {/* Settings Link */}
-          {hasSettingsAccess && (
-            <Link
-              href="/settings"
-              prefetch={true}
-              className={`group flex items-center gap-3 rounded px-3 py-2 text-xs font-bold transition-all ${
-                pathname.startsWith('/settings')
-                  ? 'bg-[#004a99] text-white shadow-2xs'
-                  : 'text-[#424751] hover:bg-[#dee8ff] hover:text-[#004a99]'
-              } ${isSidebarCollapsed ? 'lg:justify-center' : ''}`}
-              title="Cài đặt hệ thống"
-            >
-              <Settings className={`h-4 w-4 shrink-0 ${pathname.startsWith('/settings') ? 'text-white' : 'text-[#737783] group-hover:text-[#004a99]'}`} />
-              {!isSidebarCollapsed && <span>Cài đặt</span>}
-            </Link>
-          )}
-
           {/* User Profile & Logout Row */}
           <div className={`pt-2 border-t border-[#e7eeff] flex items-center justify-between gap-2 px-1 ${isSidebarCollapsed ? 'flex-col' : ''}`}>
             <div className={`flex items-center gap-2.5 min-w-0 ${isSidebarCollapsed ? 'justify-center' : ''}`}>

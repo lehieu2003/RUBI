@@ -21,3 +21,16 @@ describe('sidebar stacking order', () => {
     assert.doesNotMatch(asideLine, /z-50/);
   });
 });
+
+describe('settings lives inside the main menu', () => {
+  const sidebar = readFileSync('src/components/dashboard/sidebar.tsx', 'utf8');
+
+  it('does not filter /settings out of the operational menu items', () => {
+    assert.doesNotMatch(sidebar, /item\.href !== '\/settings'/);
+  });
+
+  it('has no separate settings block at the bottom', () => {
+    assert.doesNotMatch(sidebar, /\{\/\* Settings Link \*\//);
+    assert.doesNotMatch(sidebar, /title="Cài đặt hệ thống"/);
+  });
+});
