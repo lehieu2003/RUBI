@@ -117,3 +117,35 @@
 2. **"Hôm nay" query**: settle/map/debt đều lọc sai → khả năng 1 gốc timezone/điều kiện chung (Bug #5, #12)
 3. **2 đường COMPLETED**: reconcile (đúng) vs dropdown (thiếu) — cần thống nhất 1 luồng (Bug #4)
 4. **Middleware impersonate**: block-everything-non-GET gây 3 bug (#8, #9, #10) — cần allowlist cho /end, /auth/logout và logic canAccessPath biết impersonation
+
+---
+
+## KẾT QUẢ FIX (2026-10-02, branch `fix/e2e-bugfix-batch`)
+
+| # | Bug | Trạng thái |
+|---|-----|-----------|
+| 1 | Tạo đơn list không refresh | ✅ FIXED + VERIFIED (invalidate + router.refresh) |
+| 2 | saveOrder Decimal serialization | ✅ FIXED (plain object) |
+| 3 | Crash orders.map sau chốt đơn | ✅ FIXED + VERIFIED (unwrapEnvelope cả 2 fetch) |
+| 4 | COMPLETED trực tiếp không ghi nợ/kho | ✅ FIXED + VERIFIED (API 400 + UI bỏ option; COMPLETED chỉ qua Đối soát) |
+| 5 | Báo cáo nợ = 0 | ✅ FIXED + VERIFIED (đảo dấu; 4 khách / 6.855.000đ đúng từng đồng) |
+| 6 | /d/[token] 404 | ✅ FIXED + VERIFIED (route mới; EmptyState cũng sửa màu trắng-trên-trắng) |
+| 7 | GPS + deliveredAt không lưu | ✅ FIXED + VERIFIED (deliveredAt persist; geolocation util + cảnh báo; GPS null = design D-09) |
+| 8 | Impersonation không vào được tenant app | ✅ FIXED + VERIFIED (middleware effective role + getSession swap factory + requireRole bypass có kiểm endedAt) |
+| 9 | Không kết thúc được impersonation | ✅ FIXED + VERIFIED (exempt /end; toast "Đã thoát impersonate"; ended_at NOT NULL) |
+| 10 | Logout 200 nhưng session còn | ✅ FIXED + VERIFIED (exempt /api/auth/logout + signOut check res.ok) |
+| 11 | Payment note không định danh tenant | ✅ FIXED + VERIFIED (formatPaymentNote + webhook match sub-id prefix, +30 ngày; old format 404 graceful) |
+| 12 | Map/settle counters = 0 | ✅ FIXED + VERIFIED (settle fetch all + derive; map label trung thực) |
+| 13 | Dashboard breakdown sai | ✅ FIXED + VERIFIED (5 đã giao / 1 chờ đúng) |
+| 14 | Enter không submit login | ⚠️ UNVERIFIABLE — IAB runtime không thực hiện implicit form submission (control page cũng vậy); form markup chuẩn; cần test tay trên Chrome thật |
+| 15 | QuickActions không lọc role | ✅ FIXED + VERIFIED (STAFF thấy 0 link cấm) |
+| 16 | Settle hiển thị raw driver ID | ✅ FIXED + VERIFIED (orders API include driver.name) |
+| 17 | Modal thiếu role="dialog" | ✅ FIXED (customers modal + settle form) |
+| 18 | Chart tooltip đứng yên | ✅ FALSE POSITIVE — tooltip chỉ hiện khi hover (đúng chuẩn hidden group-hover:flex) |
+| 19 | Tenants table tràn | ✅ FIXED (whitespace-nowrap actions; overflow-x-auto có sẵn) |
+| 20 | Schedule tên bị cắt | ✅ FIXED (title attribute) |
+| 21 | (mới) Register session sai đến khi reload | ✅ FIXED + VERIFIED (register dùng signUp → checkAuth; identity + nav đúng ngay) |
+
+**Bug mới phát hiện khi fix:** impersonation còn 2 lớp thiếu (requireRole chặn SUPER_ADMIN đọc API; session.factoryId trúng system factory) — đã fix trong cùng batch.
+
+**Deferred (đánh giá reviewer, ngoài scope):** PAYMENT_WEBHOOK_SECRET optional; driver token không có expiry/rate-limit; 5 source-pattern test fail có sẵn trên master; 3 lỗi type có sẵn (inventory TRANSACTIONS, CancelSubscriptionFlow dead-code, map page overload).
