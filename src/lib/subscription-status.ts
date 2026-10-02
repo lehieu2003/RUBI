@@ -22,7 +22,9 @@ export function isSubscriptionActive(sub: SubscriptionLike | null): boolean {
   if (!sub) return false;
   if (sub.status === 'CANCELLED') return false;
   if (sub.status === 'EXPIRED') return false;
-  if (sub.planType === 'TRIAL' && new Date() > toDate(sub.endDate)) return false;
+  // Both TRIAL and PAID expire by endDate — a PAID subscription whose term
+  // lapsed (no renewal recorded) must not stay writable.
+  if (new Date() > toDate(sub.endDate)) return false;
   return true;
 }
 

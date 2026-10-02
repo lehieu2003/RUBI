@@ -11,3 +11,26 @@ describe('schedule subscription limit source checks', () => {
     assert.match(source, /person\.role === 'DRIVER'/);
   });
 });
+
+import { isSubscriptionActive, isWithinWarningPeriod } from '../../src/lib/subscription-status';
+
+describe('isSubscriptionActive behavior', () => {
+  const base = { planType: 'PAID' as const, status: 'ACTIVE' as const, endDate: new Date('2026-12-31') };
+
+  it('active PAID within endDate allows writes', () => {
+    assert.equal(isSubscriptionActive({ ...base }), true);
+  });
+
+  it('PAID past endDate is inactive (expiry without a status flip)', () => {
+    assert.equal(isSubscriptionActive({ ...base, endDate: new Date('2026-01-01') }), false);
+  });
+
+  it('ACTIVE TRIAL within endDate allows writes', () => {
+    assert.equal(isSubscriptionActive({ ...base, planType: 'TRIAL' as const }), true);
+  });
+
+  it('CANCELLED or EXPIRED are inactive regardless of dates', () => {
+    assert.equal(isSubscriptionActive({ ...base, status: 'CANCELLED' as const }), false);
+    assert.equal(isSubscriptionActive({ ...base, status: 'EXPIRED' as const }), false);
+  });
+});
