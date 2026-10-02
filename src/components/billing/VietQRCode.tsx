@@ -1,18 +1,17 @@
+import { formatPaymentNote } from '@/lib/vietqr-template';
+
 interface VietQRCodeProps {
   amount: number;
   factoryName?: string;
-  monthYear?: string;
+  subscriptionId?: string;
 }
 
-export function buildVietQRContent(factoryName: string, monthYear: string): string {
-  return `THANH TOAN ICEFLOW ${factoryName.toUpperCase()} ${monthYear}`;
-}
-
-export function VietQRCode({ amount, factoryName = 'KHACH HANG', monthYear }: VietQRCodeProps) {
-  const now = new Date();
-  const currentMonthYear =
-    monthYear || `T${now.getMonth() + 1}/${now.getFullYear()}`;
-  const content = buildVietQRContent(factoryName, currentMonthYear);
+export function VietQRCode({ amount, factoryName, subscriptionId }: VietQRCodeProps) {
+  // The subscription id prefix is what the payment webhook matches on;
+  // the factory name is cosmetic context for the payer.
+  const content = subscriptionId
+    ? formatPaymentNote(factoryName || 'IceFlow', subscriptionId).toUpperCase()
+    : 'THANH TOAN ICEFLOW - VUI LONG LIEN HE VAN PHONG';
   const formattedAmount =
     amount > 0 ? new Intl.NumberFormat('vi-VN').format(amount) : '0';
 

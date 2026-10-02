@@ -20,6 +20,7 @@ interface SubscriptionData {
     pricePerDriver: number | string | null;
   } | null;
   driverCount: number;
+  factoryName?: string | null;
 }
 
 interface Session {
@@ -151,7 +152,11 @@ export function BillingScreen() {
             </div>
           )}
 
-          <VietQRCode amount={transferAmount} />
+          <VietQRCode
+            amount={transferAmount}
+            factoryName={data?.factoryName ?? undefined}
+            subscriptionId={subscription?.id}
+          />
 
           {canSelfUpgrade && (
             <div className="rounded border border-[#c2c6d3] bg-white p-5 shadow-sm">

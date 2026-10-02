@@ -53,9 +53,22 @@ export async function POST(req: NextRequest) {
     const match = content.match(/(?:ICEFLOW|IF)[-_ ]?([a-zA-Z0-9_-]+)/i);
     const extractedId = match ? match[1] : null;
 
-    // Find factory either by matching extractedId, or directly checking if content includes factory ID
+    // Preferred resolution: the payment note carries the subscription id
+    // prefix (8 chars, see formatPaymentNote) — unique per tenant, immune
+    // to name collisions or diacritics stripping.
     let factory = null;
-    if (extractedId) {
+    const subIdMatch = content.match(/([a-z0-9]{8,})\s*$/i) || (extractedId ? [null, extractedId] : null);
+    const subIdPrefix = subIdMatch ? subIdMatch[1].slice(0, 8).toLowerCase() : null;
+    if (subIdPrefix && subIdPrefix.length === 8) {
+      const sub = await prismaAuth.subscription.findFirst({
+        where: { id: { startsWith: subIdPrefix } },
+        include: { factory: { include: { subscriptions: { orderBy: { createdAt: 'desc' }, take: 1 } } } },
+      });
+      if (sub) factory = sub.factory;
+    }
+
+    // Find factory either by matching extractedId, or directly checking if content includes factory ID
+    if (!factory && extractedId) {
       factory = await prismaAuth.factory.findFirst({
         where: {
           OR: [

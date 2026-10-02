@@ -26,7 +26,12 @@ export async function GET() {
       where: { factoryId, isActive: true },
     });
 
-    return apiSuccess({ subscription, driverCount });
+    const factory = await prisma.factory.findUnique({
+      where: { id: factoryId },
+      select: { name: true },
+    });
+
+    return apiSuccess({ subscription, driverCount, factoryName: factory?.name ?? null });
   } catch (error) {
     if (error instanceof Response) throw error;
     console.error('[GET /api/billing/subscription]', error);
