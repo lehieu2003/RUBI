@@ -9,6 +9,7 @@ import './api/webhook-secret.test';
 import './auth/enter-submit.test';
 import './auth/session-validity.test';
 import './lib/theme.test';
+import './api/assets.test';
 import './components/schedule/calendar-grid.test';
 import './components/sidebar.test';
 import './lib/subscription.test';
