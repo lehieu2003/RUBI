@@ -228,3 +228,6 @@ Gates: 105/105 test · typecheck 0 · lint 0.
 | Orders + drawer lên đơn | ✅ full flow 375px (search → Enter → matrix scroll ngang → xác nhận, toast + list refresh 6→7) |
 | Customers / Settle / Schedule | ✅ (schedule scroll ngang + sticky cột, chấp nhận được) |
 | Driver app | ✅ xuất sắc — mobile-first đúng thiết kế |
+
+### 🐞 Bug hệ thống phát hiện khi QA module Tài sản
+Mọi route dùng pattern `requireRole` (throw NextResponse) + catch `throw error` đều trả **500 thay vì 403/401** khi bị từ chối — Next.js App Router không serve được Response bị ném. Fix: chuyển `throw error` → `return error` ở catch của 23 route files + test chốt. Đây là bug có từ đầu (chưa bao giờ test hành vi RBAC bằng curl), ảnh hưởng: UI hiện "Lỗi server" chung chung thay vì "Forbidden".
