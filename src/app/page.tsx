@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth-provider';
 import { useTheme } from '@/lib/theme';
 import { IceIcon } from '@/components/landing/icons';
+import { Reveal } from '@/components/landing/reveal';
 import {
   Moon,
   Snowflake,
@@ -254,18 +255,26 @@ export default function LandingPage() {
         </p>
 
         <div className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Reveal>
           <PainCard icon={Package} title="Thất thoát vỏ bao">
             Đến cuối tháng mới biết thiếu hụt hàng trăm bao — không rõ khách nào đang nợ.
           </PainCard>
+          </Reveal>
+          <Reveal delay={50}>
           <PainCard icon={Wallet} title="Sai lệch công nợ">
             Tài xế giao hàng thu tiền nhưng quên nộp, sổ tay ghi chép nhầm lẫn số lượng.
           </PainCard>
+          </Reveal>
+          <Reveal delay={100}>
           <PainCard icon={TrendingDown} title="Mù mờ lợi nhuận">
             Cuối tháng không biết thực sự lãi bao nhiêu sau khi trừ tiền điện, xăng xe và vỏ.
           </PainCard>
+          </Reveal>
+          <Reveal delay={150}>
           <PainCard icon={MessagesSquare} title="Lộn xộn tin nhắn Zalo">
             Một ngày 50-80 đơn qua Zalo — bỏ sót đơn, giao nhầm loại đá là chuyện thường.
           </PainCard>
+          </Reveal>
         </div>
       </section>
 
@@ -278,6 +287,7 @@ export default function LandingPage() {
           </h2>
 
           <div className="mt-7 grid grid-cols-1 gap-3 md:grid-cols-2">
+            <Reveal>
             <FeatureCard
               icon={Gauge}
               badge="Tốc độ cao"
@@ -290,6 +300,8 @@ export default function LandingPage() {
             >
               Vừa nghe điện thoại vừa gõ đơn — nhanh hơn cả viết sổ tay.
             </FeatureCard>
+            </Reveal>
+            <Reveal delay={50}>
             <FeatureCard
               icon={ClipboardCheck}
               badge="Đối soát tự động"
@@ -302,6 +314,8 @@ export default function LandingPage() {
             >
               Không cộng sổ tay, không sợ sai lệch giữa tài xế và quầy.
             </FeatureCard>
+            </Reveal>
+            <Reveal delay={100}>
             <FeatureCard
               icon={ShieldCheck}
               badge="Chống thất thoát"
@@ -314,6 +328,8 @@ export default function LandingPage() {
             >
               Biết chính xác đại lý nào đang nợ tiền và nợ vỏ bao.
             </FeatureCard>
+            </Reveal>
+            <Reveal delay={150}>
             <FeatureCard
               icon={MapPinned}
               badge="Vận hành"
@@ -326,6 +342,7 @@ export default function LandingPage() {
             >
               Chủ xưởng nhìn tổng thể đội xe đang chạy ở đâu trên bản đồ.
             </FeatureCard>
+            </Reveal>
           </div>
         </div>
       </section>
@@ -342,6 +359,7 @@ export default function LandingPage() {
 
         <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:max-w-3xl">
           {/* Trial card */}
+          <Reveal>
           <div className="relative rounded border border-outline-variant bg-card p-6 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Dùng thử</p>
             <p className="mt-2 flex items-baseline gap-1">
@@ -363,8 +381,10 @@ export default function LandingPage() {
               BẮT ĐẦU DÙNG THỬ
             </Link>
           </div>
+          </Reveal>
 
           {/* PRO card */}
+          <Reveal delay={100}>
           <div className="relative rounded border-2 border-primary-accent bg-card p-6 shadow-md">
             <span className="absolute -top-2.5 right-4 rounded bg-primary-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
               Phổ biến
@@ -392,6 +412,7 @@ export default function LandingPage() {
               DÙNG THỬ RỒI NÂNG CẤP
             </Link>
           </div>
+          </Reveal>
         </div>
       </section>
 
@@ -404,18 +425,24 @@ export default function LandingPage() {
           </h2>
 
           <div className="mt-7 grid grid-cols-1 gap-3 md:grid-cols-3">
+            <Reveal>
             <TestimonialCard
               quote="Trước mỗi cuối tháng mất 2 ngày ngồi cộng lại vỏ bao từng đại lý. Giờ nhìn dashboard là biết ngay ai nợ bao, ai trả đủ."
               role="Chủ xưởng đá ~60 đơn/ngày"
             />
+            </Reveal>
+            <Reveal delay={50}>
             <TestimonialCard
               quote="Nhân viên nghe điện thoại vừa gõ đơn xong, tài xế lên xe là thấy đơn ngay trên điện thoại. Không còn gọi lại hỏi đơn nào cho nhà nào."
               role="Xưởng 2 ca sản xuất"
             />
+            </Reveal>
+            <Reveal delay={100}>
             <TestimonialCard
               quote="Sợ nhất là mất dữ liệu sổ tay. Giờ mọi đơn, công nợ, vỏ bao nằm trên cloud — điện thoại hỏng cũng không mất gì."
               role="Xưởng gia đình 3 người vận hành"
             />
+            </Reveal>
           </div>
         </div>
       </section>
