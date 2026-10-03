@@ -3,9 +3,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-provider';
+import { useTheme } from '@/lib/theme';
 import { IceIcon } from '@/components/landing/icons';
 import {
+  Moon,
   Snowflake,
+  Sun,
   Package,
   TrendingDown,
   Wallet,
@@ -126,6 +129,7 @@ function FaqItem({ question, children }: { question: string; children: React.Rea
 
 export default function LandingPage() {
   const { user } = useAuth();
+  const { resolved, toggle: toggleTheme } = useTheme();
   const dashboardUrl = user
     ? DASHBOARD_URLS[user.role ?? ''] ?? '/dashboard'
     : null;
@@ -141,6 +145,14 @@ export default function LandingPage() {
           <span className="font-black tracking-tight text-primary-dark">IceFlow</span>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={toggleTheme}
+            className="flex h-8 w-8 items-center justify-center rounded border border-outline-variant bg-card text-on-surface-variant transition-all hover:bg-container-low hover:text-primary-accent"
+            title={resolved === 'dark' ? 'Chế độ sáng' : 'Chế độ tối'}
+            aria-label={resolved === 'dark' ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'}
+          >
+            {resolved === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
           <a
             href="#pricing"
             className="hidden rounded px-3 py-1.5 text-xs font-bold text-on-surface-variant transition-colors hover:bg-container-low hover:text-primary-accent sm:block"
@@ -451,7 +463,7 @@ export default function LandingPage() {
           <h2 className="mt-3 text-2xl font-black tracking-tight text-white sm:text-3xl">
             Bắt Đầu Quản Lý Xưởng Đá Ngay Hôm Nay
           </h2>
-          <p className="mx-auto mt-3 max-w-lg text-sm text-[#b6c5e0]">
+          <p className="mx-auto mt-3 max-w-lg text-sm text-[#b6cß5e0]">
             Đăng ký trong 1 phút, dùng thử 14 ngày miễn phí toàn bộ tính năng — không cần thẻ tín dụng.
           </p>
           <Link
@@ -460,7 +472,7 @@ export default function LandingPage() {
           >
             DÙNG THỬ MIỄN PHÍ 14 NGÀY
           </Link>
-        </div>
+        </div>. 
       </section>
 
       {/* Footer */}
