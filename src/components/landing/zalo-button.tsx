@@ -4,7 +4,7 @@
  * Replace ZALO_URL with the xưởng's real Zalo OA link (https://zalo.me/xxxx
  * or an OA page URL) before going live.
  */
-const ZALO_URL = 'https://zalo.me/0901234567';
+export const ZALO_URL = 'https://zalo.me/0901234567';
 
 export function ZaloFloatingButton() {
   return (

@@ -7,6 +7,7 @@ import { useTheme } from '@/lib/theme';
 import { IceIcon } from '@/components/landing/icons';
 import { Reveal } from '@/components/landing/reveal';
 import { ZaloFloatingButton } from '@/components/landing/zalo-button';
+import { SupportChat } from '@/components/landing/support-chat';
 import {
   Moon,
   Snowflake,
@@ -620,7 +621,7 @@ export default function LandingPage() {
           <h2 className="mt-3 text-2xl font-black tracking-tight text-white sm:text-3xl">
             Bắt Đầu Quản Lý Xưởng Đá Ngay Hôm Nay
           </h2>
-          <p className="mx-auto mt-3 max-w-lg text-sm text-[#b6cß5e0]">
+          <p className="mx-auto mt-3 max-w-lg text-sm text-[#b6c5e0]">
             Đăng ký trong 1 phút, dùng thử 14 ngày miễn phí toàn bộ tính năng — không cần thẻ tín dụng.
           </p>
           <Link
@@ -629,7 +630,7 @@ export default function LandingPage() {
           >
             DÙNG THỬ MIỄN PHÍ 14 NGÀY
           </Link>
-        </div>. 
+        </div>
       </section>
 
       {/* Footer */}
@@ -649,7 +650,8 @@ export default function LandingPage() {
         <p className="mt-3 text-[10px] text-faint">© 2026 IceFlow SaaS · Dành cho xưởng sản xuất đá Việt Nam</p>
       </footer>
 
-      {/* Floating Zalo chat — landing page only */}
+      {/* Floating support chat + Zalo — landing page only */}
+      <SupportChat />
       <ZaloFloatingButton />
     </div>
   );
