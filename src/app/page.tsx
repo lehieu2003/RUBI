@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth-provider';
 import { useTheme } from '@/lib/theme';
 import { IceIcon } from '@/components/landing/icons';
 import { Reveal } from '@/components/landing/reveal';
+import { ZaloFloatingButton } from '@/components/landing/zalo-button';
 import {
   Moon,
   Snowflake,
@@ -647,6 +648,9 @@ export default function LandingPage() {
         </div>
         <p className="mt-3 text-[10px] text-faint">© 2026 IceFlow SaaS · Dành cho xưởng sản xuất đá Việt Nam</p>
       </footer>
+
+      {/* Floating Zalo chat — landing page only */}
+      <ZaloFloatingButton />
     </div>
   );
 }
