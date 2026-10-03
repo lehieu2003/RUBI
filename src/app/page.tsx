@@ -91,15 +91,124 @@ function FeatureCard({
   );
 }
 
-function TestimonialCard({ quote, role }: { quote: string; role: string }) {
+
+/** Mini replica of the real dashboard — built with markup so it stays crisp
+ *  and matches the app's dark palette. Placeholder numbers mirror seed data. */
+function DashboardMockup() {
+  const stats = [
+    { label: 'Doanh số hôm nay', value: '1.354.000đ', tone: 'text-[#8ab4ff]' },
+    { label: 'Tổng đơn hàng', value: '7', tone: 'text-white' },
+    { label: 'Tồn kho lạnh', value: '1.617 bao', tone: 'text-white' },
+  ];
+  const rows = [
+    { code: 'KH-004', name: 'Vựa Hải Sản Năm Căn', items: 'Đá Bi 5kg × 4', total: '48.000đ', status: 'Chờ giao', statusClass: 'bg-[#9bbdff]/20 text-[#9bbdff]' },
+    { code: 'KH-001', name: 'Quán Nhậu Gió Biển', items: 'Đá Bi 20kg × 5', total: '274.000đ', status: 'Đang giao', statusClass: 'bg-[#ffdcc2]/20 text-[#ffa878]' },
+    { code: 'KH-002', name: 'Đại Lý Minh Tâm', items: 'Đá Bi 10kg × 10', total: '260.000đ', status: 'Hoàn thành', statusClass: 'bg-[#a0f399]/20 text-[#7fd98a]' },
+  ];
+  return (
+    <div className="overflow-hidden rounded-t-xl border border-white/10 bg-[#0d1420] text-left shadow-2xl">
+      {/* browser chrome */}
+      <div className="flex items-center gap-1.5 border-b border-white/10 bg-white/5 px-4 py-2.5">
+        <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+        <span className="ml-3 rounded bg-white/5 px-2 py-0.5 text-[10px] text-[#7f95bb]">iceflow.vn/dashboard</span>
+      </div>
+      <div className="flex">
+        {/* mini sidebar */}
+        <div className="hidden w-28 shrink-0 flex-col gap-1 border-r border-white/10 p-3 sm:flex">
+          {['Tổng quan', 'Đơn hàng', 'Khách hàng', 'Đối soát', 'Kho lạnh'].map((item, i) => (
+            <span
+              key={item}
+              className={`rounded px-2 py-1.5 text-[10px] font-bold ${i === 0 ? 'bg-[#004a99] text-white' : 'text-[#7f95bb]'}`}
+            >
+              {item}
+            </span>
+          ))}
+        </div>
+        {/* content */}
+        <div className="min-w-0 flex-1 p-4">
+          <div className="grid grid-cols-3 gap-2">
+            {stats.map((stat) => (
+              <div key={stat.label} className="rounded border border-white/10 bg-white/5 p-2.5">
+                <p className="truncate text-[9px] font-bold uppercase tracking-wider text-[#7f95bb]">{stat.label}</p>
+                <p className={`font-data mt-0.5 truncate text-sm font-bold sm:text-base ${stat.tone}`}>{stat.value}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-2.5 overflow-hidden rounded border border-white/10">
+            {rows.map((row) => (
+              <div key={row.code} className="flex items-center justify-between gap-2 border-b border-white/5 px-3 py-2 last:border-b-0">
+                <div className="min-w-0">
+                  <p className="truncate text-[10px] font-bold text-white sm:text-xs">{row.name}</p>
+                  <p className="text-[9px] text-[#7f95bb]">{row.items}</p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="font-data text-xs font-bold text-white">{row.total}</span>
+                  <span className={`rounded px-1.5 py-0.5 text-[9px] font-bold ${row.statusClass}`}>{row.status}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Mini replica of the driver delivery card on a phone frame. */
+function PhoneMockup() {
+  return (
+    <div className="w-40 overflow-hidden rounded-[1.75rem] border-4 border-[#1c2735] bg-[#0d1420] shadow-2xl sm:w-48">
+      <div className="bg-[#00346f] px-3 py-2.5">
+        <p className="text-[10px] font-bold text-white">IceFlow Tài Xế</p>
+        <p className="text-[8px] text-[#9bbdff]">Xe / Tài xế: Phạm Văn Tài</p>
+      </div>
+      <div className="grid grid-cols-2 gap-1.5 p-2">
+        <div className="rounded bg-[#9bbdff]/10 p-1.5 text-center">
+          <p className="text-[8px] font-bold text-[#9bbdff]">Chờ giao</p>
+          <p className="font-data text-sm font-bold text-white">1</p>
+        </div>
+        <div className="rounded bg-[#a0f399]/10 p-1.5 text-center">
+          <p className="text-[8px] font-bold text-[#7fd98a]">Đã giao</p>
+          <p className="font-data text-sm font-bold text-white">3</p>
+        </div>
+      </div>
+      <div className="mx-2 rounded border border-[#7fd98a]/40 bg-[#7fd98a]/10 p-2">
+        <span className="rounded bg-[#1b6d24] px-1.5 py-0.5 text-[8px] font-bold text-white">Điểm giao #1</span>
+        <p className="mt-1 text-[10px] font-bold text-white">Quán Nhậu Gió Biển</p>
+        <p className="text-[8px] text-[#b6c5e0]">Đá Bi 20kg × 5, Đá Viên 10kg × 3</p>
+        <p className="font-data mt-1.5 text-[11px] font-bold text-white">274.000đ</p>
+        <div className="mt-1.5 rounded bg-[#a0f399]/40 py-1.5 text-center text-[8px] font-bold text-[#1b6d24]">
+          ✓ ĐÃ HOÀN TẤT GIAO HÀNG
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TestimonialCard({ quote, name, factory, detail }: { quote: string; name: string; factory: string; detail: string }) {
   return (
     <figure className="flex flex-col rounded border border-outline-variant bg-card p-5 shadow-sm">
-      <Quote className="h-5 w-5 text-primary-accent/40" />
-      <blockquote className="mt-2 flex-1 text-xs leading-relaxed text-on-surface">
-        “{quote}”
-      </blockquote>
-      <figcaption className="mt-3 border-t border-outline-soft pt-2.5 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
-        {role}
+      <div className="flex items-center justify-between">
+        <div className="flex gap-0.5 text-[#f59e0b]">
+          {[...Array(5)].map((_, i) => (
+            <svg key={i} viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.958a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.367 2.446a1 1 0 00-.364 1.118l1.287 3.957c.3.922-.755 1.688-1.539 1.118l-3.366-2.445a1 1 0 00-1.176 0l-3.367 2.445c-.783.57-1.838-.196-1.538-1.118l1.286-3.957a1 1 0 00-.363-1.118L2.062 9.385c-.783-.57-.38-1.81.588-1.81h4.163a1 1 0 00.95-.69l1.286-3.958z" />
+            </svg>
+          ))}
+        </div>
+        <Quote className="h-4 w-4 text-primary-accent/40" />
+      </div>
+      <blockquote className="mt-2.5 flex-1 text-xs leading-relaxed text-on-surface">“{quote}”</blockquote>
+      <figcaption className="mt-3 flex items-center gap-2.5 border-t border-outline-soft pt-3">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-container-high text-xs font-bold text-primary-accent">
+          {name.charAt(0)}
+        </div>
+        <div>
+          <p className="text-xs font-bold text-on-surface">{name}</p>
+          <p className="text-[10px] text-faint">{factory} · {detail}</p>
+        </div>
       </figcaption>
     </figure>
   );
@@ -240,6 +349,20 @@ export default function LandingPage() {
             <HeroStat value="30s" label="Lên một đơn" />
             <HeroStat value="0đ" label="Thất thoát vỏ bao" />
             <HeroStat value="100%" label="Tiếng Việt" />
+          </div>
+
+          {/* product mockup: dashboard + driver phone */}
+          <div className="relative mx-auto mt-12 max-w-3xl">
+            <div className="pointer-events-none absolute -inset-4 rounded-3xl bg-[#004a99]/20 blur-2xl" />
+            <div className="relative">
+              <DashboardMockup />
+              <div className="absolute -bottom-6 -right-2 sm:-right-8 sm:top-1/2 sm:-translate-y-1/3">
+                <PhoneMockup />
+              </div>
+            </div>
+            <p className="mt-8 text-center text-[10px] font-bold uppercase tracking-wider text-[#7f95bb] sm:mt-10">
+              Bảng điều khiển cho văn phòng · App riêng cho tài xế trên điện thoại
+            </p>
           </div>
         </div>
       </section>
@@ -428,19 +551,25 @@ export default function LandingPage() {
             <Reveal>
             <TestimonialCard
               quote="Trước mỗi cuối tháng mất 2 ngày ngồi cộng lại vỏ bao từng đại lý. Giờ nhìn dashboard là biết ngay ai nợ bao, ai trả đủ."
-              role="Chủ xưởng đá ~60 đơn/ngày"
+              name="Anh Hòa"
+              factory="Xưởng Đá Hoa Phát, Thủ Đức"
+              detail="~60 đơn/ngày"
             />
             </Reveal>
             <Reveal delay={50}>
             <TestimonialCard
               quote="Nhân viên nghe điện thoại vừa gõ đơn xong, tài xế lên xe là thấy đơn ngay trên điện thoại. Không còn gọi lại hỏi đơn nào cho nhà nào."
-              role="Xưởng 2 ca sản xuất"
+              name="Anh Tuấn"
+              factory="Xưởng Đá 2 Ca, Dĩ An"
+              detail="3 tài xế · ~80 đơn/ngày"
             />
             </Reveal>
             <Reveal delay={100}>
             <TestimonialCard
               quote="Sợ nhất là mất dữ liệu sổ tay. Giờ mọi đơn, công nợ, vỏ bao nằm trên cloud — điện thoại hỏng cũng không mất gì."
-              role="Xưởng gia đình 3 người vận hành"
+              name="Chị Lan"
+              factory="Xưởng Đá Gia Đình, Bình Dương"
+              detail="~40 đơn/ngày"
             />
             </Reveal>
           </div>
