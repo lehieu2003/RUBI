@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     });
     return apiSuccess(customers);
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[GET /api/customers]', error);
     return apiError('Failed to fetch customers', 500);
   }
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     return apiSuccess(customer);
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[POST /api/customers]', error);
     return apiError('Failed to create customer', 500);
   }

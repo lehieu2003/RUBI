@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     return apiSuccess({ users });
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[GET /api/staff]', error);
     return apiError('Failed to fetch staff', 500);
   }
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
 
     return apiSuccess({ user });
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[POST /api/staff]', error);
     return apiError('Failed to create staff', 500);
   }

@@ -18,7 +18,7 @@ export async function PATCH(req: NextRequest) {
 
     return apiSuccess({ success: true });
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('Onboarding complete error:', error);
     return apiError('Lỗi server', 500);
   }

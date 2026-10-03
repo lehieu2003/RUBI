@@ -33,7 +33,7 @@ export async function GET() {
 
     return apiSuccess({ subscription, driverCount, factoryName: factory?.name ?? null });
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[GET /api/billing/subscription]', error);
     return apiError('Failed to fetch subscription', 500);
   }

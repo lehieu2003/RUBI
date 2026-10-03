@@ -46,7 +46,7 @@ export async function PATCH(
 
     return apiSuccess(asset);
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[PATCH /api/assets/[id]]', error);
     return apiError('Failed to update asset', 500);
   }
@@ -76,7 +76,7 @@ export async function DELETE(
 
     return apiSuccess({ success: true });
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[DELETE /api/assets/[id]]', error);
     return apiError('Failed to delete asset', 500);
   }

@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
           subscription: updatedSubscription,
         });
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('Cancel subscription error:', error);
     return apiError('Internal server error', 500);
   }

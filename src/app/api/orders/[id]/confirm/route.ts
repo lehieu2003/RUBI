@@ -69,7 +69,7 @@ export async function PATCH(
           deliveryGps: updated.deliveryGps,
         });
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     // Handle Prisma not found error specifically
     if (error instanceof Error && error.name === 'NotFoundError') {
       return apiError('Order not found', 404);

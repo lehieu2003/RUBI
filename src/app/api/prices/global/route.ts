@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     return apiSuccess({ success: true });
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('Error setting global price:', error);
     return apiError('Internal server error', 500);
   }

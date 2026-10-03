@@ -40,7 +40,7 @@ export async function POST(
       driverName: user.name,
     });
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[POST /api/staff/[id]/rotate-link]', error);
     return apiError('Failed to rotate link', 500);
   }

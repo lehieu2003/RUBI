@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     return apiSuccess({ success: true });
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('Error setting customer price override:', error);
     return apiError('Internal server error', 500);
   }
@@ -99,7 +99,7 @@ export async function DELETE(request: NextRequest) {
 
     return apiSuccess({ success: true });
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('Error removing customer price override:', error);
     return apiError('Internal server error', 500);
   }

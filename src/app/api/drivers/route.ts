@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
 
     return apiSuccess(drivers);
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[GET /api/drivers]', error);
     return apiError('Failed to fetch drivers', 500);
   }
@@ -62,7 +62,7 @@ export async function POST() {
     await requireActiveSubscription();
     return apiError('Tạo tài xế trong phần Nhân sự bằng role Tài xế', 405);
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[POST /api/drivers]', error);
     return apiError('Failed to create driver', 500);
   }

@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
 
     return apiSuccess(serialized);
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[GET /api/orders]', error);
     return apiError('Failed to fetch orders', 500);
   }

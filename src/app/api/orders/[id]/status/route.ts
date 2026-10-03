@@ -63,7 +63,7 @@ export async function PATCH(
 
     return apiSuccess(order);
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[PATCH /api/orders/[id]/status]', error);
     return apiError('Update failed', 500);
   }

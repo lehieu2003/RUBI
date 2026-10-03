@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
       })),
     })));
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[GET /api/schedule/assignments]', error);
     return apiError('Schedule fetch failed', 500);
   }
@@ -189,7 +189,7 @@ async function handleSaveAssignment(request: NextRequest) {
       },
     });
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[SAVE /api/schedule/assignments]', error);
     return apiError('Schedule update failed', 500);
   }

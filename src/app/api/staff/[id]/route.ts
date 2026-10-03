@@ -119,7 +119,7 @@ export async function PATCH(
 
     return apiSuccess({ user });
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[PATCH /api/staff/[id]]', error);
     return apiError('Failed to update staff', 500);
   }
@@ -158,7 +158,7 @@ export async function DELETE(
 
     return apiSuccess({ success: true });
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[DELETE /api/staff/[id]]', error);
     return apiError('Failed to delete staff', 500);
   }

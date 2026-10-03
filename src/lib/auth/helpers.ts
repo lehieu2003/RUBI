@@ -4,9 +4,10 @@ import { getSession } from '@/lib/auth';
 import { prisma, prismaAuth } from '@/lib/db';
 import { isSubscriptionActive } from '@/lib/subscription-status';
 
-// NOTE: These helper functions throw NextResponse objects directly as exceptions.
-// This is a non-standard pattern but widely used in this codebase. Callers must
-// handle these via instanceof Response checks or let Next.js handle them directly.
+// NOTE: These helper functions throw NextResponse objects as exceptions.
+// Route handlers convert them into real responses with
+// `if (error instanceof Response) return error;` in their catch block —
+// Next.js route handlers do NOT serve a thrown Response by themselves.
 // This pattern avoids the need for custom error classes while providing typed responses.
 
 export async function requireSession() {

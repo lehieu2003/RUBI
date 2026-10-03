@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
 
     return apiSuccess({ imported, skipped, errors });
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[POST /api/customers/import]', error);
     return apiError('Internal server error', 500);
   }

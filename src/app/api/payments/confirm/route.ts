@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
 
     return apiSuccess({ success: true, subscription: updatedSubscription });
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[POST /api/payments/confirm]', error);
     return apiError('Internal server error', 500);
   }

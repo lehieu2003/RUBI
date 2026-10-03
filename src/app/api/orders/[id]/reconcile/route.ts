@@ -107,7 +107,7 @@ export async function PATCH(
           status: 'COMPLETED',
         });
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[PATCH /api/orders/[id]/reconcile]', error);
     return apiError('Reconciliation failed', 500);
   }

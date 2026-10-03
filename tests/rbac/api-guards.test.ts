@@ -101,3 +101,14 @@ describe('bulk-assign status gate', () => {
     assert.deepEqual(statuses.sort(), ['PENDING', 'SHIPPING']);
   });
 });
+
+describe('guard rejections are served, not thrown', () => {
+  it('no API route re-throws a Response (Next.js turns it into a 500)', () => {
+    const { execSync } = require('child_process');
+    const hits = execSync(
+      "grep -rn 'instanceof Response) throw error' src/app/api --include='*.ts' || true",
+      { encoding: 'utf8' }
+    ).trim();
+    assert.equal(hits, '', 'use `return error` in route catch: ' + hits);
+  });
+});

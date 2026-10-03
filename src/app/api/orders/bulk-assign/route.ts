@@ -75,7 +75,7 @@ export async function PATCH(request: NextRequest) {
           driver: { id: driver.id, name: driver.name },
         });
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[PATCH /api/orders/bulk-assign]', error);
     return apiError('Bulk assign failed', 500);
   }

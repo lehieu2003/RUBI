@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     return apiSuccess(deposits);
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[GET /api/deposits/shells]', error);
     return apiError('Failed to fetch deposit data', 500);
   }
@@ -99,7 +99,7 @@ export async function PATCH(request: NextRequest) {
           shellsIn: shellsIn ?? 0,
         });
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[PATCH /api/deposits/shells]', error);
     return apiError('Failed to update deposit', 500);
   }

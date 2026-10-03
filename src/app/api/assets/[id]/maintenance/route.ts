@@ -31,7 +31,7 @@ export async function GET(
 
     return apiSuccess(records);
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[GET /api/assets/[id]/maintenance]', error);
     return apiError('Failed to fetch maintenance records', 500);
   }
@@ -86,7 +86,7 @@ export async function POST(
 
     return apiSuccess(record, 201);
   } catch (error) {
-    if (error instanceof Response) throw error;
+    if (error instanceof Response) return error;
     console.error('[POST /api/assets/[id]/maintenance]', error);
     return apiError('Failed to create maintenance record', 500);
   }
