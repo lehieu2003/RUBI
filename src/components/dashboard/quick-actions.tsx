@@ -2,12 +2,21 @@
 
 import Link from 'next/link';
 import { MapPin, DollarSign, Package, Snowflake, FileSpreadsheet, AlertCircle, ArrowRight } from 'lucide-react';
+import { AlertTriangle, CalendarClock } from 'lucide-react';
 import { useAuth } from '@/lib/auth-provider';
 import type { TenantRole } from '@/lib/rbac/permissions';
+
+interface DueAsset {
+  assetName: string;
+  assetCode: string;
+  type: string;
+  dueAt: string;
+}
 
 interface QuickActionsProps {
   pendingOrdersCount?: number;
   totalBagsOut?: number;
+  dueAssets?: DueAsset[];
 }
 
 // Keep in sync with src/lib/rbac/permissions.ts route table.
@@ -19,7 +28,7 @@ const ACTION_ROLES: Record<string, TenantRole[]> = {
   '/reports/debt': ['ADMIN', 'ACCOUNTANT'],
 };
 
-export function QuickActions({ pendingOrdersCount = 0, totalBagsOut = 0 }: QuickActionsProps) {
+export function QuickActions({ pendingOrdersCount = 0, totalBagsOut = 0, dueAssets = [] }: QuickActionsProps) {
   const { user } = useAuth();
   const role = (user?.role as TenantRole | undefined) ?? null;
   const can = (href: string) =>
@@ -107,6 +116,48 @@ export function QuickActions({ pendingOrdersCount = 0, totalBagsOut = 0 }: Quick
         </Link>
         )}
       </div>
+
+      {/* Asset maintenance due soon (ops roles only — the parent is role-filtered) */}
+      {can('/assets') && dueAssets.length > 0 && (
+        <div className="rounded border border-tertiary-fixed/60 bg-tertiary-fixed/30 p-5 shadow-sm">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-tertiary-container mb-3 flex items-center gap-1.5">
+            <CalendarClock className="h-4 w-4" />
+            Tài sản sắp đến hạn
+          </h4>
+          <div className="space-y-2">
+            {dueAssets.map((item, index) => {
+              const days = Math.ceil((new Date(item.dueAt).getTime() - Date.now()) / 86400000);
+              const urgent = days <= 7;
+              return (
+                <div
+                  key={index}
+                  className={`flex items-center justify-between gap-2 p-2.5 rounded border ${
+                    urgent ? 'border-error/30 bg-error-container/60' : 'border-outline-soft bg-surface'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    {urgent ? (
+                      <AlertTriangle className="h-4 w-4 shrink-0 text-error" />
+                    ) : (
+                      <CalendarClock className="h-4 w-4 shrink-0 text-tertiary-container" />
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-on-surface truncate">{item.assetName}</p>
+                      <p className="text-[10px] text-on-surface-variant">
+                        {item.type === 'ROUTINE' ? 'Bảo dưỡng' : item.type === 'INSPECTION' ? 'Đăng kiểm' : item.type === 'INSURANCE' ? 'Bảo hiểm' : 'Sửa chữa'}
+                        {item.assetCode ? ` · ${item.assetCode}` : ''}
+                      </p>
+                    </div>
+                  </div>
+                  <span className={`shrink-0 text-xs font-bold font-data ${urgent ? 'text-error' : 'text-tertiary-container'}`}>
+                    {days <= 0 ? 'Hết hạn' : `${days} ngày`}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Realtime Operational Status / Alerts */}
       <div className="rounded border border-outline-variant bg-card p-5 shadow-sm">

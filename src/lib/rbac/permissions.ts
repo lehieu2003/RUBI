@@ -19,6 +19,7 @@ export const tenantRoutePermissions: AppRoutePermission[] = [
   { href: '/settle', label: 'Doi soat', roles: opsRoles, match: 'prefix' },
   { href: '/inventory', label: 'Kho lanh', roles: opsRoles, match: 'prefix' },
   { href: '/vehicles', label: 'Doi xe', roles: opsRoles, match: 'prefix' },
+  { href: '/assets', label: 'Tai san', roles: opsRoles, match: 'prefix' },
   { href: '/schedule', label: 'Lich trinh', roles: opsRoles, match: 'prefix' },
   { href: '/reports/debt', label: 'Bao cao no', roles: opsRoles, match: 'prefix' },
   { href: '/deposits/shells', label: 'Vo bao', roles: opsRoles, match: 'prefix' },

@@ -25,6 +25,13 @@ type DashboardOrder = Omit<Order, 'total'> & {
   orderItems: { id?: string; product: { name: string; sizeKg: number }; quantity: number; unitPrice?: number | string; lineTotal?: number | string }[];
 };
 
+interface DueAsset {
+  assetName: string;
+  assetCode: string;
+  type: string;
+  dueAt: string;
+}
+
 interface DashboardClientProps {
   customers: Customer[];
   products: Product[];
@@ -34,6 +41,7 @@ interface DashboardClientProps {
   yesterdayRevenue?: number;
   currentUser: { id: string; role: string | undefined; factoryId: string | null } | null;
   showOnboardingPrompt?: boolean;
+  dueAssets: DueAsset[];
 }
 
 interface SubscriptionData {
@@ -50,6 +58,7 @@ export function DashboardClient({
   yesterdayRevenue = 0,
   currentUser,
   showOnboardingPrompt = false,
+  dueAssets = [],
 }: DashboardClientProps) {
   const [orders] = useState(initialOrders);
   const [subscriptionData, setSubscriptionData] = useState<SubscriptionData>({ subscription: null, driverCount: 0 });
@@ -240,6 +249,7 @@ export function DashboardClient({
           {/* Quick Actions Hub - 40% */}
           <div className="lg:col-span-2">
             <QuickActions
+              dueAssets={dueAssets}
               pendingOrdersCount={pendingCount}
               totalBagsOut={totalBagsOut}
             />

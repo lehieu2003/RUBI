@@ -42,6 +42,11 @@ export const API_ENDPOINTS = {
   INVENTORY: {
     BASE: '/api/inventory',
   },
+  ASSETS: {
+    BASE: '/api/assets',
+    DETAIL: (id: string) => `/api/assets/${id}`,
+    MAINTENANCE: (id: string) => `/api/assets/${id}/maintenance`,
+  },
   PRICES: {
     GLOBAL: '/api/prices/global',
     CUSTOMER_OVERRIDE: '/api/prices/customer/override',

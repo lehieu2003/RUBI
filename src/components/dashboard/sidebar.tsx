@@ -19,6 +19,7 @@ import {
   Package,
   Calendar,
   Sun,
+  Wrench,
   X,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-provider';
@@ -38,6 +39,7 @@ const menuMetadata = {
   '/deposits/shells': { icon: Package, label: 'Vỏ bao' },
   '/inventory': { icon: Snowflake, label: 'Kho lạnh' },
   '/vehicles': { icon: Truck, label: 'Đội xe' },
+  '/assets': { icon: Wrench, label: 'Tài sản' },
   '/schedule': { icon: Calendar, label: 'Lịch trình' },
   '/dashboard/map': { icon: Truck, label: 'Bản đồ' },
   '/settings': { icon: Settings, label: 'Cài đặt' },

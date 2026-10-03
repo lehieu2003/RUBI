@@ -95,6 +95,7 @@ export default async function DashboardPage() {
     inventoryStats,
     totalBagsOut,
     yesterdayRevenue,
+    dueAssets,
   ] = await Promise.all([
     getCustomers(session.factoryId),
     getProducts(session.factoryId),
@@ -102,6 +103,16 @@ export default async function DashboardPage() {
     getInventoryStats(session.factoryId),
     getShellDepositStats(session.factoryId),
     getYesterdayRevenue(session.factoryId),
+    // Assets with a maintenance/inspection/insurance due date in the next 30 days
+    prisma.maintenanceRecord.findMany({
+      where: {
+        factoryId: session.factoryId,
+        dueAt: { not: null, lte: new Date(Date.now() + 30 * 86400000) },
+      },
+      orderBy: { dueAt: 'asc' },
+      take: 5,
+      include: { asset: { select: { name: true, code: true } } },
+    }),
   ]);
 
   let showOnboardingPrompt = false;
@@ -128,6 +139,12 @@ export default async function DashboardPage() {
       yesterdayRevenue={yesterdayRevenue}
       currentUser={session ? { id: session.userId, role: session.role, factoryId: session.factoryId } : null}
       showOnboardingPrompt={showOnboardingPrompt}
+      dueAssets={dueAssets.map((r) => ({
+        assetName: r.asset.name,
+        assetCode: r.asset.code,
+        type: r.type as string,
+        dueAt: (r.dueAt as Date).toISOString(),
+      }))}
     />
   );
 }
