@@ -138,12 +138,12 @@
 
 ### Task 5: Cron vận hành
 
-- [ ] **5.1 Cron email cảnh báo hết hạn** (hiện email chỉ gửi khi user login — thiếu tự động): thêm endpoint nội bộ `GET /api/cron/subscription-warnings` (protected bằng header secret) + crontab VPS `0 8 * * * curl -s -H "Authorization: Bearer <cron-secret>" https://yourdomain.com/api/cron/subscription-warnings`. Gửi email cho factory sắp hết hạn (3 ngày/1 ngày) — dùng sẵn `sendTrialWarningEmail` trong `src/lib/email/service.ts`. **(Đây là item code duy nhất trong plan.)**
+- [x] **5.1 Cron email cảnh báo hết hạn** — ĐÃ CÓ SẴN trong code: `GET /api/cron/subscription-warnings` (fail-closed khi thiếu CRON_SECRET ở prod, gửi đúng hạn 3 ngày/1 ngày). Việc còn lại trên VPS: thêm `CRON_SECRET=<openssl rand -base64 24>` vào `.env.production` + crontab `0 8 * * * curl -s -H "Authorization: Bearer <secret>" https://yourdomain.com/api/cron/subscription-warnings`
 - [ ] **5.2 Backup Supabase**: bật scheduled backups trên Supabase dashboard (Pro) hoặc crontab `pg_dump` nightly vào `/var/backups`. Verify: file backup tồn tại + restore thử 1 lần vào DB dev.
 
 ### Task 6: Monitor + Runbook
 
-- [ ] **6.1 Health endpoint**: thêm `GET /api/health` trả `{ ok: true, db: 'up' }` (1 query nhẹ) — dùng cho UptimeRobot/cron healthcheck.
+- [x] **6.1 Health endpoint** — ĐÃ CÓ SẴN: `GET /api/health` trả `{ ok: true, db: 'up' }` — trỏ UptimeRobot vào URL này.
 - [ ] **6.2 UptimeRobot** free monitor `https://yourdomain.com/api/health` mỗi 5 phút → alert email.
 - [ ] **6.3 Runbook dán vào repo** (`docs/PRODUCTION.md`): các lệnh thường dùng — logs (`docker compose logs -f app`), restart, rollback:
   ```bash
