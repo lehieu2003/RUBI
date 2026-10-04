@@ -6,6 +6,11 @@
 function escapeCell(cell: string | number | boolean | null | undefined): string {
   if (cell === null || cell === undefined) return '""';
   const str = String(cell).replace(/"/g, '""');
+  // Excel evaluates quoted CSV cells starting with = + @ (and - not followed
+  // by a digit) as formulas — prefix with ' so they open as plain text.
+  if (/^[=+@]|^-(?!\d)/.test(str)) {
+    return `"'${str}"`;
+  }
   return `"${str}"`;
 }
 

@@ -16,6 +16,7 @@ import './components/sidebar.test';
 import './components/support-chat.test';
 import './lib/subscription.test';
 import './lib/unwrap-envelope.test';
+import './lib/export-csv.test';
 import './api/debt-report.test';
 import './api/order-status.test';
 import './api/settle-page.test';
