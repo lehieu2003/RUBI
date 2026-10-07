@@ -1,17 +1,43 @@
-// Smoke test: the placeholder home renders the app name "IceFlow".
+// Smoke test: app boots and lands on the login placeholder when there is
+// no stored session.
 //
-// Replaced by real screens starting in Task 10 (AuthCubit + go_router).
+// Replaced gradually by real screens from Task 11 (LoginScreen) onward.
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:iceflow_mobile/app.dart';
+import 'package:iceflow_mobile/core/network/auth_events.dart';
+import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/core/storage/auth_storage.dart';
+import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
+import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository.dart';
+import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:mocktail/mocktail.dart';
 
-import 'package:iceflow_mobile/main.dart';
+class _MockAuthRepository extends Mock implements AuthRepository {}
+
+class _MockAuthStorage extends Mock implements AuthStorage {}
 
 void main() {
-  testWidgets('placeholder home renders IceFlow', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('boot không có phiên → màn đăng nhập placeholder', (
+    tester,
+  ) async {
+    final repo = _MockAuthRepository();
+    when(() => repo.restoreSession())
+        .thenAnswer((_) async => const Ok<User?>(null));
 
-    // The placeholder home shows the app name in the AppBar.
-    expect(find.text('IceFlow'), findsOneWidget);
+    final authEvents = AuthEvents();
+    addTearDown(authEvents.dispose);
+
+    final cubit = AuthCubit(
+      repo: repo,
+      storage: _MockAuthStorage(),
+      authEvents: authEvents,
+    );
+    addTearDown(cubit.close);
+
+    await tester.pumpWidget(IceFlowApp(authCubit: cubit));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Đăng nhập'), findsOneWidget);
   });
 }
