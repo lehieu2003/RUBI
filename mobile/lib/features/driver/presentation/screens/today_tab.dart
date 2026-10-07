@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:iceflow_mobile/core/error/failure_messages.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/features/driver/presentation/cubit/today_orders_cubit.dart';
 import 'package:iceflow_mobile/features/driver/presentation/widgets/confirm_sheet.dart';
 import 'package:iceflow_mobile/features/driver/presentation/widgets/delivery_card.dart';
+import 'package:iceflow_mobile/features/driver/presentation/widgets/error_views.dart';
 import 'package:iceflow_mobile/injector.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -32,7 +32,7 @@ class TodayTab extends StatelessWidget {
             }
             // Tải lỗi mà không có đơn cũ để giữ → màn lỗi + Thử lại.
             if (state.orders.isEmpty && state.status == TodayStatus.error) {
-              return _ErrorView(
+              return ErrorView(
                 message: state.errorMessage,
                 onRetry: cubit.load,
               );
@@ -43,7 +43,7 @@ class TodayTab extends StatelessWidget {
                 // Lỗi tạm thời (refresh/confirm) nhưng danh sách còn → banner
                 // trên đầu danh sách, đơn cũ vẫn hiển thị.
                 if (state.errorMessage != null)
-                  _ErrorBanner(
+                  ErrorBanner(
                     message: state.errorMessage!,
                     onRetry: cubit.refresh,
                   ),
@@ -139,87 +139,4 @@ void _showLaunchError(BuildContext context) {
   ScaffoldMessenger.of(context).showSnackBar(
     const SnackBar(content: Text(AppStrings.launchFailed)),
   );
-}
-
-/// Màn lỗi khi tải lần đầu không có đơn cũ: icon + message + Thử lại.
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({required this.message, required this.onRetry});
-
-  final String? message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.cloud_off_outlined,
-              size: 48,
-              color: colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              // Cubit luôn bắn message khi load lỗi — đây chỉ là phòng hờ.
-              message ?? FailureMessages.unexpected,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: onRetry,
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(120, 48),
-              ),
-              child: const Text(AppStrings.retryButton),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Banner lỗi trên đầu danh sách (MaterialBanner-lite): nền errorContainer
-/// + message + nút thử lại.
-class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Material(
-      color: colorScheme.errorContainer,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 4, 4, 4),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                message,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onErrorContainer,
-                ),
-              ),
-            ),
-            IconButton(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              color: colorScheme.onErrorContainer,
-              tooltip: AppStrings.retryButton,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

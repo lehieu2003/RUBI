@@ -49,8 +49,8 @@ abstract final class AppStrings {
   /// Phòng hờ: confirm thất bại nhưng cubit không bắn message.
   static const confirmGenericError = 'Không xác nhận được. Vui lòng thử lại.';
 
-  // ---- Driver: tab lịch sử (placeholder — đầy đủ ở Task 15) ----
-  static const historyComingSoon = 'Đang cập nhật';
+  // ---- Driver: tab lịch sử (HistoryTab) ----
+  static const historyNoOrders = 'Không có đơn trong ngày này';
 
   // ---- Driver: tab cài đặt ----
   static const logoutButton = 'Đăng xuất';
