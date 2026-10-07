@@ -1,12 +1,12 @@
-# Spec: IceFlow Driver — App Flutter Phase 1 (2026-10-07)
+# Spec: IceFlow Mobile — App Flutter cho mọi role, Phase 1 = Tài xế (2026-10-07)
 
-**Mục tiêu:** Thêm **version mobile Flutter** cho IceFlow, song song (không thay thế) web Next.js hiện có. Phase 1 = **app cho tài xế**: đăng nhập, xem đơn giao hôm nay, xác nhận giao kèm GPS, xem lịch sử. Web giữ nguyên 100% — mobile là một client mới cùng gọi chung backend.
+**Mục tiêu:** Xây **app mobile Flutter của IceFlow** — một app duy nhất phục vụ mọi role (tài xế, staff, kế toán, chủ xưởng), song song với web Next.js hiện có (không thay thế). **Phase 1 lộ diện phần tài xế trước**: đăng nhập, xem đơn giao hôm nay, xác nhận giao kèm GPS, xem lịch sử. Phase 2+ bổ sung tính năng cho các role khác vào **cùng app này** (cùng APK, không làm app riêng). Web giữ nguyên 100% — mobile là một client mới cùng gọi chung backend.
 
 **Đã chốt với user (2026-10-07):**
 
 | Quyết định | Lựa chọn |
 |---|---|
-| Phạm vi tổng | Phase-by-phase, bắt đầu Driver app; Phase 2+ (staff order entry, accountant) có chu trình brainstorm→spec→plan riêng |
+| Phạm vi tổng | **Một app mobile duy nhất cho mọi role**; triển khai phase-by-phase — Phase 1 = tài xế trước; Phase 2+ (staff order entry, accountant, owner reports) thêm dần vào cùng app |
 | Nền tảng Phase 1 | **Android only**, phát hành **APK trực tiếp** (qua Zalo), không qua Play Store |
 | Đăng nhập driver | **Email/mật khẩu** (không dùng share-token) — tạo nền auth Bearer JWT tái dùng Phase 2+ |
 | Offline | **Online-only** Phase 1; mất mạng → thông báo rõ + retry. Offline cache/queue là phase sau nếu thực tế đòi hỏi |
@@ -29,7 +29,7 @@
 
 - **Một nguồn sự thật:** toàn bộ business logic (tenant guard Prisma `$extends`, RBAC `requireRole`, subscription gate, đối soát → nợ + kho) nằm ở server Next.js. Flutter chỉ là client mới.
 - Mobile gọi các API route hiện có; thay đổi backend **100% additive** (mục 3). Luồng cookie của web không đổi hành vi.
-- Response envelope `{ data }` / error shapes không nhất quán giữa các endpoint: **mobile normalize ở data layer**, không sửa backend vì chuyện cosmetic.
+- **Một app, điều hướng theo role:** sau login, shell quyết định destination theo role session (Phase 1: DRIVER → 3 tab tài xế). Phase 2+ thêm destination cho STAFF/ACCOUNTANT/ADMIN vào cùng shell — không phải viết lại khung app. Response envelope `{ data }` / error shapes không nhất quán giữa các endpoint: **mobile normalize ở data layer**, không sửa backend vì chuyện cosmetic.
 
 ## 2. Kiến trúc Flutter (Clean Architecture, feature-first)
 
@@ -64,7 +64,7 @@ mobile/lib/
 
 **Packages Phase 1** (tối thiểu): `flutter_bloc`, `get_it`, `equatable`, `dio`, `flutter_secure_storage`, `geolocator`, `url_launcher`, `go_router`, `intl`; dev: `bloc_test`, `mocktail`, `flutter_launcher_icons`.
 
-**Điều hướng:** `go_router` StatefulShellRoute, bottom nav 3 tab: Hôm nay / Lịch sử / Cài đặt. Chưa đăng nhập → LoginScreen; token hết hạn không cứu được → về LoginScreen.
+**Điều hướng:** `go_router` StatefulShellRoute, bottom nav 3 tab: Hôm nay / Lịch sử / Cài đặt. Chưa đăng nhập → LoginScreen; token hết hạn không cứu được → về LoginScreen. Shell là **role-aware**: Phase 1 chỉ có destination DRIVER; Phase 2+ thêm destination theo role mà không đổi khung navigation/auth.
 
 ## 3. Thay đổi backend (100% additive, web không đổi hành vi)
 
@@ -81,7 +81,7 @@ mobile/lib/
 
 ## 4. Màn hình & luồng UX (UI 100% tiếng Việt, light theme, chữ to nút to)
 
-App name: **IceFlow Driver**. Driver minimal tech — ít bước nhất có thể.
+App name: **IceFlow** (một app cho mọi role — Phase 1 chỉ lộ diện tính năng tài xế). Driver minimal tech — ít bước nhất có thể.
 
 | Màn | Nội dung |
 |---|---|
@@ -121,7 +121,7 @@ Cổng ra mỗi milestone: `flutter analyze` + `flutter test` xanh và `npm test
 
 ## 8. Build & release
 
-- App id `com.iceflow.driver`, version `1.0.0+1` (pubspec). Icon + splash cơ bản ngay Phase 1 (`flutter_launcher_icons`).
+- App id `com.iceflow.app`, version `1.0.0+1` (pubspec). Icon + splash cơ bản ngay Phase 1 (`flutter_launcher_icons`).
 - **Signing:** release keystore nằm **ngoài repo**, đường dẫn + password qua `key.properties` (gitignored). Không phát hành bằng debug keystore.
 - Lệnh: `flutter build apk --release --dart-define=API_BASE_URL=<prod>` → 1 fat APK (~4 tài xế, per-ABI để sau).
 - Phân phối: gửi APK qua Zalo; tài xế bật "cài từ nguồn không xác định".
@@ -146,6 +146,6 @@ Sau M5 → cập nhật AGENTS.md/STACK.md (constraint mobile), tổng kết Pha
 3. Endpoint confirm (`PATCH /api/orders/[id]/confirm`) nhận role DRIVER qua Bearer session đúng như qua share-token không.
 4. Định dạng GPS gửi lên (khớp `{ gps: {lat,lng} }` của web).
 
-## 11. Ngoài phạm vi Phase 1 (ghi rõ để không lan man)
+## 11. Ngoài phạm vi Phase 1 (vào CÙNG app ở các phase sau — không phải app riêng)
 
-iOS, Play Store, offline cache/sync, push notification (FCM), dark mode, map trong app, refresh-token rotation, staff order entry, accountant/settle, reports — các phase sau.
+iOS, Play Store, offline cache/sync, push notification (FCM), dark mode, map trong app, refresh-token rotation; tính năng theo role: staff order entry, accountant/settle, owner reports — mỗi phase có chu trình brainstorm→spec→plan riêng, tái dùng nền auth Bearer + shell role-aware của Phase 1.
