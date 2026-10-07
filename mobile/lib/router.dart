@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:iceflow_mobile/features/auth/presentation/screens/login_screen.dart';
 
 /// Quy tắc điều hướng theo [AuthState] — hàm thuần để unit test.
 ///
@@ -20,8 +22,7 @@ String? authRedirect(AuthState auth, String location) {
 
 /// Router chính của app, redirect theo state của [authCubit].
 ///
-/// `/login` là placeholder — Task 11 thay bằng LoginScreen; `/home` là
-/// placeholder — Task 14 thay bằng HomeShell.
+/// `/home` là placeholder — Task 14 thay bằng HomeShell.
 GoRouter createRouter(AuthCubit authCubit) {
   return GoRouter(
     initialLocation: '/login',
@@ -31,7 +32,10 @@ GoRouter createRouter(AuthCubit authCubit) {
     routes: [
       GoRoute(
         path: '/login',
-        builder: (context, state) => const LoginScreenPlaceholder(),
+        builder: (context, state) => BlocProvider<AuthCubit>.value(
+          value: authCubit,
+          child: const LoginScreen(),
+        ),
       ),
       GoRoute(
         path: '/home',
@@ -41,27 +45,13 @@ GoRouter createRouter(AuthCubit authCubit) {
   );
 }
 
-/// Màn đăng nhập tạm — Task 11 thay bằng LoginScreen thật.
-class LoginScreenPlaceholder extends StatelessWidget {
-  const LoginScreenPlaceholder({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('Đăng nhập')),
-    );
-  }
-}
-
 /// Shell chính tạm — Task 14 thay bằng HomeShell thật.
 class HomeShellPlaceholder extends StatelessWidget {
   const HomeShellPlaceholder({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('Home')),
-    );
+    return const Scaffold(body: Center(child: Text('Home')));
   }
 }
 

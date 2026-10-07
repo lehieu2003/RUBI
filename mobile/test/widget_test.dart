@@ -1,7 +1,5 @@
-// Smoke test: app boots and lands on the login placeholder when there is
+// Smoke test: app boots and lands on the login screen when there is
 // no stored session.
-//
-// Replaced gradually by real screens from Task 11 (LoginScreen) onward.
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iceflow_mobile/app.dart';
@@ -18,9 +16,7 @@ class _MockAuthRepository extends Mock implements AuthRepository {}
 class _MockAuthStorage extends Mock implements AuthStorage {}
 
 void main() {
-  testWidgets('boot không có phiên → màn đăng nhập placeholder', (
-    tester,
-  ) async {
+  testWidgets('boot không có phiên → màn đăng nhập', (tester) async {
     final repo = _MockAuthRepository();
     when(() => repo.restoreSession())
         .thenAnswer((_) async => const Ok<User?>(null));
