@@ -132,5 +132,45 @@ void main() {
       expect(button.onPressed, isNull);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
+
+    testWidgets('fail lặp lại cùng message (bloc dedupe) → nút vẫn dùng được '
+        'sau lần 2', (tester) async {
+      // `AuthState` là Equatable nên bloc BỎ QUA emit trùng state — lần fail
+      // thứ hai với cùng message không phát gì ra stream. Spinner phải tắt
+      // theo Future của lần gọi login, không theo việc có state mới hay không.
+      const message = 'Email hoặc mật khẩu không đúng';
+      final states = StreamController<AuthState>.broadcast();
+      addTearDown(states.close);
+      whenListen(cubit, states.stream, initialState: const Unauthenticated());
+
+      var calls = 0;
+      when(() => cubit.login(any(), any())).thenAnswer((_) async {
+        calls++;
+        if (calls == 1) {
+          states.add(const Unauthenticated(message: message));
+        }
+        // Lần 2: hoàn thành nhưng KHÔNG phát state (mô phỏng dedupe).
+      });
+      await pumpLoginScreen(tester);
+
+      await fillValidCredentials(tester);
+
+      // Lần 1: fail → hiện message, nút bật lại.
+      await tester.tap(find.byKey(const Key('login_submit')));
+      await tester.pump();
+      expect(find.text(message), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+
+      // Lần 2: fail cùng message, không có state mới → nút vẫn bật lại.
+      await tester.tap(find.byKey(const Key('login_submit')));
+      await tester.pump();
+      expect(find.text(message), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      final button = tester.widget<FilledButton>(
+        find.byKey(const Key('login_submit')),
+      );
+      expect(button.onPressed, isNotNull);
+      verify(() => cubit.login(any(), any())).called(2);
+    });
   });
 }
