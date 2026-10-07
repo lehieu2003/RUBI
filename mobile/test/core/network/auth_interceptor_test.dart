@@ -191,6 +191,83 @@ void main() {
       expect(logoutCount, 1);
     });
 
+    test('refresh OK nhưng retry lỗi kết nối → không clear, không emitLogout',
+        () async {
+      await storage.saveToken('expired-token');
+
+      mainAdapter.onGet('/api/deliveries', (server) {
+        server.reply(401, {'success': false, 'error': 'Token expired'});
+      });
+      refreshAdapter.onPost('/api/auth/refresh', (server) {
+        server.reply(200, {
+          'success': true,
+          'data': {'token': 'new-token'},
+        });
+      });
+      refreshAdapter.onGet('/api/deliveries', (server) {
+        server.throws(
+          0,
+          DioException(
+            requestOptions: RequestOptions(path: '/api/deliveries'),
+            type: DioExceptionType.connectionError,
+            error: 'connection refused',
+          ),
+        );
+      });
+
+      Object? caught;
+      try {
+        await dio.get<void>('/api/deliveries');
+      } catch (e) {
+        caught = e;
+      }
+
+      // The retry's own error surfaces — not a logout.
+      expect(caught, isA<DioException>());
+      expect(mapDioError(caught!), isA<NetworkFailure>());
+      expect(storage.clearCalls, 0);
+      expect(logoutCount, 0);
+      expect(await storage.readToken(), 'new-token');
+    });
+
+    test('hai 401 đồng thời → refresh chỉ gọi 1 lần, cả hai được retry',
+        () async {
+      await storage.saveToken('expired-token');
+      var refreshCalls = 0;
+
+      mainAdapter.onGet('/api/deliveries', (server) {
+        server.reply(401, {'success': false, 'error': 'Token expired'});
+      });
+      mainAdapter.onGet('/api/orders', (server) {
+        server.reply(401, {'success': false, 'error': 'Token expired'});
+      });
+      refreshAdapter.onPost('/api/auth/refresh', (server) {
+        server.replyCallback(200, (options) {
+          refreshCalls++;
+          return {
+            'success': true,
+            'data': {'token': 'new-token'},
+          };
+        });
+      });
+      refreshAdapter.onGet('/api/deliveries', (server) {
+        server.reply(200, {'success': true, 'data': {'deliveries': []}});
+      });
+      refreshAdapter.onGet('/api/orders', (server) {
+        server.reply(200, {'success': true, 'data': {'orders': []}});
+      });
+
+      final responses = await Future.wait([
+        dio.get<void>('/api/deliveries'),
+        dio.get<void>('/api/orders'),
+      ]);
+
+      expect(responses, hasLength(2));
+      expect(refreshCalls, 1); // single-flight: one shared refresh
+      expect(logoutCount, 0);
+      expect(await storage.readToken(), 'new-token');
+    });
+
     test('ConnectionError → mapDioError ra NetworkFailure', () async {
       mainAdapter.onGet('/api/deliveries', (server) {
         server.throws(
@@ -308,6 +385,22 @@ void main() {
       expect(
         mapDioError(err, serverMessage: 'override'),
         const AuthFailure('override', statusCode: 401),
+      );
+    });
+
+    test('401 có error trong body → AuthFailure giữ message từ body', () {
+      final err = DioException(
+        requestOptions: opts('/api/auth/login'),
+        type: DioExceptionType.badResponse,
+        response: Response<Map<String, dynamic>>(
+          requestOptions: opts('/api/auth/login'),
+          statusCode: 401,
+          data: {'success': false, 'error': 'Email hoặc mật khẩu không đúng'},
+        ),
+      );
+      expect(
+        mapDioError(err),
+        const AuthFailure('Email hoặc mật khẩu không đúng', statusCode: 401),
       );
     });
 

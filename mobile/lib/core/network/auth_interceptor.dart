@@ -42,6 +42,10 @@ class AuthInterceptor extends Interceptor {
   /// Overridable for tests.
   final Dio _refreshDio;
 
+  /// In-flight refresh shared by concurrent 401s (single-flight) so N
+  /// simultaneous expirations fire one `POST /api/auth/refresh`, not N.
+  Future<String>? _inFlightRefresh;
+
   @override
   void onRequest(
     RequestOptions options,
@@ -64,18 +68,32 @@ class AuthInterceptor extends Interceptor {
       return handler.next(err);
     }
 
-    // First 401 — refresh once, then retry the original request once.
+    // First 401 — refresh once (single-flight), then retry the original
+    // request once.
+    final String newToken;
     try {
-      final newToken = await _refreshToken();
-      await _authStorage.saveToken(newToken);
+      newToken = await _refreshToken();
+    } on Object {
+      // Refresh failed — the session is unrecoverable: log out.
+      await _forceLogout();
+      return handler.next(err);
+    }
+    await _authStorage.saveToken(newToken);
 
-      final options = err.requestOptions
-        ..extra[_retriedExtraKey] = true
-        ..headers['Authorization'] = 'Bearer $newToken';
+    final options = err.requestOptions
+      ..extra[_retriedExtraKey] = true
+      ..headers['Authorization'] = 'Bearer $newToken';
+
+    try {
       final retryResponse = await _refreshDio.fetch<dynamic>(options);
       return handler.resolve(retryResponse);
+    } on DioException catch (retryErr) {
+      // Retried once and still unauthorized — give up and log out. Any other
+      // retry failure (network, 5xx...) keeps the fresh, still-valid token.
+      if (retryErr.response?.statusCode == 401) await _forceLogout();
+      return handler.next(retryErr);
     } on Object {
-      await _forceLogout();
+      // Non-HTTP retry failure — no logout; surface the original 401.
       return handler.next(err);
     }
   }
@@ -86,7 +104,15 @@ class AuthInterceptor extends Interceptor {
     return !_excludedPaths.any((excluded) => path.contains(excluded));
   }
 
-  Future<String> _refreshToken() async {
+  /// Concurrent 401s await the same shared refresh future; it is cleared on
+  /// completion (success or failure) so the next expiry starts a fresh call.
+  Future<String> _refreshToken() {
+    return _inFlightRefresh ??= _doRefreshToken().whenComplete(() {
+      _inFlightRefresh = null;
+    });
+  }
+
+  Future<String> _doRefreshToken() async {
     final currentToken = await _authStorage.readToken();
     final response = await _refreshDio.post<Map<String, dynamic>>(
       _refreshPath,
@@ -133,7 +159,9 @@ Failure mapDioError(Object error, {String? serverMessage}) {
       final statusCode = error.response?.statusCode;
       if (statusCode == 401) {
         return AuthFailure(
-          serverMessage ?? FailureMessages.sessionExpired,
+          serverMessage ??
+              _serverErrorMessage(error.response) ??
+              FailureMessages.sessionExpired,
           statusCode: 401,
         );
       }
