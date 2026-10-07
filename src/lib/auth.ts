@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { setTenantContext } from '@/lib/tenant';
 import { prismaAuth } from '@/lib/db';
 
@@ -41,8 +41,19 @@ export async function verifyJWT(token: string): Promise<JWTPayload | null> {
 }
 
 export async function getSession(): Promise<JWTPayload | null> {
+  // Mobile clients (Flutter) send the JWT in an Authorization: Bearer header;
+  // the web app keeps using the httpOnly auth_token cookie. A Bearer token
+  // wins when present; without one, resolution falls back to the cookie.
+  let authHeader: string | null = null;
+  try {
+    authHeader = (await headers()).get('authorization');
+  } catch {
+    authHeader = null; // headers() unavailable outside request scope — cookie-only
+  }
+  const bearerToken =
+    authHeader && /^bearer /i.test(authHeader) ? authHeader.slice(7).trim() : null;
   const cookieStore = await cookies();
-  const token = cookieStore.get('auth_token')?.value;
+  const token = bearerToken || cookieStore.get('auth_token')?.value;
   if (!token) return null;
   const session = await verifyJWT(token);
   if (session) {

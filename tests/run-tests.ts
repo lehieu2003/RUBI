@@ -27,3 +27,4 @@ import './api/payment-webhook.test';
 import './auth/register-session.test';
 import './rbac/impersonate-role-bypass.test';
 import './pricing/scope.test';
+import './auth/bearer-session.test';
