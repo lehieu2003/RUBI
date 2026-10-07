@@ -9,22 +9,34 @@ import 'package:iceflow_mobile/core/storage/auth_storage.dart';
 import 'package:iceflow_mobile/features/auth/data/auth_repository_impl.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 
-/// In-memory [AuthStorage] fake with call counters.
+/// In-memory [AuthStorage] fake with call counters and fault switches.
 class _FakeAuthStorage implements AuthStorage {
   String? _token;
   int clearCalls = 0;
 
+  /// Simulate secure-storage platform failures.
+  bool failOnSave = false;
+  bool failOnRead = false;
+  bool failOnClear = false;
+
   @override
   Future<void> clear() async {
+    if (failOnClear) throw StateError('secure storage clear unavailable');
     clearCalls++;
     _token = null;
   }
 
   @override
-  Future<String?> readToken() async => _token;
+  Future<String?> readToken() async {
+    if (failOnRead) throw StateError('secure storage read unavailable');
+    return _token;
+  }
 
   @override
-  Future<void> saveToken(String token) async => _token = token;
+  Future<void> saveToken(String token) async {
+    if (failOnSave) throw StateError('secure storage save unavailable');
+    _token = token;
+  }
 }
 
 void main() {
@@ -186,6 +198,51 @@ void main() {
         expect((res as Err<User>).failure, isA<NetworkFailure>());
         expect(await storage.readToken(), isNull);
       });
+
+      test('200 nhưng field sai kiểu (id là số) → Err(UnexpectedFailure), không lưu token',
+          () async {
+        adapter.onPost(
+          '/api/auth/login',
+          (server) {
+            server.reply(200, {
+              'success': true,
+              'data': {
+                'user': {...userFixture, 'id': 123},
+                'token': 'jwt-123',
+              },
+            });
+          },
+          data: {'email': 'tai@iceflow.vn', 'password': 'secret'},
+        );
+
+        final res =
+            await repo.login(email: 'tai@iceflow.vn', password: 'secret');
+
+        // TypeError từ cast `as String?` phải bị repo giữ lại trong Result.
+        expect((res as Err<User>).failure, isA<UnexpectedFailure>());
+        expect(await storage.readToken(), isNull);
+      });
+
+      test('saveToken ném lỗi platform → Err(UnexpectedFailure), không phải exception',
+          () async {
+        storage.failOnSave = true;
+        adapter.onPost(
+          '/api/auth/login',
+          (server) {
+            server.reply(200, {
+              'success': true,
+              'data': {'user': userFixture, 'token': 'jwt-123'},
+            });
+          },
+          data: {'email': 'tai@iceflow.vn', 'password': 'secret'},
+        );
+
+        final res =
+            await repo.login(email: 'tai@iceflow.vn', password: 'secret');
+
+        expect(res.isOk, isFalse);
+        expect((res as Err<User>).failure, isA<UnexpectedFailure>());
+      });
     });
 
     group('restoreSession', () {
@@ -251,6 +308,31 @@ void main() {
         expect(storage.clearCalls, 0);
         expect(await storage.readToken(), 'jwt-123');
       });
+
+      test('readToken ném lỗi platform → Err(UnexpectedFailure), không phải exception',
+          () async {
+        storage.failOnRead = true;
+
+        final res = await repo.restoreSession();
+
+        expect((res as Err<User?>).failure, isA<UnexpectedFailure>());
+      });
+
+      test('me 401 + clear ném lỗi → vẫn Ok(null) im lặng (clear best-effort)',
+          () async {
+        await storage.saveToken('expired-token');
+        storage.failOnClear = true;
+        adapter.onGet('/api/auth/me', (server) {
+          server.reply(401, {'success': false, 'error': 'Token expired'});
+        });
+
+        final res = await repo.restoreSession();
+
+        // Contract 401: im lặng kể cả khi secure-storage lỗi — token còn
+        // sót lại sẽ bị xoá ở lần 401 kế tiếp.
+        expect(res, const Ok<User?>(null));
+        expect(await storage.readToken(), 'expired-token');
+      });
     });
 
     group('logout', () {
@@ -303,6 +385,21 @@ void main() {
         expect(res, const Ok<void>(null));
         expect(storage.clearCalls, 1);
         expect(await storage.readToken(), isNull);
+      });
+
+      test('clear ném lỗi platform → Err(UnexpectedFailure)', () async {
+        await storage.saveToken('jwt-123');
+        storage.failOnClear = true;
+        adapter.onPost('/api/auth/logout', (server) {
+          server.reply(200, {'success': true, 'data': null});
+        });
+
+        final res = await repo.logout();
+
+        // Lỗi storage cục bộ phải surface qua Result, không xuyên biên.
+        expect(res.isOk, isFalse);
+        expect((res as Err<void>).failure, isA<UnexpectedFailure>());
+        expect(await storage.readToken(), 'jwt-123');
       });
     });
   });

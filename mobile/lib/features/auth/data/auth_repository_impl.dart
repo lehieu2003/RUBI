@@ -51,17 +51,21 @@ class AuthRepositoryImpl implements AuthRepository {
     } on DioException catch (err) {
       // Message từ server (VD: "Email hoặc mật khẩu không đúng") giữ nguyên.
       return Err(mapDioError(err));
+    } catch (e) {
+      // Guarantee Result: TypeError parse (field sai kiểu), lỗi
+      // secure-storage... không được phép xuyên qua biên Result.
+      return Err(UnexpectedFailure('Unexpected login failure: $e'));
     }
   }
 
   @override
   Future<Result<User?>> restoreSession() async {
-    final token = await _storage.readToken();
-    if (token == null || token.isEmpty) {
-      return const Ok<User?>(null); // không gọi network
-    }
-
     try {
+      final token = await _storage.readToken();
+      if (token == null || token.isEmpty) {
+        return const Ok<User?>(null); // không gọi network
+      }
+
       final body = await _api.me();
       final data = _dataOf(body);
       if (data == null) {
@@ -81,11 +85,19 @@ class AuthRepositoryImpl implements AuthRepository {
     } on DioException catch (err) {
       if (err.response?.statusCode == 401) {
         // Token hết hạn: xoá token và IM LẶNG (không surface error) —
-        // caller chỉ thấy "chưa đăng nhập".
-        await _storage.clear();
+        // caller chỉ thấy "chưa đăng nhập". Clear là best-effort: phiên đã
+        // chết, nếu storage lỗi hiếm gặp thì token còn lại sẽ bị xoá ở lần
+        // restore/401 kế tiếp chứ không phá vỡ contract im lặng.
+        try {
+          await _storage.clear();
+        } on Object catch (_) {
+          // ignored — phiên 401 luôn im lặng.
+        }
         return const Ok<User?>(null);
       }
       return Err(mapDioError(err));
+    } catch (e) {
+      return Err(UnexpectedFailure('Unexpected restoreSession failure: $e'));
     }
   }
 
@@ -94,9 +106,14 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await _api.logout();
     } on Object catch (_) {
-      // Bỏ qua mọi kết quả (success/error/exception) — token local luôn xoá.
+      // Bỏ qua mọi kết quả server (success/error/exception).
     }
-    await _storage.clear();
+    try {
+      await _storage.clear();
+    } on Object catch (e) {
+      // Lỗi storage cục bộ: token chưa chắc đã bị xoá → phải surface.
+      return Err(UnexpectedFailure('Unexpected logout failure: $e'));
+    }
     return const Ok<void>(null);
   }
 

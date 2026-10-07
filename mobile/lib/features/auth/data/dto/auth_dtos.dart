@@ -1,8 +1,9 @@
 // DTOs cho các response của `/api/auth/*` (envelope `{ success, data|error }`).
 //
-// Chỉ parse dạng nullable, không validate — validation nằm ở `UserMapper`
-// và repository, nên payload dị dạng luôn thành `Err(UnexpectedFailure)`,
-// không bao giờ ném exception xuyên lớp.
+// Parse dạng nullable, không validate: field SAI KIỂU ném TypeError ngay tại
+// đây (cố tình để rẻ), và repository biến mọi exception — kể cả TypeError và
+// lỗi secure-storage — thành `Err(UnexpectedFailure)` nên callers chỉ bao
+// giờ thấy `Result`, không có exception nào xuyên lớp.
 
 /// Object `user` trong login/me response.
 class UserDto {

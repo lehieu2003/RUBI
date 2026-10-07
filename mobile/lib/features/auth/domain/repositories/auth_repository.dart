@@ -16,6 +16,7 @@ abstract class AuthRepository {
   /// surface error); lỗi khác → `Err`.
   Future<Result<User?>> restoreSession();
 
-  /// Đăng xuất. Luôn xoá token local bất kể kết quả của server.
+  /// Đăng xuất. Bỏ qua mọi kết quả server; token local bị xoá. Lỗi
+  /// secure-storage cục bộ (hiếm) là trường hợp duy nhất trả `Err`.
   Future<Result<void>> logout();
 }
