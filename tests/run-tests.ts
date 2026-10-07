@@ -22,6 +22,7 @@ import './api/order-status.test';
 import './api/settle-page.test';
 import './api/driver-token-route.test';
 import './api/driver-confirm.test';
+import './api/driver-confirm-jwt.test';
 import './rbac/impersonation-paths.test';
 import './api/payment-webhook.test';
 import './auth/register-session.test';
