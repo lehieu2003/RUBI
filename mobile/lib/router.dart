@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:iceflow_mobile/features/auth/presentation/screens/login_screen.dart';
+import 'package:iceflow_mobile/features/driver/presentation/screens/home_shell.dart';
 
 /// Quy tắc điều hướng theo [AuthState] — hàm thuần để unit test.
 ///
@@ -22,7 +23,8 @@ String? authRedirect(AuthState auth, String location) {
 
 /// Router chính của app, redirect theo state của [authCubit].
 ///
-/// `/home` là placeholder — Task 14 thay bằng HomeShell.
+/// `/home` là [HomeShell] — shell 3 tab của driver. [AuthCubit] được cấp
+/// xuống qua BlocProvider để SettingsTab (đăng xuất) dùng chung instance.
 GoRouter createRouter(AuthCubit authCubit) {
   return GoRouter(
     initialLocation: '/login',
@@ -39,20 +41,13 @@ GoRouter createRouter(AuthCubit authCubit) {
       ),
       GoRoute(
         path: '/home',
-        builder: (context, state) => const HomeShellPlaceholder(),
+        builder: (context, state) => BlocProvider<AuthCubit>.value(
+          value: authCubit,
+          child: const HomeShell(),
+        ),
       ),
     ],
   );
-}
-
-/// Shell chính tạm — Task 14 thay bằng HomeShell thật.
-class HomeShellPlaceholder extends StatelessWidget {
-  const HomeShellPlaceholder({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('Home')));
-  }
 }
 
 /// Cầu `AuthCubit.stream` → [Listenable] cho `refreshListenable` của
