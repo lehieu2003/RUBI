@@ -10,4 +10,8 @@ abstract final class AppStrings {
   static const loginButton = 'Đăng nhập';
   static const emailInvalid = 'Email không hợp lệ';
   static const passwordTooShort = 'Mật khẩu tối thiểu 6 ký tự';
+
+  // ---- Driver: lịch sử giao hàng ----
+  static const historyRangeLimit = 'Chỉ xem được trong 30 ngày gần nhất';
+  static const historyFutureDate = 'Không thể xem ngày trong tương lai';
 }
