@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-04-22)
 Phase: 10 (build-correctness) — COMPLETE
 Plan: 1 of 1
 Status: Milestone complete
-Last activity: 2026-10-10 - Completed quick task 261010-inv: inventory carry-over
+Last activity: 2026-10-10 - Completed quick task 261010-sch: stock count history
 
 Progress: [██████████] 100% execution complete
 
@@ -99,6 +99,7 @@ v3.0 decisions:
 | 261010-odf | Order drawer opens with the cursor in the customer search | 2026-10-10 | a4bac91 | [261010-odf-order-drawer-focus](./quick/261010-odf-order-drawer-focus/) |
 | 261010-prd | Product management: add, edit and discontinue products; order grid built from the catalogue | 2026-10-10 | feat/product-management | [261010-prd-product-management](./quick/261010-prd-product-management/) |
 | 261010-inv | Inventory as a running balance carried over day to day, plus stock count | 2026-10-10 | fix/inventory-carry-over | [261010-inv-inventory-carry-over](./quick/261010-inv-inventory-carry-over/) |
+| 261010-sch | Stock count history: stock_counts table, list API and history on the cold-storage screen | 2026-10-10 | feat/stock-count-history | [261010-sch-stock-count-history](./quick/261010-sch-stock-count-history/) |
 
 ## Session Continuity
 
