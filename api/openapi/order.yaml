@@ -306,7 +306,7 @@ paths:
       description: |-
         Access: ADMIN, STAFF.
 
-        `cancellationReason` is required when the status is CANCELLED and is stored in `notes`. COMPLETED is only reached through reconciliation.
+        `cancellationReason` is required when the status is CANCELLED and is stored in `notes`. COMPLETED is only reached through reconciliation. A COMPLETED or CANCELLED order is final: 409 `ORDER_FINAL`.
       parameters:
         - name: id
           in: path
@@ -358,6 +358,8 @@ paths:
           $ref: ./components/responses/errors.yaml#/Forbidden
         "404":
           $ref: ./components/responses/errors.yaml#/NotFound
+        "409":
+          $ref: ./components/responses/errors.yaml#/Conflict
         "500":
           $ref: ./components/responses/errors.yaml#/ServerError
   /api/orders/bulk-assign:

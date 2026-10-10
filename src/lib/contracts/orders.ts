@@ -74,10 +74,10 @@ export const orderContracts: ApiContract[] = [
       cancellationReason: z.string().optional(),
     }),
     response: envelope(OrderRow),
-    errors: [400, 401, 403, 404, 500],
+    errors: [400, 401, 403, 404, 409, 500],
     notes:
       '`cancellationReason` is required when the status is CANCELLED and is stored in `notes`. ' +
-      'COMPLETED is only reached through reconciliation.',
+      'COMPLETED is only reached through reconciliation. A COMPLETED or CANCELLED order is final: 409 `ORDER_FINAL`.',
   },
   {
     id: 'bulkAssignOrders',
