@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
-import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
+import { requireRole } from '@/lib/auth/helpers';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 // PATCH /api/orders/[id]/status - Update order status (D-05)
@@ -22,7 +22,6 @@ export async function PATCH(
     const body = await request.json();
 
     const session = await requireRole(['ADMIN', 'ACCOUNTANT', 'STAFF']);
-    await requireActiveSubscription();
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }

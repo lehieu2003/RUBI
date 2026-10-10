@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:iceflow_mobile/core/error/failure.dart';
-import 'package:iceflow_mobile/core/location/location_service.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/driver/data/driver_repository_impl.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
@@ -295,7 +294,7 @@ void main() {
     });
 
     group('confirmDelivery', () {
-      test('gps null → PATCH body {"gps": null} → Ok(null)', () async {
+      test('PATCH body rỗng {} → Ok(null)', () async {
         Object? capturedBody;
         // data: bắt buộc khi route có body — matcher so sánh cả request body.
         adapter.onPatch(
@@ -313,48 +312,13 @@ void main() {
               };
             });
           },
-          data: {'gps': null},
+          data: <String, dynamic>{},
         );
 
         final res = await repo.confirmDelivery(orderId: 'order-1');
 
         expect(res, const Ok<void>(null));
-        expect(capturedBody, {'gps': null});
-      });
-
-      test('có GeoPoint → PATCH body {"gps":{"lat":10.7,"lng":106.6}} → Ok(null)',
-          () async {
-        Object? capturedBody;
-        adapter.onPatch(
-          '/api/orders/order-1/confirm',
-          (server) {
-            server.replyCallback(200, (options) {
-              capturedBody = decodedBody(options.data);
-              return {
-                'success': true,
-                'data': {
-                  'success': true,
-                  'orderId': 'order-1',
-                  'status': 'DELIVERED',
-                  'deliveryGps': {'lat': 10.7, 'lng': 106.6},
-                },
-              };
-            });
-          },
-          data: {
-            'gps': {'lat': 10.7, 'lng': 106.6},
-          },
-        );
-
-        final res = await repo.confirmDelivery(
-          orderId: 'order-1',
-          gps: const GeoPoint(lat: 10.7, lng: 106.6),
-        );
-
-        expect(res, const Ok<void>(null));
-        expect(capturedBody, {
-          'gps': {'lat': 10.7, 'lng': 106.6},
-        });
+        expect(capturedBody, <String, dynamic>{});
       });
 
       test('404 không tìm thấy đơn → Err(ServerFailure) message từ server', () async {
@@ -363,7 +327,7 @@ void main() {
           (server) {
             server.reply(404, {'success': false, 'error': 'Order not found'});
           },
-          data: {'gps': null},
+          data: <String, dynamic>{},
         );
 
         final res = await repo.confirmDelivery(orderId: 'order-404');
@@ -381,7 +345,7 @@ void main() {
           (server) {
             server.reply(403, {'success': false, 'error': 'Forbidden'});
           },
-          data: {'gps': null},
+          data: <String, dynamic>{},
         );
 
         final res = await repo.confirmDelivery(orderId: 'order-1');
@@ -402,7 +366,7 @@ void main() {
               ),
             );
           },
-          data: {'gps': null},
+          data: <String, dynamic>{},
         );
 
         final res = await repo.confirmDelivery(orderId: 'order-1');

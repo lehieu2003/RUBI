@@ -55,7 +55,6 @@ export async function GET(
       id: order.id,
       status: order.status,
       total: order.total.toNumber(),
-      deliveryGps: order.deliveryGps,
       customer: {
         id: order.customer.id,
         code: order.customer.code,

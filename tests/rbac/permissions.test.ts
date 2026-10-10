@@ -15,10 +15,7 @@ const tenantRoutes = [
   '/schedule',
   '/reports/debt',
   '/deposits/shells',
-  '/dashboard/map',
   '/settings',
-  '/settings/billing',
-  '/billing',
   '/config/prices',
 ];
 
@@ -28,7 +25,7 @@ function assertAllowed(role: TenantRole, paths: string[]) {
   }
 }
 
-function assertDenied(role: TenantRole | 'SUPER_ADMIN', paths: string[]) {
+function assertDenied(role: TenantRole, paths: string[]) {
   for (const path of paths) {
     assert.equal(canAccessPath(role, path), false, `${role} should not access ${path}`);
   }
@@ -56,10 +53,7 @@ describe('RBAC route permissions', () => {
       '/schedule',
       '/reports/debt',
       '/deposits/shells',
-      '/dashboard/map',
       '/settings',
-      '/settings/billing',
-      '/billing',
     ]);
     assertDenied('ACCOUNTANT', ['/config/prices']);
   });
@@ -67,10 +61,6 @@ describe('RBAC route permissions', () => {
   it('allows ADMIN every tenant route in the matrix', () => {
     assertAllowed('ADMIN', tenantRoutes.filter((path) => path !== '/driver'));
     assertDenied('ADMIN', ['/driver']);
-  });
-
-  it('denies SUPER_ADMIN direct tenant app route access', () => {
-    assertDenied('SUPER_ADMIN', tenantRoutes);
   });
 
   it('filters visible tenant routes by the same permission source', () => {

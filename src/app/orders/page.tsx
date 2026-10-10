@@ -16,7 +16,6 @@ import {
   TruckIcon,
   CheckSquare,
   Square,
-  MapPin,
 } from 'lucide-react';
 import { OrderEntryDrawer } from '@/components/order/order-entry-drawer';
 import { Drawer } from '@/components/ui/drawer';
@@ -522,14 +521,6 @@ export default function OrdersPage() {
             onChange={(e) => setFilterDate(e.target.value)}
             className='px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface'
           />
-
-          <a
-            href='/dashboard/map'
-            className='px-3.5 py-2 bg-container-high text-primary-deep hover:bg-container-highest font-bold text-xs rounded border border-outline-variant transition-colors flex items-center gap-1.5'
-          >
-            <MapPin className='h-4 w-4' />
-            Bản đồ
-          </a>
         </div>
 
         {/* Orders Table */}

@@ -1,7 +1,7 @@
 <!-- generated-by: gsd-doc-writer -->
 # Configuration
 
-This document describes all environment variables and configuration settings for IceFlow SaaS.
+This document describes all environment variables and configuration settings for IceFlow.
 
 ## Environment Variables
 

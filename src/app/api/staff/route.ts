@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma, prismaAuth } from '@/lib/db';
 import bcrypt from 'bcryptjs';
-import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
+import { requireRole } from '@/lib/auth/helpers';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 const STAFF_ROLES = ['ADMIN', 'ACCOUNTANT', 'STAFF', 'DRIVER'] as const;
@@ -50,7 +50,6 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
-    await requireActiveSubscription();
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }

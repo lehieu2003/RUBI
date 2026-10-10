@@ -1,5 +1,7 @@
 # IceFlow SaaS Update Notes
 
+> **Ghi chú (2026-10-10):** Tài liệu này là bản ghi lịch sử. Từ 2026-10-10 hệ thống chỉ phục vụ một nhà máy (Nhà máy đá tinh khiết Rubi); Super Admin, impersonation, đăng ký, gói cước/thanh toán, trang giới thiệu và bản đồ/GPS đã bị gỡ, nên các mục nói về chúng không còn áp dụng.
+
 Date: 2026-04-22
 
 ## Context

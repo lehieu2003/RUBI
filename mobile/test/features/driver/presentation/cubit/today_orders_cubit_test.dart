@@ -4,7 +4,6 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iceflow_mobile/core/error/failure.dart';
 import 'package:iceflow_mobile/core/error/failure_messages.dart';
-import 'package:iceflow_mobile/core/location/location_service.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
 import 'package:iceflow_mobile/features/driver/domain/usecases/confirm_delivery.dart';
@@ -16,13 +15,10 @@ class _MockGetOrdersForDate extends Mock implements GetOrdersForDateUseCase {}
 
 class _MockConfirmDelivery extends Mock implements ConfirmDeliveryUseCase {}
 
-class _MockLocationService extends Mock implements LocationService {}
-
 void main() {
   setUpAll(() {
     registerFallbackValue(DateTime(2026, 1, 1));
     registerFallbackValue('');
-    registerFallbackValue(const GeoPoint(lat: 0, lng: 0));
   });
 
   DeliveryOrder order(
@@ -60,18 +56,15 @@ void main() {
 
   late _MockGetOrdersForDate getOrders;
   late _MockConfirmDelivery confirmDelivery;
-  late _MockLocationService locationService;
 
   setUp(() {
     getOrders = _MockGetOrdersForDate();
     confirmDelivery = _MockConfirmDelivery();
-    locationService = _MockLocationService();
   });
 
   TodayOrdersCubit buildCubit() => TodayOrdersCubit(
         getOrders: getOrders,
         confirmDelivery: confirmDelivery,
-        locationService: locationService,
       );
 
   void stubGetOrders(Result<List<DeliveryOrder>> result) {
@@ -81,7 +74,6 @@ void main() {
   void stubConfirm(Result<void> result) {
     when(() => confirmDelivery(
           orderId: any(named: 'orderId'),
-          gps: any(named: 'gps'),
         )).thenAnswer((_) async => result);
   }
 
@@ -159,7 +151,7 @@ void main() {
     group('confirm', () {
       blocTest<TodayOrdersCubit, TodayOrdersState>(
         'Ok → order chuyển delivered + xuống CUỐI danh sách + clear '
-        'confirmingOrderId, kèm GPS đã lấy (invariant sắp xếp)',
+        'confirmingOrderId (invariant sắp xếp)',
         build: buildCubit,
         seed: () => TodayOrdersState(status: TodayStatus.loaded, orders: [
           order('o-b', OrderStatus.shipping, t9h),
@@ -167,8 +159,6 @@ void main() {
           order('o-delivered', OrderStatus.delivered, t8h),
         ]),
         setUp: () {
-          when(() => locationService.getCurrentPosition())
-              .thenAnswer((_) async => const GeoPoint(lat: 10.1, lng: 106.2));
           stubConfirm(const Ok<void>(null));
         },
         act: (cubit) => cubit.confirm('o-b'),
@@ -195,39 +185,7 @@ void main() {
           }, 'o-b đánh dấu delivered và xuống cuối danh sách'),
         ],
         verify: (_) {
-          verify(() => confirmDelivery(
-                orderId: 'o-b',
-                gps: const GeoPoint(lat: 10.1, lng: 106.2),
-              )).called(1);
-        },
-      );
-
-      blocTest<TodayOrdersCubit, TodayOrdersState>(
-        'không có vị trí (gps null) → vẫn confirm với gps null',
-        build: buildCubit,
-        seed: () => TodayOrdersState(status: TodayStatus.loaded, orders: [
-          order('o-a', OrderStatus.shipping, t8h),
-        ]),
-        setUp: () {
-          when(() => locationService.getCurrentPosition())
-              .thenAnswer((_) async => null);
-          stubConfirm(const Ok<void>(null));
-        },
-        act: (cubit) => cubit.confirm('o-a'),
-        expect: () => [
-          TodayOrdersState(
-            status: TodayStatus.loaded,
-            orders: [order('o-a', OrderStatus.shipping, t8h)],
-            confirmingOrderId: 'o-a',
-          ),
-          predicate<TodayOrdersState>((s) =>
-              s.status == TodayStatus.loaded &&
-              s.confirmingOrderId == null &&
-              s.orders.single.id == 'o-a' &&
-              s.orders.single.status == OrderStatus.delivered),
-        ],
-        verify: (_) {
-          verify(() => confirmDelivery(orderId: 'o-a', gps: null)).called(1);
+          verify(() => confirmDelivery(orderId: 'o-b')).called(1);
         },
       );
 
@@ -240,8 +198,6 @@ void main() {
           order('o-b', OrderStatus.shipping, t9h),
         ]),
         setUp: () {
-          when(() => locationService.getCurrentPosition())
-              .thenAnswer((_) async => const GeoPoint(lat: 10.1, lng: 106.2));
           stubConfirm(const Err<void>(ServerFailure('Xác nhận thất bại')));
         },
         act: (cubit) => cubit.confirm('o-a'),
@@ -273,12 +229,9 @@ void main() {
           order('o-b', OrderStatus.shipping, t9h),
         ]),
         setUp: () {
-          when(() => locationService.getCurrentPosition())
-              .thenAnswer((_) async => const GeoPoint(lat: 10.1, lng: 106.2));
           final pending = Completer<Result<void>>();
           when(() => confirmDelivery(
                 orderId: any(named: 'orderId'),
-                gps: any(named: 'gps'),
               )).thenAnswer((_) => pending.future);
           addTearDown(() => pending.complete(const Ok<void>(null)));
         },
@@ -300,11 +253,9 @@ void main() {
         verify: (_) {
           verify(() => confirmDelivery(
                 orderId: 'o-a',
-                gps: any(named: 'gps'),
               )).called(1);
           verifyNever(() => confirmDelivery(
                 orderId: 'o-b',
-                gps: any(named: 'gps'),
               ));
         },
       );

@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:iceflow_mobile/core/error/failure.dart';
-import 'package:iceflow_mobile/core/location/location_service.dart';
 import 'package:iceflow_mobile/core/network/auth_interceptor.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/driver/data/dto/driver_dtos.dart';
@@ -58,19 +57,13 @@ class DriverRepositoryImpl implements DriverRepository {
   }
 
   @override
-  Future<Result<void>> confirmDelivery({
-    required String orderId,
-    GeoPoint? gps,
-  }) async {
+  Future<Result<void>> confirmDelivery({required String orderId}) async {
     try {
-      // `gps: null` gửi tường minh (khác thiếu key) — đúng contract API.
       await _dio.patch<dynamic>(
         '/api/orders/$orderId/confirm',
-        data: {
-          'gps': gps == null ? null : {'lat': gps.lat, 'lng': gps.lng},
-        },
+        data: const <String, dynamic>{},
       );
-      // Payload 200 (orderId/status/deliveryGps) không cần gì thêm — còn lại
+      // Payload 200 (orderId/status) không cần gì thêm — còn lại
       // state phía server đã cập nhật.
       return const Ok<void>(null);
     } on DioException catch (err) {

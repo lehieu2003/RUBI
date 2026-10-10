@@ -13,18 +13,14 @@ model Factory {
   name      String
   phone     String?
   address   String?
-  isSystem  Boolean  @default(false) @map("is_system")
   onboardingCompleted Boolean  @default(false) @map("onboarding_completed")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   users         User[]
-  subscriptions Subscription[]
   customers     Customer[]
   drivers       Driver[]
   orders        Order[]
   products      Product[]
-  payments      Payment[]
-  impersonationLogs ImpersonationLog[]
   scheduleAssignments ScheduleAssignment[]
   assets             Asset[]
   maintenanceRecords MaintenanceRecord[]
@@ -46,8 +42,6 @@ model User {
   factory        Factory? @relation(fields: [factoryId], references: [id])
   isFactoryOwner Boolean  @default(false) @map("is_factory_owner")
   assignedOrders Order[]  @relation("OrderAssigner")
-  payments       Payment[]
-  impersonationLogs ImpersonationLog[]
   driverProfile  Driver?  @relation("DriverUser")
   scheduleAssignments ScheduleAssignment[]
 
@@ -165,10 +159,7 @@ model Order {
   updatedAt   DateTime    @updatedAt @map("updated_at")
   driverId    String?     @map("driver_id")
   assignerId  String?     @map("assigner_id")
-  deliveryLat Float?      @map("delivery_lat")
-  deliveryLng Float?      @map("delivery_lng")
   deliveredAt DateTime?   @map("delivered_at")
-  deliveryGps Json?       @map("delivery_gps")
   factoryId   String      @map("factory_id")
   factory     Factory     @relation(fields: [factoryId], references: [id])
   orderItems  OrderItem[]
@@ -222,22 +213,6 @@ model CustomerShellDeposit {
   @@map("customer_shell_deposits")
 }
 
-model Payment {
-  id          String   @id @default(cuid())
-  factoryId   String   @map("factory_id")
-  amount      Decimal  @db.Decimal(10, 2)
-  adminId     String   @map("admin_id")
-  confirmedAt DateTime @default(now()) @map("confirmed_at")
-  notes       String?
-  factory     Factory  @relation(fields: [factoryId], references: [id])
-  admin       User     @relation(fields: [adminId], references: [id])
-
-  @@index([factoryId])
-  @@index([adminId])
-  @@index([confirmedAt])
-  @@map("payments")
-}
-
 model Inventory {
   id             String   @id @default(cuid())
   productId      String   @map("product_id")
@@ -249,56 +224,11 @@ model Inventory {
   @@map("inventory")
 }
 
-model ImpersonationLog {
-  id           String   @id @default(cuid())
-  superAdminId String   @map("super_admin_id")
-  factoryId    String   @map("factory_id")
-  token        String   @unique @default(uuid())
-  startedAt    DateTime @default(now()) @map("started_at")
-  endedAt      DateTime? @map("ended_at")
-  superAdmin   User     @relation(fields: [superAdminId], references: [id])
-  factory      Factory  @relation(fields: [factoryId], references: [id])
-
-  @@index([superAdminId])
-  @@index([factoryId])
-  @@index([token])
-  @@map("impersonation_logs")
-}
-
 enum UserRole {
   ADMIN
   ACCOUNTANT
   STAFF
   DRIVER
-  SUPER_ADMIN
-}
-
-enum SubscriptionPlan {
-  TRIAL
-  PAID
-}
-
-enum SubscriptionStatus {
-  ACTIVE
-  CANCELLED
-  EXPIRED
-}
-
-model Subscription {
-  id             String             @id @default(cuid())
-  factoryId      String             @map("factory_id")
-  planType       SubscriptionPlan   @default(TRIAL) @map("plan_type")
-  startDate      DateTime           @default(now()) @map("start_date")
-  endDate        DateTime           @map("end_date")
-  status         SubscriptionStatus @default(ACTIVE)
-  driverCount    Int                @default(0) @map("driver_count")
-  pricePerDriver Decimal?           @map("price_per_driver") @db.Decimal(10, 2)
-  createdAt      DateTime           @default(now()) @map("created_at")
-  updatedAt      DateTime           @updatedAt @map("updated_at")
-  factory        Factory            @relation(fields: [factoryId], references: [id])
-
-  @@index([factoryId])
-  @@map("subscriptions")
 }
 
 enum OrderStatus {

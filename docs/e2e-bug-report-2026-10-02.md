@@ -1,5 +1,7 @@
 # IceFlow SaaS — Báo cáo E2E Testing & Bug List
 
+> **Ghi chú (2026-10-10):** Tài liệu này là bản ghi lịch sử. Từ 2026-10-10 hệ thống chỉ phục vụ một nhà máy (Nhà máy đá tinh khiết Rubi); Super Admin, impersonation, đăng ký, gói cước/thanh toán, trang giới thiệu và bản đồ/GPS đã bị gỡ, nên các mục nói về chúng không còn áp dụng.
+
 **Ngày test:** 2026-10-02 · **Môi trường:** local (Docker Postgres :5433 + Next dev :3001), data seed demo
 **Phương pháp:** Black-box GUI testing qua browser automation (IAB), cross-validate DOM + screenshot. Ảnh evidence: `gui-test-screenshots/`.
 

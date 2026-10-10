@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
-import 'package:iceflow_mobile/core/location/location.dart';
 import 'package:iceflow_mobile/core/network/network.dart';
 import 'package:iceflow_mobile/core/storage/auth_storage.dart';
 import 'package:iceflow_mobile/features/auth/data/auth_repository_impl.dart';
@@ -30,7 +29,6 @@ void configureDependencies() {
     ..registerLazySingleton<AuthRepository>(
       () => AuthRepositoryImpl(dio: sl(), authStorage: sl()),
     )
-    ..registerLazySingleton<LocationService>(LocationService.new)
     ..registerFactory<AuthCubit>(
       () => AuthCubit(repo: sl(), storage: sl(), authEvents: sl()),
     )
@@ -48,7 +46,6 @@ void configureDependencies() {
       () => TodayOrdersCubit(
         getOrders: sl(),
         confirmDelivery: sl(),
-        locationService: sl(),
       ),
     )
     ..registerFactory<HistoryCubit>(

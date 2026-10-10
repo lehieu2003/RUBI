@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { HourlyChart } from '@/components/dashboard/hourly-chart';
@@ -13,11 +12,8 @@ import {
   FileText,
   Snowflake,
   Package,
-  CreditCard,
 } from 'lucide-react';
-import type { Customer, Product, Order, Subscription } from '@prisma/client';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
-import { getDaysRemaining } from '@/lib/subscription-status';
+import type { Customer, Product, Order } from '@prisma/client';
 
 type DashboardOrder = Omit<Order, 'total'> & {
   total: string | number;
@@ -39,14 +35,8 @@ interface DashboardClientProps {
   inventoryStats?: { totalBags: number; details: string };
   totalBagsOut?: number;
   yesterdayRevenue?: number;
-  currentUser: { id: string; role: string | undefined; factoryId: string | null } | null;
   showOnboardingPrompt?: boolean;
   dueAssets: DueAsset[];
-}
-
-interface SubscriptionData {
-  subscription: Subscription | null;
-  driverCount: number;
 }
 
 export function DashboardClient({
@@ -56,27 +46,10 @@ export function DashboardClient({
   inventoryStats = { totalBags: 0, details: 'Chưa có mẻ nhập kho' },
   totalBagsOut = 0,
   yesterdayRevenue = 0,
-  currentUser,
   showOnboardingPrompt = false,
   dueAssets = [],
 }: DashboardClientProps) {
   const [orders] = useState(initialOrders);
-  const [subscriptionData, setSubscriptionData] = useState<SubscriptionData>({ subscription: null, driverCount: 0 });
-
-  // Fetch subscription data for ADMIN users
-  useEffect(() => {
-    if (currentUser?.role === 'ADMIN' && currentUser?.factoryId) {
-      fetch(API_ENDPOINTS.BILLING.SUBSCRIPTION)
-        .then(res => res.json())
-        .then(json => {
-          const data = json?.data !== undefined ? json.data : json;
-          if (data?.subscription) {
-            setSubscriptionData({ subscription: data.subscription, driverCount: data.driverCount ?? 0 });
-          }
-        })
-        .catch(console.error);
-    }
-  }, [currentUser]);
 
   // Calculate real stats
   const today = new Date().toDateString();
@@ -115,9 +88,6 @@ export function DashboardClient({
     revenueTrendValue = 'Tăng trưởng hôm nay';
   }
 
-  const daysRemaining = getDaysRemaining(subscriptionData.subscription);
-  const isExpiringSoon = daysRemaining !== null && daysRemaining <= 7;
-
   const stats = {
     revenue: {
       value: todayRevenue.toLocaleString('vi-VN') + 'đ',
@@ -153,22 +123,6 @@ export function DashboardClient({
               <h1 className="text-2xl font-bold tracking-tight text-on-surface">
                 Bảng Điều Khiển Vận Hành
               </h1>
-              {currentUser?.role === 'ADMIN' && subscriptionData.subscription && (
-                <Link
-                  href="/billing"
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold transition-colors ${
-                    isExpiringSoon
-                      ? 'bg-tertiary-fixed text-tertiary-container border border-tertiary-container/30 hover:bg-tertiary-fixed/80'
-                      : 'bg-container-high text-primary-accent border border-[#004a99]/20 hover:bg-container-high/80'
-                  }`}
-                >
-                  <CreditCard className="h-3.5 w-3.5" />
-                  <span>
-                    {subscriptionData.subscription.planType === 'PAID' ? 'Gói PRO' : 'Gói Dùng thử'}
-                    {daysRemaining !== null ? ` (Còn ${daysRemaining} ngày)` : ''}
-                  </span>
-                </Link>
-              )}
             </div>
             <p className="text-xs text-on-surface-variant mt-1">
               Theo dõi tình trạng đơn hàng, tồn kho và sản lượng tức thời

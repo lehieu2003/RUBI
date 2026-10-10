@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
-import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
+import { requireRole } from '@/lib/auth/helpers';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 // PATCH /api/orders/bulk-assign
@@ -15,7 +15,6 @@ const BulkAssignSchema = z.object({
 export async function PATCH(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
-    await requireActiveSubscription();
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }
@@ -36,22 +35,6 @@ export async function PATCH(request: NextRequest) {
 
     if (!driver) {
       return apiError('Driver not found', 404);
-    }
-
-    // SUB-01: Check subscription is active (read-only mode if not)
-    const subscription = await prisma.subscription.findFirst({
-      where: { factoryId: session.factoryId },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    // SUB-03: Check driverCount subscription limit
-    // 1 admin free, paid drivers counted against subscription.driverCount
-    const maxDrivers = 1 + (subscription?.driverCount ?? 0);
-    const currentDriverCount = await prisma.driver.count({
-      where: { factoryId: session.factoryId, isActive: true },
-    });
-    if (currentDriverCount >= maxDrivers) {
-      return apiError('Cần nâng cấp subscription để thêm driver', 403);
     }
 
     // Bulk update orders to assign to driver.

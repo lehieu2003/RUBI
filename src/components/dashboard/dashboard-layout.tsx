@@ -29,7 +29,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <span className="font-bold text-sm text-primary-dark">IceFlow SaaS</span>
+          <span className="font-bold text-sm text-primary-dark">Đá tinh khiết Rubi</span>
         </div>
       </div>
 

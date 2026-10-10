@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const inventoryPage = readFileSync(
@@ -28,15 +28,5 @@ describe('inventory add-stock source checks', () => {
   it('sends mode ADD so existing stock is increased, never silently replaced', () => {
     assert.match(inventoryPage, /mode:\s*'ADD'/);
     assert.doesNotMatch(inventoryPage, /type:\s*'IN'/);
-  });
-});
-
-describe('dead export component removed', () => {
-  it('CancelSubscriptionFlow (broken import, mounted nowhere) is deleted', () => {
-    assert.equal(
-      existsSync(join(process.cwd(), 'src/components/billing/CancelSubscriptionFlow.tsx')),
-      false,
-      'dead component importing non-existent exportCustomerDebtExcel must be removed'
-    );
   });
 });

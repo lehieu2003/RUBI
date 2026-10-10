@@ -10,10 +10,9 @@ describe('assets API source checks', () => {
   const detailRoute = read('src/app/api/assets/[id]/route.ts');
   const maintenanceRoute = read('src/app/api/assets/[id]/maintenance/route.ts');
 
-  it('list route: ops-only read, scoped create with subscription guard', () => {
+  it('list route: ops-only read, scoped create', () => {
     assert.match(listRoute, /export async function GET/);
     assert.match(listRoute, /requireRole\(\['ADMIN', 'ACCOUNTANT'\]\)/);
-    assert.match(listRoute, /requireActiveSubscription\(\)/);
     assert.match(listRoute, /factoryId: session\.factoryId/);
   });
 
@@ -28,9 +27,8 @@ describe('assets API source checks', () => {
     assert.match(detailRoute, /factoryId: session\.factoryId/);
   });
 
-  it('maintenance route: scoped history + create, subscription-gated write', () => {
+  it('maintenance route: scoped history + create', () => {
     assert.match(maintenanceRoute, /requireRole\(\['ADMIN', 'ACCOUNTANT'\]\)/);
-    assert.match(maintenanceRoute, /requireActiveSubscription\(\)/);
     assert.match(maintenanceRoute, /factoryId: session\.factoryId/);
     assert.match(maintenanceRoute, /performedAt/);
   });

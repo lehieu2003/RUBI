@@ -5,11 +5,10 @@ import { describe, it } from 'node:test';
 const source = readFileSync('src/app/api/schedule/assignments/route.ts', 'utf8');
 
 describe('schedule assignments API source checks', () => {
-  it('guards GET and PATCH for operational roles and active subscription writes', () => {
+  it('guards GET and PATCH for operational roles', () => {
     assert.match(source, /export async function GET/);
     assert.match(source, /export async function PATCH/);
     assert.match(source, /requireRole\(\['ADMIN', 'ACCOUNTANT'\]\)/);
-    assert.match(source, /await requireActiveSubscription\(\)/);
   });
 
   it('returns weekly staff and driver assignments scoped to factoryId', () => {
@@ -25,13 +24,7 @@ describe('schedule assignments API source checks', () => {
     assert.match(source, /userId_shiftDate/);
   });
 
-  it('enforces paidDriverLimit only for scheduled driver-role users', () => {
-    assert.match(source, /person\.role === 'DRIVER'/);
-    assert.match(source, /distinct: \['userId'\]/);
-    assert.match(source, /NOT: \{ userId \}/);
-    assert.match(source, /user: \{ role: 'DRIVER', isActive: true \}/);
-    assert.match(source, /scheduledDrivers\.length >= maxDrivers/);
-    assert.match(source, /DRIVER_LIMIT_EXCEEDED/);
-    assert.match(source, /Cần nâng cấp subscription để thêm driver/);
+  it('has no subscription-based driver limit', () => {
+    assert.doesNotMatch(source, /subscription|DRIVER_LIMIT_EXCEEDED/i);
   });
 });

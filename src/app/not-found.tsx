@@ -3,7 +3,7 @@ import { Snowflake, ArrowLeft, Home } from 'lucide-react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: '404 - Không tìm thấy trang | IceFlow SaaS',
+  title: '404 - Không tìm thấy trang | Nhà máy đá tinh khiết Rubi',
   description: 'Trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển.',
 };
 
@@ -40,7 +40,7 @@ export default function NotFound() {
       </div>
 
       <p className="mt-6 text-xs text-faint font-mono">
-        IceFlow SaaS — Hệ Thống Quản Lý Xưởng Đá
+        Nhà máy đá tinh khiết Rubi — Hệ Thống Quản Lý Xưởng Đá
       </p>
     </div>
   );

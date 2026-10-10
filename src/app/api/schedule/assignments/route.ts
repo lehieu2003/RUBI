@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
-import { requireActiveSubscription, requireRole } from '@/lib/auth/helpers';
+import { requireRole } from '@/lib/auth/helpers';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -97,7 +97,6 @@ export async function GET(request: NextRequest) {
 async function handleSaveAssignment(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
-    await requireActiveSubscription();
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }
@@ -145,28 +144,6 @@ async function handleSaveAssignment(request: NextRequest) {
         success: true,
         assignment: { userId, shift: null, removeShift: shiftToRemove, shiftDate: parsed.data.shiftDate },
       });
-    }
-
-    if (person.role === 'DRIVER') {
-      const subscription = await prisma.subscription.findFirst({
-        where: { factoryId: session.factoryId },
-        orderBy: { createdAt: 'desc' },
-      });
-      const maxDrivers = 1 + (subscription?.driverCount ?? 0);
-      const scheduledDrivers = await prisma.scheduleAssignment.findMany({
-        where: {
-          factoryId: session.factoryId,
-          shiftDate,
-          NOT: { userId },
-          user: { role: 'DRIVER', isActive: true },
-        },
-        select: { userId: true },
-        distinct: ['userId'],
-      });
-
-      if (scheduledDrivers.length >= maxDrivers) {
-        return apiError('Cần nâng cấp subscription để thêm driver', 403, 'DRIVER_LIMIT_EXCEEDED');
-      }
     }
 
     const assignment = await prisma.scheduleAssignment.upsert({

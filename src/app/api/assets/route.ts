@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
-import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
+import { requireRole } from '@/lib/auth/helpers';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 // GET /api/assets?type=MACHINE|VEHICLE — list assets with nearest due date
@@ -63,7 +63,6 @@ const CreateAssetSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
-    await requireActiveSubscription();
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }

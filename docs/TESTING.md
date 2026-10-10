@@ -12,8 +12,8 @@ npm test          # runs tests/run-tests.ts (import manifest of all suites)
 
 - `tests/run-tests.ts` — import manifest; every new test file must be added here.
 - Two kinds of suites:
-  1. **Source-pattern checks** (most files): `readFileSync` + `assert.match` against the source of routes/components — they pin security/behavior invariants (e.g. `requireRole` usage, factory scoping, webhook fail-closed guard).
-  2. **Unit tests** (pure functions): e.g. `unwrapEnvelope`, `buildCsv`, `isSubscriptionActive` — imported and executed directly.
+  1. **Source-pattern checks** (most files): `readFileSync` + `assert.match` against the source of routes/components — they pin security/behavior invariants (e.g. `requireRole` usage, factory scoping, no super admin/impersonation path).
+  2. **Unit tests** (pure functions): e.g. `unwrapEnvelope`, `buildCsv` — imported and executed directly.
 
 ## Conventions
 

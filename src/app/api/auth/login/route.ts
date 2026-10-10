@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       return apiError('Tài khoản đã bị vô hiệu hóa', 403);
     }
 
-    if (user.role !== 'SUPER_ADMIN' && !user.factoryId) {
+    if (!user.factoryId) {
       return apiError('Tài khoản chưa được gán nhà máy. Vui lòng liên hệ admin.', 403);
     }
 

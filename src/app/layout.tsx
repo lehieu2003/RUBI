@@ -7,10 +7,10 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: 'IceFlow SaaS — Quản Lý Xưởng Sản Xuất Đá Tốc Độ Cao',
-    template: '%s | IceFlow SaaS',
+    default: 'Nhà máy đá tinh khiết Rubi — Quản Lý Đơn Hàng & Kho',
+    template: '%s | Nhà máy đá tinh khiết Rubi',
   },
-  description: 'Hệ thống số hóa đơn hàng, in phiếu K80, kho lạnh, phân ca xe & đối soát công nợ chuyên dụng cho xưởng đá 50-100 đơn/ngày.',
+  description: 'Hệ thống quản lý đơn hàng, in phiếu K80, kho lạnh, phân ca xe & đối soát công nợ của Nhà máy đá tinh khiết Rubi.',
 };
 
 // Applies the stored theme before first paint to avoid a light-flash.
