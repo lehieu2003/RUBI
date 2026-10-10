@@ -46,6 +46,11 @@ export default function SettingsPage() {
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<UserRole>('STAFF');
 
+  // Factory profile form state
+  const [factoryForm, setFactoryForm] = useState({ name: '', phone: '', address: '' });
+  const [factoryLoaded, setFactoryLoaded] = useState(false);
+  const [savingFactory, setSavingFactory] = useState(false);
+
   const isAdmin = currentUser?.role === 'ADMIN';
 
   // Fetch current user and staff list
@@ -78,6 +83,52 @@ export default function SettingsPage() {
     }
     loadStaff();
   }, [isAdmin]);
+
+  // Fetch the factory profile when admin
+  useEffect(() => {
+    if (!isAdmin) return;
+    async function loadFactory() {
+      try {
+        const res = await fetch(API_ENDPOINTS.FACTORY.PROFILE);
+        const json = await res.json();
+        const factory = (json?.data !== undefined ? json.data : json)?.factory;
+        if (factory) {
+          setFactoryForm({ name: factory.name ?? '', phone: factory.phone ?? '', address: factory.address ?? '' });
+          setFactoryLoaded(true);
+        }
+      } catch (err) {
+        console.error('Failed to load factory profile', err);
+      }
+    }
+    loadFactory();
+  }, [isAdmin]);
+
+  const handleSaveFactory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingFactory(true);
+    try {
+      const res = await fetch(API_ENDPOINTS.FACTORY.PROFILE, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(factoryForm),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error ?? 'Không thể lưu hồ sơ nhà máy');
+      const factory = (json?.data !== undefined ? json.data : json)?.factory;
+      if (factory) {
+        setFactoryForm({ name: factory.name ?? '', phone: factory.phone ?? '', address: factory.address ?? '' });
+      }
+      toast({ type: 'success', title: 'Đã lưu hồ sơ nhà máy' });
+    } catch (err) {
+      toast({
+        type: 'error',
+        title: 'Lưu thất bại',
+        message: err instanceof Error ? err.message : 'Không thể lưu hồ sơ nhà máy',
+      });
+    } finally {
+      setSavingFactory(false);
+    }
+  };
 
   const handleSignOut = async () => {
     if (signingOut) return;
@@ -140,45 +191,47 @@ export default function SettingsPage() {
               <div className="rounded border border-outline-variant bg-card p-6 shadow-sm">
                 <h2 className="text-base font-bold text-on-surface mb-4 border-b border-outline-soft pb-2">Hồ sơ nhà máy</h2>
 
-                <div className="space-y-4 max-w-lg">
+                <form onSubmit={handleSaveFactory} className="space-y-4 max-w-lg">
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Tên nhà máy</label>
+                    <label htmlFor="factory-name" className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Tên nhà máy</label>
                     <input
+                      id="factory-name"
                       type="text"
-                      defaultValue="Nhà Máy Nước Đá Miền Đông"
+                      value={factoryForm.name}
+                      onChange={(e) => setFactoryForm((prev) => ({ ...prev, name: e.target.value }))}
                       className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Email liên hệ</label>
+                    <label htmlFor="factory-phone" className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Số điện thoại</label>
                     <input
-                      type="email"
-                      defaultValue="admin@miendong.vn"
-                      className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Số điện thoại tổng đài</label>
-                    <input
+                      id="factory-phone"
                       type="tel"
-                      defaultValue="0901234567"
+                      value={factoryForm.phone}
+                      onChange={(e) => setFactoryForm((prev) => ({ ...prev, phone: e.target.value }))}
                       className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Địa chỉ xưởng đá</label>
+                    <label htmlFor="factory-address" className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Địa chỉ xưởng đá</label>
                     <input
+                      id="factory-address"
                       type="text"
-                      defaultValue="128 Quốc lộ 1A, TP. Biên Hòa, Đồng Nai"
+                      value={factoryForm.address}
+                      onChange={(e) => setFactoryForm((prev) => ({ ...prev, address: e.target.value }))}
                       className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] focus:outline-none"
                     />
                   </div>
 
-                  <button className="flex items-center gap-2 px-4 py-2.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-colors shadow-sm mt-2">
+                  <button
+                    type="submit"
+                    disabled={!factoryLoaded || savingFactory}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-colors shadow-sm disabled:opacity-50"
+                  >
                     <Save className="h-4 w-4" />
-                    LƯU THAY ĐỔI
+                    {savingFactory ? 'ĐANG LƯU...' : 'LƯU THAY ĐỔI'}
                   </button>
-                </div>
+                </form>
               </div>
             )}
 

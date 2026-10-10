@@ -15,6 +15,7 @@ export const API_ENDPOINTS = {
 
   // Factory
   FACTORY: {
+    PROFILE: '/api/factory',
     ONBOARDING: '/api/factory/onboarding',
   },
 
