@@ -23,7 +23,8 @@ export const authContracts: ApiContract[] = [
     errors: [400, 401, 403, 429, 500],
     notes:
       'Sets the httpOnly `auth_token` cookie (7 days) and also returns the JWT in `token` for non-browser clients. ' +
-      'Rate limited to 5 attempts per IP per minute.',
+      'Rate limited to 5 attempts per IP per minute. The counter is keyed by the `x-real-ip` header and shared with ' +
+      '`/api/auth/refresh`: without a proxy that sets `x-real-ip`, every client falls into one shared bucket.',
   },
   {
     id: 'logout',
@@ -55,7 +56,9 @@ export const authContracts: ApiContract[] = [
     auth: session,
     response: envelope(z.object({ token: z.string() })),
     errors: [401, 429, 500],
-    notes: 'Used by the mobile app. Rate limited to 30 per IP per minute.',
+    notes:
+      'Used by the mobile app. Rate limited to 30 per IP per minute, on the same counter as `/api/auth/login`, ' +
+      'so refreshes also use up login attempts.',
   },
   {
     id: 'changePassword',

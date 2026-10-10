@@ -7,6 +7,8 @@
  * least once and validates each response body against its contract: missing
  * or mistyped fields fail, and so do fields the contract does not mention.
  *
+ * Run it at most once per minute: it uses the whole login rate limit.
+ *
  * It CREATES AND CHANGES DATA (customers, shifts, an order is delivered and
  * reconciled), so it only runs against a local server with seeded demo data.
  */
@@ -143,7 +145,17 @@ async function main() {
     tokens[actor] = data(login).token;
     if (!tokens[actor]) throw new Error(`Cannot sign in as ${actor} (${ACCOUNTS[actor]}). Is the database seeded?`);
   }
+
+  // Every call to the login route comes first: it allows 5 per minute, and in
+  // the built app that budget is shared with /api/auth/refresh.
+  const newEmail = `hopdong-${unique}@rubi.local`;
+  const created = data(
+    await call('createStaff', { body: { name: 'Nhân viên hợp đồng', email: newEmail, password: 'tamthoi2026', role: 'STAFF' } })
+  ).user;
+  const newLogin = await call('login', { as: 'anon', body: { email: newEmail, password: 'tamthoi2026' } });
+  tokens.newStaff = data(newLogin).token;
   await call('login', { as: 'anon', body: { email: ACCOUNTS.admin, password: 'sai-mat-khau-1' }, expectError: 401 });
+
   await call('me');
   await call('me', { as: 'anon' });
   await call('refreshSession');
@@ -202,19 +214,13 @@ async function main() {
 
   // ---- Accounts ----
   const users = data(await call('listStaff')).users;
-  const newEmail = `hopdong-${unique}@rubi.local`;
-  const created = data(
-    await call('createStaff', { body: { name: 'Nhân viên hợp đồng', email: newEmail, password: 'tamthoi2026', role: 'STAFF' } })
-  ).user;
   await call('createStaff', { body: { name: 'Trùng', email: newEmail, password: 'tamthoi2026', role: 'STAFF' }, expectError: 409 });
   await call('updateStaff', { params: { id: created.id }, body: { name: 'Nhân viên hợp đồng (đã sửa)' } });
   const driverUser = users.find((user: Json) => user.role === 'DRIVER');
   await call('rotateDriverLink', { params: { id: driverUser.id } });
   await call('createDriver', { body: {}, expectError: 405 });
 
-  // The new account must change its password before anything else works.
-  const newLogin = await call('login', { as: 'anon', body: { email: newEmail, password: 'tamthoi2026' } });
-  tokens.newStaff = data(newLogin).token;
+  // The new account sets its own password (it is flagged mustChangePassword).
   const changed = await call('changePassword', {
     as: 'newStaff',
     body: { currentPassword: 'tamthoi2026', newPassword: 'rieng2026abc' },

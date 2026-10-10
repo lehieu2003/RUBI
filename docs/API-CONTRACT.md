@@ -75,7 +75,7 @@ Sign in with email and password.
 - **Access**: Public
 - **Contract id**: `login`
 - **Error statuses**: 400, 401, 403, 429, 500
-- **Notes**: Sets the httpOnly `auth_token` cookie (7 days) and also returns the JWT in `token` for non-browser clients. Rate limited to 5 attempts per IP per minute.
+- **Notes**: Sets the httpOnly `auth_token` cookie (7 days) and also returns the JWT in `token` for non-browser clients. Rate limited to 5 attempts per IP per minute. The counter is keyed by the `x-real-ip` header and shared with `/api/auth/refresh`: without a proxy that sets `x-real-ip`, every client falls into one shared bucket.
 
 Request body:
 
@@ -157,7 +157,7 @@ Exchange a still-valid session for a fresh 7-day JWT.
 - **Access**: Any signed-in user
 - **Contract id**: `refreshSession`
 - **Error statuses**: 401, 429, 500
-- **Notes**: Used by the mobile app. Rate limited to 30 per IP per minute.
+- **Notes**: Used by the mobile app. Rate limited to 30 per IP per minute, on the same counter as `/api/auth/login`, so refreshes also use up login attempts.
 
 Response `200`:
 
