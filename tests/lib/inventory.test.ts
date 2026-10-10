@@ -109,7 +109,39 @@ describe('every stock reader and writer uses the running balance', () => {
 
   it('the cold-storage screen offers a stock count that sets the counted quantity', () => {
     const page = read('src/app/inventory/page.tsx');
-    assert.match(page, /mode: 'SET', productId: countItem\.productId, quantity: countedQty/);
+    assert.match(page, /mode: 'SET',\s*productId: countItem\.productId,\s*quantity: countedQty/);
     assert.match(page, /Kiểm kho/);
+  });
+});
+
+describe('stock count history', () => {
+  const read = (path: string) => readFileSync(path, 'utf8');
+  const route = read('src/app/api/inventory/route.ts');
+  const list = read('src/app/api/inventory/counts/route.ts');
+
+  it('a count stores the book quantity read in the same transaction, before it is replaced', () => {
+    const book = route.indexOf('const bookQuantity = (await stockOnHand(tx, [productId]))');
+    const set = route.indexOf('changeStock(tx, productId, { set: quantity })');
+    const save = route.indexOf('tx.stockCount.create');
+    assert.ok(book > 0 && book < set && set < save, 'read the books, set the stock, then keep the count');
+    assert.match(route, /countedById: session\.userId/);
+  });
+
+  it('a production batch is not a stock count', () => {
+    assert.match(route, /if \(mode === 'ADD'\) \{\s*return changeStock\(tx, productId, \{ add: quantity \}\);/);
+  });
+
+  it('the history is manager-only, scoped to the factory and paginated with a stable order', () => {
+    assert.match(list, /requireRole\(\['ADMIN'\]\)/);
+    assert.match(list, /const where = \{ factoryId: session\.factoryId \}/);
+    assert.match(list, /orderBy: \[\{ createdAt: 'desc' \}, \{ id: 'desc' \}\]/);
+    assert.match(list, /difference: count\.countedQuantity - count\.bookQuantity/);
+  });
+
+  it('the cold-storage screen sends the note and shows the history', () => {
+    const page = read('src/app/inventory/page.tsx');
+    assert.match(page, /note: countNote\.trim\(\) \|\| undefined/);
+    assert.match(page, /Lịch sử kiểm kho/);
+    assert.match(page, /fetchHistory\(1\);\s*\} catch/);
   });
 });
