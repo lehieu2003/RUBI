@@ -9,6 +9,19 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 // The single manager (ADMIN) account is created with `npm run admin:create`,
 // never from the app: the request schema only accepts STAFF and DRIVER.
 
+type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
+
+// A driver who can no longer sign in cannot confirm deliveries. Their open
+// orders go back to "unassigned" so the office sees them and hands them to
+// someone else; delivered and settled orders keep the driver for the record.
+async function unassignOpenOrders(tx: Tx, factoryId: string, userId: string): Promise<number> {
+  const result = await tx.order.updateMany({
+    where: { factoryId, status: { in: ['PENDING', 'SHIPPING'] }, driver: { userId } },
+    data: { driverId: null },
+  });
+  return result.count;
+}
+
 // PATCH /api/staff/[id] — Update user (ADMIN only)
 export async function PATCH(
   request: NextRequest,
@@ -70,7 +83,8 @@ export async function PATCH(
       updateData.name = body.name;
     }
 
-    const user = await prisma.$transaction(async (tx) => {
+    const factoryId = session.factoryId;
+    const { user, unassignedOrders } = await prisma.$transaction(async (tx) => {
       const updatedUser = await tx.user.update({
         where: { id },
         data: updateData,
@@ -85,8 +99,9 @@ export async function PATCH(
       });
 
       if (updatedUser.role === 'DRIVER') {
-        const driver = await tx.driver.findUnique({
-          where: { userId: updatedUser.id },
+        // The tenant guard refuses a Driver lookup without a factory filter.
+        const driver = await tx.driver.findFirst({
+          where: { userId: updatedUser.id, factoryId },
           select: { id: true },
         });
 
@@ -113,10 +128,14 @@ export async function PATCH(
         });
       }
 
-      return updatedUser;
+      // Locked, or no longer a driver: nobody can deliver their open orders.
+      const stillDelivers = updatedUser.role === 'DRIVER' && updatedUser.isActive;
+      const unassigned = stillDelivers ? 0 : await unassignOpenOrders(tx, factoryId, updatedUser.id);
+
+      return { user: updatedUser, unassignedOrders: unassigned };
     });
 
-    return apiSuccess({ user });
+    return apiSuccess({ user, unassignedOrders });
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[PATCH /api/staff/[id]]', error);
@@ -153,18 +172,20 @@ export async function DELETE(
     }
 
     // A deactivated driver account must not stay assignable to orders.
-    await prisma.$transaction([
-      prisma.user.update({
+    const factoryId = session.factoryId;
+    const unassignedOrders = await prisma.$transaction(async (tx) => {
+      await tx.user.update({
         where: { id },
         data: { isActive: false },
-      }),
-      prisma.driver.updateMany({
-        where: { userId: id, factoryId: session.factoryId },
+      });
+      await tx.driver.updateMany({
+        where: { userId: id, factoryId },
         data: { isActive: false },
-      }),
-    ]);
+      });
+      return unassignOpenOrders(tx, factoryId, id);
+    });
 
-    return apiSuccess({ success: true });
+    return apiSuccess({ success: true, unassignedOrders });
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[DELETE /api/staff/[id]]', error);

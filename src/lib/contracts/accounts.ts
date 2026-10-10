@@ -65,11 +65,12 @@ export const accountContracts: ApiContract[] = [
     auth: roles('ADMIN'),
     params: userId,
     body: UpdateStaffBody,
-    response: envelope(z.object({ user: StaffUser })),
+    response: envelope(z.object({ user: StaffUser, unassignedOrders: z.number().int() })),
     errors: [400, 401, 403, 404, 500],
     notes:
       'Only the fields sent are changed. A password reset forces a change at next login. ' +
-      'You cannot edit yourself (400) or a manager account (403).',
+      'You cannot edit yourself (400) or a manager account (403). When a driver is locked or stops being a driver, ' +
+      'their PENDING and SHIPPING orders are unassigned; `unassignedOrders` is how many.',
   },
   {
     id: 'deactivateStaff',
@@ -79,8 +80,9 @@ export const accountContracts: ApiContract[] = [
     summary: 'Deactivate an account (soft delete)',
     auth: roles('ADMIN'),
     params: userId,
-    response: envelope(Success),
+    response: envelope(Success.extend({ unassignedOrders: z.number().int() })),
     errors: [400, 401, 403, 404, 500],
+    notes: "A driver's PENDING and SHIPPING orders are unassigned; `unassignedOrders` is how many.",
   },
   {
     id: 'listDrivers',
