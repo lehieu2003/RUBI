@@ -7,7 +7,7 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 // Returns active driver profiles backed by DRIVER user accounts.
 export async function GET() {
   try {
-    const session = await requireRole(['ADMIN', 'ACCOUNTANT', 'STAFF']);
+    const session = await requireRole(['ADMIN', 'STAFF']);
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }

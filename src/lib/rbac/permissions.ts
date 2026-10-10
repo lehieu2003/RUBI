@@ -1,4 +1,4 @@
-export type TenantRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'DRIVER';
+export type TenantRole = 'ADMIN' | 'STAFF' | 'DRIVER';
 
 export type AppRoutePermission = {
   href: string;
@@ -7,8 +7,8 @@ export type AppRoutePermission = {
   match?: 'exact' | 'prefix';
 };
 
-const allTenantRoles: TenantRole[] = ['ADMIN', 'ACCOUNTANT', 'STAFF'];
-const opsRoles: TenantRole[] = ['ADMIN', 'ACCOUNTANT'];
+const allTenantRoles: TenantRole[] = ['ADMIN', 'STAFF'];
+const opsRoles: TenantRole[] = ['ADMIN'];
 
 export const tenantRoutePermissions: AppRoutePermission[] = [
   { href: '/dashboard', label: 'Tong quan', roles: allTenantRoles, match: 'exact' },

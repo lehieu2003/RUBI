@@ -8,7 +8,7 @@ import { useAuth } from '@/lib/auth-provider';
 import { useTheme } from '@/lib/theme';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
-type UserRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'DRIVER';
+type UserRole = 'ADMIN' | 'STAFF' | 'DRIVER';
 
 interface StaffUser {
   id: string;
@@ -320,7 +320,7 @@ export default function SettingsPage() {
                           <td className="py-3 px-4 font-bold text-on-surface">{staff.name}</td>
                           <td className="py-3 px-4">
                             <span className="px-2 py-0.5 rounded font-bold bg-container-high text-primary-accent">
-                              {staff.role === 'ADMIN' ? 'Quản lý' : staff.role === 'ACCOUNTANT' ? 'Kế toán' : staff.role === 'DRIVER' ? 'Tài xế' : 'Nhân viên'}
+                              {staff.role === 'ADMIN' ? 'Quản lý' : staff.role === 'DRIVER' ? 'Tài xế' : 'Nhân viên'}
                             </span>
                           </td>
                           <td className="py-3 px-4 text-faint font-mono">{staff.email}</td>
@@ -478,7 +478,6 @@ export default function SettingsPage() {
                       >
                         <option value="STAFF">Nhân viên văn phòng</option>
                         <option value="DRIVER">Tài xế giao hàng</option>
-                        <option value="ACCOUNTANT">Kế toán</option>
                         <option value="ADMIN">Quản lý (Admin)</option>
                       </select>
                     </div>

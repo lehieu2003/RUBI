@@ -12,7 +12,7 @@ describe('assets API source checks', () => {
 
   it('list route: ops-only read, scoped create', () => {
     assert.match(listRoute, /export async function GET/);
-    assert.match(listRoute, /requireRole\(\['ADMIN', 'ACCOUNTANT'\]\)/);
+    assert.match(listRoute, /requireRole\(\['ADMIN'\]\)/);
     assert.match(listRoute, /factoryId: session\.factoryId/);
   });
 
@@ -22,13 +22,13 @@ describe('assets API source checks', () => {
   });
 
   it('detail route: scoped update, ADMIN-only delete', () => {
-    assert.match(detailRoute, /requireRole\(\['ADMIN', 'ACCOUNTANT'\]\)/);
+    assert.match(detailRoute, /requireRole\(\['ADMIN'\]\)/);
     assert.match(detailRoute, /requireRole\(\['ADMIN'\]\)/);
     assert.match(detailRoute, /factoryId: session\.factoryId/);
   });
 
   it('maintenance route: scoped history + create', () => {
-    assert.match(maintenanceRoute, /requireRole\(\['ADMIN', 'ACCOUNTANT'\]\)/);
+    assert.match(maintenanceRoute, /requireRole\(\['ADMIN'\]\)/);
     assert.match(maintenanceRoute, /factoryId: session\.factoryId/);
     assert.match(maintenanceRoute, /performedAt/);
   });

@@ -21,10 +21,10 @@ interface QuickActionsProps {
 
 // Keep in sync with src/lib/rbac/permissions.ts route table.
 const ACTION_ROLES: Record<string, TenantRole[]> = {
-  '/settle': ['ADMIN', 'ACCOUNTANT'],
-  '/deposits/shells': ['ADMIN', 'ACCOUNTANT'],
-  '/inventory': ['ADMIN', 'ACCOUNTANT'],
-  '/reports/debt': ['ADMIN', 'ACCOUNTANT'],
+  '/settle': ['ADMIN'],
+  '/deposits/shells': ['ADMIN'],
+  '/inventory': ['ADMIN'],
+  '/reports/debt': ['ADMIN'],
 };
 
 function daysUntil(dueAt: string) {

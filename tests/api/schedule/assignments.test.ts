@@ -8,7 +8,7 @@ describe('schedule assignments API source checks', () => {
   it('guards GET and PATCH for operational roles', () => {
     assert.match(source, /export async function GET/);
     assert.match(source, /export async function PATCH/);
-    assert.match(source, /requireRole\(\['ADMIN', 'ACCOUNTANT'\]\)/);
+    assert.match(source, /requireRole\(\['ADMIN'\]\)/);
   });
 
   it('returns weekly staff and driver assignments scoped to factoryId', () => {

@@ -14,7 +14,7 @@ const BulkAssignSchema = z.object({
 
 export async function PATCH(request: NextRequest) {
   try {
-    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
+    const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }

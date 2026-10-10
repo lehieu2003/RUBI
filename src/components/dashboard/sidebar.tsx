@@ -194,7 +194,7 @@ export function Sidebar() {
                     {user?.name || 'User'}
                   </p>
                   <p className="truncate text-[10px] text-faint font-mono mt-0.5">
-                    {user?.role === 'ADMIN' ? 'Quản lý' : user?.role === 'ACCOUNTANT' ? 'Kế toán' : user?.role === 'DRIVER' ? 'Tài xế' : 'Nhân viên'}
+                    {user?.role === 'ADMIN' ? 'Quản lý' : user?.role === 'DRIVER' ? 'Tài xế' : 'Nhân viên'}
                   </p>
                 </div>
               )}

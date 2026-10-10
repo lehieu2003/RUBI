@@ -3,7 +3,7 @@
  *
  * Populates the entire database with realistic data for:
  * 1. The single factory (Nhà máy đá tinh khiết Rubi)
- * 3. Factory Users: Owner/Admin, Accountant, Staff, Driver
+ * 3. Factory Users: Manager (Admin), Staff, Driver
  * 4. Products (Đá Bi, Đá Viên, Đá Cây, Đá Mi) & Global Prices
  * 5. Customers with Customer Price Overrides
  * 6. Customer Debt Ledgers & Shell Deposits (Cược vỏ)
@@ -45,7 +45,7 @@ async function main() {
   console.log(`  ✓ Factory ready: ${demoFactory.name}`);
 
   // -------------------------------------------------------------
-  // 3. FACTORY USERS (Owner, Accountant, Staff, Driver)
+  // 3. FACTORY USERS (Manager, Staff, Driver)
   // -------------------------------------------------------------
   console.log('\n[3/7] Creating Factory Users (All Roles)...');
   
@@ -59,19 +59,6 @@ async function main() {
       password: defaultPassword,
       role: UserRole.ADMIN,
       isFactoryOwner: true,
-      factoryId: demoFactory.id,
-    },
-  });
-
-  const accountantUser = await prisma.user.upsert({
-    where: { email: 'ketoan@miendong.vn' },
-    update: { password: defaultPassword },
-    create: {
-      email: 'ketoan@miendong.vn',
-      name: 'Trần Thị Kế Toán',
-      phone: '0909333444',
-      password: defaultPassword,
-      role: UserRole.ACCOUNTANT,
       factoryId: demoFactory.id,
     },
   });
@@ -102,8 +89,7 @@ async function main() {
     },
   });
 
-  console.log(`  ✓ Owner / Admin : ${adminUser.email}      | Pass: 12345678`);
-  console.log(`  ✓ Accountant    : ${accountantUser.email}     | Pass: 12345678`);
+  console.log(`  ✓ Manager (Admin): ${adminUser.email}      | Pass: 12345678`);
   console.log(`  ✓ Order Staff   : ${staffUser.email}   | Pass: 12345678`);
   console.log(`  ✓ Driver User   : ${driverUser1.email}     | Pass: 12345678`);
 
@@ -421,8 +407,7 @@ async function main() {
   console.log('┌──────────────────┬──────────────────────────┬───────────┐');
   console.log('│ Vai trò (Role)   │ Email                    │ Password  │');
   console.log('├──────────────────┼──────────────────────────┼───────────┤');
-  console.log('│ Chủ xưởng (Admin)│ admin@miendong.vn        │ 12345678  │');
-  console.log('│ Kế toán          │ ketoan@miendong.vn       │ 12345678  │');
+  console.log('│ Quản lý (Admin)  │ admin@miendong.vn        │ 12345678  │');
   console.log('│ Nhân viên lên đơn│ nhanvien@miendong.vn     │ 12345678  │');
   console.log('│ Tài xế giao hàng │ taixe1@miendong.vn       │ 12345678  │');
   console.log('└──────────────────┴──────────────────────────┴───────────┘\n');

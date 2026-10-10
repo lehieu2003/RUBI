@@ -10,7 +10,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
+    const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }
@@ -51,7 +51,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
+    const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }

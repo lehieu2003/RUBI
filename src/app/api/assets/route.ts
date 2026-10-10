@@ -7,7 +7,7 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 // GET /api/assets?type=MACHINE|VEHICLE — list assets with nearest due date
 export async function GET(request: NextRequest) {
   try {
-    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
+    const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }
@@ -62,7 +62,7 @@ const CreateAssetSchema = z.object({
 // POST /api/assets — create an asset
 export async function POST(request: NextRequest) {
   try {
-    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
+    const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }

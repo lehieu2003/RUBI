@@ -20,7 +20,7 @@ The API uses **JWT (JSON Web Tokens)** for authentication via the `jose` library
   "userId": "string",
   "email": "string",
   "name": "string",
-  "role": "ADMIN | ACCOUNTANT | STAFF | DRIVER",
+  "role": "ADMIN | STAFF | DRIVER",
   "factoryId": "string"
 }
 ```
@@ -64,15 +64,15 @@ JWT signing and verification uses `JWT_SECRET` from environment variables.
 | GET | `/api/products` | List all active products | Yes |
 | GET | `/api/drivers` | List all active drivers | Yes |
 | POST | `/api/drivers` | Create new driver | Admin only |
-| GET | `/api/orders` | List orders with filters | ACCOUNTANT/ADMIN only |
+| GET | `/api/orders` | List orders with filters | ADMIN, STAFF |
 | PATCH | `/api/orders/[id]/status` | Update order status | Yes |
 | PATCH | `/api/orders/[id]/confirm` | Confirm delivery (driver) | Driver session or Bearer token |
-| PATCH | `/api/orders/[id]/reconcile` | Reconcile order (confirm qty, create debt) | ACCOUNTANT/ADMIN only |
+| PATCH | `/api/orders/[id]/reconcile` | Reconcile order (confirm qty, create debt) | Admin only |
 | PATCH | `/api/orders/bulk-assign` | Bulk assign orders to driver | Yes |
 | GET | `/api/driver/orders` | Driver delivery view | Driver token |
-| GET | `/api/deposits/shells` | List shell deposit balances | ACCOUNTANT/ADMIN only |
-| PATCH | `/api/deposits/shells` | Update shell deposit (shells out/in) | ACCOUNTANT/ADMIN only |
-| GET | `/api/reports/debt` | Customer debt report | ACCOUNTANT/ADMIN only |
+| GET | `/api/deposits/shells` | List shell deposit balances | Admin only |
+| PATCH | `/api/deposits/shells` | Update shell deposit (shells out/in) | Admin only |
+| GET | `/api/reports/debt` | Customer debt report | Admin only |
 | GET | `/api/staff` | List all staff members | Admin only |
 | POST | `/api/staff` | Create new staff member | Admin only |
 | PATCH | `/api/staff/[id]` | Update staff member | Admin only |
@@ -392,14 +392,14 @@ Query parameters:
 }
 ```
 
-Valid roles: `ADMIN`, `ACCOUNTANT`, `STAFF`
+Valid roles: `ADMIN`, `STAFF`, `DRIVER`
 
 **PATCH /api/staff/[id]** - Update staff
 ```json
 {
   "isActive": false,
   "password": "newpassword",
-  "role": "ACCOUNTANT",
+  "role": "STAFF",
   "name": "Updated Name"
 }
 ```

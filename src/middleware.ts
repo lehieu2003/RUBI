@@ -3,7 +3,7 @@ import { verifyJWT } from '@/lib/auth';
 import { canAccessPath, isTenantAppPath } from '@/lib/rbac/permissions';
 import { setTenantContext, TenantContext } from '@/lib/tenant';
 
-type UserRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'DRIVER';
+type UserRole = 'ADMIN' | 'STAFF' | 'DRIVER';
 
 export async function middleware(request: NextRequest) {
   const authHeader = request.headers.get('authorization');

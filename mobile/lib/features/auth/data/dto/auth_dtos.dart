@@ -21,7 +21,7 @@ class UserDto {
   final String? email;
   final String? name;
 
-  /// Giá trị server gửi: `ADMIN | ACCOUNTANT | STAFF | DRIVER | SUPER_ADMIN`.
+  /// Giá trị server gửi: `ADMIN | STAFF | DRIVER`.
   final String? role;
   final String? factoryId;
 }

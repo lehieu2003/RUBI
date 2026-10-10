@@ -3,10 +3,8 @@ import 'package:equatable/equatable.dart';
 /// Role của người dùng — khớp giá trị server gửi (`ADMIN`, `DRIVER`,...).
 enum UserRole {
   admin,
-  accountant,
   staff,
-  driver,
-  superAdmin;
+  driver;
 
   /// Maps the server role string (case-sensitive uppercase) to [UserRole].
   ///
@@ -15,10 +13,8 @@ enum UserRole {
   static UserRole? fromName(String? name) {
     return switch (name) {
       'ADMIN' => admin,
-      'ACCOUNTANT' => accountant,
       'STAFF' => staff,
       'DRIVER' => driver,
-      'SUPER_ADMIN' => superAdmin,
       _ => null,
     };
   }
