@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "test": "tsx tests/run-tests.ts",
-    "lint": "eslint src tests prisma --ext .ts,.tsx --no-error-on-unmatched-pattern",
+    "lint": "eslint src tests prisma e2e --ext .ts,.tsx --no-error-on-unmatched-pattern",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -16,7 +16,9 @@
     "db:seed": "tsx src/db/seed.ts",
     "admin:create": "tsx scripts/create-admin.ts",
     "contract:docs": "tsx scripts/generate-api-docs.ts",
-    "contract:verify": "tsx scripts/verify-api-contracts.ts"
+    "contract:verify": "tsx scripts/verify-api-contracts.ts",
+    "e2e": "playwright test",
+    "e2e:local": "bash scripts/e2e-local.sh"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",
@@ -39,6 +41,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^9.39.4",
+    "@playwright/test": "^1.64.0",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.0.0",

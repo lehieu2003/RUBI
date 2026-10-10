@@ -2,3 +2,8 @@
 node_modules/
 .next/
 tsconfig.tsbuildinfo
+# Browser tests
+e2e/.auth/
+playwright-report/
+test-results/
+e2e-server.log
