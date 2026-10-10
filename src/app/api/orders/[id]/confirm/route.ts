@@ -32,19 +32,34 @@ export async function PATCH(
       return apiError('Đơn hàng này không được giao cho bạn', 403);
     }
 
+    // A repeated tap or a retry on an already delivered order changes nothing.
+    if (order.status === 'DELIVERED') {
+      return apiSuccess({ success: true, orderId: order.id, status: order.status });
+    }
+    // Only an order out for delivery can be confirmed. Reopening a COMPLETED
+    // order would let it be reconciled again: debt and stock counted twice.
+    if (order.status !== 'SHIPPING') {
+      return apiError('Chỉ xác nhận được đơn đang giao', 409, 'ORDER_NOT_SHIPPING');
+    }
+
     // --- Update order to DELIVERED ---
-    const updated = await prisma.order.update({
-      where: { id },
+    // The status is checked again in the write itself, so an order settled or
+    // cancelled in the meantime is left alone.
+    const updated = await prisma.order.updateMany({
+      where: { id, factoryId: driver.factoryId, driverId: driver.id, status: 'SHIPPING' },
       data: {
         status: 'DELIVERED',
         deliveredAt: new Date(),
       },
     });
+    if (updated.count === 0) {
+      return apiError('Chỉ xác nhận được đơn đang giao', 409, 'ORDER_NOT_SHIPPING');
+    }
 
     return apiSuccess({
           success: true,
-          orderId: updated.id,
-          status: updated.status,
+          orderId: order.id,
+          status: 'DELIVERED',
         });
   } catch (error) {
     if (error instanceof Response) return error;

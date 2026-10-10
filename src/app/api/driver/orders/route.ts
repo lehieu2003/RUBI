@@ -6,8 +6,8 @@ import { vietnamDayRange } from '@/lib/vietnam-time';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 // GET /api/driver/orders?date=YYYY-MM-DD
-// Returns orders for authenticated driver filtered by today's date
-// Orders visible when status IN (SHIPPING, DELIVERED)
+// Returns the authenticated driver's work for one day (today by default):
+// every order still SHIPPING plus the orders DELIVERED that day
 export async function GET(request: NextRequest) {
   try {
     const limit = await rateLimit(`driver-orders:${getIpFromRequest(request)}`, 60, 60 * 1000);
@@ -35,8 +35,15 @@ export async function GET(request: NextRequest) {
       where: {
         factoryId: driver.factoryId,
         driverId: driver.id,
-        status: { in: ['SHIPPING', 'DELIVERED'] },
-        createdAt: { gte: day.start, lt: day.end },
+        OR: [
+          // Still to deliver, whatever day the order was taken: an order
+          // phoned in last night for this morning must not disappear.
+          { status: 'SHIPPING', createdAt: { lt: day.end } },
+          // Delivered that day. Orders marked delivered by the office carry
+          // no deliveredAt, so those fall back to the day they were taken.
+          { status: 'DELIVERED', deliveredAt: { gte: day.start, lt: day.end } },
+          { status: 'DELIVERED', deliveredAt: null, createdAt: { gte: day.start, lt: day.end } },
+        ],
       },
       include: {
         customer: true,

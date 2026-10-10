@@ -152,10 +152,17 @@ export async function DELETE(
       return apiError('Không thể xóa tài khoản Quản lý', 403);
     }
 
-    await prisma.user.update({
-      where: { id },
-      data: { isActive: false },
-    });
+    // A deactivated driver account must not stay assignable to orders.
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id },
+        data: { isActive: false },
+      }),
+      prisma.driver.updateMany({
+        where: { userId: id, factoryId: session.factoryId },
+        data: { isActive: false },
+      }),
+    ]);
 
     return apiSuccess({ success: true });
   } catch (error) {

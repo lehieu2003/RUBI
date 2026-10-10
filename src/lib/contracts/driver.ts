@@ -7,7 +7,7 @@ export const driverContracts: ApiContract[] = [
     method: 'GET',
     path: '/api/driver/orders',
     tag: 'Driver',
-    summary: "A driver's SHIPPING and DELIVERED orders for one day",
+    summary: "A driver's open SHIPPING orders and the orders DELIVERED on one day",
     auth: roles('DRIVER'),
     query: z.object({ date: DateOnly.optional() }),
     response: envelope(
@@ -17,6 +17,8 @@ export const driverContracts: ApiContract[] = [
       })
     ),
     errors: [400, 401, 403, 429, 500],
-    notes: '`date` is a Vietnam calendar day and defaults to today; 400 when malformed. Rate limited to 60 per IP per minute.',
+    notes:
+      '`date` is a Vietnam calendar day and defaults to today; 400 when malformed. SHIPPING orders are listed whatever ' +
+      'day they were taken (up to that day); DELIVERED orders only when delivered that day. Rate limited to 60 per IP per minute.',
   },
 ];

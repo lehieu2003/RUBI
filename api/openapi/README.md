@@ -128,7 +128,7 @@ Orders: listing, status, assignment, delivery, reconciliation.
 | GET | `/api/orders` | ADMIN, STAFF | Orders with customer, driver and items, newest first, paginated |
 | GET | `/api/orders/counts` | ADMIN, STAFF | Number of orders per status under the same filters as the list |
 | PATCH | `/api/orders/{id}/status` | ADMIN, STAFF | Change an order status (not to COMPLETED) |
-| PATCH | `/api/orders/bulk-assign` | ADMIN | Assign several orders to a driver |
+| PATCH | `/api/orders/bulk-assign` | ADMIN, STAFF | Assign several orders to a driver |
 | PATCH | `/api/orders/{id}/confirm` | DRIVER | Driver confirms an order as delivered |
 | PATCH | `/api/orders/{id}/reconcile` | ADMIN | Settle a delivered order: actual quantities, debt and stock |
 
@@ -138,7 +138,7 @@ The signed-in driver's order list.
 
 | Method | Path | Access | Summary |
 |---|---|---|---|
-| GET | `/api/driver/orders` | DRIVER | A driver's SHIPPING and DELIVERED orders for one day |
+| GET | `/api/driver/orders` | DRIVER | A driver's open SHIPPING orders and the orders DELIVERED on one day |
 
 ### [schedule.yaml](schedule.yaml)
 

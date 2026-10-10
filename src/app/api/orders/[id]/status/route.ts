@@ -65,6 +65,11 @@ export async function PATCH(
       where: { id, factoryId: session.factoryId },
       data: {
         status: parsed.data.status,
+        // The driver list buckets delivered orders by deliveredAt, so the
+        // office marking an order delivered must stamp it too, and reopening
+        // an order must clear the old stamp.
+        deliveredAt:
+          parsed.data.status !== 'DELIVERED' ? null : existing.status === 'DELIVERED' ? undefined : new Date(),
         notes: parsed.data.cancellationReason
           ? `[HỦY: ${parsed.data.cancellationReason}]`
           : undefined,
