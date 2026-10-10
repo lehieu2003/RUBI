@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma, prismaAuth } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import { requireRole } from '@/lib/auth/helpers';
+import { validatePassword } from '@/lib/password';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
-const STAFF_ROLES = ['ADMIN', 'STAFF', 'DRIVER'] as const;
+// The single manager (ADMIN) account is created with `npm run admin:create`,
+// never from the app: managers can only hand out STAFF and DRIVER accounts.
+const STAFF_ROLES = ['STAFF', 'DRIVER'] as const;
 
 function createDriverSlug(name: string): string {
   const base = name
@@ -60,8 +63,9 @@ export async function POST(request: NextRequest) {
       return apiError('Thiếu thông tin bắt buộc', 400);
     }
 
-    if (password.length < 8) {
-      return apiError('Mật khẩu phải có ít nhất 8 ký tự', 400);
+    const policyError = validatePassword(password);
+    if (policyError) {
+      return apiError(policyError, 400);
     }
 
     if (!STAFF_ROLES.includes(role)) {
@@ -84,6 +88,8 @@ export async function POST(request: NextRequest) {
           password: hashedPassword,
           role,
           factoryId: session.factoryId,
+          // The manager knows this initial password; force a change on first login.
+          mustChangePassword: true,
         },
         select: {
           id: true,

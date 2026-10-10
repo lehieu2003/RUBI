@@ -19,7 +19,27 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+// Seed data uses a well-known default password, so it must never reach a
+// real database. Only local databases are allowed unless explicitly forced.
+function assertSafeToSeed() {
+  const url = process.env.DIRECT_URL || process.env.DATABASE_URL || '';
+  let host = '';
+  try {
+    host = new URL(url).hostname;
+  } catch {
+    host = '';
+  }
+  const isLocal = ['localhost', '127.0.0.1', '::1', 'postgres'].includes(host);
+  if (process.env.NODE_ENV === 'production' || (!isLocal && process.env.SEED_ALLOW_REMOTE !== 'true')) {
+    throw new Error(
+      `Refusing to seed "${host || 'unknown host'}": demo accounts use the default password 12345678. ` +
+        'Seed only local databases. Create the real manager account with `npm run admin:create`.'
+    );
+  }
+}
+
 async function main() {
+  assertSafeToSeed();
   console.log('='.repeat(60));
   console.log('🧊 ICEFLOW - SEEDING COMPLETE SYSTEM DATA');
   console.log('='.repeat(60));
@@ -51,7 +71,7 @@ async function main() {
   
   const adminUser = await prisma.user.upsert({
     where: { email: 'admin@miendong.vn' },
-    update: { password: defaultPassword },
+    update: {}, // never overwrite the password of an existing account
     create: {
       email: 'admin@miendong.vn',
       name: 'Nguyễn Văn Chủ Xưởng',
@@ -65,7 +85,7 @@ async function main() {
 
   const staffUser = await prisma.user.upsert({
     where: { email: 'nhanvien@miendong.vn' },
-    update: { password: defaultPassword },
+    update: {}, // never overwrite the password of an existing account
     create: {
       email: 'nhanvien@miendong.vn',
       name: 'Lê Văn Lên Đơn',
@@ -78,7 +98,7 @@ async function main() {
 
   const driverUser1 = await prisma.user.upsert({
     where: { email: 'taixe1@miendong.vn' },
-    update: { password: defaultPassword },
+    update: {}, // never overwrite the password of an existing account
     create: {
       email: 'taixe1@miendong.vn',
       name: 'Phạm Văn Tài (Xe 1)',
