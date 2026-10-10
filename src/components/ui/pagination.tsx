@@ -1,7 +1,7 @@
 'use client';
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { PaginationMeta } from '@/lib/pagination';
+import { pageRange, pageWindow, type PaginationMeta } from '@/lib/pagination';
 
 type PaginationProps = {
   meta: PaginationMeta;
@@ -11,18 +11,10 @@ type PaginationProps = {
   disabled?: boolean;
 };
 
-/** Page numbers to show: first, last, the current page and its neighbours, with gaps as null. */
-function pageList(current: number, total: number): Array<number | null> {
-  const wanted = new Set([1, total, current - 1, current, current + 1].filter((page) => page >= 1 && page <= total));
-  const pages = [...wanted].sort((a, b) => a - b);
-  return pages.flatMap((page, index) => (index > 0 && page - pages[index - 1] > 1 ? [null, page] : [page]));
-}
-
 export function Pagination({ meta, onPageChange, itemLabel = 'mục', disabled = false }: PaginationProps) {
   if (meta.total_item === 0) return null;
 
-  const first = (meta.page - 1) * meta.limit + 1;
-  const last = Math.min(meta.page * meta.limit, meta.total_item);
+  const { first, last } = pageRange(meta);
   const buttonClass =
     'flex h-9 min-w-9 items-center justify-center rounded border border-outline-variant bg-card px-2 text-xs font-bold text-on-surface-variant hover:bg-container-high disabled:cursor-not-allowed disabled:opacity-40';
 
@@ -47,7 +39,7 @@ export function Pagination({ meta, onPageChange, itemLabel = 'mục', disabled =
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          {pageList(meta.page, meta.total_page).map((page, index) =>
+          {pageWindow(meta.page, meta.total_page).map((page, index) =>
             page === null ? (
               <span key={`gap-${index}`} className="px-1 text-xs text-faint">
                 …
