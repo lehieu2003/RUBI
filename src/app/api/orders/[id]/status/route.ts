@@ -49,6 +49,17 @@ export async function PATCH(
     if (!existing) {
       return apiError('Không tìm thấy đơn hàng', 404);
     }
+    // A settled or cancelled order is final. Reopening a COMPLETED order
+    // would let it be reconciled again: debt and stock counted twice.
+    if (existing.status === 'COMPLETED' || existing.status === 'CANCELLED') {
+      return apiError(
+        existing.status === 'COMPLETED'
+          ? 'Đơn đã hoàn thành (đã đối soát), không thể đổi trạng thái'
+          : 'Đơn đã huỷ, không thể đổi trạng thái',
+        409,
+        'ORDER_FINAL'
+      );
+    }
 
     const order = await prisma.order.update({
       where: { id, factoryId: session.factoryId },

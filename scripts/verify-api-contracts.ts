@@ -353,6 +353,9 @@ async function main() {
   await call('confirmDelivery', { as: 'driver', params: { id: order.id } });
   await call('reconcileOrder', { params: { id: order.id }, body: { items: [{ id: 'dong-la', actualQty: 1 }] }, expectError: 400 });
   await call('reconcileOrder', { params: { id: order.id }, body: settle });
+  // Once settled the order is final: it cannot be reopened and settled again.
+  await call('updateOrderStatus', { params: { id: order.id }, body: { status: 'PENDING' }, expectError: 409 });
+  await call('reconcileOrder', { params: { id: order.id }, body: settle, expectError: 409 });
 
   // ---- Accounts ----
   const users = data(await call('listStaff')).users;

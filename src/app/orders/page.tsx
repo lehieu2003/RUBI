@@ -703,7 +703,13 @@ export default function OrdersPage() {
               <select
                 value={selectedOrder.status}
                 onChange={(e) => handleStatusChange(e.target.value)}
-                disabled={updatingStatus}
+                // A settled or cancelled order is final; the API refuses to change it.
+                disabled={updatingStatus || selectedOrder.status === 'COMPLETED' || selectedOrder.status === 'CANCELLED'}
+                title={
+                  selectedOrder.status === 'COMPLETED' || selectedOrder.status === 'CANCELLED'
+                    ? 'Đơn đã hoàn thành hoặc đã huỷ, không đổi trạng thái được'
+                    : undefined
+                }
                 className={
                   'inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-bold border border-outline-variant cursor-pointer ' +
                   (statusConfig[

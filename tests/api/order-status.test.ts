@@ -25,3 +25,17 @@ describe('order status API source checks', () => {
     assert.match(route, /Đối soát/);
   });
 });
+
+describe('order status: settled and cancelled orders are final', () => {
+  const route = readFileSync(join(process.cwd(), 'src/app/api/orders/[id]/status/route.ts'), 'utf-8');
+
+  it('refuses to change a COMPLETED or CANCELLED order', () => {
+    assert.match(route, /existing\.status === 'COMPLETED' \|\| existing\.status === 'CANCELLED'/);
+    assert.match(route, /409,\s*'ORDER_FINAL'/);
+  });
+
+  it('checks the current status before writing', () => {
+    assert.ok(route.indexOf("'ORDER_FINAL'") < route.indexOf('prisma.order.update('), 'the guard must run before the update');
+  });
+});
+
