@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "test": "tsx tests/run-tests.ts",
-    "lint": "eslint src tests prisma --ext .ts,.tsx",
+    "lint": "eslint src tests prisma --ext .ts,.tsx --no-error-on-unmatched-pattern",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",

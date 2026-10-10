@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
 const adminWriteRoutes = [
@@ -104,7 +105,6 @@ describe('bulk-assign status gate', () => {
 
 describe('guard rejections are served, not thrown', () => {
   it('no API route re-throws a Response (Next.js turns it into a 500)', () => {
-    const { execSync } = require('child_process');
     const hits = execSync(
       "grep -rn 'instanceof Response) throw error' src/app/api --include='*.ts' || true",
       { encoding: 'utf8' }

@@ -40,6 +40,8 @@ export function Reveal({
     const rect = el.getBoundingClientRect();
     if (rect.top < window.innerHeight * 0.9) return;
 
+    // Needs the measured DOM position, so this can only run after mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setState('hidden');
     const observer = new IntersectionObserver(
       (entries) => {
