@@ -27,6 +27,8 @@ describe('settle page source checks', () => {
   it('lists every DELIVERED order whatever day it was taken, on load and after each settlement', () => {
     assert.match(settle, /fetchAllOrders\('status=DELIVERED'\)/);
     assert.equal(settle.match(/fetchOrdersAwaitingSettlement\(\),/g)?.length, 2);
+    // success is reported before the refresh, so a failed refresh is not a failed settlement
+    assert.ok(settle.indexOf("title: 'Đã chốt đơn thành công'") < settle.lastIndexOf('fetchOrdersAwaitingSettlement(),'));
     assert.match(settle, /const mappedOrders = awaiting\.map/);
     assert.match(settle, /const pendingCount = awaiting\.length/);
   });

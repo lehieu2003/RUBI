@@ -194,15 +194,22 @@ export default function SettlePage() {
         const err = await res.json();
         throw new Error(err.error || 'Reconciliation failed');
       }
-      // Refresh orders
-      const [ofToday, toSettle] = await Promise.all([
-        fetchOrdersOfDay(todayStr),
-        fetchOrdersAwaitingSettlement(),
-      ]);
-      setOrders(ofToday);
-      setAwaiting(toSettle);
+      // The order is settled from here on: close and say so before
+      // refreshing, so a failed refresh is never reported as a failed settlement.
+      const settledId = reconcileOrder.id;
+      setAwaiting((previous) => previous.filter((order) => order.id !== settledId));
       setReconcileOrder(null);
       toast({ type: 'success', title: 'Đã chốt đơn thành công' });
+      try {
+        const [ofToday, toSettle] = await Promise.all([
+          fetchOrdersOfDay(todayStr),
+          fetchOrdersAwaitingSettlement(),
+        ]);
+        setOrders(ofToday);
+        setAwaiting(toSettle);
+      } catch {
+        toast({ type: 'error', title: 'Không tải lại được danh sách', message: 'Đơn đã chốt. Tải lại trang để cập nhật.' });
+      }
     } catch (err) {
       toast({
         type: 'error',
