@@ -318,6 +318,18 @@ async function main() {
   await call('getInventory');
   await call('getInventory', { as: 'staff', expectError: 403 });
   await call('recordInventory', { body: { productId: products[0].id, quantity: 1, mode: 'ADD' } });
+  // A stock count replaces the balance; the list then shows the counted number.
+  await call('listStockCounts', { empty: true });
+  const book = data(await call('getInventory')).items.find((item: Json) => item.productId === products[0].id).quantityOnHand;
+  await call('recordInventory', { body: { productId: products[0].id, quantity: 150, mode: 'SET', note: 'Kiểm kho cuối tuần' } });
+  const lastCount = data(await call('listStockCounts'))[0];
+  if (lastCount?.bookQuantity !== book || lastCount?.difference !== 150 - book || lastCount?.note !== 'Kiểm kho cuối tuần') {
+    throw new Error(`stock count not kept in the history: ${JSON.stringify(lastCount)}`);
+  }
+  await call('listStockCounts', { as: 'staff', expectError: 403 });
+  await call('listStockCounts', { query: { limit: '0' }, expectError: 400 });
+  const counted = data(await call('getInventory')).items.find((item: Json) => item.productId === products[0].id);
+  if (counted?.quantityOnHand !== 150) throw new Error(`stock count not applied: ${counted?.quantityOnHand}`);
   await call('recordInventory', { body: { productId: products[0].id, quantity: -1 }, expectError: 400 });
   await call('updateShellDeposit', { body: { customerId: customers[0].id, shellsOut: 1 } });
   await call('listShellDeposits');

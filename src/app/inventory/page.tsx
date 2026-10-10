@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
-import { Snowflake, Plus, Loader2, RefreshCw, Download } from 'lucide-react';
+import { Snowflake, Plus, Loader2, RefreshCw, Download, ClipboardCheck } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
 import { exportToCSV } from '@/lib/export-excel';
@@ -15,6 +15,21 @@ interface InventoryItem {
   quantityOnHand: number;
   totalKg: number;
 }
+
+interface StockCountEntry {
+  id: string;
+  productName: string;
+  sizeKg: number;
+  unit: string;
+  bookQuantity: number;
+  countedQuantity: number;
+  difference: number;
+  note: string | null;
+  countedByName: string | null;
+  createdAt: string;
+}
+
+const HISTORY_PAGE_SIZE = 20;
 
 interface InventoryResponse {
   items: InventoryItem[];
@@ -29,6 +44,34 @@ export default function InventoryPage() {
   const [selectedProductId, setSelectedProductId] = useState<string>('');
   const [quantity, setQuantity] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  // Stock count: the manager counts the cold store and corrects the balance
+  const [countItem, setCountItem] = useState<InventoryItem | null>(null);
+  const [counted, setCounted] = useState('');
+  const [countNote, setCountNote] = useState('');
+  // History of stock counts, newest first; more pages are appended on demand
+  const [history, setHistory] = useState<StockCountEntry[]>([]);
+  const [historyTotal, setHistoryTotal] = useState(0);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const fetchHistory = useCallback(async (page: number) => {
+    try {
+      setHistoryLoading(true);
+      const res = await fetch(`${API_ENDPOINTS.INVENTORY.COUNTS}?page=${page}&limit=${HISTORY_PAGE_SIZE}`);
+      const json = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(json?.error);
+      const entries = json.data as StockCountEntry[];
+      setHistory((previous) => (page === 1 ? entries : [...previous, ...entries]));
+      setHistoryTotal(json.meta?.total_item ?? entries.length);
+    } catch {
+      toast({ type: 'error', title: 'Lỗi nạp dữ liệu', message: 'Không thể tải lịch sử kiểm kho' });
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchHistory(1);
+  }, [fetchHistory]);
 
   const fetchInventory = useCallback(async () => {
     try {
@@ -84,6 +127,50 @@ export default function InventoryPage() {
     }
   };
 
+  const countedQty = counted.trim() === '' ? NaN : Number(counted);
+  const countValid = Number.isInteger(countedQty) && countedQty >= 0;
+  const countDifference = countItem && countValid ? countedQty - countItem.quantityOnHand : 0;
+
+  const handleStockCount = async () => {
+    if (!countItem || !countValid) {
+      toast({ type: 'error', title: 'Lỗi', message: 'Nhập số đếm thực tế là số nguyên từ 0 trở lên' });
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const res = await fetch(API_ENDPOINTS.INVENTORY.BASE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'SET',
+          productId: countItem.productId,
+          quantity: countedQty,
+          note: countNote.trim() || undefined,
+        }),
+      });
+      if (!res.ok) throw new Error('Không thể lưu kiểm kho');
+
+      toast({
+        type: 'success',
+        title: 'Đã kiểm kho',
+        message:
+          countDifference === 0
+            ? `${countItem.productName} ${countItem.sizeKg}kg khớp sổ`
+            : `${countItem.productName} ${countItem.sizeKg}kg: ${countDifference > 0 ? 'thừa' : 'hao hụt'} ${Math.abs(countDifference).toLocaleString('vi-VN')}`,
+      });
+      setCountItem(null);
+      setCounted('');
+      setCountNote('');
+      fetchInventory();
+      fetchHistory(1);
+    } catch {
+      toast({ type: 'error', title: 'Thất bại', message: 'Không thể lưu kiểm kho' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px]">
@@ -91,7 +178,9 @@ export default function InventoryPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-outline-variant pb-4 mb-6">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-on-surface">Kho Lạnh & Tồn Kho</h1>
-            <p className="text-xs text-on-surface-variant mt-1">Theo dõi số lượng tồn kho theo từng loại đá thực tế</p>
+            <p className="text-xs text-on-surface-variant mt-1">
+              Tồn cuối ngày tự chuyển sang ngày hôm sau. Dùng &quot;Kiểm kho&quot; để chỉnh theo số đếm thực tế.
+            </p>
           </div>
           <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
             {data.items.length > 0 && (
@@ -179,6 +268,7 @@ export default function InventoryPage() {
                   <th className="py-3 px-4">Quy cách (Kg/Bao)</th>
                   <th className="py-3 px-4 text-right">Tồn kho hiện tại (Bao)</th>
                   <th className="py-3 px-4 text-right">Tổng khối lượng (Kg)</th>
+                  <th className="py-3 px-4 text-right w-32">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-soft text-sm">
@@ -186,11 +276,30 @@ export default function InventoryPage() {
                   <tr key={item.productId} className="h-12 hover:bg-container-low transition-colors">
                     <td className="py-3 px-4 font-bold text-on-surface">{item.productName}</td>
                     <td className="py-3 px-4 text-xs font-mono text-primary-accent">{item.sizeKg} kg</td>
-                    <td className="py-3 px-4 text-right font-bold text-primary-accent font-mono">
+                    <td
+                      className={
+                        'py-3 px-4 text-right font-bold font-mono ' +
+                        (item.quantityOnHand < 0 ? 'text-error' : 'text-primary-accent')
+                      }
+                      title={item.quantityOnHand < 0 ? 'Xuất nhiều hơn số đã nhập. Nhập sản lượng còn thiếu hoặc kiểm kho.' : undefined}
+                    >
                       {item.quantityOnHand.toLocaleString('vi-VN')} {item.unit || 'bao'}
                     </td>
                     <td className="py-3 px-4 text-right font-bold text-on-surface font-mono">
                       {item.totalKg.toLocaleString('vi-VN')} kg
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <button
+                        onClick={() => {
+                          setCountItem(item);
+                          setCounted('');
+                          setCountNote('');
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-outline-variant text-on-surface-variant hover:bg-container-high text-xs font-bold transition-colors"
+                      >
+                        <ClipboardCheck className="h-3.5 w-3.5" />
+                        Kiểm kho
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -198,6 +307,72 @@ export default function InventoryPage() {
             </table>
           </div>
         )}
+
+        {/* Stock count history */}
+        <div className="mt-8">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-on-surface-variant mb-2">Lịch sử kiểm kho</h2>
+          {history.length === 0 ? (
+            <div className="rounded border border-outline-variant bg-card p-6 text-center text-xs text-faint shadow-sm">
+              {historyLoading ? 'Đang tải...' : 'Chưa có lần kiểm kho nào'}
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded border border-outline-variant bg-card shadow-sm">
+              <table className="w-full text-left border-collapse table-industrial">
+                <thead>
+                  <tr className="border-b border-outline-variant bg-surface text-[12px] font-bold uppercase tracking-wider text-on-surface-variant">
+                    <th className="py-3 px-4">Thời gian</th>
+                    <th className="py-3 px-4">Sản phẩm</th>
+                    <th className="py-3 px-4 text-right">Trên sổ</th>
+                    <th className="py-3 px-4 text-right">Thực tế</th>
+                    <th className="py-3 px-4 text-right">Chênh lệch</th>
+                    <th className="py-3 px-4">Ghi chú</th>
+                    <th className="py-3 px-4">Người kiểm</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-outline-soft text-sm">
+                  {history.map((entry) => (
+                    <tr key={entry.id} className="h-11 hover:bg-container-low transition-colors">
+                      <td className="py-2.5 px-4 text-xs font-mono text-on-surface-variant whitespace-nowrap">
+                        {new Date(entry.createdAt).toLocaleString('vi-VN', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </td>
+                      <td className="py-2.5 px-4 font-bold text-on-surface">
+                        {entry.productName} {entry.sizeKg}kg
+                      </td>
+                      <td className="py-2.5 px-4 text-right font-mono">{entry.bookQuantity.toLocaleString('vi-VN')}</td>
+                      <td className="py-2.5 px-4 text-right font-mono font-bold">{entry.countedQuantity.toLocaleString('vi-VN')}</td>
+                      <td
+                        className={
+                          'py-2.5 px-4 text-right font-mono font-bold ' +
+                          (entry.difference < 0 ? 'text-error' : entry.difference > 0 ? 'text-secondary' : 'text-faint')
+                        }
+                      >
+                        {entry.difference > 0 ? '+' : ''}
+                        {entry.difference.toLocaleString('vi-VN')}
+                      </td>
+                      <td className="py-2.5 px-4 text-xs text-on-surface-variant">{entry.note || '—'}</td>
+                      <td className="py-2.5 px-4 text-xs text-on-surface-variant">{entry.countedByName || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {history.length < historyTotal && (
+            <button
+              onClick={() => fetchHistory(Math.floor(history.length / HISTORY_PAGE_SIZE) + 1)}
+              disabled={historyLoading}
+              className="mt-3 px-3.5 py-2 border border-outline-variant bg-card hover:bg-container-high text-primary-deep font-bold text-xs rounded transition-all shadow-sm disabled:opacity-50"
+            >
+              {historyLoading ? 'Đang tải...' : `Xem thêm (${history.length}/${historyTotal})`}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Add Production Modal */}
@@ -252,6 +427,89 @@ export default function InventoryPage() {
               >
                 {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                 XÁC NHẬN NHẬP KHO
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Stock Count Modal */}
+      {countItem && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs" onClick={() => setCountItem(null)} />
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-card border border-outline-variant rounded shadow-xl p-6"
+          >
+            <h3 className="text-lg font-bold text-on-surface mb-1">
+              Kiểm kho: {countItem.productName} {countItem.sizeKg}kg
+            </h3>
+            <p className="text-on-surface-variant text-xs mb-5">
+              Nhập số đếm thực tế trong kho lạnh. Số này thay cho số trên sổ (hao hụt do tan chảy, vỡ...).
+            </p>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between rounded border border-outline-variant bg-surface px-3 py-2 text-sm">
+                <span className="text-on-surface-variant">Tồn trên sổ</span>
+                <span className="font-bold font-mono text-on-surface">
+                  {countItem.quantityOnHand.toLocaleString('vi-VN')} {countItem.unit || 'bao'}
+                </span>
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">
+                  Số đếm thực tế
+                </label>
+                <input
+                  autoFocus
+                  type="number"
+                  min="0"
+                  value={counted}
+                  onChange={(e) => setCounted(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleStockCount()}
+                  className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">
+                  Ghi chú (không bắt buộc)
+                </label>
+                <input
+                  type="text"
+                  maxLength={200}
+                  value={countNote}
+                  onChange={(e) => setCountNote(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleStockCount()}
+                  placeholder="Ví dụ: tan chảy, vỡ bao, kiểm cuối tuần"
+                  className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99]"
+                />
+              </div>
+              {countValid && (
+                <p className={'text-xs font-bold ' + (countDifference < 0 ? 'text-error' : 'text-secondary')}>
+                  {countDifference === 0
+                    ? 'Khớp với sổ'
+                    : `Chênh lệch: ${countDifference > 0 ? '+' : ''}${countDifference.toLocaleString('vi-VN')} (${countDifference > 0 ? 'thừa' : 'hao hụt'})`}
+                </p>
+              )}
+            </div>
+
+            <div className="flex gap-2.5 mt-6">
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => setCountItem(null)}
+                className="flex-1 py-2.5 border border-outline-variant text-on-surface-variant font-bold text-xs rounded hover:bg-container-high transition-colors disabled:opacity-50"
+              >
+                HỦY
+              </button>
+              <button
+                type="button"
+                disabled={submitting || !countValid}
+                onClick={handleStockCount}
+                className="flex-1 py-2.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-colors shadow-sm disabled:opacity-50 inline-flex items-center justify-center gap-2"
+              >
+                {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                XÁC NHẬN KIỂM KHO
               </button>
             </div>
           </div>

@@ -123,6 +123,6 @@ export const orderContracts: ApiContract[] = [
     errors: [400, 401, 403, 404, 409, 500],
     notes:
       '404 when the order does not exist; 409 `ORDER_NOT_DELIVERED` unless it is DELIVERED; 400 when a line does not ' +
-      'belong to the order. Creates a DEBT ledger entry and deducts today\'s inventory.',
+      'belong to the order. Creates a DEBT ledger entry and deducts the delivered quantities from the stock on hand.',
   },
 ];

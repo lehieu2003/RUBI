@@ -55,8 +55,8 @@ describe('the server never derives "today" from its local clock', () => {
 
   it('the day-bound endpoints use the Vietnam day', () => {
     assert.match(readFileSync('src/app/api/driver/orders/route.ts', 'utf8'), /vietnamDayRange\(/);
-    assert.match(readFileSync('src/app/api/inventory/route.ts', 'utf8'), /startOfVietnamToday\(\)/);
-    assert.match(readFileSync('src/app/api/orders/[id]/reconcile/route.ts', 'utf8'), /startOfVietnamToday\(\)/);
+    // stock movements of the inventory and reconcile routes go through this helper
+    assert.match(readFileSync('src/lib/inventory.ts', 'utf8'), /const today = startOfVietnamToday\(\)/);
     assert.match(readFileSync('src/lib/order-filters.ts', 'utf8'), /vietnamDayRange\(date\)/);
   });
 

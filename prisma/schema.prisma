@@ -22,6 +22,7 @@ model Factory {
   customers     Customer[]
   drivers       Driver[]
   orders        Order[]
+  stockCounts   StockCount[]
   products      Product[]
   scheduleAssignments ScheduleAssignment[]
   assets             Asset[]
@@ -60,6 +61,7 @@ model User {
   mustChangePassword Boolean @default(false) @map("must_change_password")
   assignedOrders Order[]  @relation("OrderAssigner")
   driverProfile  Driver?  @relation("DriverUser")
+  stockCounts    StockCount[]
   scheduleAssignments ScheduleAssignment[]
 
   @@index([factoryId])
@@ -80,6 +82,7 @@ model Product {
   globalPrices           GlobalPrice?
   inventory              Inventory[]
   orderItems             OrderItem[]
+  stockCounts            StockCount[]
 
   @@index([factoryId])
   @@map("products")
@@ -239,6 +242,25 @@ model Inventory {
 
   @@unique([productId, date])
   @@map("inventory")
+}
+
+// One row per stock count: what the books said, what was counted, and who
+// counted. The difference is the loss (melting, breakage) or surplus.
+model StockCount {
+  id              String   @id @default(cuid())
+  factoryId       String   @map("factory_id")
+  productId       String   @map("product_id")
+  bookQuantity    Int      @map("book_quantity")
+  countedQuantity Int      @map("counted_quantity")
+  note            String?
+  countedById     String?  @map("counted_by_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  factory         Factory  @relation(fields: [factoryId], references: [id])
+  product         Product  @relation(fields: [productId], references: [id])
+  countedBy       User?    @relation(fields: [countedById], references: [id])
+
+  @@index([factoryId, createdAt])
+  @@map("stock_counts")
 }
 
 enum UserRole {

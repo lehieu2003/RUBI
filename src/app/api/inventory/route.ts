@@ -2,13 +2,14 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { requireRole } from '@/lib/auth/helpers';
-import { startOfVietnamToday } from '@/lib/vietnam-time';
+import { changeStock, stockOnHand } from '@/lib/inventory';
 import { apiSuccess, apiError } from '@/lib/api-response';
 
 const RecordSchema = z.object({
   productId: z.string().min(1),
   quantity: z.number().int().min(0),
   mode: z.enum(['ADD', 'SET']).optional(),
+  note: z.string().trim().max(200).optional(),
 });
 
 export async function GET() {
@@ -27,21 +28,8 @@ export async function GET() {
       orderBy: [{ name: 'asc' }, { sizeKg: 'asc' }],
     });
 
-    // Start of today UTC
-    const today = startOfVietnamToday();
-
-    // Get inventory records
-    const inventoryRecords = await prisma.inventory.findMany({
-      where: {
-        product: { factoryId },
-        date: { gte: today },
-      },
-      include: {
-        product: true,
-      },
-    });
-
-    const inventoryMap = new Map(inventoryRecords.map(r => [r.productId, r.quantityOnHand]));
+    // Running balance: yesterday's closing stock carries over to today.
+    const inventoryMap = await stockOnHand(prisma, products.map((product) => product.id));
 
     const items = products.map(product => ({
       productId: product.id,
@@ -76,7 +64,7 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) {
       return apiError('Thông tin sản lượng không hợp lệ', 400);
     }
-    const { productId, quantity, mode } = parsed.data;
+    const { productId, quantity, mode, note } = parsed.data;
 
     const product = await prisma.product.findFirst({
       where: { id: productId, factoryId: session.factoryId },
@@ -86,35 +74,30 @@ export async function POST(req: NextRequest) {
       return apiError('Không tìm thấy sản phẩm', 404);
     }
 
-    const today = startOfVietnamToday();
-
-    const existing = await prisma.inventory.findFirst({
-      where: {
-        productId,
-        date: { gte: today },
-      },
-    });
-
-    let newQuantity = quantity;
-    if (existing) {
+    // ADD records a batch coming out of production; SET (the default) is a
+    // stock count: the counted quantity replaces the balance.
+    const factoryId = session.factoryId;
+    const record = await prisma.$transaction(async (tx) => {
       if (mode === 'ADD') {
-        newQuantity = existing.quantityOnHand + quantity;
+        return changeStock(tx, productId, { add: quantity });
       }
-      const updated = await prisma.inventory.update({
-        where: { id: existing.id },
-        data: { quantityOnHand: newQuantity },
-      });
-      return apiSuccess(updated);
-    } else {
-      const created = await prisma.inventory.create({
+      // Keep what the books said next to what was counted: the difference
+      // is the loss or surplus the manager reviews later.
+      const bookQuantity = (await stockOnHand(tx, [productId])).get(productId) ?? 0;
+      const counted = await changeStock(tx, productId, { set: quantity });
+      await tx.stockCount.create({
         data: {
+          factoryId,
           productId,
-          date: today,
-          quantityOnHand: quantity,
+          bookQuantity,
+          countedQuantity: quantity,
+          note: note || null,
+          countedById: session.userId,
         },
       });
-      return apiSuccess(created);
-    }
+      return counted;
+    });
+    return apiSuccess(record);
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[POST /api/inventory]', error);
