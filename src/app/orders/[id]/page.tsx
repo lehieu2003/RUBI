@@ -13,7 +13,7 @@ export async function generateMetadata({
   const session = await getSession();
 
   if (!session?.factoryId) {
-    return { title: 'Chi tiết đơn hàng | IceFlow SaaS' };
+    return { title: 'Chi tiết đơn hàng | Nhà máy đá tinh khiết Rubi' };
   }
 
   const order = await prisma.order.findFirst({
@@ -22,7 +22,7 @@ export async function generateMetadata({
   });
 
   if (!order) {
-    return { title: 'Không tìm thấy đơn hàng | IceFlow SaaS' };
+    return { title: 'Không tìm thấy đơn hàng | Nhà máy đá tinh khiết Rubi' };
   }
 
   const code = `DH-${order.id.slice(-6).toUpperCase()}`;

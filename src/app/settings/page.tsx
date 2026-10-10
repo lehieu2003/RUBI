@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
-import { User, Bell, Database, Shield, Palette, Save, Users, Key, Plus, X, CreditCard, LogOut, Link2 } from 'lucide-react';
+import { User, Bell, Database, Shield, Palette, Save, Users, Key, Plus, X, LogOut, Link2 } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { useAuth } from '@/lib/auth-provider';
 import { useTheme } from '@/lib/theme';
@@ -46,7 +45,6 @@ export default function SettingsPage() {
   const [newRole, setNewRole] = useState<UserRole>('STAFF');
 
   const isAdmin = currentUser?.role === 'ADMIN';
-  const canViewBilling = currentUser?.role === 'ADMIN' || currentUser?.role === 'ACCOUNTANT';
 
   // Fetch current user and staff list
   useEffect(() => {
@@ -131,15 +129,6 @@ export default function SettingsPage() {
                   <span>{tab.label}</span>
                 </button>
               ))}
-              {canViewBilling && (
-                <Link
-                  href="/settings/billing"
-                  className="flex w-full items-center gap-2.5 rounded px-3 py-2 text-left text-xs font-bold text-on-surface-variant transition-all hover:bg-container-high hover:text-primary-deep"
-                >
-                  <CreditCard className="h-4 w-4" />
-                  <span>Gói Dịch Vụ</span>
-                </Link>
-              )}
             </nav>
           </div>
 

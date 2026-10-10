@@ -8,19 +8,9 @@ const loginPage = readFileSync(
   'utf-8',
 );
 
-const registerPage = readFileSync(
-  join(process.cwd(), 'src/app/(auth)/register/page.tsx'),
-  'utf-8',
-);
-
 describe('auth forms submit explicitly on Enter', () => {
   it('login form handles Enter via onKeyDown + requestSubmit (not implicit submission)', () => {
     assert.match(loginPage, /onKeyDown/);
     assert.match(loginPage, /requestSubmit/);
-  });
-
-  it('register form does the same', () => {
-    assert.match(registerPage, /onKeyDown/);
-    assert.match(registerPage, /requestSubmit/);
   });
 });

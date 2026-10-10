@@ -7,8 +7,6 @@ const adminWriteRoutes = [
   'src/app/api/drivers/route.ts',
   'src/app/api/staff/route.ts',
   'src/app/api/staff/[id]/route.ts',
-  'src/app/api/subscriptions/[id]/route.ts',
-  'src/app/api/subscriptions/cancel/route.ts',
   'src/app/api/prices/global/route.ts',
   'src/app/api/prices/customer/override/route.ts',
 ];
@@ -55,34 +53,21 @@ describe('RBAC API guard source checks', () => {
     assert.match(source, /factoryId: session\.factoryId/);
   });
 
-  it('keeps payment confirmation scoped for tenant admin and super admin flows', () => {
-    const source = read('src/app/api/payments/confirm/route.ts');
-    assert.match(source, /session\.role !== 'ADMIN' && session\.role !== 'SUPER_ADMIN'/);
-    assert.match(source, /factoryId: session\.factoryId/);
-    assert.match(source, /prismaAuth\.payment\.create/);
+  it('has no super admin or impersonation path left in auth/middleware', () => {
+    for (const file of ['src/middleware.ts', 'src/lib/auth.ts', 'src/lib/auth/helpers.ts']) {
+      assert.doesNotMatch(read(file), /SUPER_ADMIN|impersonat/i, `${file} should be single-factory only`);
+    }
   });
 
-  it('keeps impersonation writes read-only in middleware', () => {
+  it('redirects unauthorized navigation back to the role home', () => {
     const source = read('src/middleware.ts');
-    assert.match(source, /request\.method !== 'GET'/);
-    assert.match(source, /READ_ONLY_IMPERSONATION/);
-  });
-
-  it('redirects unauthorized SUPER_ADMIN tenant navigation back to admin surface', () => {
-    const source = read('src/middleware.ts');
-    assert.match(source, /userRole === 'SUPER_ADMIN' \? '\/admin\/dashboard' : userRole === 'DRIVER' \? '\/driver' : '\/dashboard'/);
+    assert.match(source, /userRole === 'DRIVER' \? '\/driver' : '\/dashboard'/);
   });
 
   it('keeps JWT production secret baseline hardened', () => {
     const source = read('src/lib/auth.ts');
     assert.doesNotMatch(source, /iceflow-secret-key-change-in-production/);
     assert.match(source, /JWT_SECRET environment variable is required in production/);
-  });
-
-  it('does not print SUPER_ADMIN JWT tokens in seed script', () => {
-    const source = read('prisma/seed-system-factory.ts');
-    assert.doesNotMatch(source, /SUPER_ADMIN JWT/);
-    assert.doesNotMatch(source, /JWT token/);
   });
 });
 

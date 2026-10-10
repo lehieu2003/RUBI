@@ -8,7 +8,6 @@ const factoryIdModels = [
   'Product',
   'ScheduleAssignment',
   'User',
-  'Subscription',
 ];
 
 type TenantScopedArgs = {
@@ -20,7 +19,6 @@ type TenantScopedArgs = {
 
 function scopeTenantQuery(model: string, args: TenantScopedArgs): TenantScopedArgs {
   const ctx = getTenantContext();
-  if (ctx.role === 'SUPER_ADMIN') return args;
   if (!factoryIdModels.includes(model)) return args;
 
   if (ctx.factoryId) {

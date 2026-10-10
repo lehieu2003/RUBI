@@ -1,7 +1,7 @@
 <!-- generated-by: gsd-doc-writer -->
-# IceFlow SaaS
+# IceFlow — Nhà máy đá tinh khiết Rubi
 
-Web-based order and inventory management system for ice factories. Replaces pen-and-paper/Zalo workflows with fast digital order entry, printed delivery slips, and automated inventory/debt tracking for small-to-medium ice factory operations.
+Web-based order and inventory management system for a single ice factory (Nhà máy đá tinh khiết Rubi). Replaces pen-and-paper/Zalo workflows with fast digital order entry, printed delivery slips, and automated inventory/debt tracking for small-to-medium ice factory operations.
 
 ## Quick Start
 
@@ -68,7 +68,7 @@ docker compose exec app npm run db:seed
 src/
   app/              # Next.js App Router pages and API routes
     api/            # REST API endpoints
-    (auth)/         # Authentication pages (login, register)
+    (auth)/         # Authentication pages (login)
     dashboard/      # Main dashboard
     orders/         # Order management
     customers/      # Customer management
@@ -123,4 +123,4 @@ Configure your `.env` file with the following Supabase credentials:
 
 ## Deployment
 
-The app builds to a standalone Node server (`next.config.mjs` → `output: 'standalone'`) and ships as a Docker image (`Dockerfile`, multi-stage `node:20-alpine`). Configure at minimum `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET` and — in production — `PAYMENT_WEBHOOK_SECRET` (the payment webhook fails closed without it).
+The app builds to a standalone Node server (`next.config.mjs` → `output: 'standalone'`) and ships as a Docker image (`Dockerfile`, multi-stage `node:20-alpine`). Configure at minimum `DATABASE_URL`, `DIRECT_URL` and `JWT_SECRET`.

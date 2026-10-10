@@ -1,9 +1,8 @@
 /**
- * IceFlow SaaS - Complete System Seed Script
+ * IceFlow - Complete System Seed Script
  *
  * Populates the entire database with realistic data for:
- * 1. Super Admin & System Factory
- * 2. Demo Tenant Factory (Nhà Máy Đá Miền Đông) with Active Subscription
+ * 1. The single factory (Nhà máy đá tinh khiết Rubi)
  * 3. Factory Users: Owner/Admin, Accountant, Staff, Driver
  * 4. Products (Đá Bi, Đá Viên, Đá Cây, Đá Mi) & Global Prices
  * 5. Customers with Customer Price Overrides
@@ -11,7 +10,6 @@
  * 7. Drivers & Schedule Assignments (Ca trực)
  * 8. Inventory snapshots
  * 9. Orders & Order Items in various lifecycle stages
- * 10. Sample Payments
  *
  * Run with: npm run db:seed
  */
@@ -23,75 +21,28 @@ const prisma = new PrismaClient();
 
 async function main() {
   console.log('='.repeat(60));
-  console.log('🧊 ICEFLOW SAAS - SEEDING COMPLETE SYSTEM DATA');
+  console.log('🧊 ICEFLOW - SEEDING COMPLETE SYSTEM DATA');
   console.log('='.repeat(60));
 
   const defaultPassword = await bcrypt.hash('12345678', 10);
 
   // -------------------------------------------------------------
-  // 1. SUPER ADMIN & SYSTEM FACTORY
+  // 2. THE FACTORY (Nhà máy đá tinh khiết Rubi)
   // -------------------------------------------------------------
-  console.log('\n[1/7] Creating System Factory & Super Admin...');
-  const systemFactory = await prisma.factory.upsert({
-    where: { id: 'sys-default-factory' },
-    update: {},
-    create: {
-      id: 'sys-default-factory',
-      name: 'Hệ Thống IceFlow',
-      isSystem: true,
-      onboardingCompleted: true,
-    },
-  });
-
-  const superAdmin = await prisma.user.upsert({
-    where: { email: 'superadmin@iceflow.vn' },
-    update: { password: defaultPassword },
-    create: {
-      email: 'superadmin@iceflow.vn',
-      name: 'Super Administrator',
-      phone: '0901000000',
-      password: defaultPassword,
-      role: UserRole.SUPER_ADMIN,
-      isActive: true,
-    },
-  });
-  console.log(`  ✓ Super Admin: ${superAdmin.email} | Pass: 12345678`);
-
-  // -------------------------------------------------------------
-  // 2. MAIN DEMO FACTORY (Nhà Máy Đá Miền Đông)
-  // -------------------------------------------------------------
-  console.log('\n[2/7] Creating Demo Factory (Nhà Máy Đá Miền Đông)...');
+  console.log('\n[2/7] Creating Factory (Nhà máy đá tinh khiết Rubi)...');
   const demoFactory = await prisma.factory.upsert({
     where: { id: 'factory-mien-dong' },
-    update: {},
+    update: { name: 'Nhà máy đá tinh khiết Rubi' },
     create: {
       id: 'factory-mien-dong',
-      name: 'Nhà Máy Nước Đá Miền Đông',
+      name: 'Nhà máy đá tinh khiết Rubi',
       phone: '028 3899 9999',
       address: '128 Xa Lộ Hà Nội, TP. Thủ Đức, TP.HCM',
-      isSystem: false,
       onboardingCompleted: true,
     },
   });
 
-  // Subscription (PAID - 30 days remaining)
-  const endDate = new Date();
-  endDate.setDate(endDate.getDate() + 30);
-  await prisma.subscription.upsert({
-    where: { id: 'sub-mien-dong' },
-    update: {},
-    create: {
-      id: 'sub-mien-dong',
-      factoryId: demoFactory.id,
-      planType: 'PAID',
-      status: 'ACTIVE',
-      startDate: new Date(),
-      endDate: endDate,
-      driverCount: 3,
-      pricePerDriver: new Prisma.Decimal(150000),
-    },
-  });
-  console.log(`  ✓ Demo Factory created with Active Subscription (3 drivers)`);
+  console.log(`  ✓ Factory ready: ${demoFactory.name}`);
 
   // -------------------------------------------------------------
   // 3. FACTORY USERS (Owner, Accountant, Staff, Driver)
@@ -461,16 +412,6 @@ async function main() {
     });
   }
 
-  // Payment from owner
-  await prisma.payment.create({
-    data: {
-      factoryId: demoFactory.id,
-      adminId: adminUser.id,
-      amount: new Prisma.Decimal(450000),
-      notes: 'Thanh toán thuê bao tháng qua VietQR',
-    },
-  });
-
   console.log(`  ✓ Created Sample Orders in PENDING, SHIPPING, DELIVERED, COMPLETED states`);
 
   console.log('\n' + '='.repeat(60));
@@ -480,7 +421,6 @@ async function main() {
   console.log('┌──────────────────┬──────────────────────────┬───────────┐');
   console.log('│ Vai trò (Role)   │ Email                    │ Password  │');
   console.log('├──────────────────┼──────────────────────────┼───────────┤');
-  console.log('│ Super Admin      │ superadmin@iceflow.vn    │ 12345678  │');
   console.log('│ Chủ xưởng (Admin)│ admin@miendong.vn        │ 12345678  │');
   console.log('│ Kế toán          │ ketoan@miendong.vn       │ 12345678  │');
   console.log('│ Nhân viên lên đơn│ nhanvien@miendong.vn     │ 12345678  │');

@@ -137,7 +137,6 @@ export default async function DashboardPage() {
       inventoryStats={inventoryStats}
       totalBagsOut={totalBagsOut}
       yesterdayRevenue={yesterdayRevenue}
-      currentUser={session ? { id: session.userId, role: session.role, factoryId: session.factoryId } : null}
       showOnboardingPrompt={showOnboardingPrompt}
       dueAssets={dueAssets.map((r) => ({
         assetName: r.asset.name,
