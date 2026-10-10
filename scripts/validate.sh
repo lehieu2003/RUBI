@@ -4,6 +4,7 @@
 #   validate.sh commit-msg <file>      check one commit message file
 #   validate.sh branch [name]          check a branch name (default: current)
 #   validate.sh range <base> <head>    check every commit subject in base..head
+#   validate.sh pre-push               block pushes to protected branches (reads git's pre-push stdin)
 set -euo pipefail
 
 TYPES='feat|fix|refactor|docs|test|chore'
@@ -61,7 +62,16 @@ case "${1:-}" in
       check_subject "$subject"
     done < <(git log --no-merges --format=%s "$2..$3")
     ;;
+  pre-push)
+    # stdin: <local ref> <local sha> <remote ref> <remote sha>, one line per ref
+    while read -r _ _ remote_ref _; do
+      if [[ "$remote_ref" =~ ^refs/heads/(${PROTECTED})$ ]]; then
+        fail "Không push trực tiếp lên '${BASH_REMATCH[1]}'." \
+          "Đẩy nhánh riêng rồi mở PR vào dev; chỉ merge khi CI xanh."
+      fi
+    done
+    ;;
   *)
-    fail "Cách dùng: validate.sh commit-msg <file> | branch [name] | range <base> <head>"
+    fail "Cách dùng: validate.sh commit-msg <file> | branch [name] | range <base> <head> | pre-push"
     ;;
 esac

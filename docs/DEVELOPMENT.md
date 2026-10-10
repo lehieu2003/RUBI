@@ -88,10 +88,12 @@ No `.editorconfig` file is present in the project root.
 
 These rules are enforced by `scripts/validate.sh`:
 
-- locally through git hooks in `.githooks/` (`pre-commit` checks the branch, `commit-msg` checks the message). `npm install` activates them by setting `core.hooksPath`; to do it by hand run `git config core.hooksPath .githooks`.
+- locally through git hooks in `.githooks/` (`pre-commit` checks the branch, `commit-msg` checks the message, `pre-push` refuses pushes to `dev` and `master`). `npm install` activates them by setting `core.hooksPath`; to do it by hand run `git config core.hooksPath .githooks`.
 - in CI, which re-checks the branch name and every commit of the pull request, since local hooks can be skipped with `--no-verify`.
 
 Lint, typecheck, tests and build are not run in the hooks; CI runs them.
+
+GitHub branch protection is not available for this private repository on the free plan, so the `pre-push` hook is the only guard against direct pushes; it can be bypassed with `--no-verify`.
 
 ## PR Process
 
