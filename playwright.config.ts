@@ -13,6 +13,9 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   timeout: 60_000,
+  // The first visit of a server-rendered page on a cold CI runner can take
+  // longer than the default five seconds.
+  expect: { timeout: 15_000 },
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
   globalSetup: './e2e/support/global-setup.ts',
   use: {
