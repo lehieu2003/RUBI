@@ -64,6 +64,7 @@ export async function POST(req: NextRequest) {
             role: user.role,
             factoryId: user.factoryId,
           },
+          token,
         });
   } catch (error) {
     console.error('Login error:', error);

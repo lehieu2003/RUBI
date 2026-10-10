@@ -3,6 +3,7 @@ import { prisma, prismaAuth } from '@/lib/db';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { requireRole } from '@/lib/auth/helpers';
+import { verifyJWT } from '@/lib/auth';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 // PATCH /api/orders/[id]/confirm
@@ -31,7 +32,14 @@ export async function PATCH(
 
     const authHeader = request.headers.get('authorization');
     const bodyToken = typeof body?.token === 'string' ? body.token : null;
-    const driver = authHeader?.startsWith('Bearer ')
+    // Bearer JWT (logged-in mobile driver) resolves via the cookie-session
+    // path; a non-JWT Bearer value stays a driver share-token (web /d/[token]).
+    const bearerSession = authHeader?.startsWith('Bearer ')
+      ? await verifyJWT(authHeader.slice(7))
+      : null;
+    const driver = bearerSession
+      ? await getSessionDriver()
+      : authHeader?.startsWith('Bearer ')
       ? await prismaAuth.driver.findUnique({ where: { token: authHeader.slice(7) } })
       : bodyToken
       ? await prismaAuth.driver.findUnique({ where: { token: bodyToken } })

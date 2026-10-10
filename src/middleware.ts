@@ -6,7 +6,8 @@ import { setTenantContext, TenantContext } from '@/lib/tenant';
 type UserRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'DRIVER' | 'SUPER_ADMIN';
 
 export async function middleware(request: NextRequest) {
-  const token = request.cookies.get('auth_token')?.value;
+  const authHeader = request.headers.get('authorization');
+  const token = authHeader?.toLowerCase().startsWith('bearer ') ? authHeader.slice(7).trim() : request.cookies.get('auth_token')?.value;
   const session = token ? await verifyJWT(token) : null;
 
   // Set tenant context for Prisma  hooks (auto-injects factoryId filter)
