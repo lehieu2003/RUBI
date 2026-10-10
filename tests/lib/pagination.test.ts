@@ -144,7 +144,7 @@ describe('paginated response schema', () => {
   it('rejects missing, renamed or non-integer metadata', () => {
     assert.equal(Page.safeParse({ success: true, data: [] }).success, false);
     for (const field of ['page', 'limit', 'total_item', 'total_page']) {
-      const { [field]: _removed, ...partial } = meta as Record<string, number>;
+      const partial = Object.fromEntries(Object.entries(meta).filter(([key]) => key !== field));
       assert.equal(Page.safeParse({ success: true, data: [], meta: partial }).success, false, `without ${field}`);
     }
     assert.equal(Page.safeParse({ success: true, data: [], meta: { page: 1, limit: 20, total: 1 } }).success, false);
