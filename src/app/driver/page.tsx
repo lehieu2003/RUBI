@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { CheckCircle2, Clock, LogOut, RefreshCw, Snowflake } from 'lucide-react';
+import Link from 'next/link';
+import { CalendarCheck, CheckCircle2, Clock, LogOut, RefreshCw, Snowflake } from 'lucide-react';
 import DeliveryCard from '@/components/driver/DeliveryCard';
 import EmptyState from '@/components/driver/EmptyState';
 import { useAuth } from '@/lib/auth-provider';
@@ -188,6 +189,13 @@ export default function DriverPage() {
           <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           {isRefreshing ? 'Đang cập nhật...' : 'CẬP NHẬT ĐƠN HÀNG'}
         </button>
+        <Link
+          href="/my-schedule"
+          className="mt-2 flex min-h-[44px] w-full items-center justify-center gap-2 rounded border border-outline-variant bg-card text-xs font-bold text-primary-deep hover:bg-container-high transition-colors shadow-sm"
+        >
+          <CalendarCheck className="h-4 w-4" />
+          ĐĂNG KÝ CA LÀM
+        </Link>
       </div>
 
       {orders.length === 0 ? (
