@@ -70,10 +70,10 @@ async function main() {
   console.log('\n[3/7] Creating Factory Users (All Roles)...');
   
   const adminUser = await prisma.user.upsert({
-    where: { email: 'admin@miendong.vn' },
+    where: { email: 'quanly@rubi.local' },
     update: {}, // never overwrite the password of an existing account
     create: {
-      email: 'admin@miendong.vn',
+      email: 'quanly@rubi.local',
       name: 'Nguyễn Văn Chủ Xưởng',
       phone: '0909111222',
       password: defaultPassword,
@@ -427,7 +427,7 @@ async function main() {
   console.log('┌──────────────────┬──────────────────────────┬───────────┐');
   console.log('│ Vai trò (Role)   │ Email                    │ Password  │');
   console.log('├──────────────────┼──────────────────────────┼───────────┤');
-  console.log('│ Quản lý (Admin)  │ admin@miendong.vn        │ 12345678  │');
+  console.log('│ Quản lý (Admin)  │ quanly@rubi.local        │ 12345678  │');
   console.log('│ Nhân viên lên đơn│ nhanvien@miendong.vn     │ 12345678  │');
   console.log('│ Tài xế giao hàng │ taixe1@miendong.vn       │ 12345678  │');
   console.log('└──────────────────┴──────────────────────────┴───────────┘\n');

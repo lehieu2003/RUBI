@@ -44,10 +44,10 @@ export function StatCard({
 
   return (
     <div
-      className={`relative overflow-hidden rounded border bg-[#ffffff] p-5 transition-all duration-150 ${
+      className={`relative overflow-hidden rounded border p-5 transition-all duration-150 ${
         warning
           ? 'border-tertiary-container bg-error-container/20'
-          : 'border-outline-variant hover:border-[#004a99] shadow-sm'
+          : 'border-outline-variant bg-card hover:border-primary-accent shadow-sm'
       }`}
     >
       <div className="flex items-start justify-between">

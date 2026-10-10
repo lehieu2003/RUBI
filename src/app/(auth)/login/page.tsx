@@ -92,7 +92,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@miendong.vn"
+              placeholder="Nhập email của bạn"
               required
               className="w-full px-3.5 py-3 rounded border border-outline-variant bg-card text-on-surface placeholder-faint focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99] text-sm font-medium"
             />
