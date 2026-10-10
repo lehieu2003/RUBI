@@ -3,12 +3,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { CheckCircle2, Clock, LogOut, RefreshCw, Snowflake } from 'lucide-react';
 import DeliveryCard from '@/components/driver/DeliveryCard';
-import DriverMap from '@/components/driver/DriverMap';
 import EmptyState from '@/components/driver/EmptyState';
 import { useAuth } from '@/lib/auth-provider';
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
-import { getCurrentPosition } from '@/lib/geolocation';
 
 interface DriverInfo {
   id: string;
@@ -35,7 +33,6 @@ interface Order {
   id: string;
   status: 'SHIPPING' | 'DELIVERED';
   total: number;
-  deliveryGps: { lat: number; lng: number } | null;
   customer: Customer;
   orderItems: OrderItem[];
   driverName: string;
@@ -47,7 +44,6 @@ export default function DriverPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showMap, setShowMap] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchOrders = useCallback(async () => {
@@ -83,20 +79,11 @@ export default function DriverPage() {
       (previous || []).map((order) => (order.id === orderId ? { ...order, status: 'DELIVERED' as const } : order))
     );
 
-    const gps = await getCurrentPosition();
-    if (!gps) {
-      toast({
-        type: 'warning',
-        title: 'Không lấy được vị trí GPS',
-        message: 'Đơn vẫn được xác nhận nhưng không ghi được tọa độ giao hàng.',
-      });
-    }
-
     try {
       const response = await fetch(API_ENDPOINTS.ORDERS.CONFIRM(orderId), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gps }),
+        body: JSON.stringify({}),
       });
 
       if (!response.ok) {
@@ -225,14 +212,6 @@ export default function DriverPage() {
         </div>
       )}
 
-      <DriverMap orders={orders} isOpen={showMap} onClose={() => setShowMap(false)} />
-      <button
-        onClick={() => setShowMap(true)}
-        className="fixed bottom-4 left-4 right-4 min-h-[52px] rounded bg-[#004a99] hover:bg-[#00346f] active:bg-[#002754] font-bold text-sm text-white shadow-lg transition-colors flex items-center justify-center gap-2"
-      >
-        XEM BẢN ĐỒ GIAO HÀNG
-      </button>
-      <div className="h-24" />
     </div>
   );
 }

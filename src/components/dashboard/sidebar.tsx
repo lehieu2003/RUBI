@@ -41,7 +41,6 @@ const menuMetadata = {
   '/vehicles': { icon: Truck, label: 'Đội xe' },
   '/assets': { icon: Wrench, label: 'Tài sản' },
   '/schedule': { icon: Calendar, label: 'Lịch trình' },
-  '/dashboard/map': { icon: Truck, label: 'Bản đồ' },
   '/settings': { icon: Settings, label: 'Cài đặt' },
   '/config/prices': { icon: Package, label: 'Bảng giá' },
 };

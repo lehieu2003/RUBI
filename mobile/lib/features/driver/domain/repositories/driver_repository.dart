@@ -1,4 +1,3 @@
-import 'package:iceflow_mobile/core/location/location_service.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
 
@@ -13,7 +12,6 @@ abstract class DriverRepository {
   /// đơn theo ngày và filter `createdAt` phía server.
   Future<Result<List<DeliveryOrder>>> getOrders(DateTime date);
 
-  /// Xác nhận đã giao [orderId]. [gps] là vị trí lúc xác nhận (null khi
-  /// người dùng không cho phép vị trí).
-  Future<Result<void>> confirmDelivery({required String orderId, GeoPoint? gps});
+  /// Xác nhận đã giao [orderId].
+  Future<Result<void>> confirmDelivery({required String orderId});
 }

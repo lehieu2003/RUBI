@@ -21,7 +21,6 @@ export const API_ENDPOINTS = {
   // Orders
   ORDERS: {
     BASE: '/api/orders',
-    MAP: '/api/orders/map',
     BULK_ASSIGN: '/api/orders/bulk-assign',
     STATUS: (id: string) => '/api/orders/' + id + '/status',
     CONFIRM: (id: string) => '/api/orders/' + id + '/confirm',

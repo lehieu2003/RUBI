@@ -6,8 +6,7 @@ import 'package:iceflow_mobile/features/driver/presentation/cubit/today_orders_c
 
 /// Mở sheet xác nhận đã giao cho [order].
 ///
-/// [onConfirmed] chạy SAU khi xác nhận thành công (sheet đã pop). Lấy GPS
-/// KHÔNG nằm ở đây — `TodayOrdersCubit.confirm` lo toàn bộ (Task 13).
+/// [onConfirmed] chạy SAU khi xác nhận thành công (sheet đã pop).
 Future<void> showConfirmSheet(
   BuildContext context, {
   required DeliveryOrder order,

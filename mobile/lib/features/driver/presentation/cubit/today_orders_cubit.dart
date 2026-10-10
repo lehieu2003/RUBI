@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iceflow_mobile/core/error/failure_messages.dart';
-import 'package:iceflow_mobile/core/location/location_service.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
 import 'package:iceflow_mobile/features/driver/domain/usecases/confirm_delivery.dart';
@@ -46,18 +45,16 @@ class TodayOrdersState extends Equatable {
 }
 
 /// State management tab "Đơn hôm nay": tải đơn theo ngày hiện tại, pull-to-
-/// refresh, và luồng xác nhận đã giao (lấy GPS → gọi use case → cập nhật
+/// refresh, và luồng xác nhận đã giao (gọi use case → cập nhật
 /// danh sách local).
 class TodayOrdersCubit extends Cubit<TodayOrdersState> {
   TodayOrdersCubit({
     required this._getOrders,
     required this._confirmDelivery,
-    required this._locationService,
   }) : super(const TodayOrdersState.initial());
 
   final GetOrdersForDateUseCase _getOrders;
   final ConfirmDeliveryUseCase _confirmDelivery;
-  final LocationService _locationService;
 
   /// Tải đơn của HÔM NAY (ngày local của device, khớp cách office nhập đơn).
   /// Reset toàn bộ state (kể cả [TodayOrdersState.errorMessage] cũ).
@@ -100,7 +97,6 @@ class TodayOrdersCubit extends Cubit<TodayOrdersState> {
   /// Xác nhận đã giao [orderId]. Guard chống bấm đôi: đang có đơn chờ xác
   /// nhận thì lời gọi mới bị bỏ qua.
   ///
-  /// GPS lấy trước khi gọi API (null khi không có vị trí — vẫn xác nhận).
   /// Thành công: đơn chuyển `delivered` và xuống CUỐI danh sách; thất bại:
   /// danh sách GIỮ NGUYÊN, chỉ hiện [TodayOrdersState.errorMessage].
   Future<void> confirm(String orderId) async {
@@ -111,8 +107,7 @@ class TodayOrdersCubit extends Cubit<TodayOrdersState> {
       errorMessage: state.errorMessage,
       confirmingOrderId: orderId,
     ));
-    final gps = await _locationService.getCurrentPosition();
-    final res = await _confirmDelivery(orderId: orderId, gps: gps);
+    final res = await _confirmDelivery(orderId: orderId);
     switch (res) {
       case Ok<void>():
         // deliveredAt server tự set; DateTime.now() ở đây chỉ là xấp xỉ để

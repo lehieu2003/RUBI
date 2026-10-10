@@ -165,10 +165,7 @@ model Order {
   updatedAt   DateTime    @updatedAt @map("updated_at")
   driverId    String?     @map("driver_id")
   assignerId  String?     @map("assigner_id")
-  deliveryLat Float?      @map("delivery_lat")
-  deliveryLng Float?      @map("delivery_lng")
   deliveredAt DateTime?   @map("delivered_at")
-  deliveryGps Json?       @map("delivery_gps")
   factoryId   String      @map("factory_id")
   factory     Factory     @relation(fields: [factoryId], references: [id])
   orderItems  OrderItem[]

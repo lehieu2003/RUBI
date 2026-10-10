@@ -3,11 +3,9 @@
 import { useEffect, useState, useCallback, use } from 'react';
 import DeliveryCard from '@/components/driver/DeliveryCard';
 import EmptyState from '@/components/driver/EmptyState';
-import DriverMap from '@/components/driver/DriverMap';
-import { Snowflake, RefreshCw, Clock, CheckCircle2, MapPin, AlertCircle } from 'lucide-react';
+import { Snowflake, RefreshCw, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
-import { getCurrentPosition } from '@/lib/geolocation';
 
 interface OrderItem {
   quantity: number;
@@ -29,7 +27,6 @@ interface Order {
   id: string;
   status: 'SHIPPING' | 'DELIVERED';
   total: number;
-  deliveryGps: { lat: number; lng: number } | null;
   customer: Customer;
   orderItems: OrderItem[];
 }
@@ -45,7 +42,6 @@ export default function DriverViewPage({ params }: DriverViewPageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showMap, setShowMap] = useState(false);
 
   const fetchOrders = useCallback(async () => {
     if (!token) return;
@@ -83,20 +79,11 @@ export default function DriverViewPage({ params }: DriverViewPageProps) {
       prev.map((o) => (o.id === orderId ? { ...o, status: 'DELIVERED' as const } : o))
     );
 
-    const gps = await getCurrentPosition();
-    if (!gps) {
-      toast({
-        type: 'warning',
-        title: 'Không lấy được vị trí GPS',
-        message: 'Đơn vẫn được xác nhận nhưng không ghi được tọa độ giao hàng.',
-      });
-    }
-
     try {
       const response = await fetch(API_ENDPOINTS.ORDERS.CONFIRM(orderId), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gps }),
+        body: JSON.stringify({}),
       });
 
       if (!response.ok) {
@@ -168,13 +155,6 @@ export default function DriverViewPage({ params }: DriverViewPageProps) {
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setShowMap(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#004a99] hover:bg-[#002754] text-white font-bold text-xs rounded transition-colors shadow-2xs"
-            >
-              <MapPin className="h-3.5 w-3.5 text-[#9bbdff]" />
-              Bản đồ
-            </button>
-            <button
               onClick={handleRefresh}
               disabled={isRefreshing}
               className="p-2 bg-[#004a99] hover:bg-[#002754] text-white rounded transition-colors disabled:opacity-50"
@@ -222,13 +202,6 @@ export default function DriverViewPage({ params }: DriverViewPageProps) {
           </div>
         )}
       </main>
-
-      {/* Map Modal */}
-      <DriverMap
-        orders={orders}
-        isOpen={showMap}
-        onClose={() => setShowMap(false)}
-      />
     </div>
   );
 }
