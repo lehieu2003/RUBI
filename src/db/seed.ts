@@ -100,8 +100,24 @@ async function main() {
     update: {}, // never overwrite the password of an existing account
     create: {
       email: 'taixe1@miendong.vn',
-      name: 'Phạm Văn Tài (Xe 1)',
+      // Same name as the driver profile: editing an account copies its name there.
+      name: 'Phạm Văn Tài',
       phone: '0909777888',
+      password: defaultPassword,
+      role: UserRole.DRIVER,
+      factoryId: demoFactory.id,
+    },
+  });
+
+  // Every driver has an account: a driver without one cannot sign in, cannot
+  // be assigned orders and does not appear in the staff list.
+  const driverUser2 = await prisma.user.upsert({
+    where: { email: 'taixe2@miendong.vn' },
+    update: {},
+    create: {
+      email: 'taixe2@miendong.vn',
+      name: 'Hoàng Văn Lộc',
+      phone: '0909999000',
       password: defaultPassword,
       role: UserRole.DRIVER,
       factoryId: demoFactory.id,
@@ -111,6 +127,7 @@ async function main() {
   console.log(`  ✓ Manager (Admin): ${adminUser.email}      | Pass: 12345678`);
   console.log(`  ✓ Order Staff   : ${staffUser.email}   | Pass: 12345678`);
   console.log(`  ✓ Driver User   : ${driverUser1.email}     | Pass: 12345678`);
+  console.log(`  ✓ Driver User   : ${driverUser2.email}     | Pass: 12345678`);
 
   // -------------------------------------------------------------
   // 4. DRIVERS & SCHEDULE
@@ -135,6 +152,7 @@ async function main() {
       name: 'Hoàng Văn Lộc',
       phone: '0909999000',
       factoryId: demoFactory.id,
+      userId: driverUser2.id,
       isActive: true,
     },
   });
