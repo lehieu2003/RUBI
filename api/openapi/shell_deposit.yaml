@@ -65,11 +65,11 @@ paths:
       operationId: updateShellDeposit
       tags:
         - Shell deposits
-      summary: Add shells handed out or returned to a customer's balance
+      summary: Add shells handed out or returned to a customer's balance, or correct the totals
       description: |-
         Access: ADMIN.
 
-        The numbers are increments, and the response echoes the increments sent, not the new balance.
+        By default (`mode: "ADD"` or omitted) the numbers are increments. With `mode: "SET"` they replace both totals, to correct a mistyped entry; both `shellsOut` and `shellsIn` are then required (400 otherwise). The response echoes the numbers sent, not the new balance.
       requestBody:
         required: true
         content:
@@ -86,6 +86,11 @@ paths:
                 shellsIn:
                   type: integer
                   minimum: 0
+                mode:
+                  type: string
+                  enum:
+                    - ADD
+                    - SET
                 notes:
                   type: string
               required:

@@ -93,3 +93,49 @@ describe('customer price page', () => {
     assert.match(page, /if \(session\.role !== 'ADMIN'\) \{\s*redirect\('\/customers'\)/);
   });
 });
+
+describe('account phone numbers', () => {
+  it('accepts usual phone formats and an empty value, refuses text', async () => {
+    const { CreateStaffBody, UpdateStaffBody } = await import('../../src/lib/contracts/accounts');
+    for (const phone of ['0909123456', '+84 909 123 456', '0909.123.456', '']) {
+      assert.ok(UpdateStaffBody.safeParse({ phone }).success, phone);
+    }
+    assert.ok(UpdateStaffBody.safeParse({ phone: null }).success);
+    for (const phone of ['abc', '12345', 'so cua toi 0909123456']) {
+      assert.equal(UpdateStaffBody.safeParse({ phone }).success, false, phone);
+    }
+    assert.ok(CreateStaffBody.safeParse({ name: 'A', email: 'a@rubi.vn', password: 'x', role: 'DRIVER', phone: '0909123456' }).success);
+    assert.ok(CreateStaffBody.safeParse({ name: 'A', email: 'a@rubi.vn', password: 'x', role: 'STAFF' }).success);
+  });
+
+  it("a driver's phone is copied to the driver profile and must be unique among drivers", () => {
+    const update = readFileSync('src/app/api/staff/[id]/route.ts', 'utf8');
+    const create = readFileSync('src/app/api/staff/route.ts', 'utf8');
+    assert.match(update, /\.\.\.\(body\.phone !== undefined \? \{ phone: updatedUser\.phone \} : \{\}\)/);
+    // the list falls back to the number kept on the driver profile
+    assert.match(create, /phone: user\.phone \?\? driverProfile\?\.phone \?\? null/);
+    assert.match(update, /where: \{ factoryId: session\.factoryId, phone, id: \{ not: existing\.driverProfile\?\.id \} \}/);
+    for (const source of [update, create]) assert.match(source, /409, 'PHONE_TAKEN'/);
+  });
+
+  it('the settings screen shows and edits the phone, and reads a new account out of the envelope', () => {
+    const page = readFileSync('src/app/settings/page.tsx', 'utf8');
+    assert.match(page, /body: JSON\.stringify\(\{ name: editName\.trim\(\), phone: editPhone\.trim\(\) \}\)/);
+    assert.match(page, /data\?\.data\?\.user \?\? data\?\.user/);
+    assert.doesNotMatch(page, /if \(data\.user\)/);
+  });
+});
+
+describe('shell count correction', () => {
+  const route = readFileSync('src/app/api/deposits/shells/route.ts', 'utf8');
+
+  it('SET replaces both totals and needs both numbers; the default still adds', () => {
+    assert.match(route, /mode === 'SET' && \(shellsOut === undefined \|\| shellsIn === undefined\)/);
+    assert.match(route, /mode === 'SET'\s*\? \{ shellsOut, shellsIn \}/);
+    assert.match(route, /shellsOut: \{ increment: shellsOut \?\? 0 \}/);
+  });
+
+  it('the screen sends a correction as SET', () => {
+    assert.match(readFileSync('src/app/deposits/shells/page.tsx', 'utf8'), /mode: 'SET', shellsOut: editOutQty, shellsIn: editInQty/);
+  });
+});

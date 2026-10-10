@@ -5,7 +5,7 @@
     "path": "/api/assets/{id}",
     "as": "admin",
     "params": {
-      "id": "cmv2hjjr9000ui939z5rpq5kg"
+      "id": "cmv2iti5o000wi9c4wgg5td4z"
     }
   },
   "status": 200,
