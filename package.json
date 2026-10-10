@@ -11,8 +11,8 @@
     "lint": "eslint src tests prisma --ext .ts,.tsx --no-error-on-unmatched-pattern",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev --name auto",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx src/db/seed.ts"
   },
   "dependencies": {
