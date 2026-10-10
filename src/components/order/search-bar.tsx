@@ -120,6 +120,8 @@ export function SearchBar({ customers, onSelect, recentCustomerIds }: SearchBarP
         <input
           ref={inputRef}
           type="text"
+          // Order entry starts by typing the customer: the drawer focuses this field on open.
+          data-autofocus
           value={query}
           onChange={(e) => handleQueryChange(e.target.value)}
           onKeyDown={handleKeyDown}
