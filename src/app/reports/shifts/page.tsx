@@ -6,6 +6,7 @@ import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
 import { exportToCSV } from '@/lib/export-excel';
 import { shiftSlots } from '@/components/schedule/calendar-grid';
+import { MonthPicker } from '@/components/ui/date-picker';
 
 type ReportDay = { date: string; shifts: string[] };
 type ReportPerson = {
@@ -102,13 +103,7 @@ export default function ShiftReportPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <input
-              type="month"
-              value={month}
-              onChange={(event) => event.target.value && setMonth(event.target.value)}
-              className="h-9 rounded border border-outline-variant bg-card px-3 text-sm text-on-surface"
-              aria-label="Chọn tháng"
-            />
+            <MonthPicker value={month} onChange={setMonth} />
             <button
               type="button"
               disabled={people.length === 0}

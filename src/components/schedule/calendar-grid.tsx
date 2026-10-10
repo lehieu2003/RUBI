@@ -26,7 +26,7 @@ export type SchedulePerson = {
   shifts: ScheduleShift[];
 };
 
-export const dayLabels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+export const dayLabels = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
 
 export const shiftSlots: Array<{
   value: Shift;
