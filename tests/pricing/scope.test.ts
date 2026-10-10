@@ -15,6 +15,18 @@ describe('pricing factory scope source checks', () => {
     assert.match(source, /where: \{ id: customerId, factoryId \}/);
   });
 
+  it('prices an order on the server and limits order entry to the office', () => {
+    const source = read('src/lib/actions/orders.ts');
+    assert.match(source, /session\.role !== 'ADMIN' && session\.role !== 'STAFF'/);
+    assert.equal(source.match(/await requireOfficeFactoryId\(\)/g)?.length, 2);
+    assert.match(source, /unitPrice: prices\[item\.productId\] \?\? 0/);
+    assert.match(source, /where: \{ id: \{ in: productIds \}, factoryId, isActive: true \}/);
+    // the request carries no price at all
+    const schema = source.slice(source.indexOf('const OrderItemSchema'), source.indexOf('const SaveOrderSchema'));
+    assert.doesNotMatch(schema, /unitPrice|lineTotal/);
+    assert.doesNotMatch(read('src/components/order/order-entry-drawer.tsx'), /unitPrice|lineTotal/);
+  });
+
   it('filters pricing reads through factory-owned products and customers', () => {
     const actionSource = read('src/lib/actions/orders.ts');
     const pricingSource = read('src/lib/pricing.ts');
