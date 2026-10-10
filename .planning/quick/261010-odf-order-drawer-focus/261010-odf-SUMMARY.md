@@ -15,7 +15,3 @@ status: complete
 
 - lint 0 lỗi · `tsc --noEmit` 0 lỗi · suite 220/220 · build xong.
 - Chrome (Playwright, Postgres tạm): từ `/orders` (nhân viên) và `/dashboard` (Quản lý), mở drawer → con trỏ ở ô tìm khách → gõ tên, Enter, gõ số lượng, Enter → đơn được lưu, không dùng chuột sau khi mở. Drawer chi tiết đơn vẫn bắt đầu ở nút đóng, Esc vẫn đóng.
-
-## Ghi chú
-
-Dòng trong bảng "Quick Tasks Completed" của `STATE.md` chưa thêm ở nhánh này để tránh xung đột với PR #30 (cùng sửa bảng đó); thêm sau khi PR #30 merge.
