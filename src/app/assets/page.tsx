@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { DatePicker } from '@/components/ui/date-picker';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Plus, Wrench, Truck, Download, Pencil, Trash2, RefreshCw, CalendarClock } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
@@ -610,20 +611,21 @@ export default function AssetsPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Ngày thực hiện *</label>
-                    <input
-                      type="date"
+                    <DatePicker
                       value={recordForm.performedAt}
-                      onChange={(e) => setRecordForm((p) => ({ ...p, performedAt: e.target.value }))}
-                      className="w-full px-3 py-2.5 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-primary-accent focus:outline-none"
+                      onChange={(value) => setRecordForm((p) => ({ ...p, performedAt: value }))}
+                      ariaLabel="Ngày thực hiện"
                     />
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Hạn tiếp theo</label>
-                    <input
-                      type="date"
+                    <DatePicker
                       value={recordForm.dueAt}
-                      onChange={(e) => setRecordForm((p) => ({ ...p, dueAt: e.target.value }))}
-                      className="w-full px-3 py-2.5 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-primary-accent focus:outline-none"
+                      onChange={(value) => setRecordForm((p) => ({ ...p, dueAt: value }))}
+                      placeholder="Không có"
+                      ariaLabel="Hạn tiếp theo"
+                      align="right"
+                      clearable
                     />
                   </div>
                 </div>

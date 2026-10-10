@@ -7,8 +7,8 @@ const source = readFileSync('src/components/schedule/calendar-grid.tsx', 'utf8')
 describe('schedule calendar grid source checks', () => {
   it('renders the weekly grid and Vietnamese day headers', () => {
     assert.match(source, /grid-cols-8/);
-    assert.match(source, /T2/);
-    assert.match(source, /CN/);
+    assert.match(source, /Thứ 2/);
+    assert.match(source, /Chủ nhật/);
   });
 
   it('renders operational shift slots across the full 24-hour day', () => {

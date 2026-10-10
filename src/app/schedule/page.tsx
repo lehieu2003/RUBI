@@ -30,19 +30,11 @@ function addDays(date: Date, days: number): Date {
   return next;
 }
 
-function getIsoWeek(date: Date): number {
-  const target = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-  const day = target.getUTCDay() || 7;
-  target.setUTCDate(target.getUTCDate() + 4 - day);
-  const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
-  return Math.ceil((((target.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-}
-
 function formatWeekLabel(weekStart: Date): string {
-  const day = String(weekStart.getUTCDate()).padStart(2, '0');
-  const month = String(weekStart.getUTCMonth() + 1).padStart(2, '0');
-  const year = weekStart.getUTCFullYear();
-  return `Tuần ${getIsoWeek(weekStart)} — ${day}/${month}/${year}`;
+  const format = (date: Date) =>
+    `${String(date.getUTCDate()).padStart(2, '0')}/${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
+  const weekEnd = addDays(weekStart, 6);
+  return `Tuần từ ${format(weekStart)} đến ${format(weekEnd)}/${weekEnd.getUTCFullYear()}`;
 }
 
 export default function SchedulePage() {

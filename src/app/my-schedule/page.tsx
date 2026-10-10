@@ -156,7 +156,7 @@ export default function MySchedulePage() {
             onClick={() => setWeekStart(getMonday(new Date()))}
             className="h-10 flex-1 rounded border border-outline-variant bg-card px-3 text-xs font-bold text-primary-deep hover:bg-container-high"
           >
-            Tuần {formatDay(weekDates[0])} – {formatDay(weekDates[6])}
+            Tuần từ {formatDay(weekDates[0])} đến {formatDay(weekDates[6])}
           </button>
           <button
             type="button"
@@ -204,7 +204,7 @@ export default function MySchedulePage() {
                   className={`rounded border bg-card p-3 ${shiftDate === today ? 'border-[#004a99]' : 'border-outline-variant'}`}
                 >
                   <h2 className="mb-2 flex items-center gap-2 text-sm font-bold text-on-surface">
-                    {dayLabels[dayIndex]} {formatDay(shiftDate)}
+                    {dayLabels[dayIndex]}, {formatDay(shiftDate)}
                     {shiftDate === today && (
                       <span className="rounded bg-[#004a99] px-1.5 py-0.5 text-[10px] font-bold uppercase text-white">Hôm nay</span>
                     )}
