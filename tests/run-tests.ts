@@ -11,6 +11,7 @@ import './lib/theme.test';
 import './api/assets.test';
 import './components/schedule/calendar-grid.test';
 import './components/sidebar.test';
+import './components/drawer-focus.test';
 import './lib/unwrap-envelope.test';
 import './lib/export-csv.test';
 import './api/debt-report.test';

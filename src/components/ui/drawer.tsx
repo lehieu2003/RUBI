@@ -28,9 +28,12 @@ export function Drawer({ isOpen, onClose, title, children }: DrawerProps) {
   useEffect(() => {
     if (isOpen) {
       previousFocusRef.current = document.activeElement as HTMLElement;
+      // The first focusable element is the header's close button. A drawer
+      // built for typing marks its field with data-autofocus to start there.
       const focusable = getFocusableElements();
-      if (focusable.length > 0) {
-        requestAnimationFrame(() => focusable[0].focus());
+      const initial = drawerRef.current?.querySelector<HTMLElement>('[data-autofocus]') ?? focusable[0];
+      if (initial) {
+        requestAnimationFrame(() => initial.focus());
       }
     } else {
       if (previousFocusRef.current) {
