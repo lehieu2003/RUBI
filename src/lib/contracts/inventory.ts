@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { type ApiContract, Id, IsoDateTime, envelope, paginated, paginationQuery, roles } from './common';
+import { type ApiContract, DateOnly, Id, IsoDateTime, envelope, paginated, paginationQuery, roles } from './common';
 
 const InventoryRow = z.object({
   id: Id,
@@ -21,6 +21,13 @@ const StockCountEntry = z.object({
   countedByName: z.string().nullable(),
   createdAt: IsoDateTime,
 });
+
+/** Filters shared by the stock count history and its summary. */
+const stockCountFilters = {
+  productId: Id.optional(),
+  from: DateOnly.optional(),
+  to: DateOnly.optional(),
+};
 
 export const inventoryContracts: ApiContract[] = [
   {
@@ -78,11 +85,28 @@ export const inventoryContracts: ApiContract[] = [
     tag: 'Inventory',
     summary: 'History of stock counts, newest first, paginated',
     auth: roles('ADMIN'),
-    query: z.object(paginationQuery),
+    query: z.object({ ...stockCountFilters, ...paginationQuery }),
     response: paginated(StockCountEntry),
     errors: [400, 401, 403, 500],
     notes:
       '`difference` is `countedQuantity - bookQuantity`: negative is a loss (melting, breakage), positive a surplus. ' +
-      '`countedByName` is null when the account that counted no longer exists.',
+      '`countedByName` is null when the account that counted no longer exists. `from` and `to` are Vietnam calendar ' +
+      'days, both inclusive; 400 when one is malformed or `from` is after `to`.',
+  },
+  {
+    id: 'getStockCountSummary',
+    method: 'GET',
+    path: '/api/inventory/counts/summary',
+    tag: 'Inventory',
+    summary: 'Total loss and surplus over the stock counts matching the history filters',
+    auth: roles('ADMIN'),
+    query: z.object(stockCountFilters),
+    response: envelope(
+      z.object({ counts: z.number().int(), totalLoss: z.number().int(), totalSurplus: z.number().int() })
+    ),
+    errors: [400, 401, 403, 500],
+    notes:
+      '`totalLoss` adds up the counts that found less than the books, `totalSurplus` those that found more; both are ' +
+      'positive numbers of units. Same filters and the same 400 as the history.',
   },
 ];
