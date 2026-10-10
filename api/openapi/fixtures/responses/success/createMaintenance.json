@@ -5,7 +5,7 @@
     "path": "/api/assets/{id}/maintenance",
     "as": "admin",
     "params": {
-      "id": "cmv26rr99000pi9fs9r273umz"
+      "id": "cmv276t6m000ti98ajnenua36"
     },
     "body": {
       "type": "ROUTINE",
@@ -18,15 +18,15 @@
   "body": {
     "success": true,
     "data": {
-      "id": "cmv26rrzb000ri9fsv5bugpay",
+      "id": "cmv276tvs000vi98a4jjupaow",
       "factoryId": "factory-mien-dong",
-      "assetId": "cmv26rr99000pi9fs9r273umz",
+      "assetId": "cmv276t6m000ti98ajnenua36",
       "type": "ROUTINE",
       "performedAt": "2026-12-15T00:00:00.000Z",
       "dueAt": null,
       "cost": 150000,
       "notes": null,
-      "createdAt": "2026-10-10T09:22:48.551Z"
+      "createdAt": "2026-10-10T09:34:30.857Z"
     }
   }
 }

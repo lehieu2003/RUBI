@@ -6,7 +6,7 @@
     "as": "admin",
     "body": {
       "name": "Nhân viên hợp đồng",
-      "email": "hopdong-mv26rk3v@rubi.local",
+      "email": "hopdong-mv276lny@rubi.local",
       "password": "<password>",
       "role": "STAFF"
     }
@@ -16,12 +16,12 @@
     "success": true,
     "data": {
       "user": {
-        "id": "cmv26rl970001i9fsl4fv4js7",
+        "id": "cmv276mqi0001i98apcngjtyk",
         "name": "Nhân viên hợp đồng",
-        "email": "hopdong-mv26rk3v@rubi.local",
+        "email": "hopdong-mv276lny@rubi.local",
         "role": "STAFF",
         "isActive": true,
-        "createdAt": "2026-10-10T09:22:39.835Z"
+        "createdAt": "2026-10-10T09:34:21.594Z"
       }
     }
   }

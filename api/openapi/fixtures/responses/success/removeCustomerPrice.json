@@ -5,7 +5,7 @@
     "path": "/api/prices/customer/override",
     "as": "admin",
     "query": {
-      "customerId": "cmv26rlyy0003i9fsx6k7rx3x",
+      "customerId": "cmv276ndw0003i98a5l4pwvju",
       "productId": "prod-bi-5"
     }
   },

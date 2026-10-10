@@ -5,7 +5,7 @@
     "path": "/api/staff/{id}",
     "as": "admin",
     "params": {
-      "id": "cmv26rl970001i9fsl4fv4js7"
+      "id": "cmv276mqi0001i98apcngjtyk"
     }
   },
   "status": 200,
