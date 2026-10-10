@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   try {
     const limit = await rateLimit(`driver-orders:${getIpFromRequest(request)}`, 60, 60 * 1000);
     if (!limit.success) {
-      return apiError('Too Many Requests', 429);
+      return apiError('Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút', 429);
     }
 
     const { searchParams } = new URL(request.url);
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[GET /api/driver/orders]', error);
-    return apiError('Failed to fetch orders', 500);
+    return apiError('Không thể tải danh sách đơn hàng', 500);
   }
 }
 

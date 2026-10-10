@@ -14,7 +14,7 @@ export async function POST(
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const { id } = await params;
@@ -42,6 +42,6 @@ export async function POST(
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[POST /api/staff/[id]/rotate-link]', error);
-    return apiError('Failed to rotate link', 500);
+    return apiError('Không thể tạo link mới', 500);
   }
 }

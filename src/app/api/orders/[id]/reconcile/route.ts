@@ -19,14 +19,14 @@ export async function PATCH(
     // --- Session auth ---
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const { id } = await params;
     const body = await request.json();
     const parsed = ReconcileSchema.safeParse(body);
     if (!parsed.success) {
-      return apiError('Invalid body. Required: items[{id, actualQty}]', 400);
+      return apiError('Dữ liệu không hợp lệ: thiếu số lượng thực giao', 400);
     }
 
     // --- Atomic transaction: reconcile + inventory deduction + debt entry ---
@@ -37,10 +37,10 @@ export async function PATCH(
         include: { orderItems: true, customer: true },
       });
       if (!order) {
-        throw new Error('Order not found');
+        throw new Error('Không tìm thấy đơn hàng');
       }
       if (order.status !== 'DELIVERED') {
-        throw new Error(`Order is ${order.status}, cannot reconcile. Only DELIVERED orders can be reconciled.`);
+        throw new Error('Chỉ đối soát được đơn đã giao');
       }
 
       // 1. Update actualQty for each line item
@@ -108,6 +108,6 @@ export async function PATCH(
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[PATCH /api/orders/[id]/reconcile]', error);
-    return apiError('Reconciliation failed', 500);
+    return apiError('Đối soát thất bại', 500);
   }
 }

@@ -28,7 +28,7 @@ export async function PATCH(
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const { id } = await params;
@@ -44,7 +44,7 @@ export async function PATCH(
       select: { id: true, name: true, role: true, isActive: true, driverProfile: { select: { id: true } } },
     });
     if (!existing) {
-      return apiError('Staff not found', 404);
+      return apiError('Không tìm thấy nhân sự', 404);
     }
     if (existing.role === 'ADMIN') {
       return apiError('Không thể sửa tài khoản Quản lý', 403);
@@ -128,7 +128,7 @@ export async function PATCH(
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[PATCH /api/staff/[id]]', error);
-    return apiError('Failed to update staff', 500);
+    return apiError('Không thể cập nhật nhân sự', 500);
   }
 }
 
@@ -140,7 +140,7 @@ export async function DELETE(
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const { id } = await params;
@@ -154,7 +154,7 @@ export async function DELETE(
       select: { id: true, role: true },
     });
     if (!existing) {
-      return apiError('Staff not found', 404);
+      return apiError('Không tìm thấy nhân sự', 404);
     }
     if (existing.role === 'ADMIN') {
       return apiError('Không thể xóa tài khoản Quản lý', 403);
@@ -169,6 +169,6 @@ export async function DELETE(
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[DELETE /api/staff/[id]]', error);
-    return apiError('Failed to delete staff', 500);
+    return apiError('Không thể xoá nhân sự', 500);
   }
 }

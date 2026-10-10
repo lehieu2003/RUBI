@@ -44,7 +44,7 @@ describe('RBAC route permissions', () => {
 
   it('has no ACCOUNTANT role: operational routes are ADMIN-only', () => {
     assert.equal(canAccessPath('ACCOUNTANT' as TenantRole, '/dashboard'), false);
-    for (const path of ['/settle', '/inventory', '/vehicles', '/assets', '/schedule', '/reports/debt', '/deposits/shells', '/settings', '/config/prices']) {
+    for (const path of ['/settle', '/inventory', '/vehicles', '/assets', '/schedule', '/reports/debt', '/reports/shifts', '/deposits/shells', '/settings', '/config/prices']) {
       assert.deepEqual(getAllowedRolesForPath(path), ['ADMIN'], `${path} should be ADMIN-only`);
     }
   });
@@ -54,11 +54,19 @@ describe('RBAC route permissions', () => {
     assertDenied('ADMIN', ['/driver']);
   });
 
+  it('lets STAFF and DRIVER register their own shifts, but not manage the schedule or see the shift report', () => {
+    assertAllowed('STAFF', ['/my-schedule']);
+    assertAllowed('DRIVER', ['/my-schedule']);
+    assertDenied('STAFF', ['/schedule', '/reports/shifts']);
+    assertDenied('DRIVER', ['/schedule', '/reports/shifts']);
+    assertDenied('ADMIN', ['/my-schedule']);
+  });
+
   it('filters visible tenant routes by the same permission source', () => {
     const staffRoutes = getVisibleTenantRoutes('STAFF').map((route) => route.href);
-    assert.deepEqual(staffRoutes, ['/dashboard', '/orders', '/customers']);
+    assert.deepEqual(staffRoutes, ['/dashboard', '/orders', '/customers', '/my-schedule']);
 
     const driverRoutes = getVisibleTenantRoutes('DRIVER').map((route) => route.href);
-    assert.deepEqual(driverRoutes, ['/driver']);
+    assert.deepEqual(driverRoutes, ['/my-schedule', '/driver']);
   });
 });

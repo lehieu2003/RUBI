@@ -76,6 +76,14 @@ JWT signing and verification uses `JWT_SECRET` from environment variables.
 | GET | `/api/deposits/shells` | List shell deposit balances | Admin only |
 | PATCH | `/api/deposits/shells` | Update shell deposit (shells out/in) | Admin only |
 | GET | `/api/reports/debt` | Customer debt report | Admin only |
+| GET | `/api/reports/shifts?month=YYYY-MM` | Approved shifts, hours and days worked per person (payroll basis) | Admin only |
+| GET | `/api/schedule/assignments?week=YYYY-MM-DD` | Weekly schedule with each shift's status | Admin only |
+| POST | `/api/schedule/assignments` | Assign (approved) or remove a shift for a person | Admin only |
+| POST | `/api/schedule/review` | Approve or reject shift requests (`ids`, `action`) | Admin only |
+| GET | `/api/schedule/my?week=YYYY-MM-DD` | Team schedule for the week, with the caller's own requests | Staff, Driver |
+| POST | `/api/schedule/my` | Request a shift for yourself (`shiftDate`, `shift`); created as `PENDING` | Staff, Driver |
+| DELETE | `/api/schedule/my` | Withdraw your own pending or rejected request | Staff, Driver |
+| POST | `/api/reports/shifts/lock` | Close or reopen a payroll month (`month`, `locked`) | Admin only |
 | GET | `/api/staff` | List all staff members | Admin only |
 | POST | `/api/staff` | Create new staff member | Admin only |
 | PATCH | `/api/staff/[id]` | Update staff member | Admin only |

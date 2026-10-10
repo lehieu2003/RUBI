@@ -16,7 +16,6 @@ export const API_ENDPOINTS = {
   // Factory
   FACTORY: {
     PROFILE: '/api/factory',
-    ONBOARDING: '/api/factory/onboarding',
   },
 
   // Orders
@@ -31,7 +30,6 @@ export const API_ENDPOINTS = {
   // Customers
   CUSTOMERS: {
     BASE: '/api/customers',
-    IMPORT: '/api/customers/import',
     DEBT_EXPORT: '/api/customers/debt-export',
   },
 
@@ -69,6 +67,8 @@ export const API_ENDPOINTS = {
   // Schedule & Shifts
   SCHEDULE: {
     ASSIGNMENTS: '/api/schedule/assignments',
+    MY: '/api/schedule/my',
+    REVIEW: '/api/schedule/review',
   },
 
   // Deposits (Vỏ bao)
@@ -79,6 +79,8 @@ export const API_ENDPOINTS = {
   // Reports
   REPORTS: {
     DEBT: '/api/reports/debt',
+    SHIFTS: '/api/reports/shifts',
+    SHIFTS_LOCK: '/api/reports/shifts/lock',
   },
 } as const;
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
-import { User, Bell, Database, Shield, Palette, Save, Users, Key, Plus, X, LogOut, Link2 } from 'lucide-react';
+import { User, Shield, Palette, Save, Users, Key, Plus, X, LogOut, Link2 } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { useAuth } from '@/lib/auth-provider';
 import { useTheme } from '@/lib/theme';
@@ -29,6 +29,24 @@ interface AuthUser {
   isActive: boolean;
 }
 
+const emptyFactoryForm = { name: '', phone: '', address: '', maxStaffPerShift: '', maxDriversPerShift: '' };
+
+function toFactoryForm(factory: {
+  name?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  maxStaffPerShift?: number | null;
+  maxDriversPerShift?: number | null;
+}) {
+  return {
+    name: factory.name ?? '',
+    phone: factory.phone ?? '',
+    address: factory.address ?? '',
+    maxStaffPerShift: factory.maxStaffPerShift?.toString() ?? '',
+    maxDriversPerShift: factory.maxDriversPerShift?.toString() ?? '',
+  };
+}
+
 export default function SettingsPage() {
   const { signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
@@ -47,7 +65,7 @@ export default function SettingsPage() {
   const [newRole, setNewRole] = useState<UserRole>('STAFF');
 
   // Factory profile form state
-  const [factoryForm, setFactoryForm] = useState({ name: '', phone: '', address: '' });
+  const [factoryForm, setFactoryForm] = useState(emptyFactoryForm);
   const [factoryLoaded, setFactoryLoaded] = useState(false);
   const [savingFactory, setSavingFactory] = useState(false);
 
@@ -93,7 +111,7 @@ export default function SettingsPage() {
         const json = await res.json();
         const factory = (json?.data !== undefined ? json.data : json)?.factory;
         if (factory) {
-          setFactoryForm({ name: factory.name ?? '', phone: factory.phone ?? '', address: factory.address ?? '' });
+          setFactoryForm(toFactoryForm(factory));
           setFactoryLoaded(true);
         }
       } catch (err) {
@@ -110,13 +128,20 @@ export default function SettingsPage() {
       const res = await fetch(API_ENDPOINTS.FACTORY.PROFILE, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(factoryForm),
+        body: JSON.stringify({
+          name: factoryForm.name,
+          phone: factoryForm.phone,
+          address: factoryForm.address,
+          // An empty field means no limit
+          maxStaffPerShift: factoryForm.maxStaffPerShift === '' ? null : Number(factoryForm.maxStaffPerShift),
+          maxDriversPerShift: factoryForm.maxDriversPerShift === '' ? null : Number(factoryForm.maxDriversPerShift),
+        }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error ?? 'Không thể lưu hồ sơ nhà máy');
       const factory = (json?.data !== undefined ? json.data : json)?.factory;
       if (factory) {
-        setFactoryForm({ name: factory.name ?? '', phone: factory.phone ?? '', address: factory.address ?? '' });
+        setFactoryForm(toFactoryForm(factory));
       }
       toast({ type: 'success', title: 'Đã lưu hồ sơ nhà máy' });
     } catch (err) {
@@ -138,8 +163,6 @@ export default function SettingsPage() {
 
   const tabs = [
     { id: 'profile', label: 'Hồ sơ xưởng', icon: User },
-    { id: 'notifications', label: 'Thông báo', icon: Bell },
-    { id: 'products', label: 'Sản phẩm mẫu', icon: Database },
     { id: 'security', label: 'Bảo mật', icon: Shield },
     { id: 'appearance', label: 'Giao diện', icon: Palette },
     ...(isAdmin ? [{ id: 'staff', label: 'Nhân sự', icon: Users }] : []),
@@ -223,6 +246,43 @@ export default function SettingsPage() {
                     />
                   </div>
 
+                  <div className="border-t border-outline-soft pt-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Giới hạn tự đăng ký ca</p>
+                    <p className="mt-1 text-xs text-faint">
+                      Số người tối đa được tự đăng ký vào một ca 3 tiếng. Để trống là không giới hạn. Quản lý vẫn gán thêm được.
+                    </p>
+                    <div className="mt-3 grid grid-cols-2 gap-3">
+                      <div>
+                        <label htmlFor="factory-max-staff" className="block text-xs font-bold text-on-surface-variant mb-1">Nhân viên mỗi ca</label>
+                        <input
+                          id="factory-max-staff"
+                          type="number"
+                          min={1}
+                          max={100}
+                          inputMode="numeric"
+                          placeholder="Không giới hạn"
+                          value={factoryForm.maxStaffPerShift}
+                          onChange={(e) => setFactoryForm((prev) => ({ ...prev, maxStaffPerShift: e.target.value }))}
+                          className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="factory-max-drivers" className="block text-xs font-bold text-on-surface-variant mb-1">Tài xế mỗi ca</label>
+                        <input
+                          id="factory-max-drivers"
+                          type="number"
+                          min={1}
+                          max={100}
+                          inputMode="numeric"
+                          placeholder="Không giới hạn"
+                          value={factoryForm.maxDriversPerShift}
+                          onChange={(e) => setFactoryForm((prev) => ({ ...prev, maxDriversPerShift: e.target.value }))}
+                          className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   <button
                     type="submit"
                     disabled={!factoryLoaded || savingFactory}
@@ -232,52 +292,6 @@ export default function SettingsPage() {
                     {savingFactory ? 'ĐANG LƯU...' : 'LƯU THAY ĐỔI'}
                   </button>
                 </form>
-              </div>
-            )}
-
-            {activeTab === 'notifications' && (
-              <div className="rounded border border-outline-variant bg-card p-6 shadow-sm">
-                <h2 className="text-base font-bold text-on-surface mb-4 border-b border-outline-soft pb-2">Thông báo hệ thống</h2>
-                <div className="space-y-3">
-                  {[
-                    { label: 'Thông báo đơn hàng mới', desc: 'Khi có đơn hàng được tạo', enabled: true },
-                    { label: 'Nhắc nhở công nợ', desc: 'Khi khách nợ quá hạn', enabled: true },
-                    { label: 'Cảnh báo tồn kho', desc: 'Khi kho xuống dưới định mức', enabled: false },
-                    { label: 'Báo cáo hàng ngày', desc: 'Gửi email tổng kết ngày', enabled: false },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center justify-between py-3 border-b border-outline-soft last:border-0">
-                      <div>
-                        <p className="text-sm font-bold text-on-surface">{item.label}</p>
-                        <p className="text-xs text-faint">{item.desc}</p>
-                      </div>
-                      <span className="text-xs font-bold px-2.5 py-1 rounded bg-container-high text-primary-accent">
-                        {item.enabled ? 'Đang bật' : 'Đang tắt'}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'products' && (
-              <div className="rounded border border-outline-variant bg-card p-6 shadow-sm">
-                <h2 className="text-base font-bold text-on-surface mb-4 border-b border-outline-soft pb-2">Quản lý sản phẩm & Quy cách</h2>
-                <p className="text-xs text-faint mb-4">Danh sách phân loại sản phẩm nước đá tiêu chuẩn</p>
-                <div className="space-y-2.5">
-                  {[
-                    { name: 'Đá Bi', size: 5, price: 12000 },
-                    { name: 'Đá Bi', size: 10, price: 22000 },
-                    { name: 'Đá Bi', size: 20, price: 40000 },
-                    { name: 'Đá Viên', size: 5, price: 14000 },
-                    { name: 'Đá Viên', size: 10, price: 26000 },
-                    { name: 'Đá Viên', size: 20, price: 48000 },
-                  ].map((p, i) => (
-                    <div key={i} className="flex items-center justify-between py-2.5 px-3 rounded bg-surface border border-outline-soft text-xs">
-                      <span className="font-bold text-on-surface">{p.name} {p.size}kg</span>
-                      <span className="text-secondary font-mono font-bold">{p.price.toLocaleString('vi-VN')} đ</span>
-                    </div>
-                  ))}
-                </div>
               </div>
             )}
 

@@ -14,14 +14,14 @@ export async function POST(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const body = await request.json();
     const parsed = SetGlobalPriceSchema.safeParse(body);
 
     if (!parsed.success) {
-      return apiError('Invalid request', 400);
+      return apiError('Yêu cầu không hợp lệ', 400);
     }
 
     const { productId, price } = parsed.data;
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       select: { id: true },
     });
     if (!product) {
-      return apiError('Product not found', 404);
+      return apiError('Không tìm thấy sản phẩm', 404);
     }
 
     await prisma.globalPrice.upsert({
@@ -49,6 +49,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('Error setting global price:', error);
-    return apiError('Internal server error', 500);
+    return apiError('Lỗi máy chủ', 500);
   }
 }

@@ -81,7 +81,7 @@ export async function setGlobalPrice(
     select: { id: true },
   });
   if (!product) {
-    throw new Error('Product not found');
+    throw new Error('Không tìm thấy sản phẩm');
   }
 
   await prisma.globalPrice.upsert({
@@ -114,7 +114,7 @@ export async function setCustomerPriceOverride(
     }),
   ]);
   if (!customer || !product) {
-    throw new Error('Customer or product not found');
+    throw new Error('Không tìm thấy khách hàng hoặc sản phẩm');
   }
 
   await prisma.customerPriceOverride.upsert({
@@ -149,7 +149,7 @@ export async function removeCustomerPriceOverride(
     }),
   ]);
   if (!customer || !product) {
-    throw new Error('Customer or product not found');
+    throw new Error('Không tìm thấy khách hàng hoặc sản phẩm');
   }
 
   await prisma.customerPriceOverride.deleteMany({

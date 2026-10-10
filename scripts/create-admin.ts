@@ -77,7 +77,7 @@ async function main() {
 
   const factory =
     (await prisma.factory.findFirst({ orderBy: { createdAt: 'asc' } })) ??
-    (await prisma.factory.create({ data: { name: FACTORY_NAME, onboardingCompleted: true } }));
+    (await prisma.factory.create({ data: { name: FACTORY_NAME } }));
 
   await prisma.user.create({
     data: {

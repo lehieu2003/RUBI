@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const ip = getIpFromRequest(req);
   const limit = await rateLimit(ip, 5, 60 * 1000);
   if (!limit.success) {
-    return apiError('Too Many Requests', 429);
+    return apiError('Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút', 429);
   }
 
   try {

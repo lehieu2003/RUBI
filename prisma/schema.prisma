@@ -13,7 +13,9 @@ model Factory {
   name      String
   phone     String?
   address   String?
-  onboardingCompleted Boolean  @default(false) @map("onboarding_completed")
+  // Self-registration limits per 3-hour shift; null = no limit
+  maxStaffPerShift   Int? @map("max_staff_per_shift")
+  maxDriversPerShift Int? @map("max_drivers_per_shift")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   users         User[]
@@ -24,8 +26,22 @@ model Factory {
   scheduleAssignments ScheduleAssignment[]
   assets             Asset[]
   maintenanceRecords MaintenanceRecord[]
+  payrollLocks       PayrollLock[]
 
   @@map("factories")
+}
+
+// A closed payroll month: its shifts can no longer be changed by anyone
+// until the manager reopens it.
+model PayrollLock {
+  id        String   @id @default(cuid())
+  factoryId String   @map("factory_id")
+  month     String   // YYYY-MM
+  lockedAt  DateTime @default(now()) @map("locked_at")
+  factory   Factory  @relation(fields: [factoryId], references: [id])
+
+  @@unique([factoryId, month])
+  @@map("payroll_locks")
 }
 
 model User {
@@ -139,6 +155,8 @@ model ScheduleAssignment {
   userId    String   @map("user_id")
   shiftDate DateTime @map("shift_date") @db.Date
   shift     Shift
+  status    ShiftStatus @default(APPROVED)
+  reviewedAt DateTime? @map("reviewed_at")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   factory   Factory  @relation(fields: [factoryId], references: [id])
@@ -237,6 +255,14 @@ enum OrderStatus {
   DELIVERED
   COMPLETED
   CANCELLED
+}
+
+// PENDING: requested by the person, waiting for the manager.
+// Only APPROVED shifts count towards the shift report.
+enum ShiftStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum Shift {

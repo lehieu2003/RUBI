@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { CheckCircle2, Clock, LogOut, RefreshCw, Snowflake } from 'lucide-react';
+import Link from 'next/link';
+import { CalendarCheck, CheckCircle2, Clock, LogOut, RefreshCw, Snowflake } from 'lucide-react';
 import DeliveryCard from '@/components/driver/DeliveryCard';
 import EmptyState from '@/components/driver/EmptyState';
 import { useAuth } from '@/lib/auth-provider';
@@ -148,7 +149,7 @@ export default function DriverPage() {
               <Snowflake className="h-5 w-5 text-[#9bbdff]" />
             </div>
             <div>
-              <h1 className="text-base font-bold tracking-tight">IceFlow Tài Xế</h1>
+              <h1 className="text-base font-bold tracking-tight">Rubi · Tài xế</h1>
               {driver && <p className="text-[11px] text-[#9bbdff] font-medium">Xe / Tài xế: {driver.name}</p>}
             </div>
           </div>
@@ -188,6 +189,13 @@ export default function DriverPage() {
           <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           {isRefreshing ? 'Đang cập nhật...' : 'CẬP NHẬT ĐƠN HÀNG'}
         </button>
+        <Link
+          href="/my-schedule"
+          className="mt-2 flex min-h-[44px] w-full items-center justify-center gap-2 rounded border border-outline-variant bg-card text-xs font-bold text-primary-deep hover:bg-container-high transition-colors shadow-sm"
+        >
+          <CalendarCheck className="h-4 w-4" />
+          ĐĂNG KÝ CA LÀM
+        </Link>
       </div>
 
       {orders.length === 0 ? (

@@ -130,8 +130,12 @@ PENDING → SHIPPING → DELIVERED → COMPLETED
 
 Role-based access control protecting app routes:
 - `ADMIN` (Quản lý): every office route — `/settle`, `/inventory`, `/vehicles`, `/assets`, `/schedule`, `/reports/debt`, `/deposits/shells`, `/settings`, `/config/prices` are ADMIN-only
-- `STAFF` (Nhân viên): `/dashboard`, `/orders`, `/customers`
-- `DRIVER` (Tài xế): `/driver`
+- `STAFF` (Nhân viên): `/dashboard`, `/orders`, `/customers`, `/my-schedule`
+- `DRIVER` (Tài xế): `/driver`, `/my-schedule`
+
+Shift scheduling: a `ScheduleAssignment` has a `status`. Staff and drivers create their own as `PENDING` at `/my-schedule`; the manager approves or rejects them on `/schedule` (shifts the manager assigns are `APPROVED` directly). Only `APPROVED` shifts are counted by the monthly shift report at `/reports/shifts`.
+
+Shift rules: a slot of today that has already ended cannot be requested; the factory can cap self-registrations per shift for staff and for drivers (`maxStaffPerShift`, `maxDriversPerShift`, set in Settings > Hồ sơ xưởng; the manager can still assign beyond the cap). The manager closes a payroll month on the report (`PayrollLock`); every route that changes shifts calls `rejectIfMonthLocked` and answers `409 PAYROLL_LOCKED` until the month is reopened. A month with pending requests cannot be closed.
 - Unauthenticated API requests return 401 JSON
 
 ## Directory Structure

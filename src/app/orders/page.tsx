@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { DatePicker } from '@/components/ui/date-picker';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { useReactToPrint } from 'react-to-print';
@@ -115,7 +116,7 @@ export default function OrdersPage() {
     queryKey: ['orders'],
     queryFn: async () => {
       const res = await fetch(API_ENDPOINTS.ORDERS.BASE);
-      if (!res.ok) throw new Error('Failed to load orders');
+      if (!res.ok) throw new Error('Không thể tải danh sách đơn hàng');
       const json = await res.json();
       return json?.data !== undefined ? json.data : json;
     },
@@ -125,7 +126,7 @@ export default function OrdersPage() {
     queryKey: ['customers'],
     queryFn: async () => {
       const res = await fetch(API_ENDPOINTS.CUSTOMERS.BASE);
-      if (!res.ok) throw new Error('Failed to load customers');
+      if (!res.ok) throw new Error('Không thể tải danh sách khách hàng');
       const json = await res.json();
       return json?.data !== undefined ? json.data : json;
     },
@@ -135,7 +136,7 @@ export default function OrdersPage() {
     queryKey: ['products'],
     queryFn: async () => {
       const res = await fetch(API_ENDPOINTS.PRODUCTS.BASE);
-      if (!res.ok) throw new Error('Failed to load products');
+      if (!res.ok) throw new Error('Không thể tải danh sách sản phẩm');
       const json = await res.json();
       return json?.data !== undefined ? json.data : json;
     },
@@ -145,7 +146,7 @@ export default function OrdersPage() {
     queryKey: ['drivers'],
     queryFn: async () => {
       const res = await fetch(API_ENDPOINTS.DRIVERS.BASE);
-      if (!res.ok) throw new Error('Failed to load drivers');
+      if (!res.ok) throw new Error('Không thể tải danh sách tài xế');
       const json = await res.json();
       return json?.data !== undefined ? json.data : json;
     },
@@ -515,12 +516,17 @@ export default function OrdersPage() {
             ))}
           </select>
 
-          <input
-            type='date'
-            value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
-            className='px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface'
-          />
+          <div className='w-[170px]'>
+            <DatePicker
+              value={filterDate}
+              onChange={setFilterDate}
+              placeholder='Lọc theo ngày'
+              ariaLabel='Lọc đơn theo ngày'
+              className='h-[38px]'
+              align='right'
+              clearable
+            />
+          </div>
         </div>
 
         {/* Orders Table */}

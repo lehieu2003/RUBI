@@ -41,6 +41,8 @@ const menuMetadata = {
   '/vehicles': { icon: Truck, label: 'Đội xe' },
   '/assets': { icon: Wrench, label: 'Tài sản' },
   '/schedule': { icon: Calendar, label: 'Lịch trình' },
+  '/my-schedule': { icon: Calendar, label: 'Ca làm của tôi' },
+  '/reports/shifts': { icon: BarChart3, label: 'Bảng công' },
   '/settings': { icon: Settings, label: 'Cài đặt' },
   '/config/prices': { icon: Package, label: 'Bảng giá' },
 };
@@ -104,10 +106,10 @@ export function Sidebar() {
             {!isSidebarCollapsed && (
               <div className="flex flex-col">
                 <span className="text-xl font-black tracking-tight text-primary-dark font-sans">
-                  IceFlow
+                  Rubi
                 </span>
                 <span className="text-[10px] uppercase tracking-wider text-primary-accent font-bold">
-                  Quản Lý Xưởng Đá
+                  Nhà máy đá tinh khiết
                 </span>
               </div>
             )}

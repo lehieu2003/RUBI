@@ -68,7 +68,7 @@ export function CustomerPriceForm({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customerId: customer.id, productId, price: newPrice }),
       });
-      if (!response.ok) throw new Error('Failed to save');
+      if (!response.ok) throw new Error('Không thể lưu giá');
       toast({ type: 'success', title: 'Đã lưu giá riêng' });
     } catch {
       // Revert on error
@@ -95,7 +95,7 @@ export function CustomerPriceForm({
         `/api/prices/customer/override?customerId=${customer.id}&productId=${productId}`,
         { method: 'DELETE' }
       );
-      if (!response.ok) throw new Error('Failed to remove');
+      if (!response.ok) throw new Error('Không thể xoá giá riêng');
       toast({ type: 'success', title: 'Đã xóa giá riêng' });
     } catch {
       // Revert on error

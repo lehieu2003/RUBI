@@ -40,7 +40,7 @@ export default function CustomersPage() {
     queryKey: ['customers'],
     queryFn: async () => {
       const res = await fetch(API_ENDPOINTS.CUSTOMERS.BASE);
-      if (!res.ok) throw new Error('Failed to load customers');
+      if (!res.ok) throw new Error('Không thể tải danh sách khách hàng');
       const json = await res.json();
       return json?.data !== undefined ? json.data : json;
     },
@@ -50,7 +50,7 @@ export default function CustomersPage() {
     queryKey: ['products'],
     queryFn: async () => {
       const res = await fetch(API_ENDPOINTS.PRODUCTS.BASE);
-      if (!res.ok) throw new Error('Failed to load products');
+      if (!res.ok) throw new Error('Không thể tải danh sách sản phẩm');
       const json = await res.json();
       return json?.data !== undefined ? json.data : json;
     },
@@ -63,7 +63,7 @@ export default function CustomersPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCustomerData),
       });
-      if (!res.ok) throw new Error('Failed to create');
+      if (!res.ok) throw new Error('Không thể tạo khách hàng');
       return res.json();
     },
     onSuccess: () => {

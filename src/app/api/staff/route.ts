@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const users = await prisma.user.findMany({
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[GET /api/staff]', error);
-    return apiError('Failed to fetch staff', 500);
+    return apiError('Không thể tải danh sách nhân sự', 500);
   }
 }
 
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const { name, email, password, role } = await request.json();
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!STAFF_ROLES.includes(role)) {
-      return apiError('Invalid role', 400);
+      return apiError('Vai trò không hợp lệ', 400);
     }
 
     // Check if email exists
@@ -121,6 +121,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[POST /api/staff]', error);
-    return apiError('Failed to create staff', 500);
+    return apiError('Không thể tạo nhân sự', 500);
   }
 }

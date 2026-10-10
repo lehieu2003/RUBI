@@ -25,3 +25,6 @@ import './auth/login-body-token.test';
 import './api/auth-refresh.test';
 import './auth/account-security.test';
 import './api/factory-profile.test';
+import './api/schedule/self-service.test';
+import './components/date-picker.test';
+import './api/vietnamese-errors.test';

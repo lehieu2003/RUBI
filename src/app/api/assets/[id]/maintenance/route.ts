@@ -12,7 +12,7 @@ export async function GET(
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const { id } = await params;
@@ -33,7 +33,7 @@ export async function GET(
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[GET /api/assets/[id]/maintenance]', error);
-    return apiError('Failed to fetch maintenance records', 500);
+    return apiError('Không thể tải lịch sử bảo trì', 500);
   }
 }
 
@@ -53,7 +53,7 @@ export async function POST(
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const { id } = await params;
@@ -87,6 +87,6 @@ export async function POST(
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[POST /api/assets/[id]/maintenance]', error);
-    return apiError('Failed to create maintenance record', 500);
+    return apiError('Không thể lưu lần bảo trì', 500);
   }
 }

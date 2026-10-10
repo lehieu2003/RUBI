@@ -61,6 +61,9 @@ docker compose exec app npm run db:seed
 - **Customer Management**: Track customer pricing and debt
 - **Inventory Tracking**: Monitor stock levels
 - **Settlement**: End-of-day reconciliation by the manager
+- **Shift scheduling**: Staff and drivers register their own shifts (3-hour slots) at `/my-schedule`; the manager approves or rejects each request and can still assign shifts directly
+- **Shift report**: Monthly count of approved shifts, hours and days per person at `/reports/shifts`, exportable to CSV as the basis for payroll
+- **Payroll lock**: The manager closes a month on the shift report so its shifts can no longer change; optional caps on how many staff and drivers self-register per shift
 - **Print Support**: Print delivery slips directly from the browser
 
 ## Project Structure
@@ -120,7 +123,7 @@ Configure your `.env` file with the following Supabase credentials:
 ## User Roles
 
 - **Quản lý** (`ADMIN`, the factory owner): Full access — reconciliation, debt, inventory, vehicles, assets, scheduling, prices, settings, and all accounts
-- **Nhân viên** (`STAFF`): Dashboard, order entry, customers, print delivery slips
+- **Nhân viên** (`STAFF`): Dashboard, order entry, customers, print delivery slips, registering their own shifts
 - **Tài xế** (`DRIVER`): Daily delivery list and delivery confirmation (web `/driver` or the Flutter app in `mobile/`)
 
 There is no public registration and no super admin: the app serves a single factory, and only the Quản lý creates accounts (Settings); nobody can create their own. The Quản lý account itself is created once with `npm run admin:create`. Accounts handed out by the Quản lý must set their own password at first login.

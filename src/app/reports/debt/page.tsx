@@ -22,7 +22,7 @@ export default function DebtReportPage() {
     async function fetchDebts() {
       try {
         const res = await fetch(API_ENDPOINTS.REPORTS.DEBT);
-        if (!res.ok) throw new Error('Failed to fetch debt report');
+        if (!res.ok) throw new Error('Không thể tải báo cáo công nợ');
         const json = await res.json();
         const data = json?.data !== undefined ? json.data : json;
         setDebts(Array.isArray(data) ? data : []);
