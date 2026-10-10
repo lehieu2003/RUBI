@@ -1,0 +1,32 @@
+{
+  "operationId": "reconcileOrder",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/orders/{id}/reconcile",
+    "as": "admin",
+    "params": {
+      "id": "cmv24bh26002ai9dhvto32gp4"
+    },
+    "body": {
+      "items": [
+        {
+          "id": "cmv24bh26002ci9dh3n5fagx6",
+          "actualQty": 10
+        },
+        {
+          "id": "cmv24bh26002di9dhbh7634e6",
+          "actualQty": 5
+        }
+      ]
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "success": true,
+      "orderId": "cmv24bh26002ai9dhvto32gp4",
+      "status": "COMPLETED"
+    }
+  }
+}

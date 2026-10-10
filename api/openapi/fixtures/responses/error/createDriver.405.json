@@ -1,0 +1,14 @@
+{
+  "operationId": "createDriver",
+  "request": {
+    "method": "POST",
+    "path": "/api/drivers",
+    "as": "admin",
+    "body": {}
+  },
+  "status": 405,
+  "body": {
+    "success": false,
+    "error": "Tạo tài xế trong phần Nhân sự bằng role Tài xế"
+  }
+}

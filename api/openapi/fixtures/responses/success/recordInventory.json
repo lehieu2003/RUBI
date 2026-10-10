@@ -1,0 +1,23 @@
+{
+  "operationId": "recordInventory",
+  "request": {
+    "method": "POST",
+    "path": "/api/inventory",
+    "as": "admin",
+    "body": {
+      "productId": "prod-bi-5",
+      "quantity": 1,
+      "mode": "ADD"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "id": "cmv24bh0e000fi9dhccd288k9",
+      "productId": "prod-bi-5",
+      "date": "2026-10-09T17:00:00.000Z",
+      "quantityOnHand": 201
+    }
+  }
+}

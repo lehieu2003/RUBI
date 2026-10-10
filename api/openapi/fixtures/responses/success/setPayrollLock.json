@@ -1,0 +1,20 @@
+{
+  "operationId": "setPayrollLock",
+  "request": {
+    "method": "POST",
+    "path": "/api/reports/shifts/lock",
+    "as": "admin",
+    "body": {
+      "month": "2026-12",
+      "locked": false
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "month": "2026-12",
+      "lockedAt": null
+    }
+  }
+}

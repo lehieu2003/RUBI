@@ -1,0 +1,15 @@
+{
+  "operationId": "refreshSession",
+  "request": {
+    "method": "POST",
+    "path": "/api/auth/refresh",
+    "as": "admin"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "token": "<token>"
+    }
+  }
+}

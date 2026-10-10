@@ -9,9 +9,13 @@
  *
  * Run it at most once per minute: it uses the whole login rate limit.
  *
+ * With `--record` the real responses are saved as fixtures under
+ * api/openapi/fixtures/responses/{success,empty,error}/.
+ *
  * It CREATES AND CHANGES DATA (customers, shifts, an order is delivered and
  * reconciled), so it only runs against a local server with seeded demo data.
  */
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { z } from 'zod';
 import { apiContracts, ErrorResponse, type ApiContract } from '../src/lib/contracts';
 
@@ -25,6 +29,31 @@ const ACCOUNTS = {
 
 type Actor = keyof typeof ACCOUNTS | 'anon' | 'newStaff';
 type Json = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+const RECORD = process.argv.includes('--record');
+const FIXTURE_DIR = 'api/openapi/fixtures/responses';
+const recorded = new Set<string>();
+
+/** Hides secrets and keeps long lists short so a fixture stays readable. */
+function sanitize(value: unknown, key = ''): unknown {
+  if (Array.isArray(value)) return value.slice(0, 2).map((item) => sanitize(item));
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value as Json).map(([name, item]) => [name, sanitize(item, name)]));
+  }
+  if (typeof value === 'string') {
+    if (key === 'token') return '<token>';
+    if (/password/i.test(key)) return '<password>';
+    if (key === 'link') return value.replace(/\/d\/.+$/, '/d/<token>');
+  }
+  return value;
+}
+
+function record(kind: 'success' | 'empty' | 'error', name: string, fixture: Json) {
+  if (!RECORD || recorded.has(`${kind}/${name}`)) return;
+  recorded.add(`${kind}/${name}`);
+  mkdirSync(`${FIXTURE_DIR}/${kind}`, { recursive: true });
+  writeFileSync(`${FIXTURE_DIR}/${kind}/${name}.json`, JSON.stringify(sanitize(fixture), null, 2) + '\n');
+}
 
 const tokens: Partial<Record<Actor, string>> = {};
 const covered = new Set<string>();
@@ -59,6 +88,8 @@ type CallOptions = {
   body?: unknown;
   /** Expect this error status instead of the success response */
   expectError?: number;
+  /** Record this success response as an "empty collection" fixture */
+  empty?: boolean;
   headers?: Record<string, string>;
 };
 
@@ -96,6 +127,19 @@ async function call(id: string, options: CallOptions = {}): Promise<Json> {
   });
   const json = (await response.json().catch(() => null)) as Json;
   checks += 1;
+  const fixture = {
+    operationId: id,
+    request: {
+      method: contract.method,
+      path: contract.path,
+      as: actor,
+      ...(options.params ? { params: options.params.token ? { ...options.params, token: '<token>' } : options.params } : {}),
+      ...(options.query ? { query: options.query } : {}),
+      ...(options.body !== undefined ? { body: options.body } : {}),
+    },
+    status: response.status,
+    body: json,
+  };
 
   if (options.expectError !== undefined) {
     if (response.status !== options.expectError) {
@@ -108,6 +152,7 @@ async function call(id: string, options: CallOptions = {}): Promise<Json> {
       failures.push(`${label}: error body does not match the error contract: ${JSON.stringify(json).slice(0, 120)}`);
     }
     covered.add(id);
+    record('error', `${id}.${response.status}`, fixture);
     return json ?? {};
   }
 
@@ -125,6 +170,7 @@ async function call(id: string, options: CallOptions = {}): Promise<Json> {
     if (extra.length > 0) failures.push(`${label}: response has fields the contract does not declare: ${extra.join(', ')}`);
   }
   covered.add(id);
+  record(options.empty ? 'empty' : 'success', id, fixture);
   return json ?? {};
 }
 
@@ -137,6 +183,7 @@ async function main() {
     throw new Error(`Refusing to run against ${host}: this script changes data. Use a local server with seeded demo data.`);
   }
   const unique = Date.now().toString(36);
+  if (RECORD) rmSync(FIXTURE_DIR, { recursive: true, force: true });
 
   // ---- Auth ----
   await call('health', { as: 'anon' });
@@ -232,10 +279,13 @@ async function main() {
   const future = new Date(Date.now() + 70 * 86400000);
   const month = `${future.getUTCFullYear()}-${pad(future.getUTCMonth() + 1)}`;
   const day = `${month}-15`;
+  // A month nobody has shifts in, for the empty-report fixture.
+  const emptyMonth = `${future.getUTCFullYear() + 5}-01`;
   const weekStart = `${month}-13`;
   const staffUser = users.find((user: Json) => user.email === ACCOUNTS.staff);
 
   await call('setPayrollLock', { body: { month, locked: false } });
+  await call('getShiftReport', { query: { month: emptyMonth }, empty: true });
   await call('listScheduleAssignments', { query: { week: weekStart } });
   await call('listScheduleAssignments', { query: { week: 'abc' }, expectError: 400 });
   await call('saveScheduleAssignment', { body: { userId: staffUser.id, shiftDate: day, shift: 'SLOT_06_09' } });
@@ -262,6 +312,8 @@ async function main() {
     await call('createAsset', { body: { type: 'VEHICLE', name: 'Xe kiểm tra', code: `XE-${unique}`, licensePlate: '48A-000.00' } })
   );
   await call('listAssets');
+  await call('listAssets', { query: { type: 'MACHINE' }, empty: true });
+  await call('listMaintenance', { params: { id: asset.id }, empty: true });
   await call('updateAsset', { params: { id: asset.id }, body: { status: 'MAINTENANCE', notes: 'Kiểm tra hợp đồng' } });
   await call('createMaintenance', {
     params: { id: asset.id },
@@ -283,6 +335,7 @@ async function main() {
     process.exit(1);
   }
   console.warn(`✓ ${covered.size}/${apiContracts.length} contracts verified in ${checks} calls against ${BASE_URL}`);
+  if (RECORD) console.warn(`recorded ${recorded.size} fixtures in ${FIXTURE_DIR}/`);
 }
 
 main().catch((error) => {

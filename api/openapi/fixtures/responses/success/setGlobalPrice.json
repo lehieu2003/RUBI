@@ -1,0 +1,19 @@
+{
+  "operationId": "setGlobalPrice",
+  "request": {
+    "method": "POST",
+    "path": "/api/prices/global",
+    "as": "admin",
+    "body": {
+      "productId": "prod-bi-5",
+      "price": 12000
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "success": true
+    }
+  }
+}

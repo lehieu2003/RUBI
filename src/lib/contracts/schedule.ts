@@ -3,9 +3,7 @@ import {
   type ApiContract,
   DateOnly,
   Id,
-  IsoDateTime,
   MonthOnly,
-  RoleEnum,
   Shift,
   ShiftStatus,
   Success,
@@ -14,10 +12,10 @@ import {
 } from './common';
 
 const week = z.object({ week: DateOnly });
+
 const PersonRole = z.enum(['STAFF', 'DRIVER']);
 
 export const scheduleContracts: ApiContract[] = [
-  // ---- Manager ----
   {
     id: 'listScheduleAssignments',
     method: 'GET',
@@ -79,8 +77,6 @@ export const scheduleContracts: ApiContract[] = [
     errors: [400, 401, 403, 409, 500],
     notes: '409 `PAYROLL_LOCKED` when any of the shifts is in a closed month.',
   },
-
-  // ---- Self-service ----
   {
     id: 'getMySchedule',
     method: 'GET',
@@ -134,53 +130,5 @@ export const scheduleContracts: ApiContract[] = [
     response: envelope(Success),
     errors: [400, 401, 403, 409, 500],
     notes: '409 for an APPROVED shift (only the manager can change it) and for a closed month.',
-  },
-
-  // ---- Shift report and payroll lock ----
-  {
-    id: 'getShiftReport',
-    method: 'GET',
-    path: '/api/reports/shifts',
-    tag: 'Reports',
-    summary: 'Approved shifts, hours and days per person for one month',
-    auth: roles('ADMIN'),
-    query: z.object({ month: MonthOnly }),
-    response: envelope(
-      z.object({
-        month: MonthOnly,
-        shiftHours: z.literal(3),
-        lockedAt: IsoDateTime.nullable(),
-        people: z.array(
-          z.object({
-            id: Id,
-            name: z.string(),
-            role: RoleEnum,
-            isActive: z.boolean(),
-            approvedShifts: z.number().int(),
-            hours: z.number().int(),
-            daysWorked: z.number().int(),
-            pendingShifts: z.number().int(),
-            rejectedShifts: z.number().int(),
-            days: z.array(z.object({ date: DateOnly, shifts: z.array(Shift) })),
-          })
-        ),
-      })
-    ),
-    errors: [400, 401, 403, 500],
-    notes:
-      'Only people with at least one shift in the month appear. `hours` = approved shifts × 3; ' +
-      '`days` lists approved shifts only. `lockedAt` is set when the month is closed.',
-  },
-  {
-    id: 'setPayrollLock',
-    method: 'POST',
-    path: '/api/reports/shifts/lock',
-    tag: 'Reports',
-    summary: 'Close or reopen a payroll month',
-    auth: roles('ADMIN'),
-    body: z.object({ month: MonthOnly, locked: z.boolean() }),
-    response: envelope(z.object({ month: MonthOnly, lockedAt: IsoDateTime.nullable() })),
-    errors: [400, 401, 403, 409, 500],
-    notes: '409 `PENDING_SHIFTS` when closing a month that still has pending requests.',
   },
 ];

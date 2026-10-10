@@ -12,7 +12,7 @@ const StaffUser = z.object({
 
 const userId = z.object({ id: Id });
 
-export const peopleContracts: ApiContract[] = [
+export const accountContracts: ApiContract[] = [
   {
     id: 'listStaff',
     method: 'GET',

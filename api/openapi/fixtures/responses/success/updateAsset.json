@@ -1,0 +1,32 @@
+{
+  "operationId": "updateAsset",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/assets/{id}",
+    "as": "admin",
+    "params": {
+      "id": "cmv24bv4v000pi9fmkxtg0xi8"
+    },
+    "body": {
+      "status": "MAINTENANCE",
+      "notes": "Kiểm tra hợp đồng"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "id": "cmv24bv4v000pi9fmkxtg0xi8",
+      "factoryId": "factory-mien-dong",
+      "type": "VEHICLE",
+      "name": "Xe kiểm tra",
+      "code": "XE-mv24bomy",
+      "licensePlate": "48A-000.00",
+      "capacityTons": null,
+      "status": "MAINTENANCE",
+      "notes": "Kiểm tra hợp đồng",
+      "createdAt": "2026-10-10T08:14:26.911Z",
+      "updatedAt": "2026-10-10T08:14:27.795Z"
+    }
+  }
+}

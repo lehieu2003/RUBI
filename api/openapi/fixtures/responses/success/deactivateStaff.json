@@ -1,0 +1,18 @@
+{
+  "operationId": "deactivateStaff",
+  "request": {
+    "method": "DELETE",
+    "path": "/api/staff/{id}",
+    "as": "admin",
+    "params": {
+      "id": "cmv24bpmx0001i9fmh7hvn2aj"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "success": true
+    }
+  }
+}

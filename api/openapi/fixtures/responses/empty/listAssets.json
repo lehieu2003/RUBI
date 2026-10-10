@@ -1,0 +1,16 @@
+{
+  "operationId": "listAssets",
+  "request": {
+    "method": "GET",
+    "path": "/api/assets",
+    "as": "admin",
+    "query": {
+      "type": "MACHINE"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": []
+  }
+}

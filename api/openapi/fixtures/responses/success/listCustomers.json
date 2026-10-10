@@ -1,0 +1,36 @@
+{
+  "operationId": "listCustomers",
+  "request": {
+    "method": "GET",
+    "path": "/api/customers",
+    "as": "admin"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": [
+      {
+        "id": "cmv24bh1q001pi9dh78se39jp",
+        "code": "KH-003",
+        "name": "Cà Phê Sân Vườn Hướng Dương",
+        "address": "78 Võ Văn Ngân, Bình Thọ, Thủ Đức",
+        "phone": "0908345678",
+        "isActive": true,
+        "createdAt": "2026-10-10T08:14:08.654Z",
+        "updatedAt": "2026-10-10T08:14:08.654Z",
+        "factoryId": "factory-mien-dong"
+      },
+      {
+        "id": "cmv24bh1d0019i9dh2v4gl56t",
+        "code": "KH-001",
+        "name": "Quán Nhậu Gió Biển",
+        "address": "45 Đường Số 7, P. Linh Trung, Thủ Đức",
+        "phone": "0908123456",
+        "isActive": true,
+        "createdAt": "2026-10-10T08:14:08.642Z",
+        "updatedAt": "2026-10-10T08:14:08.642Z",
+        "factoryId": "factory-mien-dong"
+      }
+    ]
+  }
+}

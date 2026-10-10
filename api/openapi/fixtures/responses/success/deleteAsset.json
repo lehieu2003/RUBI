@@ -1,0 +1,18 @@
+{
+  "operationId": "deleteAsset",
+  "request": {
+    "method": "DELETE",
+    "path": "/api/assets/{id}",
+    "as": "admin",
+    "params": {
+      "id": "cmv24bv4v000pi9fmkxtg0xi8"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "success": true
+    }
+  }
+}

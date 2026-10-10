@@ -1,0 +1,15 @@
+{
+  "operationId": "getDriverLink",
+  "request": {
+    "method": "GET",
+    "path": "/api/d/{token}",
+    "as": "anon",
+    "params": {
+      "token": "<token>"
+    }
+  },
+  "status": 404,
+  "body": {
+    "error": "Link không hợp lệ hoặc đã hết hạn"
+  }
+}

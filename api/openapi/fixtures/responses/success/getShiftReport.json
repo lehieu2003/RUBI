@@ -1,0 +1,41 @@
+{
+  "operationId": "getShiftReport",
+  "request": {
+    "method": "GET",
+    "path": "/api/reports/shifts",
+    "as": "admin",
+    "query": {
+      "month": "2026-12"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "month": "2026-12",
+      "shiftHours": 3,
+      "lockedAt": null,
+      "people": [
+        {
+          "id": "cmv24bgzi0003i9dhler2d5j9",
+          "name": "Lê Văn Lên Đơn",
+          "role": "STAFF",
+          "isActive": true,
+          "approvedShifts": 1,
+          "hours": 3,
+          "daysWorked": 1,
+          "pendingShifts": 0,
+          "rejectedShifts": 0,
+          "days": [
+            {
+              "date": "2026-12-15",
+              "shifts": [
+                "SLOT_09_12"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

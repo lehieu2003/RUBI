@@ -1,0 +1,31 @@
+{
+  "operationId": "updateOrderStatus",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/orders/{id}/status",
+    "as": "admin",
+    "params": {
+      "id": "cmv24bh26002ai9dhvto32gp4"
+    },
+    "body": {
+      "status": "SHIPPING"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "id": "cmv24bh26002ai9dhvto32gp4",
+      "customerId": "cmv24bh1l001hi9dh3gur1kkk",
+      "status": "SHIPPING",
+      "total": "260000",
+      "notes": "Gọi trước khi tới 10 phút",
+      "createdAt": "2026-10-10T08:14:08.670Z",
+      "updatedAt": "2026-10-10T08:14:22.645Z",
+      "driverId": "cmv24bgzr0007i9dhdod7ay67",
+      "assignerId": "cmv24bgzi0003i9dhler2d5j9",
+      "deliveredAt": null,
+      "factoryId": "factory-mien-dong"
+    }
+  }
+}

@@ -1,7 +1,7 @@
 <!-- generated-by: gsd-doc-writer -->
 # API Reference
 
-> **The authoritative, complete reference is the generated contract: [API-CONTRACT.md](API-CONTRACT.md) and [openapi.json](openapi.json)** (all 49 endpoints, from `src/lib/contracts`, verified against the running app in CI). This hand-written page is an introduction and may lag behind.
+> **The authoritative, complete reference is the generated contract in [`api/openapi/`](../api/openapi/README.md)**: one OpenAPI file per domain, generated from `src/lib/contracts` and verified against the running app in CI. This hand-written page is an introduction and may lag behind.
 
 IceFlow REST API for order and inventory management at Nhà máy đá tinh khiết Rubi (single factory).
 

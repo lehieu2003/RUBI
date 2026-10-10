@@ -1,0 +1,16 @@
+{
+  "operationId": "deleteAsset",
+  "request": {
+    "method": "DELETE",
+    "path": "/api/assets/{id}",
+    "as": "admin",
+    "params": {
+      "id": "cmv24bv4v000pi9fmkxtg0xi8"
+    }
+  },
+  "status": 404,
+  "body": {
+    "success": false,
+    "error": "Không tìm thấy tài sản"
+  }
+}

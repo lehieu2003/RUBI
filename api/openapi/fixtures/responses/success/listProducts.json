@@ -1,0 +1,34 @@
+{
+  "operationId": "listProducts",
+  "request": {
+    "method": "GET",
+    "path": "/api/products",
+    "as": "staff"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": [
+      {
+        "id": "prod-bi-5",
+        "name": "Đá Bi",
+        "sizeKg": 5,
+        "unit": "Bao",
+        "isActive": true,
+        "createdAt": "2026-10-10T08:14:08.599Z",
+        "updatedAt": "2026-10-10T08:14:08.599Z",
+        "factoryId": "factory-mien-dong"
+      },
+      {
+        "id": "prod-bi-10",
+        "name": "Đá Bi",
+        "sizeKg": 10,
+        "unit": "Bao",
+        "isActive": true,
+        "createdAt": "2026-10-10T08:14:08.609Z",
+        "updatedAt": "2026-10-10T08:14:08.609Z",
+        "factoryId": "factory-mien-dong"
+      }
+    ]
+  }
+}

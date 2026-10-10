@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import { execSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { describe, it } from 'node:test';
-import { apiContracts, ErrorResponse, findContract } from '../../src/lib/contracts';
-import { renderAll } from '../../scripts/generate-api-docs';
+import { parse } from 'yaml';
+import { apiContracts, domains, ErrorResponse, findContract } from '../../src/lib/contracts';
+import { OUT_DIR, renderAll } from '../../scripts/generate-api-docs';
 
 /** Every exported HTTP handler under src/app/api as "METHOD /api/path/{param}". */
 function routeHandlers(): string[] {
@@ -74,9 +76,110 @@ describe('API contracts', () => {
     assert.equal(request.body!.safeParse({ shiftDate: '2026-10-11', shift: 'MORNING' }).success, false);
   });
 
-  it('the generated docs are up to date (run `npm run contract:docs`)', () => {
-    for (const [path, content] of Object.entries(renderAll())) {
+});
+
+describe('OpenAPI files (api/openapi)', () => {
+  const rendered = renderAll();
+
+  it('are up to date with the contracts (run `npm run contract:docs`)', () => {
+    for (const [path, content] of Object.entries(rendered)) {
+      assert.ok(existsSync(path), `${path} is missing: run npm run contract:docs`);
       assert.equal(readFileSync(path, 'utf8'), content, `${path} is stale: run npm run contract:docs`);
     }
+  });
+
+  it('contain no leftover file of a removed domain', () => {
+    const onDisk = readdirSync(OUT_DIR)
+      .filter((name) => name.endsWith('.yaml'))
+      .map((name) => `${OUT_DIR}/${name}`);
+    const stray = onDisk.filter((path) => !(path in rendered));
+    assert.deepEqual(stray, [], 'delete these files: ' + stray.join(', '));
+  });
+
+  it('have one file per domain, each holding only its own endpoints', () => {
+    for (const domain of domains) {
+      const document = parse(rendered[`${OUT_DIR}/${domain.file}.yaml`]);
+      const operations = Object.values(document.paths as Record<string, Record<string, { operationId: string }>>)
+        .flatMap((methods) => Object.values(methods))
+        .map((operation) => operation.operationId)
+        .sort();
+      assert.deepEqual(operations, domain.contracts.map((contract) => contract.id).sort(), `${domain.file}.yaml`);
+    }
+  });
+
+  it('every $ref resolves to an existing file and location', () => {
+    const cache = new Map<string, unknown>();
+    const load = (path: string) => {
+      if (!cache.has(path)) cache.set(path, parse(rendered[path] ?? readFileSync(path, 'utf8')));
+      return cache.get(path);
+    };
+    const broken: string[] = [];
+    const walk = (node: unknown, file: string) => {
+      if (Array.isArray(node)) return node.forEach((item) => walk(item, file));
+      if (!node || typeof node !== 'object') return;
+      for (const [key, value] of Object.entries(node)) {
+        if (key !== '$ref' || typeof value !== 'string') {
+          walk(value, file);
+          continue;
+        }
+        const [target, pointer = ''] = value.split('#');
+        const targetFile = target ? join(dirname(file), target) : file;
+        let current: unknown = existsSync(targetFile) ? load(targetFile) : undefined;
+        for (const part of pointer.split('/').filter(Boolean)) {
+          const name = part.replace(/~1/g, '/').replace(/~0/g, '~');
+          current = current && typeof current === 'object' ? (current as Record<string, unknown>)[name] : undefined;
+        }
+        if (current === undefined) broken.push(`${file}: ${value}`);
+      }
+    };
+    for (const path of Object.keys(rendered).filter((name) => name.endsWith('.yaml'))) walk(load(path), path);
+    assert.deepEqual(broken, []);
+  });
+
+  it('the entry point references every endpoint path', () => {
+    const root = parse(rendered[`${OUT_DIR}/openapi.yaml`]);
+    assert.deepEqual(Object.keys(root.paths).sort(), [...new Set(apiContracts.map((contract) => contract.path))].sort());
+  });
+});
+
+describe('response fixtures (api/openapi/fixtures)', () => {
+  const dir = `${OUT_DIR}/fixtures/responses`;
+  const fixtures = (kind: string) =>
+    readdirSync(`${dir}/${kind}`)
+      .filter((name) => name.endsWith('.json'))
+      .map((name) => ({ name: `${kind}/${name}`, ...JSON.parse(readFileSync(`${dir}/${kind}/${name}`, 'utf8')) }));
+  const contractOf = (id: string) => apiContracts.find((contract) => contract.id === id);
+
+  it('success and empty fixtures match their contract', () => {
+    for (const fixture of [...fixtures('success'), ...fixtures('empty')]) {
+      const contract = contractOf(fixture.operationId);
+      assert.ok(contract, `${fixture.name}: unknown operation ${fixture.operationId}`);
+      assert.equal(fixture.status, contract.successStatus ?? 200, fixture.name);
+      const result = contract.response.safeParse(fixture.body);
+      assert.ok(result.success, `${fixture.name} no longer matches its contract; re-record with npm run contract:verify -- --record`);
+    }
+  });
+
+  it('error fixtures match the error contract and a declared status', () => {
+    for (const fixture of fixtures('error')) {
+      const contract = contractOf(fixture.operationId);
+      assert.ok(contract, `${fixture.name}: unknown operation ${fixture.operationId}`);
+      assert.ok(contract.errors.includes(fixture.status), `${fixture.name}: status ${fixture.status} is not declared`);
+      assert.ok(ErrorResponse.safeParse(fixture.body).success, `${fixture.name} does not match the error contract`);
+    }
+  });
+
+  it('every endpoint with a success response has a success fixture', () => {
+    const recorded = new Set(fixtures('success').map((fixture) => fixture.operationId));
+    const missing = apiContracts
+      .filter((contract) => contract.id !== 'createDriver') // always answers 405
+      .map((contract) => contract.id)
+      .filter((id) => !recorded.has(id));
+    assert.deepEqual(missing, [], 're-record with npm run contract:verify -- --record');
+  });
+
+  it('fixtures contain no token or password', () => {
+    const leaked = execSync(`grep -rlE "eyJ[A-Za-z0-9_-]{10,}|12345678" ${dir} || true`, { encoding: 'utf8' }).trim();
+    assert.equal(leaked, '', 'secrets found in: ' + leaked);
   });
 });

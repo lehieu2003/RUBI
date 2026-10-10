@@ -53,7 +53,7 @@ export const ErrorResponse = z.object({
   error: z.string(),
   code: z.string().optional(),
   details: z.unknown().optional(),
-});
+}).meta({ id: 'Error' });
 
 export const Id = z.string().min(1);
 /** ISO 8601 timestamp as produced by JSON-serialising a Date */
@@ -93,7 +93,7 @@ export const Customer = z.object({
   createdAt: IsoDateTime,
   updatedAt: IsoDateTime,
   factoryId: Id,
-});
+}).meta({ id: 'Customer' });
 
 export const Product = z.object({
   id: Id,
@@ -104,7 +104,7 @@ export const Product = z.object({
   createdAt: IsoDateTime,
   updatedAt: IsoDateTime,
   factoryId: Id,
-});
+}).meta({ id: 'Product' });
 
 const orderFields = {
   id: Id,
@@ -120,7 +120,7 @@ const orderFields = {
 };
 
 /** Order row as stored: `total` is a Decimal, so it arrives as a string. */
-export const OrderRow = z.object({ ...orderFields, total: DecimalString });
+export const OrderRow = z.object({ ...orderFields, total: DecimalString }).meta({ id: 'OrderRow' });
 
 /** Order with money converted to numbers, as the list endpoints return it. */
 export const OrderWithItems = z.object({
@@ -139,7 +139,7 @@ export const OrderWithItems = z.object({
       product: Product,
     })
   ),
-});
+}).meta({ id: 'OrderWithItems' });
 
 export const roles = (...list: Role[]): ContractAuth => ({ kind: 'roles', roles: list });
 export const session: ContractAuth = { kind: 'session' };

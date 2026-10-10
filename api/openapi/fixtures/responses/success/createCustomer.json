@@ -1,0 +1,29 @@
+{
+  "operationId": "createCustomer",
+  "request": {
+    "method": "POST",
+    "path": "/api/customers",
+    "as": "admin",
+    "body": {
+      "code": "CT-mv24bomy",
+      "name": "Khách kiểm tra hợp đồng",
+      "address": "Đắk Nông",
+      "phone": "0900000000"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "id": "cmv24bqbf0003i9fmrdec3b4i",
+      "code": "CT-mv24bomy",
+      "name": "Khách kiểm tra hợp đồng",
+      "address": "Đắk Nông",
+      "phone": "0900000000",
+      "isActive": true,
+      "createdAt": "2026-10-10T08:14:20.667Z",
+      "updatedAt": "2026-10-10T08:14:20.667Z",
+      "factoryId": "factory-mien-dong"
+    }
+  }
+}

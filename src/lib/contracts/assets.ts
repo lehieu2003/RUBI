@@ -1,8 +1,10 @@
 import { z } from 'zod';
-import { type ApiContract, Id, IsoDateTime, Success, envelope, publicAccess, roles } from './common';
+import { type ApiContract, Id, IsoDateTime, Success, envelope, roles } from './common';
 
 const AssetType = z.enum(['MACHINE', 'VEHICLE']);
+
 const AssetStatus = z.enum(['ACTIVE', 'MAINTENANCE', 'BROKEN', 'INACTIVE']);
+
 const MaintenanceType = z.enum(['ROUTINE', 'INSPECTION', 'INSURANCE', 'REPAIR']);
 
 const Asset = z.object({
@@ -32,6 +34,7 @@ const MaintenanceRecord = z.object({
 });
 
 const assetId = z.object({ id: Id });
+
 /** A date (YYYY-MM-DD) or a full ISO timestamp */
 const DateInput = z.string().min(10);
 
@@ -134,38 +137,5 @@ export const assetContracts: ApiContract[] = [
     successStatus: 201,
     response: envelope(MaintenanceRecord),
     errors: [400, 401, 403, 404, 500],
-  },
-
-  // ---- Reports and system ----
-  {
-    id: 'getDebtReport',
-    method: 'GET',
-    path: '/api/reports/debt',
-    tag: 'Reports',
-    summary: 'Customers who owe money, highest debt first',
-    auth: roles('ADMIN'),
-    response: envelope(
-      z.array(
-        z.object({
-          customerId: Id,
-          customerName: z.string(),
-          outstandingDebt: z.number(),
-          lastPaymentDate: IsoDateTime.nullable(),
-        })
-      )
-    ),
-    errors: [400, 401, 403, 500],
-    notes: 'Only customers with a positive balance are listed.',
-  },
-  {
-    id: 'health',
-    method: 'GET',
-    path: '/api/health',
-    tag: 'System',
-    summary: 'Liveness and database check',
-    auth: publicAccess,
-    response: z.object({ ok: z.literal(true), db: z.literal('up') }),
-    errors: [503],
-    notes: 'Returned WITHOUT the envelope. 503 with `{ ok: false, db: "down" }` when the database is unreachable.',
   },
 ];

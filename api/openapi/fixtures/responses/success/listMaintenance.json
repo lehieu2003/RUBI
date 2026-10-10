@@ -1,0 +1,28 @@
+{
+  "operationId": "listMaintenance",
+  "request": {
+    "method": "GET",
+    "path": "/api/assets/{id}/maintenance",
+    "as": "admin",
+    "params": {
+      "id": "cmv24bv4v000pi9fmkxtg0xi8"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": [
+      {
+        "id": "cmv24bvu6000ri9fmowzdc8kr",
+        "factoryId": "factory-mien-dong",
+        "assetId": "cmv24bv4v000pi9fmkxtg0xi8",
+        "type": "ROUTINE",
+        "performedAt": "2026-12-15T00:00:00.000Z",
+        "dueAt": null,
+        "cost": 150000,
+        "notes": null,
+        "createdAt": "2026-10-10T08:14:27.822Z"
+      }
+    ]
+  }
+}

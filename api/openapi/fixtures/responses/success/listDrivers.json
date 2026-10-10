@@ -1,0 +1,22 @@
+{
+  "operationId": "listDrivers",
+  "request": {
+    "method": "GET",
+    "path": "/api/drivers",
+    "as": "admin"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": [
+      {
+        "id": "cmv24bgzr0007i9dhdod7ay67",
+        "name": "Phạm Văn Tài",
+        "phone": "0909777888",
+        "slug": "tai-xe-1-miendong",
+        "token": "<token>",
+        "isActive": true
+      }
+    ]
+  }
+}
