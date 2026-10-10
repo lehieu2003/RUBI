@@ -99,17 +99,13 @@ export const orderContracts: ApiContract[] = [
     path: '/api/orders/{id}/confirm',
     tag: 'Orders',
     summary: 'Driver confirms an order as delivered',
-    auth: {
-      kind: 'custom',
-      description:
-        'The assigned driver: a DRIVER session (cookie or Bearer JWT), or the driver share-link token ' +
-        'sent as `Authorization: Bearer <token>` or as `token` in the body.',
-    },
+    auth: roles('DRIVER'),
     params: orderId,
-    body: z.object({ token: z.string().optional() }).optional(),
     response: envelope(Success.extend({ orderId: Id, status: z.literal('DELIVERED') })),
     errors: [401, 403, 404, 500],
-    notes: 'The body may be empty. Sets `deliveredAt`. No location is captured.',
+    notes:
+      'No request body. The signed-in driver must be the one the order is assigned to (403 otherwise). ' +
+      'Sets `deliveredAt`. No location is captured.',
   },
   {
     id: 'reconcileOrder',

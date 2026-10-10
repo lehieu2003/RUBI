@@ -131,7 +131,7 @@ async function call(id: string, options: CallOptions = {}): Promise<Json> {
       method: contract.method,
       path: contract.path,
       as: actor,
-      ...(options.params ? { params: options.params.token ? { ...options.params, token: '<token>' } : options.params } : {}),
+      ...(options.params ? { params: options.params } : {}),
       ...(options.query ? { query: options.query } : {}),
       ...(options.body !== undefined ? { body: options.body } : {}),
     },
@@ -344,12 +344,13 @@ async function main() {
   await call('updateOrderStatus', { params: { id: order.id }, body: { status: 'SHIPPING' } });
   await call('updateOrderStatus', { params: { id: order.id }, body: { status: 'COMPLETED' }, expectError: 400 });
   await call('listDriverOrders', { as: 'driver' });
-  await call('getDriverLink', { as: 'anon', params: { token: driver.token } });
-  await call('getDriverLink', { as: 'anon', params: { token: 'khong-ton-tai' }, expectError: 404 });
+  await call('listDriverOrders', { as: 'anon', expectError: 401 });
   const settle = { items: order.orderItems.map((item: Json) => ({ id: item.id, actualQty: item.quantity })) };
   await call('reconcileOrder', { params: { id: 'khong-ton-tai' }, body: settle, expectError: 404 });
   await call('reconcileOrder', { params: { id: order.id }, body: settle, expectError: 409 }); // still SHIPPING
-  await call('confirmDelivery', { as: 'driver', params: { id: order.id }, body: {} });
+  await call('confirmDelivery', { as: 'anon', params: { id: order.id }, expectError: 401 });
+  await call('confirmDelivery', { as: 'staff', params: { id: order.id }, expectError: 403 });
+  await call('confirmDelivery', { as: 'driver', params: { id: order.id } });
   await call('reconcileOrder', { params: { id: order.id }, body: { items: [{ id: 'dong-la', actualQty: 1 }] }, expectError: 400 });
   await call('reconcileOrder', { params: { id: order.id }, body: settle });
 
@@ -359,8 +360,6 @@ async function main() {
   await call('updateStaff', { params: { id: created.id }, body: { name: 'Nhân viên hợp đồng (đã sửa)' } });
   await call('updateStaff', { params: { id: created.id }, body: { role: 'ADMIN' }, expectError: 400 });
   await call('createStaff', { body: { name: 'Sai email', email: 'khong-phai-email', password: 'tamthoi2026', role: 'STAFF' }, expectError: 400 });
-  const driverUser = users.find((user: Json) => user.role === 'DRIVER');
-  await call('rotateDriverLink', { params: { id: driverUser.id } });
   await call('createDriver', { body: {}, expectError: 405 });
 
   // The new account sets its own password (it is flagged mustChangePassword).

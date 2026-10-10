@@ -80,7 +80,7 @@ paths:
       description: |-
         Access: ADMIN.
 
-        Password: at least 8 characters, letters and digits, not a well-known password. The new account must change its password at first login. A DRIVER also gets a driver profile and share link. Manager accounts cannot be created here. 409 when the email is taken.
+        Password: at least 8 characters, letters and digits, not a well-known password. The new account must change its password at first login. A DRIVER also gets a driver profile. Manager accounts cannot be created here. 409 when the email is taken.
       requestBody:
         required: true
         content:
@@ -317,69 +317,13 @@ paths:
           $ref: ./components/responses/errors.yaml#/NotFound
         "500":
           $ref: ./components/responses/errors.yaml#/ServerError
-  /api/staff/{id}/rotate-link:
-    post:
-      operationId: rotateDriverLink
-      tags:
-        - Accounts
-      summary: Replace a driver's share link; the old link stops working
-      description: |-
-        Access: ADMIN.
-
-        `link` is a relative path such as `/d/<token>`.
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            minLength: 1
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    const: true
-                  data:
-                    type: object
-                    properties:
-                      link:
-                        type: string
-                      driverName:
-                        type: string
-                    required:
-                      - link
-                      - driverName
-                    additionalProperties: false
-                required:
-                  - success
-                  - data
-                additionalProperties: false
-        "400":
-          $ref: ./components/responses/errors.yaml#/BadRequest
-        "401":
-          $ref: ./components/responses/errors.yaml#/Unauthorized
-        "403":
-          $ref: ./components/responses/errors.yaml#/Forbidden
-        "404":
-          $ref: ./components/responses/errors.yaml#/NotFound
-        "500":
-          $ref: ./components/responses/errors.yaml#/ServerError
   /api/drivers:
     get:
       operationId: listDrivers
       tags:
         - Accounts
       summary: Active drivers with an active DRIVER account
-      description: |-
-        Access: ADMIN, STAFF.
-
-        Includes each driver's share-link `token`.
+      description: "Access: ADMIN, STAFF."
       responses:
         "200":
           description: Success
@@ -405,18 +349,12 @@ paths:
                           anyOf:
                             - type: string
                             - type: "null"
-                        slug:
-                          type: string
-                        token:
-                          type: string
                         isActive:
                           type: boolean
                       required:
                         - id
                         - name
                         - phone
-                        - slug
-                        - token
                         - isActive
                       additionalProperties: false
                 required:

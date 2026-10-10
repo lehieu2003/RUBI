@@ -13,11 +13,6 @@ const driverPage = readFileSync(
   'utf-8',
 );
 
-const tokenPage = readFileSync(
-  join(process.cwd(), 'src/app/d/[token]/page.tsx'),
-  'utf-8',
-);
-
 describe('driver confirm source checks', () => {
   it('records deliveredAt when confirming delivery', () => {
     assert.match(confirmRoute, /deliveredAt:\s*new Date\(\)/);
@@ -26,6 +21,5 @@ describe('driver confirm source checks', () => {
   it('confirms delivery without capturing GPS', () => {
     assert.doesNotMatch(confirmRoute, /gps/i);
     assert.doesNotMatch(driverPage, /getCurrentPosition|gps/i);
-    assert.doesNotMatch(tokenPage, /getCurrentPosition|gps/i);
   });
 });

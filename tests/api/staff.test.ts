@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 
 const staffRoute = readFileSync('src/app/api/staff/route.ts', 'utf8');
@@ -35,18 +35,22 @@ describe('staff password policy', () => {
   });
 });
 
-describe('driver share-link rotation', () => {
-  const route = readFileSync('src/app/api/staff/[id]/rotate-link/route.ts', 'utf8');
-  const settingsPage = readFileSync('src/app/settings/page.tsx', 'utf8');
-
-  it('has an ADMIN-only rotation endpoint that regenerates the driver token', () => {
-    assert.match(route, /requireRole\(\['ADMIN'\]\)/);
-    assert.match(route, /randomUUID/);
-    assert.match(route, /driver\.update/);
-    assert.match(route, /driverProfile/);
+describe('driver share link is gone', () => {
+  it('drivers have no link token: the page, both APIs and the columns are removed', () => {
+    for (const path of ['src/app/d', 'src/app/api/d', 'src/app/api/staff/[id]/rotate-link']) {
+      assert.equal(existsSync(path), false, `${path} must not exist`);
+    }
+    const schema = readFileSync('prisma/schema.prisma', 'utf8');
+    const driverModel = schema.slice(schema.indexOf('model Driver {'), schema.indexOf('}', schema.indexOf('model Driver {')));
+    assert.doesNotMatch(driverModel, /\btoken\b|\bslug\b/);
+    assert.doesNotMatch(readFileSync('src/app/settings/page.tsx', 'utf8'), /rotate-link|link giao hàng/);
   });
 
-  it('exposes a rotate action in the staff UI for DRIVER rows', () => {
-    assert.match(settingsPage, /rotate-link/);
+  it('the driver order list and delivery confirmation accept a session only', () => {
+    for (const path of ['src/app/api/driver/orders/route.ts', 'src/app/api/orders/[id]/confirm/route.ts']) {
+      const source = readFileSync(path, 'utf8');
+      assert.match(source, /requireRole\(\['DRIVER'\]\)/, path);
+      assert.doesNotMatch(source, /searchParams\.get\('token'\)|where:\s*\{\s*token/, path);
+    }
   });
 });

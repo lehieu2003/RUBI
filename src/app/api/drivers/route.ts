@@ -22,8 +22,6 @@ export async function GET() {
         id: true,
         name: true,
         phone: true,
-        slug: true,
-        token: true,
         isActive: true,
       },
       orderBy: { name: 'asc' },

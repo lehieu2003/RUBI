@@ -447,9 +447,9 @@ paths:
         - Orders
       summary: Driver confirms an order as delivered
       description: |-
-        Access: The assigned driver: a DRIVER session (cookie or Bearer JWT), or the driver share-link token sent as `Authorization: Bearer <token>` or as `token` in the body..
+        Access: DRIVER.
 
-        The body may be empty. Sets `deliveredAt`. No location is captured.
+        No request body. The signed-in driver must be the one the order is assigned to (403 otherwise). Sets `deliveredAt`. No location is captured.
       parameters:
         - name: id
           in: path
@@ -457,16 +457,6 @@ paths:
           schema:
             type: string
             minLength: 1
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                token:
-                  type: string
-              additionalProperties: false
       responses:
         "200":
           description: Success

@@ -53,8 +53,6 @@ paths:
     $ref: ./account.yaml#/paths/~1api~1staff
   /api/staff/{id}:
     $ref: ./account.yaml#/paths/~1api~1staff~1{id}
-  /api/staff/{id}/rotate-link:
-    $ref: ./account.yaml#/paths/~1api~1staff~1{id}~1rotate-link
   /api/drivers:
     $ref: ./account.yaml#/paths/~1api~1drivers
   /api/factory:
@@ -87,8 +85,6 @@ paths:
     $ref: ./order.yaml#/paths/~1api~1orders~1{id}~1reconcile
   /api/driver/orders:
     $ref: ./driver.yaml#/paths/~1api~1driver~1orders
-  /api/d/{token}:
-    $ref: ./driver.yaml#/paths/~1api~1d~1{token}
   /api/schedule/assignments:
     $ref: ./schedule.yaml#/paths/~1api~1schedule~1assignments
   /api/schedule/review:
