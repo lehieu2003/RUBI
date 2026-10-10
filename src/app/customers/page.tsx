@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Search, Plus, Phone, MapPin, DollarSign, Package, ChevronRight, X } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { useAuth } from '@/lib/auth-provider';
 
 interface Customer {
   id: string;
@@ -29,6 +31,7 @@ interface Product {
 }
 
 export default function CustomersPage() {
+  const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerDetail | null>(null);
   const [editingPrices, setEditingPrices] = useState<Record<string, string>>({});
@@ -295,6 +298,20 @@ export default function CustomersPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Prices are the manager's: the page and its API are manager-only */}
+              {user?.role === 'ADMIN' && (
+                <Link
+                  href={`/customers/${selectedCustomer.id}`}
+                  className="flex items-center justify-between rounded border border-outline-variant bg-surface p-4 hover:border-[#004a99] hover:bg-container-low transition-all"
+                >
+                  <span className="flex items-center gap-2.5 text-sm font-bold text-on-surface">
+                    <DollarSign className="h-4 w-4 text-primary-accent" />
+                    Bảng giá riêng của khách này
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-faint" />
+                </Link>
+              )}
             </div>
           </div>
         </>

@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
+import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { CustomerPriceForm } from '@/components/pricing/customer-price-form';
 
 interface CustomerDetailPageProps {
@@ -12,6 +14,10 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
   const session = await getSession();
   if (!session?.factoryId) {
     redirect('/login');
+  }
+  // Prices are set by the manager only; the price API refuses everyone else.
+  if (session.role !== 'ADMIN') {
+    redirect('/customers');
   }
 
   // Fetch customer
@@ -52,9 +58,10 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
   }
 
   return (
-    <div className="max-w-2xl mx-auto py-8 px-4">
+    <DashboardLayout>
+    <div className="max-w-2xl py-8 px-4 sm:px-6 lg:px-8">
       <nav className="text-sm text-faint mb-4">
-        <span>Trang chủ</span> › <span>Khách hàng</span> › <span className="text-on-surface">{customer.name}</span> › <span className="text-on-surface">Bảng giá</span>
+        <Link href="/customers" className="hover:text-primary-accent">Khách hàng</Link> › <span className="text-on-surface">{customer.name}</span> › <span className="text-on-surface">Bảng giá</span>
       </nav>
 
       {/* Customer header */}
@@ -90,5 +97,6 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
         />
       </div>
     </div>
+    </DashboardLayout>
   );
 }
