@@ -52,7 +52,7 @@ describe('RBAC API guard source checks', () => {
 
   it('deactivating an account also deactivates its driver profile', () => {
     const source = read('src/app/api/staff/[id]/route.ts');
-    assert.match(source, /prisma\.driver\.updateMany\(\{\s*where: \{ userId: id, factoryId: session\.factoryId \},\s*data: \{ isActive: false \}/);
+    assert.match(source, /tx\.driver\.updateMany\(\{\s*where: \{ userId: id, factoryId \},\s*data: \{ isActive: false \}/);
   });
 
   it('removes manual session.role comparisons from migrated route files', () => {

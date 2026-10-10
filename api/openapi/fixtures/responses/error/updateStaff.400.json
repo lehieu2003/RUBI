@@ -5,7 +5,7 @@
     "path": "/api/staff/{id}",
     "as": "admin",
     "params": {
-      "id": "cmv2af0ev0001i9pgzvgx9suw"
+      "id": "cmv2hji7t0001i939pmrdssob"
     },
     "body": {
       "role": "ADMIN"

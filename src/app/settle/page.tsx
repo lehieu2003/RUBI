@@ -82,9 +82,18 @@ function fetchOrdersAwaitingSettlement(): Promise<OrderFromAPI[]> {
   return fetchAllOrders('status=DELIVERED');
 }
 
+/** How many orders were settled on one day, whatever day they were taken. */
+async function fetchSettledCount(date: string): Promise<number> {
+  const res = await fetch(`${API_ENDPOINTS.ORDERS.BASE}?status=COMPLETED&completedDate=${date}&page=1&limit=1`);
+  const json = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(json?.error ?? 'Không thể tải danh sách đơn hàng');
+  return json.meta?.total_item ?? 0;
+}
+
 export default function SettlePage() {
   const [orders, setOrders] = useState<OrderFromAPI[]>([]);
   const [awaiting, setAwaiting] = useState<OrderFromAPI[]>([]);
+  const [completedCount, setCompletedCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -104,12 +113,14 @@ export default function SettlePage() {
   useEffect(() => {
     async function fetchOrders() {
       try {
-        const [ofToday, toSettle] = await Promise.all([
+        const [ofToday, toSettle, settled] = await Promise.all([
           fetchOrdersOfDay(todayStr),
           fetchOrdersAwaitingSettlement(),
+          fetchSettledCount(todayStr),
         ]);
         setOrders(ofToday);
         setAwaiting(toSettle);
+        setCompletedCount(settled);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
@@ -160,7 +171,6 @@ export default function SettlePage() {
   });
 
   const pendingCount = awaiting.length;
-  const completedCount = orders.filter((o) => o.status === 'COMPLETED').length;
 
   // Open reconcile modal with order details
   const handleSettle = (order: OrderFromAPI) => {
@@ -198,15 +208,18 @@ export default function SettlePage() {
       // refreshing, so a failed refresh is never reported as a failed settlement.
       const settledId = reconcileOrder.id;
       setAwaiting((previous) => previous.filter((order) => order.id !== settledId));
+      setCompletedCount((previous) => previous + 1);
       setReconcileOrder(null);
       toast({ type: 'success', title: 'Đã chốt đơn thành công' });
       try {
-        const [ofToday, toSettle] = await Promise.all([
+        const [ofToday, toSettle, settled] = await Promise.all([
           fetchOrdersOfDay(todayStr),
           fetchOrdersAwaitingSettlement(),
+          fetchSettledCount(todayStr),
         ]);
         setOrders(ofToday);
         setAwaiting(toSettle);
+        setCompletedCount(settled);
       } catch {
         toast({ type: 'error', title: 'Không tải lại được danh sách', message: 'Đơn đã chốt. Tải lại trang để cập nhật.' });
       }

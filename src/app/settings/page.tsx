@@ -400,12 +400,17 @@ export default function SettingsPage() {
                                       body: JSON.stringify({ isActive: !staff.isActive }),
                                     });
                                     if (!res.ok) throw new Error('Không thể cập nhật trạng thái nhân sự');
+                                    const unassigned: number = (await res.json().catch(() => null))?.data?.unassignedOrders ?? 0;
                                     setStaffUsers(prev =>
                                       prev.map(s => s.id === staff.id ? { ...s, isActive: !s.isActive } : s)
                                     );
                                     toast({
                                       type: 'success',
                                       title: staff.isActive ? 'Đã khóa nhân sự' : 'Đã mở khóa nhân sự',
+                                      // Open orders of a locked driver are back in "chưa gán"
+                                      message: unassigned > 0
+                                        ? `${unassigned} đơn chưa giao của tài xế này đã được gỡ gán. Vào Đơn hàng để giao cho tài xế khác.`
+                                        : undefined,
                                     });
                                   } catch (err) {
                                     console.error('Failed to toggle active', err);

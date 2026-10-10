@@ -60,7 +60,7 @@ export async function PATCH(
       // 2. Update order status to COMPLETED
       await tx.order.update({
         where: { id },
-        data: { status: 'COMPLETED' },
+        data: { status: 'COMPLETED', completedAt: new Date() },
       });
 
       // 3. Calculate delivered total from actualQty * unitPrice

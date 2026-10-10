@@ -1,0 +1,13 @@
+{
+  "operationId": "getStockCountSummary",
+  "request": {
+    "method": "GET",
+    "path": "/api/inventory/counts/summary",
+    "as": "staff"
+  },
+  "status": 403,
+  "body": {
+    "success": false,
+    "error": "Bạn không có quyền thực hiện thao tác này"
+  }
+}

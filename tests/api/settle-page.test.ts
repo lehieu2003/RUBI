@@ -33,6 +33,16 @@ describe('settle page source checks', () => {
     assert.match(settle, /const pendingCount = awaiting\.length/);
   });
 
+  it('counts the orders settled today by their settlement day, not by the day they were taken', () => {
+    assert.match(settle, /\?status=COMPLETED&completedDate=\$\{date\}&page=1&limit=1/);
+    assert.equal(settle.match(/fetchSettledCount\(todayStr\),/g)?.length, 2);
+    assert.doesNotMatch(settle, /orders\.filter\(\(o\) => o\.status === 'COMPLETED'\)/);
+    const reconcile = readFileSync(join(process.cwd(), 'src/app/api/orders/[id]/reconcile/route.ts'), 'utf-8');
+    assert.match(reconcile, /data: \{ status: 'COMPLETED', completedAt: new Date\(\) \}/);
+    const filters = readFileSync(join(process.cwd(), 'src/lib/order-filters.ts'), 'utf-8');
+    assert.match(filters, /where\.completedAt = \{ gte: day\.start, lt: day\.end \}/);
+  });
+
   it('never falls back to raw driverId for display', () => {
     assert.doesNotMatch(settle, /order\.driver\?\.name\s*\|\|\s*order\.driverId/);
   });
