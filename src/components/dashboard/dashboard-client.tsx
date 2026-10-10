@@ -35,7 +35,6 @@ interface DashboardClientProps {
   inventoryStats?: { totalBags: number; details: string };
   totalBagsOut?: number;
   yesterdayRevenue?: number;
-  showOnboardingPrompt?: boolean;
   dueAssets: DueAsset[];
 }
 
@@ -46,7 +45,6 @@ export function DashboardClient({
   inventoryStats = { totalBags: 0, details: 'Chưa có mẻ nhập kho' },
   totalBagsOut = 0,
   yesterdayRevenue = 0,
-  showOnboardingPrompt = false,
   dueAssets = [],
 }: DashboardClientProps) {
   const [orders] = useState(initialOrders);
@@ -132,24 +130,6 @@ export function DashboardClient({
             <OrderEntryDrawer customers={customers} products={products} />
           </div>
         </div>
-
-        {/* Onboarding prompt for new factories with no customers */}
-        {showOnboardingPrompt && (
-          <div className="mb-6 rounded border border-tertiary-fixed bg-tertiary-fixed/40 px-5 py-4 flex items-center justify-between">
-            <div>
-              <p className="text-tertiary-container font-bold text-sm">Bạn chưa có khách hàng nào trong hệ thống.</p>
-              <p className="text-on-surface-variant text-xs mt-0.5">
-                Nhập danh sách khách hàng từ file CSV để bắt đầu tạo đơn hàng nhanh chóng.
-              </p>
-            </div>
-            <a
-              href="/onboarding"
-              className="ml-4 shrink-0 px-4 py-2 bg-[#004a99] hover:bg-[#00346f] text-white font-bold rounded text-xs transition-colors shadow-2xs"
-            >
-              Nhập dữ liệu ngay
-            </a>
-          </div>
-        )}
 
         {/* Tier 1: 4 Core KPI Stat Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

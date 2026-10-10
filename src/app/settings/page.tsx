@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
-import { User, Bell, Database, Shield, Palette, Save, Users, Key, Plus, X, LogOut, Link2 } from 'lucide-react';
+import { User, Shield, Palette, Save, Users, Key, Plus, X, LogOut, Link2 } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { useAuth } from '@/lib/auth-provider';
 import { useTheme } from '@/lib/theme';
@@ -138,8 +138,6 @@ export default function SettingsPage() {
 
   const tabs = [
     { id: 'profile', label: 'Hồ sơ xưởng', icon: User },
-    { id: 'notifications', label: 'Thông báo', icon: Bell },
-    { id: 'products', label: 'Sản phẩm mẫu', icon: Database },
     { id: 'security', label: 'Bảo mật', icon: Shield },
     { id: 'appearance', label: 'Giao diện', icon: Palette },
     ...(isAdmin ? [{ id: 'staff', label: 'Nhân sự', icon: Users }] : []),
@@ -232,52 +230,6 @@ export default function SettingsPage() {
                     {savingFactory ? 'ĐANG LƯU...' : 'LƯU THAY ĐỔI'}
                   </button>
                 </form>
-              </div>
-            )}
-
-            {activeTab === 'notifications' && (
-              <div className="rounded border border-outline-variant bg-card p-6 shadow-sm">
-                <h2 className="text-base font-bold text-on-surface mb-4 border-b border-outline-soft pb-2">Thông báo hệ thống</h2>
-                <div className="space-y-3">
-                  {[
-                    { label: 'Thông báo đơn hàng mới', desc: 'Khi có đơn hàng được tạo', enabled: true },
-                    { label: 'Nhắc nhở công nợ', desc: 'Khi khách nợ quá hạn', enabled: true },
-                    { label: 'Cảnh báo tồn kho', desc: 'Khi kho xuống dưới định mức', enabled: false },
-                    { label: 'Báo cáo hàng ngày', desc: 'Gửi email tổng kết ngày', enabled: false },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center justify-between py-3 border-b border-outline-soft last:border-0">
-                      <div>
-                        <p className="text-sm font-bold text-on-surface">{item.label}</p>
-                        <p className="text-xs text-faint">{item.desc}</p>
-                      </div>
-                      <span className="text-xs font-bold px-2.5 py-1 rounded bg-container-high text-primary-accent">
-                        {item.enabled ? 'Đang bật' : 'Đang tắt'}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'products' && (
-              <div className="rounded border border-outline-variant bg-card p-6 shadow-sm">
-                <h2 className="text-base font-bold text-on-surface mb-4 border-b border-outline-soft pb-2">Quản lý sản phẩm & Quy cách</h2>
-                <p className="text-xs text-faint mb-4">Danh sách phân loại sản phẩm nước đá tiêu chuẩn</p>
-                <div className="space-y-2.5">
-                  {[
-                    { name: 'Đá Bi', size: 5, price: 12000 },
-                    { name: 'Đá Bi', size: 10, price: 22000 },
-                    { name: 'Đá Bi', size: 20, price: 40000 },
-                    { name: 'Đá Viên', size: 5, price: 14000 },
-                    { name: 'Đá Viên', size: 10, price: 26000 },
-                    { name: 'Đá Viên', size: 20, price: 48000 },
-                  ].map((p, i) => (
-                    <div key={i} className="flex items-center justify-between py-2.5 px-3 rounded bg-surface border border-outline-soft text-xs">
-                      <span className="font-bold text-on-surface">{p.name} {p.size}kg</span>
-                      <span className="text-secondary font-mono font-bold">{p.price.toLocaleString('vi-VN')} đ</span>
-                    </div>
-                  ))}
-                </div>
               </div>
             )}
 

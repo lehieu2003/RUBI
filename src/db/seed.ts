@@ -58,7 +58,6 @@ async function main() {
       name: 'Nhà máy đá tinh khiết Rubi',
       phone: '028 3899 9999',
       address: '128 Xa Lộ Hà Nội, TP. Thủ Đức, TP.HCM',
-      onboardingCompleted: true,
     },
   });
 

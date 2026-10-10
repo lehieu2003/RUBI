@@ -16,7 +16,6 @@ export const API_ENDPOINTS = {
   // Factory
   FACTORY: {
     PROFILE: '/api/factory',
-    ONBOARDING: '/api/factory/onboarding',
   },
 
   // Orders
@@ -31,7 +30,6 @@ export const API_ENDPOINTS = {
   // Customers
   CUSTOMERS: {
     BASE: '/api/customers',
-    IMPORT: '/api/customers/import',
     DEBT_EXPORT: '/api/customers/debt-export',
   },
 
