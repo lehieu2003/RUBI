@@ -35,6 +35,31 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // The change-password page needs a session but is open to every role.
+  if (pathname === '/change-password') {
+    if (session) return NextResponse.next();
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    return NextResponse.redirect(url);
+  }
+
+  // Accounts handed out by the manager must set their own password first.
+  if (session?.mustChangePassword) {
+    if (pathname.startsWith('/api/')) {
+      if (!pathname.startsWith('/api/auth/')) {
+        return NextResponse.json(
+          { error: 'Bạn cần đổi mật khẩu trước khi tiếp tục', code: 'PASSWORD_CHANGE_REQUIRED' },
+          { status: 403 }
+        );
+      }
+    } else {
+      const url = request.nextUrl.clone();
+      url.pathname = '/change-password';
+      url.search = '';
+      return NextResponse.redirect(url);
+    }
+  }
+
   // No public landing page: "/" goes straight to login
   if (pathname === '/' && !session) {
     const url = request.nextUrl.clone();

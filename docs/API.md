@@ -59,6 +59,7 @@ JWT signing and verification uses `JWT_SECRET` from environment variables.
 | POST | `/api/auth/login` | Login with email/password | No |
 | POST | `/api/auth/logout` | Clear session cookie | No |
 | GET | `/api/auth/me` | Get current user | Yes |
+| POST | `/api/auth/password` | Change own password (`currentPassword`, `newPassword`) | Yes |
 | GET | `/api/customers` | List all active customers | Yes |
 | POST | `/api/customers` | Create new customer | Admin only |
 | GET | `/api/products` | List all active products | Yes |
@@ -392,7 +393,7 @@ Query parameters:
 }
 ```
 
-Valid roles: `ADMIN`, `STAFF`, `DRIVER`
+Valid roles: `STAFF`, `DRIVER` (the manager account is created with `npm run admin:create`, not through the API). New accounts and manager-reset passwords are flagged `mustChangePassword`; until the user calls `POST /api/auth/password`, every non-auth endpoint answers `403` with `code: PASSWORD_CHANGE_REQUIRED`.
 
 **PATCH /api/staff/[id]** - Update staff
 ```json

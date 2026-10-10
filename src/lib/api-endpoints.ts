@@ -10,6 +10,7 @@ export const API_ENDPOINTS = {
     LOGIN: '/api/auth/login',
     LOGOUT: '/api/auth/logout',
     ME: '/api/auth/me',
+    PASSWORD: '/api/auth/password',
   },
 
   // Factory

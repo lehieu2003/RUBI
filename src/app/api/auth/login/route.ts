@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
       name: user.name,
       role: user.role,
       factoryId: (user as { factoryId?: string }).factoryId ?? undefined,
+      mustChangePassword: user.mustChangePassword,
     });
     await setSessionCookie(token);
 
@@ -63,6 +64,7 @@ export async function POST(req: NextRequest) {
             name: user.name,
             role: user.role,
             factoryId: user.factoryId,
+            mustChangePassword: user.mustChangePassword,
           },
           token,
         });

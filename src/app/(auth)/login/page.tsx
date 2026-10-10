@@ -18,7 +18,7 @@ export default function LoginPage() {
     if (!user) return;
 
     // Auto redirect if user is already logged in
-    const target = user.role === 'DRIVER' ? '/driver' : '/dashboard';
+    const target = user.mustChangePassword ? '/change-password' : user.role === 'DRIVER' ? '/driver' : '/dashboard';
     router.replace(target);
 
   }, [user, router]);
@@ -39,7 +39,10 @@ export default function LoginPage() {
     try {
       const meRes = await fetch(API_ENDPOINTS.AUTH.ME);
       const meData = await meRes.json();
-      if (meData.user?.role === 'DRIVER') {
+      const me = meData?.data?.user ?? meData.user;
+      if (me?.mustChangePassword) {
+        router.push('/change-password');
+      } else if (me?.role === 'DRIVER') {
         router.push('/driver');
       } else {
         router.push('/dashboard');
