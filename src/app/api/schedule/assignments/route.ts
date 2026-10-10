@@ -45,7 +45,7 @@ async function ensureFactoryExists(factoryId: string): Promise<boolean> {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
+    const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
 
 async function handleSaveAssignment(request: NextRequest) {
   try {
-    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
+    const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }

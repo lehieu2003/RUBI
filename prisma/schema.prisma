@@ -226,7 +226,6 @@ model Inventory {
 
 enum UserRole {
   ADMIN
-  ACCOUNTANT
   STAFF
   DRIVER
 }

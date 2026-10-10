@@ -5,7 +5,7 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await requireRole(['ADMIN', 'ACCOUNTANT', 'STAFF']);
+    const session = await requireRole(['ADMIN', 'STAFF']);
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }

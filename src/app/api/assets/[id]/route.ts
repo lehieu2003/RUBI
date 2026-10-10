@@ -12,13 +12,13 @@ const UpdateAssetSchema = z.object({
   notes: z.string().nullable().optional(),
 });
 
-// PATCH /api/assets/[id] — update asset fields (ADMIN, ACCOUNTANT)
+// PATCH /api/assets/[id] — update asset fields (ADMIN)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
+    const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }

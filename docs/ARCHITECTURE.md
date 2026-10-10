@@ -6,7 +6,7 @@
 
 IceFlow is a web-based order and inventory management system built for a single ice factory, Nhà máy đá tinh khiết Rubi. It is not a multi-tenant SaaS: there is no super admin, no public registration and no subscription billing; the `Factory` table holds one row and every entity keeps its `factoryId`. It replaces pen-and-paper and Zalo workflows with fast digital order entry, printed delivery slips, and automated inventory/debt tracking. The system targets 10-15 person operations with 2-4 delivery trucks handling 50-100 orders per day.
 
-Primary users are office staff (order entry power users), drivers (read-only web view), accountants (delivery confirmation and debt reconciliation), and factory owners (reports and debt overview). The core design principle is speed over everything.
+Primary users are office staff (order entry power users), drivers (delivery list and delivery confirmation), and the manager, i.e. the factory owner (reconciliation, debt, inventory, reports, settings). There are three roles only: `ADMIN`, `STAFF`, `DRIVER`; accounts are created by the manager. The core design principle is speed over everything.
 
 The architecture follows a **layered full-stack pattern** with Next.js 15 App Router, Prisma ORM connecting to Supabase PostgreSQL, and JWT-based session authentication with role-based access control via Next.js middleware.
 
@@ -16,8 +16,8 @@ The architecture follows a **layered full-stack pattern** with Next.js 15 App Ro
 ┌─────────────────────────────────────────────────────────────────┐
 │                         Browser                                  │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐ │
-│  │ Office Staff │  │   Driver    │  │      Accountant/        │ │
-│  │  (Chrome)   │  │ (Mobile)    │  │        Owner            │ │
+│  │ Office Staff │  │   Driver    │  │        Manager          │ │
+│  │  (Chrome)   │  │ (Mobile)    │  │        (Owner)          │ │
 │  └──────┬──────┘  └──────┬──────┘  └───────────┬─────────────┘ │
 └─────────┼────────────────┼────────────────────┼───────────────┘
           │                │                    │
@@ -90,7 +90,7 @@ PENDING → SHIPPING → DELIVERED → COMPLETED
 
 | Model | Purpose | Key Fields |
 |-------|---------|------------|
-| `User` | Authenticated staff with roles | email, password (bcrypt), role (ADMIN/ACCOUNTANT/STAFF), name, isActive |
+| `User` | Authenticated staff with roles | email, password (bcrypt), role (ADMIN/STAFF/DRIVER), name, isActive |
 | `Customer` | Wholesale buyers | code (KH001), name, address, phone, isActive, debtLedger, shellDeposit |
 | `Product` | Ice types (Bi 5/10/20kg, Vien 5/10/20kg) | name, sizeKg, unit, isActive |
 | `GlobalPrice` | Base price for all customers | productId (unique), pricePerUnit |
@@ -129,9 +129,9 @@ PENDING → SHIPPING → DELIVERED → COMPLETED
 ### Middleware (`src/middleware.ts`)
 
 Role-based access control protecting app routes:
-- `ADMIN`: all routes including `/settings`
-- `ACCOUNTANT`: `/dashboard`, `/orders`, `/customers`, `/settle`, `/inventory`, `/vehicles`
-- `STAFF`: `/dashboard`, `/orders`, `/customers`
+- `ADMIN` (Quản lý): every office route — `/settle`, `/inventory`, `/vehicles`, `/assets`, `/schedule`, `/reports/debt`, `/deposits/shells`, `/settings`, `/config/prices` are ADMIN-only
+- `STAFF` (Nhân viên): `/dashboard`, `/orders`, `/customers`
+- `DRIVER` (Tài xế): `/driver`
 - Unauthenticated API requests return 401 JSON
 
 ## Directory Structure

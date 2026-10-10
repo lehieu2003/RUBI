@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import { requireRole } from '@/lib/auth/helpers';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
-const STAFF_ROLES = ['ADMIN', 'ACCOUNTANT', 'STAFF', 'DRIVER'] as const;
+const STAFF_ROLES = ['ADMIN', 'STAFF', 'DRIVER'] as const;
 
 function createDriverSlug(name: string): string {
   const base = name

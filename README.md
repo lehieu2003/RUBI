@@ -59,7 +59,7 @@ docker compose exec app npm run db:seed
 - **Driver Delivery View**: Mobile-friendly read-only view for drivers to confirm deliveries
 - **Customer Management**: Track customer pricing and debt
 - **Inventory Tracking**: Monitor stock levels
-- **Settlement**: End-of-day reconciliation for accountants
+- **Settlement**: End-of-day reconciliation by the manager
 - **Print Support**: Print delivery slips directly from the browser
 
 ## Project Structure
@@ -117,12 +117,11 @@ Configure your `.env` file with the following Supabase credentials:
 
 ## User Roles
 
-- **Admin** (factory owner): Full access, view all reports, manages staff accounts
-- **Accountant**: Confirm deliveries, track debt, reconciliation
-- **Staff**: Order entry, print delivery slips
-- **Driver**: Daily delivery list and delivery confirmation (web `/driver` or the Flutter app in `mobile/`)
+- **Quản lý** (`ADMIN`, the factory owner): Full access — reconciliation, debt, inventory, vehicles, assets, scheduling, prices, settings, and all accounts
+- **Nhân viên** (`STAFF`): Dashboard, order entry, customers, print delivery slips
+- **Tài xế** (`DRIVER`): Daily delivery list and delivery confirmation (web `/driver` or the Flutter app in `mobile/`)
 
-There is no public registration and no super admin: the app serves a single factory, and the Admin creates every account in Settings.
+There is no public registration and no super admin: the app serves a single factory, and only the Quản lý creates accounts (Settings); nobody can create their own.
 
 ## Deployment
 

@@ -6,10 +6,11 @@
 Web-based order and inventory management system for a single ice factory, Nhà máy đá tinh khiết Rubi (not a multi-tenant SaaS: no super admin, no public registration, no subscriptions). Replaces pen-and-paper/Zalo workflows with fast digital order entry, printed delivery slips, and automated inventory/debt tracking for a 10-15 person operation with 2-4 delivery trucks handling 50-100 orders/day.
 
 **Target users:**
-- Office staff (order entry + phone) — primary power users
-- Drivers (view delivery list on phone) — read-only web-view
-- Accountants (confirm deliveries + track debt) — reconciliation
-- Factory owner (reports + debt overview) — decision-maker
+- Staff / Nhân viên (order entry + phone) — primary power users
+- Drivers / Tài xế (delivery list + delivery confirmation on phone)
+- Manager / Quản lý, the factory owner (reconciliation, debt, inventory, reports, settings) — decision-maker
+
+There are exactly three roles: `ADMIN` (Quản lý), `STAFF` (Nhân viên), `DRIVER` (Tài xế). There is no accountant role. Nobody can self-register: every account is created and handed out by the Manager.
 
 **Core Value:** **Speed over everything.** Staff taking phone calls under pressure must enter orders faster than writing by hand (30 seconds). If the system is slower than pen-and-paper, staff rejects it and returns to chaos.
 

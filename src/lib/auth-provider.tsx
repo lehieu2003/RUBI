@@ -8,7 +8,7 @@ interface User {
   id: string;
   email: string;
   name: string;
-  role?: 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'DRIVER';
+  role?: 'ADMIN' | 'STAFF' | 'DRIVER';
   factoryId?: string;
 }
 

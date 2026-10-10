@@ -7,12 +7,10 @@ import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 
 void main() {
   group('UserRole.fromName', () {
-    test('map 5 role chính thức từ server (case-sensitive)', () {
+    test('map 3 role chính thức từ server (case-sensitive)', () {
       expect(UserRole.fromName('ADMIN'), UserRole.admin);
-      expect(UserRole.fromName('ACCOUNTANT'), UserRole.accountant);
       expect(UserRole.fromName('STAFF'), UserRole.staff);
       expect(UserRole.fromName('DRIVER'), UserRole.driver);
-      expect(UserRole.fromName('SUPER_ADMIN'), UserRole.superAdmin);
     });
 
     test('null / không rõ → null, không tự suy thành DRIVER', () {
