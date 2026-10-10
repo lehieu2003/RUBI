@@ -37,6 +37,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // Initial read (the no-flash script in layout already applied the class)
   useEffect(() => {
     const stored = (localStorage.getItem(STORAGE_KEY) as ThemeChoice | null) ?? 'system';
+    // localStorage is only readable after mount; syncing it here is intentional.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setThemeState(stored);
     setResolved(applyTheme(stored));
   }, []);

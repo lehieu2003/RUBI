@@ -28,6 +28,10 @@ const ACTION_ROLES: Record<string, TenantRole[]> = {
   '/reports/debt': ['ADMIN', 'ACCOUNTANT'],
 };
 
+function daysUntil(dueAt: string) {
+  return Math.ceil((new Date(dueAt).getTime() - Date.now()) / 86400000);
+}
+
 export function QuickActions({ pendingOrdersCount = 0, totalBagsOut = 0, dueAssets = [] }: QuickActionsProps) {
   const { user } = useAuth();
   const role = (user?.role as TenantRole | undefined) ?? null;
@@ -126,7 +130,7 @@ export function QuickActions({ pendingOrdersCount = 0, totalBagsOut = 0, dueAsse
           </h4>
           <div className="space-y-2">
             {dueAssets.map((item, index) => {
-              const days = Math.ceil((new Date(item.dueAt).getTime() - Date.now()) / 86400000);
+              const days = daysUntil(item.dueAt);
               const urgent = days <= 7;
               return (
                 <div
