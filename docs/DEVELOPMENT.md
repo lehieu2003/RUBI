@@ -19,7 +19,7 @@
 3. **Initialize the database**
    ```bash
    npm run db:generate
-   npm run db:push
+   npm run db:deploy
    ```
 
 4. **(Optional) Seed with sample data**
@@ -43,9 +43,24 @@ The application will be available at **http://localhost:3000**.
 | `npm run start` | Start the production server |
 | `npm run lint` | Run ESLint to check code quality |
 | `npm run db:generate` | Generate Prisma client from schema |
-| `npm run db:push` | Push schema changes to the database (development) |
-| `npm run db:migrate` | Run Prisma migrations (creates versioned migrations) |
+| `npm run db:migrate` | Create a migration from schema changes and apply it (development) |
+| `npm run db:deploy` | Apply pending migrations (shared/production database) |
 | `npm run db:seed` | Seed the database with initial sample data |
+
+## Database Schema Changes
+
+The schema is managed with Prisma Migrate only; `prisma db push` is not used, because it changes the database without leaving a migration file.
+
+1. Edit `prisma/schema.prisma`.
+2. Run `npm run db:migrate` and give the migration a name. Prisma writes `prisma/migrations/<timestamp>_<name>/migration.sql` and applies it to the database in `DATABASE_URL`.
+3. Review the generated SQL and commit it together with the schema change.
+4. Other databases pick it up with `npm run db:deploy`.
+
+Notes:
+
+- `prisma migrate dev` needs to create a temporary shadow database and may offer to reset the database when it detects drift. Never accept a reset on the shared Supabase database. Prefer running it against a local Postgres (`docker compose up postgres`), then apply to Supabase with `npm run db:deploy`.
+- CI applies all migrations to an empty Postgres and fails if the result differs from `schema.prisma`, so a schema change without a migration cannot be merged.
+- History starts at `20261010000000_baseline`, which captures the schema as of 2026-10-10. On the existing Supabase database it was marked as applied with `prisma migrate resolve --applied`, not executed.
 
 ## Code Style
 

@@ -22,6 +22,21 @@ jobs:
       DIRECT_URL: postgresql://postgres:postgres@localhost:5432/iceflow?schema=public
       JWT_SECRET: ci-jwt-secret-for-builds-only
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: iceflow
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d iceflow"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,6 +63,11 @@ jobs:
 
       - name: Generate Prisma client
         run: npm run db:generate
+
+      - name: Check migrations match schema
+        run: |
+          npx prisma migrate deploy
+          npx prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --exit-code
 
       - name: Lint
         run: npm run lint

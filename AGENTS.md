@@ -99,7 +99,7 @@ Applies to every code change, including those made through a GSD command:
 3. **Every change lands through a Pull Request into `dev`**, with a description that says why, what changed, how it was verified and how to roll back. Rollback = revert the PR's merge commit.
 4. **Commits follow Conventional Commits:** `type(scope): summary` — types `feat`, `fix`, `refactor`, `docs`, `test`, `chore`; scope optional (`mobile`, `api`, `ci`, ...); imperative summary; one logical change per commit.
 5. **Merge only when the CI "Quality Gate" is green** (lint, typecheck, test, build). Fix a red CI on the branch; do not merge around it.
-6. Schema changes that touch the shared database (`prisma db push`) are called out in the PR, because reverting the code does not restore dropped data.
+6. Schema changes go through Prisma Migrate only (`npm run db:migrate` creates the migration file, `npm run db:deploy` applies it); never `prisma db push`. Call them out in the PR, because reverting the code does not restore dropped data.
 
 
 

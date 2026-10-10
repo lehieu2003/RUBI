@@ -13,8 +13,8 @@ npm install
 cp .env.example .env
 # Edit .env with your Supabase project credentials
 
-# Initialize database
-npm run db:push
+# Initialize database (applies prisma/migrations)
+npm run db:deploy
 npm run db:seed
 
 # Start development server
@@ -40,7 +40,7 @@ postgresql://iceflow:iceflow@localhost:5432/iceflow?schema=public
 Run Prisma commands inside the app container when using Docker:
 
 ```bash
-docker compose exec app npm run db:push
+docker compose exec app npm run db:deploy
 docker compose exec app npm run db:seed
 ```
 
@@ -111,8 +111,8 @@ Configure your `.env` file with the following Supabase credentials:
 | `npm run lint` | Run ESLint |
 | `npm run typecheck` | Run TypeScript without emitting files |
 | `npm run db:generate` | Generate Prisma client |
-| `npm run db:push` | Push schema to database |
-| `npm run db:migrate` | Run database migrations |
+| `npm run db:migrate` | Create a migration from schema changes and apply it (development) |
+| `npm run db:deploy` | Apply pending migrations (shared/production database) |
 | `npm run db:seed` | Seed database with initial data |
 
 ## User Roles
