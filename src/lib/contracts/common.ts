@@ -135,6 +135,7 @@ const orderFields = {
   driverId: Id.nullable(),
   assignerId: Id.nullable(),
   deliveredAt: IsoDateTime.nullable(),
+  completedAt: IsoDateTime.nullable(),
   factoryId: Id,
 };
 

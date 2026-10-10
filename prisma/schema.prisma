@@ -180,6 +180,8 @@ model Order {
   driverId    String?     @map("driver_id")
   assignerId  String?     @map("assigner_id")
   deliveredAt DateTime?   @map("delivered_at")
+  // When the order was settled (đối soát); null until it is COMPLETED
+  completedAt DateTime?   @map("completed_at")
   factoryId   String      @map("factory_id")
   factory     Factory     @relation(fields: [factoryId], references: [id])
   orderItems  OrderItem[]

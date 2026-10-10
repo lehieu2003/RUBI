@@ -20,6 +20,7 @@ const orderFilters = {
   customerId: Id.optional(),
   driverId: z.string().optional().meta({ description: 'A driver id, or "unassigned" for orders without a driver' }),
   date: DateOnly.optional(),
+  completedDate: DateOnly.optional(),
   q: z.string().optional().meta({ description: 'Customer name or code, or an order code such as DH-JI9A6Q' }),
 };
 
@@ -36,7 +37,8 @@ export const orderContracts: ApiContract[] = [
     errors: [400, 401, 403, 500],
     notes:
       'An unknown `status` value is ignored rather than rejected. `date` is a Vietnam calendar day and filters on the ' +
-      'creation time. 400 for a malformed `date`, or a `page`/`limit` that is not a positive integer or exceeds the maximum.',
+      'creation time; `completedDate` filters on the day the order was settled. 400 for a malformed `date` or ' +
+      '`completedDate`, or a `page`/`limit` that is not a positive integer or exceeds the maximum.',
   },
   {
     id: 'getOrderCounts',
