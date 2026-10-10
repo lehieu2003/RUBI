@@ -1,0 +1,13 @@
+{
+  "operationId": "getOrderCounts",
+  "request": {
+    "method": "GET",
+    "path": "/api/orders/counts",
+    "as": "driver"
+  },
+  "status": 403,
+  "body": {
+    "success": false,
+    "error": "Bạn không có quyền thực hiện thao tác này"
+  }
+}

@@ -11,20 +11,20 @@
     "data": {
       "users": [
         {
-          "id": "cmv24pftc0001i9t3hcq1qqz4",
+          "id": "cmv25e3eb0001i95gvw5pjonj",
           "name": "Nhân viên hợp đồng",
-          "email": "hopdong-mv24penp@rubi.local",
+          "email": "hopdong-mv25e2cb@rubi.local",
           "role": "STAFF",
           "isActive": true,
-          "createdAt": "2026-10-10T08:25:00.240Z"
+          "createdAt": "2026-10-10T08:44:10.548Z"
         },
         {
-          "id": "cmv24p8x10005i9rs6kvdrgov",
+          "id": "cmv25du6k0005i93mn6crf9ne",
           "name": "Phạm Văn Tài (Xe 1)",
           "email": "taixe1@miendong.vn",
           "role": "DRIVER",
           "isActive": true,
-          "createdAt": "2026-10-10T08:24:51.302Z"
+          "createdAt": "2026-10-10T08:43:58.604Z"
         }
       ]
     }

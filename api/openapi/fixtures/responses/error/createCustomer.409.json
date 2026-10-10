@@ -5,13 +5,13 @@
     "path": "/api/customers",
     "as": "admin",
     "body": {
-      "code": "CT-mv24penp",
+      "code": "CT-mv25e2cb",
       "name": "Trùng mã"
     }
   },
   "status": 409,
   "body": {
     "success": false,
-    "error": "Mã khách hàng \"CT-mv24penp\" đã tồn tại"
+    "error": "Mã khách hàng \"CT-mv25e2cb\" đã tồn tại"
   }
 }

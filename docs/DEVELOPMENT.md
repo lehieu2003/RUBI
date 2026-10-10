@@ -67,6 +67,18 @@ Every API endpoint has a contract: who may call it, its path/query parameters, r
 - **Live check**: `npm run contract:verify` calls every endpoint of a running local server (seeded demo data) and checks the real responses against the contracts, including fields the contract does not declare. It changes data, so it refuses non-local servers. Add `-- --record` to refresh the fixtures. CI runs it against the built app.
 - The test suite fails when a route handler has no contract, a contract has no route, the OpenAPI files are stale, a `$ref` is broken, or a fixture no longer matches its contract.
 
+### Pagination
+
+List endpoints that can grow without bound are paginated (today: `GET /api/orders`):
+
+- Request: `?page=1&limit=20`. `page` is 1-based; `limit` defaults to 20 and may not exceed 200. Anything else answers 400.
+- Response: `{ "success": true, "data": [...], "meta": { "page", "limit", "total_item", "total_page" } }`.
+- Server: `parsePagination()` and `paginationMeta()` in `src/lib/pagination.ts`; pass the meta as the third argument of `apiSuccess()`. Order by a unique tiebreaker (e.g. `createdAt` then `id`) so pages never overlap.
+- Contract: `paginated(Item)` and `...paginationQuery` from `src/lib/contracts/common.ts`; the shared schema is generated to `api/openapi/components/schemas/pagination.yaml`.
+- Web: the `Pagination` component in `src/components/ui/pagination.tsx`. Filters and search must go to the server, because the client only holds one page. A screen that needs every row (the settle page) reads page after page until `total_page`.
+
+Small lists used for pickers and fuzzy search (customers, products, drivers, staff, assets) are deliberately not paginated.
+
 When you add or change an endpoint: update its contract module, run `npm run contract:docs`, and commit both. For a new domain, add the module and one entry in `domains`.
 
 ## Database Schema Changes

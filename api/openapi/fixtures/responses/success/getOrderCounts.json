@@ -1,0 +1,22 @@
+{
+  "operationId": "getOrderCounts",
+  "request": {
+    "method": "GET",
+    "path": "/api/orders/counts",
+    "as": "admin"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "total": 4,
+      "byStatus": {
+        "PENDING": 1,
+        "SHIPPING": 1,
+        "DELIVERED": 1,
+        "COMPLETED": 1,
+        "CANCELLED": 0
+      }
+    }
+  }
+}
