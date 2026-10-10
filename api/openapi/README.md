@@ -132,7 +132,7 @@ Orders: listing, status, assignment, delivery, reconciliation.
 
 ### [driver.yaml](driver.yaml)
 
-Driver views: session-based list and share link.
+The signed-in driver's order list.
 
 | Method | Path | Access | Summary |
 |---|---|---|---|

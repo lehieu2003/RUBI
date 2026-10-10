@@ -65,10 +65,10 @@ The architecture follows a **layered full-stack pattern** with Next.js 15 App Ro
 
 ### Driver Delivery View
 
-1. Driver accesses `/d/[token]` with unique token from `Driver.token` field
-2. `DriverMap` component fetches assigned orders via `/api/driver/orders`
+1. Driver signs in (role `DRIVER`) on the web at `/driver` or in the Flutter app; there is no share link
+2. The page fetches the driver's assigned orders for the day via `/api/driver/orders`
 3. `DeliveryCard` displays order items, customer address, and status
-4. Driver has no write access — read-only view optimized for mobile
+4. Driver confirms a delivery with `PATCH /api/orders/[id]/confirm`; no other write access
 
 ### Order Status Workflow
 
@@ -164,7 +164,6 @@ src/
 │   ├── settle/            # Debt settlement
 │   ├── vehicles/          # Vehicle/driver management
 │   ├── driver/            # Driver delivery view
-│   ├── d/[token]/         # Token-based driver URL (e.g., /d/abc-123)
 │   ├── config/prices/     # Price configuration page
 │   ├── reports/           # Report pages (debt)
 │   ├── deposits/shells/   # Shell deposit management

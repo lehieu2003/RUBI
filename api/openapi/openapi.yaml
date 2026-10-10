@@ -29,7 +29,7 @@ tags:
   - name: Orders
     description: "Orders: listing, status, assignment, delivery, reconciliation"
   - name: Driver
-    description: "Driver views: session-based list and share link"
+    description: The signed-in driver's order list
   - name: Schedule
     description: "Shift scheduling: manager assignment, self-registration, approval"
   - name: Reports

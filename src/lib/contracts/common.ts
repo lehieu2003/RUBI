@@ -17,7 +17,7 @@ export type ContractAuth =
   | { kind: 'session' }
   /** Signed-in user with one of these roles */
   | { kind: 'roles'; roles: Role[] }
-  /** Described in `notes`, e.g. a driver share-link token */
+  /** A rule that does not fit the kinds above, described in words */
   | { kind: 'custom'; description: string };
 
 export interface ApiContract {

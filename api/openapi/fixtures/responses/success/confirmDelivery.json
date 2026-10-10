@@ -5,16 +5,15 @@
     "path": "/api/orders/{id}/confirm",
     "as": "driver",
     "params": {
-      "id": "cmv25du9b002ai93myrr2vg5d"
-    },
-    "body": {}
+      "id": "cmv26r0n1002ai970qy1gkzg1"
+    }
   },
   "status": 200,
   "body": {
     "success": true,
     "data": {
       "success": true,
-      "orderId": "cmv25du9b002ai93myrr2vg5d",
+      "orderId": "cmv26r0n1002ai970qy1gkzg1",
       "status": "DELIVERED"
     }
   }

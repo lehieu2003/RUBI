@@ -1,0 +1,16 @@
+{
+  "operationId": "confirmDelivery",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/orders/{id}/confirm",
+    "as": "anon",
+    "params": {
+      "id": "cmv26r0n1002ai970qy1gkzg1"
+    }
+  },
+  "status": 401,
+  "body": {
+    "success": false,
+    "error": "Chưa đăng nhập hoặc phiên đã hết hạn"
+  }
+}
