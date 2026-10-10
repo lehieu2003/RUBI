@@ -19,7 +19,12 @@ describe('pricing factory scope source checks', () => {
     const source = read('src/lib/actions/orders.ts');
     assert.match(source, /session\.role !== 'ADMIN' && session\.role !== 'STAFF'/);
     assert.equal(source.match(/await requireOfficeFactoryId\(\)/g)?.length, 2);
-    assert.match(source, /unitPrice: prices\[item\.productId\] \?\? 0/);
+    assert.match(source, /unitPrice: prices\.get\(item\.productId\)!/);
+    // a product with no price stops the order instead of being sold for 0
+    assert.match(source, /productIds\.some\(\(productId\) => !prices\.has\(productId\)\)/);
+    // one parallel round of checks, priced from the ordered products only
+    assert.match(source, /await Promise\.all\(\[\s*prisma\.customer\.findFirst/);
+    assert.match(source, /where: \{ productId: \{ in: productIds \}, product: \{ factoryId \} \}/);
     assert.match(source, /where: \{ id: \{ in: productIds \}, factoryId, isActive: true \}/);
     // the request carries no price at all
     const schema = source.slice(source.indexOf('const OrderItemSchema'), source.indexOf('const SaveOrderSchema'));

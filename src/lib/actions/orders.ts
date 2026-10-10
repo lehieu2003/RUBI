@@ -102,21 +102,47 @@ async function saveOrderInternal(
   lineItems: { productId: string; quantity: number }[]
 ) {
   const factoryId = await requireOfficeFactoryId();
-  // Also rejects a customer of another factory.
-  const prices = await customerPriceList(customerId, factoryId);
 
   const orderedItems = lineItems.filter((item) => item.quantity > 0);
   const productIds = [...new Set(orderedItems.map((item) => item.productId))];
-  const sellable = await prisma.product.count({
-    where: { id: { in: productIds }, factoryId, isActive: true },
-  });
+
+  // Order entry is the hot path: one parallel round of checks, and only the
+  // prices of the products actually ordered.
+  const [customer, sellable, globalPrices, overrides] = await Promise.all([
+    prisma.customer.findFirst({ where: { id: customerId, factoryId }, select: { id: true } }),
+    prisma.product.count({
+      where: { id: { in: productIds }, factoryId, isActive: true },
+    }),
+    prisma.globalPrice.findMany({
+      where: { productId: { in: productIds }, product: { factoryId } },
+      select: { productId: true, pricePerUnit: true },
+    }),
+    prisma.customerPriceOverride.findMany({
+      where: { customerId, productId: { in: productIds }, customer: { factoryId }, product: { factoryId } },
+      select: { productId: true, pricePerUnit: true },
+    }),
+  ]);
+  if (!customer) {
+    throw new Error('Không tìm thấy khách hàng');
+  }
   if (sellable !== productIds.length) {
     throw new Error('Có sản phẩm không tồn tại hoặc đã ngừng bán');
   }
 
+  // Overrides win over the global price.
+  const prices = new Map<string, number>();
+  for (const row of [...globalPrices, ...overrides]) {
+    prices.set(row.productId, Number(row.pricePerUnit));
+  }
+  // The server is the only source of prices, so a product with no price at
+  // all must stop the order instead of being sold for 0.
+  if (productIds.some((productId) => !prices.has(productId))) {
+    throw new Error('Có sản phẩm chưa có giá bán. Báo Quản lý cài giá trước khi lên đơn.');
+  }
+
   const validItems = orderedItems.map((item) => ({
     ...item,
-    unitPrice: prices[item.productId] ?? 0,
+    unitPrice: prices.get(item.productId)!,
   }));
   const total = validItems.reduce(
     (sum, item) => sum + item.quantity * item.unitPrice,
