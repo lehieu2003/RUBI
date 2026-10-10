@@ -14,14 +14,14 @@ const ordersApi = readFileSync(
 );
 
 describe('settle page source checks', () => {
-  it('unwraps the response envelope on every fetch', () => {
-    assert.match(settle, /unwrapEnvelope/);
-    assert.doesNotMatch(settle, /setOrders\(ordersData\)/);
+  it('reads the orders out of the response envelope on every fetch', () => {
+    assert.match(settle, /json\.data as OrderFromAPI\[\]/);
+    assert.equal(settle.match(/setOrders\(await fetchOrdersOfDay\(todayStr\)\)/g)?.length, 2);
   });
 
   it('fetches all of today orders without status filter (counters derive client-side)', () => {
     assert.doesNotMatch(settle, /ORDERS\.BASE\?status=DELIVERED/);
-    assert.match(settle, /date=\$\{todayStr\}/);
+    assert.match(settle, /\?date=\$\{date\}&page=\$\{page\}&limit=\$\{MAX_PAGE_SIZE\}/);
   });
 
   it('never falls back to raw driverId for display', () => {

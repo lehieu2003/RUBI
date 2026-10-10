@@ -8,10 +8,20 @@ import {
   OrderWithItems,
   Success,
   envelope,
+  paginated,
+  paginationQuery,
   roles,
 } from './common';
 
 const orderId = z.object({ id: Id });
+
+/** Filters shared by the order list and the order counts. */
+const orderFilters = {
+  customerId: Id.optional(),
+  driverId: z.string().optional().meta({ description: 'A driver id, or "unassigned" for orders without a driver' }),
+  date: DateOnly.optional(),
+  q: z.string().optional().meta({ description: 'Customer name or code, or an order code such as DH-JI9A6Q' }),
+};
 
 export const orderContracts: ApiContract[] = [
   {
@@ -19,18 +29,37 @@ export const orderContracts: ApiContract[] = [
     method: 'GET',
     path: '/api/orders',
     tag: 'Orders',
-    summary: 'Orders with customer, driver and items, newest first',
+    summary: 'Orders with customer, driver and items, newest first, paginated',
     auth: roles('ADMIN', 'STAFF'),
-    query: z.object({
-      customerId: Id.optional(),
-      status: OrderStatus.optional(),
-      date: DateOnly.optional(),
-    }),
+    query: z.object({ ...orderFilters, status: OrderStatus.optional(), ...paginationQuery }),
+    response: paginated(OrderWithItems.extend({ driver: z.object({ id: Id, name: z.string() }).nullable() })),
+    errors: [400, 401, 403, 500],
+    notes:
+      'An unknown `status` value is ignored rather than rejected. `date` is a Vietnam calendar day and filters on the ' +
+      'creation time. 400 for a malformed `date`, or a `page`/`limit` that is not a positive integer or exceeds the maximum.',
+  },
+  {
+    id: 'getOrderCounts',
+    method: 'GET',
+    path: '/api/orders/counts',
+    tag: 'Orders',
+    summary: 'Number of orders per status under the same filters as the list',
+    auth: roles('ADMIN', 'STAFF'),
+    query: z.object(orderFilters),
     response: envelope(
-      z.array(OrderWithItems.extend({ driver: z.object({ id: Id, name: z.string() }).nullable() }))
+      z.object({
+        total: z.number().int(),
+        byStatus: z.object({
+          PENDING: z.number().int(),
+          SHIPPING: z.number().int(),
+          DELIVERED: z.number().int(),
+          COMPLETED: z.number().int(),
+          CANCELLED: z.number().int(),
+        }),
+      })
     ),
     errors: [400, 401, 403, 500],
-    notes: 'An unknown `status` value is ignored rather than rejected. `date` filters on the creation day.',
+    notes: 'Feeds the status tabs of the order list, which cannot count from a single page.',
   },
   {
     id: 'updateOrderStatus',

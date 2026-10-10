@@ -75,6 +75,8 @@ paths:
     $ref: ./shell_deposit.yaml#/paths/~1api~1deposits~1shells
   /api/orders:
     $ref: ./order.yaml#/paths/~1api~1orders
+  /api/orders/counts:
+    $ref: ./order.yaml#/paths/~1api~1orders~1counts
   /api/orders/{id}/status:
     $ref: ./order.yaml#/paths/~1api~1orders~1{id}~1status
   /api/orders/bulk-assign:

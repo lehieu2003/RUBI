@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import type { PaginationMeta } from '@/lib/pagination';
 
 /**
  * Standard API Response Structure across IceFlow
@@ -9,12 +10,8 @@ export interface ApiResponse<T = unknown> {
   error?: string;
   code?: string;
   details?: unknown;
-  meta?: {
-    page?: number;
-    limit?: number;
-    total?: number;
-    [key: string]: unknown;
-  };
+  /** Present on paginated list responses */
+  meta?: PaginationMeta;
 }
 
 /**

@@ -174,6 +174,80 @@ async function call(id: string, options: CallOptions = {}): Promise<Json> {
 const data = (json: Json) => json?.data ?? json;
 const pad = (value: number) => String(value).padStart(2, '0');
 
+/** Walks the paginated order list and checks it against the totals and the filters. */
+async function verifyOrderPagination() {
+  const expect = (condition: unknown, message: string) => {
+    if (!condition) failures.push(`pagination: ${message}`);
+  };
+  const list = (query: Record<string, string>) => call('listOrders', { query });
+
+  // Walking every page yields every order exactly once, newest first.
+  const limit = 2;
+  const seen: Json[] = [];
+  let meta: Json = {};
+  for (let page = 1; ; page += 1) {
+    const response = await list({ page: String(page), limit: String(limit) });
+    meta = response.meta;
+    expect(meta.page === page && meta.limit === limit, `page ${page} reports meta ${JSON.stringify(meta)}`);
+    expect(response.data.length <= limit, `page ${page} has ${response.data.length} rows for limit ${limit}`);
+    expect(page === meta.total_page || response.data.length === limit, `page ${page} is not full but is not the last`);
+    seen.push(...response.data);
+    if (page >= meta.total_page) break;
+    if (page > 500) throw new Error('pagination did not terminate');
+  }
+  expect(seen.length === meta.total_item, `walked ${seen.length} orders but total_item is ${meta.total_item}`);
+  expect(new Set(seen.map((order) => order.id)).size === seen.length, 'an order appears on two pages');
+  expect(
+    seen.every((order, index) => index === 0 || seen[index - 1].createdAt >= order.createdAt),
+    'orders are not sorted newest first across pages'
+  );
+
+  // The default page size, and the boundaries of `limit`.
+  const defaults = await list({});
+  expect(defaults.meta.page === 1 && defaults.meta.limit === 20, `defaults are ${JSON.stringify(defaults.meta)}`);
+  const one = await list({ limit: '1' });
+  expect(one.data.length === Math.min(1, one.meta.total_item) && one.meta.total_page === one.meta.total_item, 'limit=1');
+  const most = await list({ limit: '200' });
+  expect(most.meta.limit === 200 && most.data.length === Math.min(200, most.meta.total_item), 'limit=200');
+  const invalid: Array<Record<string, string>> = [{ limit: '201' }, { limit: '0' }, { limit: 'abc' }, { page: '-1' }, { page: '1.5' }];
+  for (const bad of invalid) {
+    await call('listOrders', { query: bad, expectError: 400 });
+  }
+
+  // Filters apply before paging: totals per status equal the counters, and every row matches.
+  const counts = data(await call('getOrderCounts'));
+  expect(counts.total === meta.total_item, `counters total ${counts.total}, list total ${meta.total_item}`);
+  let sum = 0;
+  for (const [status, count] of Object.entries(counts.byStatus as Record<string, number>)) {
+    const filtered = await list({ status, limit: '200' });
+    expect(filtered.meta.total_item === count, `status ${status}: list ${filtered.meta.total_item}, counter ${count}`);
+    expect(filtered.data.every((order: Json) => order.status === status), `status ${status}: a row has another status`);
+    sum += count;
+  }
+  expect(sum === counts.total, 'the per-status counters do not add up to the total');
+
+  const unassigned = await list({ driverId: 'unassigned', limit: '200' });
+  expect(unassigned.data.every((order: Json) => order.driverId === null), 'driverId=unassigned returned an assigned order');
+  const unassignedCounts = data(await call('getOrderCounts', { query: { driverId: 'unassigned' } }));
+  expect(unassignedCounts.total === unassigned.meta.total_item, 'counters ignore the driver filter');
+
+  // Search by the displayed order code finds exactly that order; an unknown term finds nothing.
+  const sample = seen[0];
+  const byCode = await list({ q: `#DH-${String(sample.id).slice(-6).toUpperCase()}` });
+  expect(byCode.data.some((order: Json) => order.id === sample.id), 'search by order code did not find the order');
+  const byName = await list({ q: sample.customer.name.slice(0, 5).toUpperCase(), limit: '200' });
+  expect(byName.data.some((order: Json) => order.id === sample.id), 'search by customer name is not case-insensitive');
+  const nothing = await list({ q: 'khong-co-don-nao-nhu-vay' });
+  expect(nothing.meta.total_item === 0 && nothing.meta.total_page === 0 && nothing.data.length === 0, 'unknown search term');
+
+  // A date far in the past has no orders; today's orders are a subset of all orders.
+  const past = await list({ date: '2000-01-01' });
+  expect(past.meta.total_item === 0, 'date=2000-01-01 returned orders');
+  const now = new Date(Date.now() + 7 * 60 * 60 * 1000);
+  const today = await list({ date: now.toISOString().slice(0, 10), limit: '200' });
+  expect(today.meta.total_item <= meta.total_item, "today's orders exceed all orders");
+}
+
 async function main() {
   const host = new URL(BASE_URL).hostname;
   if (!['localhost', '127.0.0.1', '::1'].includes(host)) {
@@ -244,6 +318,25 @@ async function main() {
   const orders = data(await call('listOrders'));
   await call('listOrders', { as: 'anon', expectError: 401 });
   await call('listOrders', { query: { status: 'PENDING' } });
+  const firstPage = await call('listOrders', { query: { page: '1', limit: '2' } });
+  if (firstPage.meta?.limit !== 2 || firstPage.data.length > 2 || firstPage.meta.total_page !== Math.ceil(firstPage.meta.total_item / 2)) {
+    failures.push(`listOrders: page=1&limit=2 returned ${firstPage.data?.length} rows with meta ${JSON.stringify(firstPage.meta)}`);
+  }
+  const secondPage = await call('listOrders', { query: { page: '2', limit: '2' } });
+  if (secondPage.data.some((row: Json) => firstPage.data.some((other: Json) => other.id === row.id))) {
+    failures.push('listOrders: page 2 repeats rows of page 1');
+  }
+  await call('listOrders', { query: { page: '9999', limit: '2' }, empty: true });
+  await call('listOrders', { query: { limit: '1000' }, expectError: 400 });
+  await call('listOrders', { query: { page: '0' }, expectError: 400 });
+  await call('listOrders', { query: { date: '10/10/2026' }, expectError: 400 });
+  await call('listOrders', { query: { driverId: 'unassigned', q: orders[0].customer.name.slice(0, 4) } });
+  const totals = data(await call('getOrderCounts'));
+  if (totals.total !== firstPage.meta.total_item) {
+    failures.push(`getOrderCounts: total ${totals.total} differs from the list's total_item ${firstPage.meta.total_item}`);
+  }
+  await call('getOrderCounts', { as: 'driver', expectError: 403 });
+  await verifyOrderPagination();
   const driver = drivers[0];
   const order = orders.find((item: Json) => item.status === 'PENDING') ?? orders.find((item: Json) => item.status === 'SHIPPING');
   if (!driver || !order) throw new Error('Seed data must contain a driver and a PENDING or SHIPPING order.');

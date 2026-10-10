@@ -38,14 +38,10 @@ paths:
                               type: string
                             sizeKg:
                               type: integer
-                              minimum: -9007199254740991
-                              maximum: 9007199254740991
                             unit:
                               type: string
                             quantityOnHand:
                               type: integer
-                              minimum: -9007199254740991
-                              maximum: 9007199254740991
                             totalKg:
                               type: number
                           required:
@@ -58,8 +54,6 @@ paths:
                           additionalProperties: false
                       totalBags:
                         type: integer
-                        minimum: -9007199254740991
-                        maximum: 9007199254740991
                       totalKg:
                         type: number
                     required:
@@ -101,7 +95,6 @@ paths:
                 quantity:
                   type: integer
                   minimum: 0
-                  maximum: 9007199254740991
                 mode:
                   type: string
                   enum:
@@ -136,8 +129,6 @@ paths:
                         pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}
                       quantityOnHand:
                         type: integer
-                        minimum: -9007199254740991
-                        maximum: 9007199254740991
                     required:
                       - id
                       - productId

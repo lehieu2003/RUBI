@@ -173,6 +173,74 @@ describe('OpenAPI files (api/openapi)', () => {
   });
 });
 
+describe('pagination in the contracts and OpenAPI', () => {
+  const rendered = renderAll();
+  const isPaginated = (contract: (typeof apiContracts)[number]) => {
+    const shape = (contract.response as { shape?: Record<string, unknown> }).shape;
+    return Boolean(shape && 'meta' in shape);
+  };
+
+  it('pagination.yaml declares the standard metadata', () => {
+    const { PaginationMeta } = parse(rendered[`${OUT_DIR}/components/schemas/pagination.yaml`]);
+    assert.deepEqual(PaginationMeta.required, ['page', 'limit', 'total_item', 'total_page']);
+    assert.deepEqual(Object.keys(PaginationMeta.properties), ['page', 'limit', 'total_item', 'total_page']);
+    for (const field of Object.values(PaginationMeta.properties) as Array<Record<string, unknown>>) {
+      assert.equal(field.type, 'integer');
+      assert.ok(field.description, 'every field is described');
+      assert.ok('example' in field, 'every field has an example');
+    }
+    assert.equal(PaginationMeta.additionalProperties, false);
+    assert.equal(PaginationMeta.properties.page.minimum, 1);
+    assert.equal(PaginationMeta.properties.limit.maximum, 200);
+  });
+
+  it('the order list is paginated', () => {
+    assert.ok(isPaginated(findContract('GET', '/api/orders')!));
+  });
+
+  it('every paginated endpoint takes page and limit and can answer 400', () => {
+    const paged = apiContracts.filter(isPaginated);
+    assert.ok(paged.length >= 1);
+    for (const contract of paged) {
+      const query = Object.keys(contract.query?.shape ?? {});
+      assert.ok(query.includes('page') && query.includes('limit'), `${contract.id} must accept page and limit`);
+      assert.ok(contract.errors.includes(400), `${contract.id} must list 400 for invalid paging`);
+      assert.equal(contract.method, 'GET', `${contract.id}: only GET lists are paginated`);
+    }
+  });
+
+  it('no endpoint accepts page/limit without returning the metadata', () => {
+    for (const contract of apiContracts.filter((item) => !isPaginated(item))) {
+      const query = Object.keys(contract.query?.shape ?? {});
+      assert.ok(!query.includes('page') && !query.includes('limit'), `${contract.id} takes paging parameters but is not paginated`);
+    }
+  });
+
+  it('paginated responses reference the shared schema instead of repeating it', () => {
+    const order = rendered[`${OUT_DIR}/order.yaml`];
+    assert.match(order, /meta:\n\s+\$ref: \.\/components\/schemas\/pagination\.yaml#\/PaginationMeta/);
+    assert.doesNotMatch(order, /total_item:/);
+  });
+
+  it('the page and limit parameters only accept digits', () => {
+    const query = findContract('GET', '/api/orders')!.query!;
+    assert.ok(query.safeParse({ page: '2', limit: '50' }).success);
+    assert.ok(query.safeParse({}).success);
+    assert.equal(query.safeParse({ page: 'two' }).success, false);
+    assert.equal(query.safeParse({ limit: '-5' }).success, false);
+  });
+
+  it('the paginated fixtures carry consistent metadata', () => {
+    for (const kind of ['success', 'empty']) {
+      const fixture = JSON.parse(readFileSync(`${OUT_DIR}/fixtures/responses/${kind}/listOrders.json`, 'utf8'));
+      const { meta, data } = fixture.body;
+      assert.equal(meta.total_page, Math.ceil(meta.total_item / meta.limit), `${kind}/listOrders.json`);
+      assert.ok(data.length <= meta.limit);
+      if (kind === 'empty') assert.deepEqual(data, []);
+    }
+  });
+});
+
 describe('response fixtures (api/openapi/fixtures)', () => {
   const dir = `${OUT_DIR}/fixtures/responses`;
   const fixtures = (kind: string) =>

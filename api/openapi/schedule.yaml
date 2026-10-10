@@ -447,8 +447,6 @@ paths:
                     properties:
                       updated:
                         type: integer
-                        minimum: -9007199254740991
-                        maximum: 9007199254740991
                     required:
                       - updated
                     additionalProperties: false
@@ -513,14 +511,10 @@ paths:
                           STAFF:
                             anyOf:
                               - type: integer
-                                minimum: -9007199254740991
-                                maximum: 9007199254740991
                               - type: "null"
                           DRIVER:
                             anyOf:
                               - type: integer
-                                minimum: -9007199254740991
-                                maximum: 9007199254740991
                               - type: "null"
                         required:
                           - STAFF

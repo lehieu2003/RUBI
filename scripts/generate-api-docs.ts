@@ -47,13 +47,21 @@ const ERROR_RESPONSES: Record<number, { name: string; description: string }> = {
 const shared: Record<string, Json> = {};
 
 /** Where a shared schema lives, relative to api/openapi/. */
-const sharedFile = (name: string) => (name === 'Error' ? 'components/schemas/error.yaml' : 'components/schemas/common.yaml');
+const sharedFile = (name: string) =>
+  name === 'Error'
+    ? 'components/schemas/error.yaml'
+    : name === 'PaginationMeta'
+      ? 'components/schemas/pagination.yaml'
+      : 'components/schemas/common.yaml';
 
 function rewriteRefs(node: unknown, refFor: (name: string) => string): unknown {
   if (Array.isArray(node)) return node.map((item) => rewriteRefs(item, refFor));
   if (node && typeof node === 'object') {
     return Object.fromEntries(
-      Object.entries(node as Json).map(([key, value]) =>
+      Object.entries(node as Json)
+        // Zod states the safe-integer range on every integer; it is noise in the docs.
+        .filter(([key, value]) => !((key === 'maximum' || key === 'minimum') && Math.abs(value as number) === Number.MAX_SAFE_INTEGER))
+        .map(([key, value]) =>
         key === '$ref' && typeof value === 'string' && value.startsWith('#/$defs/')
           ? [key, refFor(value.slice('#/$defs/'.length))]
           : [key, rewriteRefs(value, refFor)]
@@ -176,8 +184,12 @@ export function renderAll(): Record<string, string> {
       ])
     )
   );
-  const { Error: errorSchema, ...common } = shared;
+  const { Error: errorSchema, PaginationMeta: paginationMeta, ...common } = shared;
   files[`${OUT_DIR}/components/schemas/error.yaml`] = yaml({ Error: errorSchema }, 'src/lib/contracts/common.ts');
+  files[`${OUT_DIR}/components/schemas/pagination.yaml`] = yaml(
+    { PaginationMeta: paginationMeta },
+    'src/lib/contracts/common.ts'
+  );
   files[`${OUT_DIR}/components/schemas/common.yaml`] = yaml(
     Object.fromEntries(Object.entries(common).sort(([a], [b]) => a.localeCompare(b))),
     'src/lib/contracts/common.ts'
@@ -225,6 +237,7 @@ function readme(): string {
     '| `<domain>.yaml` | Paths, parameters, request and response schemas of one domain |',
     '| `components/schemas/common.yaml` | Records shared by several domains (customer, product, order) |',
     '| `components/schemas/error.yaml` | The error body |',
+    '| `components/schemas/pagination.yaml` | `PaginationMeta`, the metadata of paginated lists |',
     '| `components/responses/errors.yaml` | Shared error responses (400, 401, 403, …) |',
     '| `fixtures/responses/success/` | A real success response per endpoint, recorded from a seeded test server |',
     '| `fixtures/responses/empty/` | Real responses of list endpoints with no data |',
@@ -244,6 +257,7 @@ function readme(): string {
     '- **Success**: `{ "success": true, "data": … }`. The only exception is the health probe `/api/health`.',
     '- **Errors**: `{ "success": false, "error": "<Vietnamese message>", "code"?: "<CODE>" }`, from every endpoint, role guard and the middleware.',
     '- **Password change required**: an account flagged `mustChangePassword` gets `403` with `code: "PASSWORD_CHANGE_REQUIRED"` on every endpoint outside `/api/auth/*`.',
+    '- **Pagination**: paginated lists take `?page=1&limit=20` (limit at most 200) and answer `{ "success": true, "data": [...], "meta": { "page", "limit", "total_item", "total_page" } }`.',
     '- **Dates**: timestamps are ISO 8601 strings; calendar dates are `YYYY-MM-DD`; months are `YYYY-MM`.',
     '- **Money**: always numbers (VND).',
     '',

@@ -1,0 +1,23 @@
+{
+  "operationId": "listOrders",
+  "request": {
+    "method": "GET",
+    "path": "/api/orders",
+    "as": "admin",
+    "query": {
+      "page": "9999",
+      "limit": "2"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": [],
+    "meta": {
+      "page": 9999,
+      "limit": 2,
+      "total_item": 4,
+      "total_page": 2
+    }
+  }
+}
