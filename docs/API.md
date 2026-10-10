@@ -1,7 +1,7 @@
 <!-- generated-by: gsd-doc-writer -->
 # API Reference
 
-IceFlow SaaS REST API for order and inventory management.
+IceFlow REST API for order and inventory management at Nhà máy đá tinh khiết Rubi (single factory).
 
 ## Authentication
 
@@ -20,11 +20,12 @@ The API uses **JWT (JSON Web Tokens)** for authentication via the `jose` library
   "userId": "string",
   "email": "string",
   "name": "string",
-  "role": "ADMIN | ACCOUNTANT | STAFF"
+  "role": "ADMIN | ACCOUNTANT | STAFF | DRIVER",
+  "factoryId": "string"
 }
 ```
 
-Note: The `role` field is included when logging in. The registration endpoint (`POST /api/auth/register`) creates a JWT without a `role` field (defaults to staff-level access via session).
+Note: there is no registration endpoint. Accounts are created by the factory ADMIN via `POST /api/staff`.
 
 ### Including Credentials
 
@@ -58,7 +59,6 @@ JWT signing and verification uses `JWT_SECRET` from environment variables.
 | POST | `/api/auth/login` | Login with email/password | No |
 | POST | `/api/auth/logout` | Clear session cookie | No |
 | GET | `/api/auth/me` | Get current user | Yes |
-| POST | `/api/auth/register` | Register new user | No |
 | GET | `/api/customers` | List all active customers | Yes |
 | POST | `/api/customers` | Create new customer | Admin only |
 | GET | `/api/products` | List all active products | Yes |
@@ -66,10 +66,9 @@ JWT signing and verification uses `JWT_SECRET` from environment variables.
 | POST | `/api/drivers` | Create new driver | Admin only |
 | GET | `/api/orders` | List orders with filters | ACCOUNTANT/ADMIN only |
 | PATCH | `/api/orders/[id]/status` | Update order status | Yes |
-| POST | `/api/orders/[id]/confirm` | Confirm delivery with GPS (driver) | Bearer token |
+| PATCH | `/api/orders/[id]/confirm` | Confirm delivery (driver) | Driver session or Bearer token |
 | PATCH | `/api/orders/[id]/reconcile` | Reconcile order (confirm qty, create debt) | ACCOUNTANT/ADMIN only |
 | PATCH | `/api/orders/bulk-assign` | Bulk assign orders to driver | Yes |
-| GET | `/api/orders/map` | Admin delivery map data | Yes |
 | GET | `/api/driver/orders` | Driver delivery view | Driver token |
 | GET | `/api/deposits/shells` | List shell deposit balances | ACCOUNTANT/ADMIN only |
 | PATCH | `/api/deposits/shells` | Update shell deposit (shells out/in) | ACCOUNTANT/ADMIN only |
@@ -114,38 +113,6 @@ JWT signing and verification uses `JWT_SECRET` from environment variables.
 **Error** `403 Forbidden`
 ```json
 { "error": "Tài khoản đã bị vô hiệu hóa" }
-```
-
-### Register
-
-**Request** `POST /api/auth/register`
-```json
-{
-  "email": "user@example.com",
-  "password": "password123",
-  "name": "Nguyen Van A"
-}
-```
-
-**Response** `201 Created`
-```json
-{
-  "user": {
-    "id": "clx...",
-    "email": "user@example.com",
-    "name": "Nguyen Van A"
-  }
-}
-```
-
-**Error** `400 Bad Request`
-```json
-{ "error": "Thiếu thông tin bắt buộc" }
-```
-
-**Error** `409 Conflict`
-```json
-{ "error": "Email đã được đăng ký" }
 ```
 
 ### Get Current User
@@ -229,28 +196,19 @@ Valid statuses: `PENDING`, `SHIPPING`, `DELIVERED`, `COMPLETED`, `CANCELLED`
 
 ### Confirm Delivery (Driver)
 
-**Request** `POST /api/orders/[id]/confirm`
+**Request** `PATCH /api/orders/[id]/confirm`
 ```http
 Authorization: Bearer <driver_token>
 ```
-```json
-{
-  "gps": {
-    "lat": 10.8231,
-    "lng": 106.6297
-  }
-}
-```
 
-Set `gps: null` if GPS capture failed.
+No request body is required. No GPS location is captured or stored.
 
 **Response** `200 OK`
 ```json
 {
   "success": true,
   "orderId": "clx...",
-  "status": "DELIVERED",
-  "deliveryGps": { "lat": 10.8231, "lng": 106.6297 }
+  "status": "DELIVERED"
 }
 ```
 
@@ -338,31 +296,6 @@ Query parameters:
     }
   ]
 }
-```
-
-### Admin Delivery Map
-
-**Request** `GET /api/orders/map?date=2024-01-15&driverId=xxx`
-
-Query parameters:
-- `date` - Filter by date, defaults to today
-- `driverId` - Filter by specific driver (optional)
-
-**Response** `200 OK`
-```json
-[
-  {
-    "id": "...",
-    "status": "DELIVERED",
-    "customerName": "Customer Name",
-    "customerAddress": "123 Street",
-    "customerPhone": "0912...",
-    "deliveryGps": { "lat": 10.8231, "lng": 106.6297 },
-    "driverName": "Driver Name",
-    "driverId": "...",
-    "createdAt": "2024-01-15T..."
-  }
-]
 ```
 
 ### List Drivers
@@ -514,7 +447,7 @@ Valid roles: `ADMIN`, `ACCOUNTANT`, `STAFF`
 | 401 | Unauthorized - Invalid or missing session |
 | 403 | Forbidden - Insufficient permissions (e.g., non-admin accessing staff endpoints) |
 | 404 | Not Found - Resource does not exist |
-| 409 | Conflict - Email already registered |
+| 409 | Conflict - Email already in use |
 | 500 | Internal Server Error |
 
 ### Common Error Messages
@@ -528,7 +461,7 @@ Valid roles: `ADMIN`, `ACCOUNTANT`, `STAFF`
 | `Unauthorized` | 401 | No valid session |
 | `Admin only` | 403 | Action restricted to ADMIN role |
 | `Forbidden` | 403 | Insufficient role permissions |
-| `Email đã được đăng ký` | 409 | Email already exists during registration |
+| `Email đã được đăng ký` | 409 | Email already exists when creating a staff account |
 | `Không thể tự sửa tài khoản` | 400 | Admin attempting to modify own account |
 | `Không thể tự xóa tài khoản` | 400 | Admin attempting to delete own account |
 

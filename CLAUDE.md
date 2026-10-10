@@ -1,9 +1,9 @@
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
-**IceFlow SaaS**
+**IceFlow — Nhà máy đá tinh khiết Rubi**
 
-Web-based order and inventory management system for ice factories. Replaces pen-and-paper/Zalo workflows with fast digital order entry, printed delivery slips, and automated inventory/debt tracking for 10-15 person operations with 2-4 delivery trucks handling 50-100 orders/day.
+Web-based order and inventory management system for a single ice factory, Nhà máy đá tinh khiết Rubi (not a multi-tenant SaaS: no super admin, no public registration, no subscriptions). Replaces pen-and-paper/Zalo workflows with fast digital order entry, printed delivery slips, and automated inventory/debt tracking for a 10-15 person operation with 2-4 delivery trucks handling 50-100 orders/day.
 
 **Target users:**
 - Office staff (order entry + phone) — primary power users

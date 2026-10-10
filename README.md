@@ -117,9 +117,12 @@ Configure your `.env` file with the following Supabase credentials:
 
 ## User Roles
 
-- **Admin**: Full access, view all reports
+- **Admin** (factory owner): Full access, view all reports, manages staff accounts
 - **Accountant**: Confirm deliveries, track debt, reconciliation
 - **Staff**: Order entry, print delivery slips
+- **Driver**: Daily delivery list and delivery confirmation (web `/driver` or the Flutter app in `mobile/`)
+
+There is no public registration and no super admin: the app serves a single factory, and the Admin creates every account in Settings.
 
 ## Deployment
 

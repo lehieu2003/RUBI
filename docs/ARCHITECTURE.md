@@ -4,7 +4,7 @@
 
 ## System Overview
 
-IceFlow SaaS is a web-based order and inventory management system for ice factories. It replaces pen-and-paper and Zalo workflows with fast digital order entry, printed delivery slips, and automated inventory/debt tracking. The system targets 10-15 person operations with 2-4 delivery trucks handling 50-100 orders per day.
+IceFlow is a web-based order and inventory management system built for a single ice factory, Nhà máy đá tinh khiết Rubi. It is not a multi-tenant SaaS: there is no super admin, no public registration and no subscription billing; the `Factory` table holds one row and every entity keeps its `factoryId`. It replaces pen-and-paper and Zalo workflows with fast digital order entry, printed delivery slips, and automated inventory/debt tracking. The system targets 10-15 person operations with 2-4 delivery trucks handling 50-100 orders per day.
 
 Primary users are office staff (order entry power users), drivers (read-only web view), accountants (delivery confirmation and debt reconciliation), and factory owners (reports and debt overview). The core design principle is speed over everything.
 
@@ -80,7 +80,7 @@ PENDING → SHIPPING → DELIVERED → COMPLETED
 
 1. Office assigns driver via `PATCH /api/orders/bulk-assign` or individual assignment
 2. Driver opens delivery view, sees SHIPPING orders
-3. Accountant confirms delivery via `POST /api/orders/[id]/confirm`
+3. Driver confirms delivery via `PATCH /api/orders/[id]/confirm` (no GPS is captured)
 4. Status transitions to DELIVERED; deliveredAt timestamp recorded
 5. Settlement workflow moves orders to COMPLETED after payment confirmation
 
@@ -96,7 +96,7 @@ PENDING → SHIPPING → DELIVERED → COMPLETED
 | `GlobalPrice` | Base price for all customers | productId (unique), pricePerUnit |
 | `CustomerPriceOverride` | Per-customer negotiated prices | customerId, productId, pricePerUnit |
 | `Driver` | Delivery personnel | name, phone, token (UUID), slug, isActive |
-| `Order` | Customer orders with workflow | customerId, status, total, driverId, assignerId, deliveryLat, deliveryLng, deliveredAt |
+| `Order` | Customer orders with workflow | customerId, status, total, driverId, assignerId, deliveredAt, factoryId |
 | `OrderItem` | Line items (product + qty + price) | orderId, productId, quantity, unitPrice, lineTotal, actualQty |
 | `CustomerDebtLedger` | Debt/payment tracking | customerId, type (DEBT/PAYMENT), amount, notes |
 | `CustomerShellDeposit` | Shell deposit tracking | customerId, shellsOut, shellsIn, depositPerShell |
@@ -139,12 +139,11 @@ Role-based access control protecting app routes:
 ```
 src/
 ├── app/                    # Next.js App Router pages and API routes
-│   ├── (auth)/            # Auth layout group: login, register
-│   │   ├── login/         # Login page
-│   │   └── register/      # Registration page
+│   ├── (auth)/            # Auth layout group: login
+│   │   └── login/         # Login page
 │   ├── api/               # API route handlers
-│   │   ├── auth/          # Login, logout, register, me
-│   │   ├── orders/        # Order CRUD, status, confirm, bulk-assign, map, reconcile
+│   │   ├── auth/          # Login, logout, refresh, me
+│   │   ├── orders/        # Order CRUD, status, confirm, bulk-assign, reconcile
 │   │   ├── customers/     # Customer listing
 │   │   ├── products/      # Product listing
 │   │   ├── prices/        # Global prices and customer overrides
@@ -154,7 +153,7 @@ src/
 │   │   ├── staff/         # Staff management
 │   │   ├── reports/       # Report endpoints (debt)
 │   │   └── deposits/      # Shell deposit endpoints
-│   ├── dashboard/        # Main dashboard and map pages
+│   ├── dashboard/        # Main dashboard
 │   ├── orders/            # Order list and detail pages
 │   ├── customers/         # Customer management
 │   ├── inventory/         # Inventory view
@@ -168,7 +167,7 @@ src/
 │   └── settings/          # Admin settings
 ├── components/            # React components
 │   ├── dashboard/         # Dashboard widgets (stat-card, hourly-chart, sidebar, etc.)
-│   ├── driver/            # Driver view (DeliveryCard, DriverMap, MapInner)
+│   ├── driver/            # Driver view (DeliveryCard, EmptyState)
 │   ├── order/             # Order entry (order-entry-drawer, print-slip, search-bar)
 │   ├── pricing/           # Price tables and forms
 │   └── ui/                # Shared UI (Drawer component)
