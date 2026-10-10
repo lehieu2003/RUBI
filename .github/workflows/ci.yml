@@ -4,7 +4,8 @@ on:
   pull_request:
   push:
     branches:
-      - main
+      - master
+      - dev
 
 permissions:
   contents: read
@@ -24,6 +25,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate branch name and commit messages
+        if: github.event_name == 'pull_request'
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          bash scripts/validate.sh branch "$HEAD_REF"
+          bash scripts/validate.sh range "origin/$BASE_REF" HEAD
 
       - name: Setup Node
         uses: actions/setup-node@v4

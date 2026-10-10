@@ -90,6 +90,17 @@ Use these entry points:
 Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
 <!-- GSD:workflow-end -->
 
+## Git Workflow (bắt buộc)
+
+Applies to every code change, including those made through a GSD command:
+
+1. **One branch per task.** Branch off `dev` before the first edit: `feat/<slug>`, `fix/<slug>`, `refactor/<slug>`, `docs/<slug>`, `chore/<slug>`. Do not add unrelated work to an existing branch.
+2. **Never commit or push directly to `dev` or `master`.** `dev` is the integration branch; `master` is the released line.
+3. **Every change lands through a Pull Request into `dev`**, with a description that says why, what changed, how it was verified and how to roll back. Rollback = revert the PR's merge commit.
+4. **Commits follow Conventional Commits:** `type(scope): summary` — types `feat`, `fix`, `refactor`, `docs`, `test`, `chore`; scope optional (`mobile`, `api`, `ci`, ...); imperative summary; one logical change per commit.
+5. **Merge only when the CI "Quality Gate" is green** (lint, typecheck, test, build). Fix a red CI on the branch; do not merge around it.
+6. Schema changes that touch the shared database (`prisma db push`) are called out in the PR, because reverting the code does not restore dropped data.
+
 
 
 <!-- GSD:profile-start -->

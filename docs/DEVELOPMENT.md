@@ -79,20 +79,23 @@ No Prettier configuration is present in the project.
 
 No `.editorconfig` file is present in the project root.
 
-## Branch Conventions
+## Branch & Commit Conventions
 
-No branch naming convention is currently documented in the repository.
+- `dev` is the integration branch, `master` the released line. Never commit directly to either.
+- One branch per task, created from `dev`: `<type>/<task-name>` in lowercase (`feat/customer-import`, `fix/login-redirect`).
+- Commit messages follow Conventional Commits: `type(scope): summary`, scope optional.
+- Allowed types for both branches and commits: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`.
 
-The default branch is `master`.
+These rules are enforced by `scripts/validate.sh`:
+
+- locally through git hooks in `.githooks/` (`pre-commit` checks the branch, `commit-msg` checks the message). `npm install` activates them by setting `core.hooksPath`; to do it by hand run `git config core.hooksPath .githooks`.
+- in CI, which re-checks the branch name and every commit of the pull request, since local hooks can be skipped with `--no-verify`.
+
+Lint, typecheck, tests and build are not run in the hooks; CI runs them.
 
 ## PR Process
 
-No pull request template or contribution guidelines are currently documented in the repository.
-
-General guidance for submitting changes:
-
-1. Create a feature branch from `master`
-2. Make your changes following the code style guidelines
-3. Run `npm run lint` and fix any warnings or errors
-4. Test your changes locally with `npm run dev`
-5. Push your branch and submit a pull request for review
+1. Create a branch from `dev` following the convention above
+2. Commit your changes
+3. Push the branch and open a pull request into `dev`, describing why, what changed, how it was verified and how to roll back
+4. Merge only when the CI "Quality Gate" is green

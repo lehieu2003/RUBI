@@ -81,6 +81,19 @@ async function getYesterdayRevenue(factoryId: string) {
   return yesterdayOrders.reduce((sum, o) => sum + Number(o.total), 0);
 }
 
+// Assets with a maintenance/inspection/insurance due date in the next 30 days
+async function getDueMaintenance(factoryId: string) {
+  return prisma.maintenanceRecord.findMany({
+    where: {
+      factoryId,
+      dueAt: { not: null, lte: new Date(Date.now() + 30 * 86400000) },
+    },
+    orderBy: { dueAt: 'asc' },
+    take: 5,
+    include: { asset: { select: { name: true, code: true } } },
+  });
+}
+
 export default async function DashboardPage() {
   const session = await getSession();
 
@@ -103,16 +116,7 @@ export default async function DashboardPage() {
     getInventoryStats(session.factoryId),
     getShellDepositStats(session.factoryId),
     getYesterdayRevenue(session.factoryId),
-    // Assets with a maintenance/inspection/insurance due date in the next 30 days
-    prisma.maintenanceRecord.findMany({
-      where: {
-        factoryId: session.factoryId,
-        dueAt: { not: null, lte: new Date(Date.now() + 30 * 86400000) },
-      },
-      orderBy: { dueAt: 'asc' },
-      take: 5,
-      include: { asset: { select: { name: true, code: true } } },
-    }),
+    getDueMaintenance(session.factoryId),
   ]);
 
   let showOnboardingPrompt = false;
