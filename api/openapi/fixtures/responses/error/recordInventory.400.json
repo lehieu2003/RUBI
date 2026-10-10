@@ -1,0 +1,17 @@
+{
+  "operationId": "recordInventory",
+  "request": {
+    "method": "POST",
+    "path": "/api/inventory",
+    "as": "admin",
+    "body": {
+      "productId": "prod-bi-5",
+      "quantity": -1
+    }
+  },
+  "status": 400,
+  "body": {
+    "success": false,
+    "error": "Thông tin sản lượng không hợp lệ"
+  }
+}

@@ -5,7 +5,7 @@
     "path": "/api/staff/{id}/rotate-link",
     "as": "admin",
     "params": {
-      "id": "cmv24bgzm0005i9dhhl5yjakn"
+      "id": "cmv24p8x10005i9rs6kvdrgov"
     }
   },
   "status": 200,

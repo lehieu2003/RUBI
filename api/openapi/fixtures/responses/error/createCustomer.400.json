@@ -11,6 +11,6 @@
   "status": 400,
   "body": {
     "success": false,
-    "error": "Vui lòng nhập mã và tên"
+    "error": "Invalid input: expected string, received undefined"
   }
 }

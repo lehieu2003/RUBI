@@ -7,7 +7,7 @@
     "body": {
       "type": "VEHICLE",
       "name": "Xe kiểm tra",
-      "code": "XE-mv24bomy",
+      "code": "XE-mv24penp",
       "licensePlate": "48A-000.00"
     }
   },
@@ -15,17 +15,17 @@
   "body": {
     "success": true,
     "data": {
-      "id": "cmv24bv4v000pi9fmkxtg0xi8",
+      "id": "cmv24pm9h000pi9t32p5j9qz1",
       "factoryId": "factory-mien-dong",
       "type": "VEHICLE",
       "name": "Xe kiểm tra",
-      "code": "XE-mv24bomy",
+      "code": "XE-mv24penp",
       "licensePlate": "48A-000.00",
       "capacityTons": null,
       "status": "ACTIVE",
       "notes": null,
-      "createdAt": "2026-10-10T08:14:26.911Z",
-      "updatedAt": "2026-10-10T08:14:26.911Z"
+      "createdAt": "2026-10-10T08:25:08.598Z",
+      "updatedAt": "2026-10-10T08:25:08.598Z"
     }
   }
 }

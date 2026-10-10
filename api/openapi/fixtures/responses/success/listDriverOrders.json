@@ -10,37 +10,37 @@
     "success": true,
     "data": {
       "driver": {
-        "id": "cmv24bgzr0007i9dhdod7ay67",
+        "id": "cmv24p8x60007i9rs7cdhzdgc",
         "name": "Phạm Văn Tài"
       },
       "orders": [
         {
-          "id": "cmv24bh220025i9dhn5uo0jqm",
-          "customerId": "cmv24bh1d0019i9dh2v4gl56t",
+          "id": "cmv24p8zx0025i9rs80zc0hok",
+          "customerId": "cmv24p8yz0019i9rsvcja7qf5",
           "status": "SHIPPING",
           "total": 274000,
           "notes": "Giao trước 11h trưa quán mở cửa",
-          "createdAt": "2026-10-10T08:14:08.666Z",
-          "updatedAt": "2026-10-10T08:14:08.666Z",
-          "driverId": "cmv24bgzr0007i9dhdod7ay67",
-          "assignerId": "cmv24bgzi0003i9dhler2d5j9",
+          "createdAt": "2026-10-10T08:24:51.406Z",
+          "updatedAt": "2026-10-10T08:24:51.406Z",
+          "driverId": "cmv24p8x60007i9rs7cdhzdgc",
+          "assignerId": "cmv24p8wx0003i9rsuw5qdsv6",
           "deliveredAt": null,
           "factoryId": "factory-mien-dong",
           "customer": {
-            "id": "cmv24bh1d0019i9dh2v4gl56t",
+            "id": "cmv24p8yz0019i9rsvcja7qf5",
             "code": "KH-001",
             "name": "Quán Nhậu Gió Biển",
             "address": "45 Đường Số 7, P. Linh Trung, Thủ Đức",
             "phone": "0908123456",
             "isActive": true,
-            "createdAt": "2026-10-10T08:14:08.642Z",
-            "updatedAt": "2026-10-10T08:14:08.642Z",
+            "createdAt": "2026-10-10T08:24:51.371Z",
+            "updatedAt": "2026-10-10T08:24:51.371Z",
             "factoryId": "factory-mien-dong"
           },
           "orderItems": [
             {
-              "id": "cmv24bh220027i9dhjtcsjse7",
-              "orderId": "cmv24bh220025i9dhn5uo0jqm",
+              "id": "cmv24p8zx0027i9rsbzdye67o",
+              "orderId": "cmv24p8zx0025i9rs80zc0hok",
               "productId": "prod-bi-20",
               "quantity": 5,
               "unitPrice": 38000,
@@ -52,14 +52,14 @@
                 "sizeKg": 20,
                 "unit": "Bao",
                 "isActive": true,
-                "createdAt": "2026-10-10T08:14:08.614Z",
-                "updatedAt": "2026-10-10T08:14:08.614Z",
+                "createdAt": "2026-10-10T08:24:51.337Z",
+                "updatedAt": "2026-10-10T08:24:51.337Z",
                 "factoryId": "factory-mien-dong"
               }
             },
             {
-              "id": "cmv24bh220028i9dhuaxe0g9u",
-              "orderId": "cmv24bh220025i9dhn5uo0jqm",
+              "id": "cmv24p8zx0028i9rs250yk0mv",
+              "orderId": "cmv24p8zx0025i9rs80zc0hok",
               "productId": "prod-vien-10",
               "quantity": 3,
               "unitPrice": 28000,
@@ -71,8 +71,8 @@
                 "sizeKg": 10,
                 "unit": "Bao",
                 "isActive": true,
-                "createdAt": "2026-10-10T08:14:08.624Z",
-                "updatedAt": "2026-10-10T08:14:08.624Z",
+                "createdAt": "2026-10-10T08:24:51.348Z",
+                "updatedAt": "2026-10-10T08:24:51.348Z",
                 "factoryId": "factory-mien-dong"
               }
             }
@@ -80,32 +80,32 @@
           "driverName": "Phạm Văn Tài"
         },
         {
-          "id": "cmv24bh26002ai9dhvto32gp4",
-          "customerId": "cmv24bh1l001hi9dh3gur1kkk",
+          "id": "cmv24p901002ai9rsg9576ko2",
+          "customerId": "cmv24p8za001hi9rse0jnh4f1",
           "status": "SHIPPING",
           "total": 260000,
           "notes": "Gọi trước khi tới 10 phút",
-          "createdAt": "2026-10-10T08:14:08.670Z",
-          "updatedAt": "2026-10-10T08:14:22.645Z",
-          "driverId": "cmv24bgzr0007i9dhdod7ay67",
-          "assignerId": "cmv24bgzi0003i9dhler2d5j9",
+          "createdAt": "2026-10-10T08:24:51.410Z",
+          "updatedAt": "2026-10-10T08:25:03.581Z",
+          "driverId": "cmv24p8x60007i9rs7cdhzdgc",
+          "assignerId": "cmv24p8wx0003i9rsuw5qdsv6",
           "deliveredAt": null,
           "factoryId": "factory-mien-dong",
           "customer": {
-            "id": "cmv24bh1l001hi9dh3gur1kkk",
+            "id": "cmv24p8za001hi9rse0jnh4f1",
             "code": "KH-002",
             "name": "Đại Lý Nước Ngọt Minh Tâm",
             "address": "102 Kha Vạn Cân, Hiệp Bình Chánh, Thủ Đức",
             "phone": "0908234567",
             "isActive": true,
-            "createdAt": "2026-10-10T08:14:08.649Z",
-            "updatedAt": "2026-10-10T08:14:08.649Z",
+            "createdAt": "2026-10-10T08:24:51.382Z",
+            "updatedAt": "2026-10-10T08:24:51.382Z",
             "factoryId": "factory-mien-dong"
           },
           "orderItems": [
             {
-              "id": "cmv24bh26002ci9dh3n5fagx6",
-              "orderId": "cmv24bh26002ai9dhvto32gp4",
+              "id": "cmv24p901002ci9rsy8r1eafj",
+              "orderId": "cmv24p901002ai9rsg9576ko2",
               "productId": "prod-bi-10",
               "quantity": 10,
               "unitPrice": 20000,
@@ -117,14 +117,14 @@
                 "sizeKg": 10,
                 "unit": "Bao",
                 "isActive": true,
-                "createdAt": "2026-10-10T08:14:08.609Z",
-                "updatedAt": "2026-10-10T08:14:08.609Z",
+                "createdAt": "2026-10-10T08:24:51.332Z",
+                "updatedAt": "2026-10-10T08:24:51.332Z",
                 "factoryId": "factory-mien-dong"
               }
             },
             {
-              "id": "cmv24bh26002di9dhbh7634e6",
-              "orderId": "cmv24bh26002ai9dhvto32gp4",
+              "id": "cmv24p901002di9rs724i0pjq",
+              "orderId": "cmv24p901002ai9rsg9576ko2",
               "productId": "prod-bi-5",
               "quantity": 5,
               "unitPrice": 12000,
@@ -136,8 +136,8 @@
                 "sizeKg": 5,
                 "unit": "Bao",
                 "isActive": true,
-                "createdAt": "2026-10-10T08:14:08.599Z",
-                "updatedAt": "2026-10-10T08:14:08.599Z",
+                "createdAt": "2026-10-10T08:24:51.322Z",
+                "updatedAt": "2026-10-10T08:24:51.322Z",
                 "factoryId": "factory-mien-dong"
               }
             }

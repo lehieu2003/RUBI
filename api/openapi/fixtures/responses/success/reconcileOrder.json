@@ -5,16 +5,16 @@
     "path": "/api/orders/{id}/reconcile",
     "as": "admin",
     "params": {
-      "id": "cmv24bh26002ai9dhvto32gp4"
+      "id": "cmv24p901002ai9rsg9576ko2"
     },
     "body": {
       "items": [
         {
-          "id": "cmv24bh26002ci9dh3n5fagx6",
+          "id": "cmv24p901002ci9rsy8r1eafj",
           "actualQty": 10
         },
         {
-          "id": "cmv24bh26002di9dhbh7634e6",
+          "id": "cmv24p901002di9rs724i0pjq",
           "actualQty": 5
         }
       ]
@@ -25,7 +25,7 @@
     "success": true,
     "data": {
       "success": true,
-      "orderId": "cmv24bh26002ai9dhvto32gp4",
+      "orderId": "cmv24p901002ai9rsg9576ko2",
       "status": "COMPLETED"
     }
   }
