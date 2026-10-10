@@ -14,7 +14,7 @@ paths:
       description: |-
         Access: DRIVER.
 
-        `date` defaults to today. Rate limited to 60 per IP per minute.
+        `date` is a Vietnam calendar day and defaults to today; 400 when malformed. Rate limited to 60 per IP per minute.
       parameters:
         - name: date
           in: query
@@ -161,6 +161,8 @@ paths:
                   - success
                   - data
                 additionalProperties: false
+        "400":
+          $ref: ./components/responses/errors.yaml#/BadRequest
         "401":
           $ref: ./components/responses/errors.yaml#/Unauthorized
         "403":

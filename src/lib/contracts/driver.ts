@@ -16,7 +16,7 @@ export const driverContracts: ApiContract[] = [
         orders: z.array(OrderWithItems.extend({ driverName: z.string() })),
       })
     ),
-    errors: [401, 403, 429, 500],
-    notes: '`date` defaults to today. Rate limited to 60 per IP per minute.',
+    errors: [400, 401, 403, 429, 500],
+    notes: '`date` is a Vietnam calendar day and defaults to today; 400 when malformed. Rate limited to 60 per IP per minute.',
   },
 ];
