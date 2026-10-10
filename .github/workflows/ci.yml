@@ -49,7 +49,10 @@ jobs:
           HEAD_REF: ${{ github.head_ref }}
           BASE_REF: ${{ github.base_ref }}
         run: |
-          bash scripts/validate.sh branch "$HEAD_REF"
+          # The release PR (dev -> master) is the one PR whose head is a protected branch.
+          if [ "$HEAD_REF" != "dev" ] || [ "$BASE_REF" != "master" ]; then
+            bash scripts/validate.sh branch "$HEAD_REF"
+          fi
           bash scripts/validate.sh range "origin/$BASE_REF" HEAD
 
       - name: Setup Node

@@ -127,3 +127,5 @@ GitHub branch protection is not available for this private repository on the fre
 2. Commit your changes
 3. Push the branch and open a pull request into `dev`, describing why, what changed, how it was verified and how to roll back
 4. Merge only when the CI "Quality Gate" is green
+
+Releases go from `dev` to `master` through a pull request as well (head `dev`, base `master`); that is the only PR whose head branch is exempt from the branch-name check.
