@@ -1,7 +1,17 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
-import { SHIFT_HOURS, addDays, parseDateOnly, toDateOnly, todayInVietnam } from '../../../src/lib/schedule';
+import {
+  SHIFT_HOURS,
+  addDays,
+  formatMonthVi,
+  hourInVietnam,
+  monthOf,
+  parseDateOnly,
+  shiftEndHour,
+  toDateOnly,
+  todayInVietnam,
+} from '../../../src/lib/schedule';
 
 const read = (path: string) => readFileSync(path, 'utf8');
 
@@ -36,7 +46,8 @@ describe('self-service shift API source checks', () => {
 
   it('creates requests as PENDING and refuses past dates', () => {
     assert.match(route, /status: 'PENDING'/);
-    assert.match(route, /parsed\.data\.shiftDate < todayInVietnam\(\)/);
+    assert.match(route, /parsed\.data\.shiftDate < today\b/);
+    assert.match(route, /shiftEndHour\(parsed\.data\.shift\) <= hourInVietnam\(\)/);
   });
 
   it('does not let people withdraw an approved shift themselves', () => {
@@ -67,5 +78,42 @@ describe('shift review and report source checks', () => {
     assert.match(report, /requireRole\(\['ADMIN'\]\)/);
     assert.match(report, /if \(item\.status === 'APPROVED'\) \{\s*row\.approvedShifts \+= 1/);
     assert.match(report, /hours: row\.approvedShifts \* SHIFT_HOURS/);
+  });
+});
+
+describe('shift rules: ended slots, per-shift limits, payroll lock', () => {
+  it('knows the factory hour and when a slot ends', () => {
+    assert.equal(hourInVietnam(new Date('2026-10-10T02:15:00Z')), 9);
+    assert.equal(hourInVietnam(new Date('2026-10-10T18:30:00Z')), 1);
+    assert.equal(shiftEndHour('SLOT_06_09'), 9);
+    assert.equal(shiftEndHour('SLOT_21_24'), 24);
+    assert.equal(monthOf('2026-10-05'), '2026-10');
+    assert.equal(formatMonthVi('2026-03'), '3/2026');
+  });
+
+  it('self-registration respects the per-role limit, counting pending and approved', () => {
+    const route = read('src/app/api/schedule/my/route.ts');
+    assert.match(route, /session\.role === 'DRIVER' \? factory\?\.maxDriversPerShift : factory\?\.maxStaffPerShift/);
+    assert.match(route, /status: \{ in: \['PENDING', 'APPROVED'\] \}/);
+    assert.match(route, /SHIFT_FULL/);
+  });
+
+  it('every route that changes shifts refuses a closed payroll month', () => {
+    for (const file of [
+      'src/app/api/schedule/my/route.ts',
+      'src/app/api/schedule/assignments/route.ts',
+      'src/app/api/schedule/review/route.ts',
+    ]) {
+      assert.match(read(file), /rejectIfMonthLocked\(/, `${file} must check the payroll lock`);
+    }
+    assert.match(read('src/lib/payroll-lock.ts'), /PAYROLL_LOCKED/);
+  });
+
+  it('only the manager closes a month, and not while requests are pending', () => {
+    const lock = read('src/app/api/reports/shifts/lock/route.ts');
+    assert.match(lock, /requireRole\(\['ADMIN'\]\)/);
+    assert.match(lock, /status: 'PENDING'/);
+    assert.match(lock, /PENDING_SHIFTS/);
+    assert.match(lock, /payrollLock\.deleteMany/);
   });
 });

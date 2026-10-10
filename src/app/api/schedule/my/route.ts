@@ -2,7 +2,18 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
-import { DATE_ONLY_PATTERN, SHIFTS, addDays, parseDateOnly, toDateOnly, todayInVietnam } from '@/lib/schedule';
+import {
+  DATE_ONLY_PATTERN,
+  SHIFTS,
+  addDays,
+  hourInVietnam,
+  monthOf,
+  parseDateOnly,
+  shiftEndHour,
+  toDateOnly,
+  todayInVietnam,
+} from '@/lib/schedule';
+import { lockedMonths, rejectIfMonthLocked } from '@/lib/payroll-lock';
 import { apiSuccess, apiError } from '@/lib/api-response';
 
 // Self-service shift registration for STAFF and DRIVER.
@@ -44,9 +55,18 @@ export async function GET(request: NextRequest) {
       orderBy: [{ role: 'asc' }, { name: 'asc' }],
     });
 
+    const weekDates = Array.from({ length: 7 }, (_, index) => toDateOnly(addDays(weekStart, index)));
+    const factory = await prisma.factory.findUnique({
+      where: { id: session.factoryId },
+      select: { maxStaffPerShift: true, maxDriversPerShift: true },
+    });
+
     return apiSuccess({
       userId: session.userId,
       today: todayInVietnam(),
+      currentHour: hourInVietnam(),
+      limits: { STAFF: factory?.maxStaffPerShift ?? null, DRIVER: factory?.maxDriversPerShift ?? null },
+      lockedMonths: await lockedMonths(session.factoryId, weekDates.map(monthOf)),
       people: people.map((person) => ({
         id: person.id,
         name: person.name,
@@ -73,8 +93,16 @@ async function parseOwnShift(request: NextRequest) {
   if (!parsed.success || !shiftDate) {
     return { error: apiError('Yêu cầu không hợp lệ: thiếu ngày hoặc ca làm', 400) } as const;
   }
-  if (parsed.data.shiftDate < todayInVietnam()) {
+  const today = todayInVietnam();
+  if (parsed.data.shiftDate < today) {
     return { error: apiError('Không thể thay đổi ca của ngày đã qua', 400) } as const;
+  }
+  if (parsed.data.shiftDate === today && shiftEndHour(parsed.data.shift) <= hourInVietnam()) {
+    return { error: apiError('Khung giờ này của hôm nay đã qua', 400) } as const;
+  }
+  const locked = await rejectIfMonthLocked(session.factoryId, [monthOf(parsed.data.shiftDate)]);
+  if (locked) {
+    return { error: locked } as const;
   }
   return { session, factoryId: session.factoryId, shiftDate, shift: parsed.data.shift, date: parsed.data.shiftDate } as const;
 }
@@ -92,6 +120,29 @@ export async function POST(request: NextRequest) {
     });
 
     // Already requested or approved: nothing to do. A rejected request can be sent again.
+    if (!existing || existing.status === 'REJECTED') {
+      // The manager can cap how many people of each role register for one shift.
+      const factory = await prisma.factory.findUnique({
+        where: { id: factoryId },
+        select: { maxStaffPerShift: true, maxDriversPerShift: true },
+      });
+      const limit = session.role === 'DRIVER' ? factory?.maxDriversPerShift : factory?.maxStaffPerShift;
+      if (limit != null) {
+        const taken = await prisma.scheduleAssignment.count({
+          where: {
+            factoryId,
+            shiftDate,
+            shift,
+            status: { in: ['PENDING', 'APPROVED'] },
+            user: { role: session.role === 'DRIVER' ? 'DRIVER' : 'STAFF' },
+          },
+        });
+        if (taken >= limit) {
+          return apiError(`Ca này đã đủ ${limit} người. Chọn ca khác hoặc báo Quản lý.`, 409, 'SHIFT_FULL');
+        }
+      }
+    }
+
     const assignment =
       existing && existing.status !== 'REJECTED'
         ? existing
