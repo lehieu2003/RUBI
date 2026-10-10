@@ -1,0 +1,20 @@
+{
+  "operationId": "updateProduct",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/products/{id}",
+    "as": "admin",
+    "params": {
+      "id": "prod-bi-5"
+    },
+    "body": {
+      "sizeKg": 6
+    }
+  },
+  "status": 409,
+  "body": {
+    "success": false,
+    "error": "Sản phẩm đã có đơn hàng nên không đổi được cỡ bao. Hãy tạo sản phẩm mới với cỡ mới.",
+    "code": "PRODUCT_HAS_ORDERS"
+  }
+}

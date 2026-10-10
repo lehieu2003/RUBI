@@ -5,7 +5,7 @@
     "path": "/api/customers/{id}/ledger",
     "as": "admin",
     "params": {
-      "id": "cmv276ndw0003i98a5l4pwvju"
+      "id": "cmv2af0r40003i9pg7754xbxm"
     }
   },
   "status": 200,

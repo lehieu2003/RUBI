@@ -7,7 +7,7 @@
     "body": {
       "type": "VEHICLE",
       "name": "Xe kiểm tra",
-      "code": "XE-mv276lny",
+      "code": "XE-mv2aezz9",
       "licensePlate": "48A-000.00"
     }
   },
@@ -15,17 +15,17 @@
   "body": {
     "success": true,
     "data": {
-      "id": "cmv276t6m000ti98ajnenua36",
+      "id": "cmv2af283000wi9pg5ok0ta1a",
       "factoryId": "factory-mien-dong",
       "type": "VEHICLE",
       "name": "Xe kiểm tra",
-      "code": "XE-mv276lny",
+      "code": "XE-mv2aezz9",
       "licensePlate": "48A-000.00",
       "capacityTons": null,
       "status": "ACTIVE",
       "notes": null,
-      "createdAt": "2026-10-10T09:34:29.950Z",
-      "updatedAt": "2026-10-10T09:34:29.950Z"
+      "createdAt": "2026-10-10T11:04:53.763Z",
+      "updatedAt": "2026-10-10T11:04:53.763Z"
     }
   }
 }
