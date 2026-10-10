@@ -5,10 +5,18 @@ const StaffUser = z.object({
   id: Id,
   name: z.string(),
   email: z.string(),
+  phone: z.string().nullable(),
   role: RoleEnum,
   isActive: z.boolean(),
   createdAt: IsoDateTime,
 });
+
+// Digits with an optional leading + and common separators; '' clears the number.
+const Phone = z
+  .string()
+  .trim()
+  .max(20)
+  .refine((value) => value === '' || /^\+?[0-9][0-9 .-]{7,14}$/.test(value), 'Số điện thoại không hợp lệ');
 
 const userId = z.object({ id: Id });
 const AccountRole = z.enum(['STAFF', 'DRIVER'], 'Vai trò không hợp lệ');
@@ -20,6 +28,7 @@ export const CreateStaffBody = z.object({
   // Strength is checked by the shared password policy (src/lib/password.ts).
   password: z.string('Thiếu thông tin bắt buộc').min(1, 'Thiếu thông tin bắt buộc'),
   role: AccountRole,
+  phone: Phone.optional(),
 });
 
 /** Body of PATCH /api/staff/{id}; the route validates with this schema. */
@@ -28,6 +37,7 @@ export const UpdateStaffBody = z.object({
   password: z.string().min(1).optional(),
   role: AccountRole.optional(),
   name: z.string().trim().min(1, 'Tên không được để trống').max(100).optional(),
+  phone: Phone.nullable().optional(),
 });
 
 export const accountContracts: ApiContract[] = [
@@ -66,11 +76,13 @@ export const accountContracts: ApiContract[] = [
     params: userId,
     body: UpdateStaffBody,
     response: envelope(z.object({ user: StaffUser, unassignedOrders: z.number().int() })),
-    errors: [400, 401, 403, 404, 500],
+    errors: [400, 401, 403, 404, 409, 500],
     notes:
       'Only the fields sent are changed. A password reset forces a change at next login. ' +
       'You cannot edit yourself (400) or a manager account (403). When a driver is locked or stops being a driver, ' +
-      'their PENDING and SHIPPING orders are unassigned; `unassignedOrders` is how many.',
+      'their PENDING and SHIPPING orders are unassigned; `unassignedOrders` is how many. `phone` is copied to the ' +
+      'driver profile of a driver account; an empty string or null clears it. 409 `PHONE_TAKEN` when another driver ' +
+      'already has that number.',
   },
   {
     id: 'deactivateStaff',

@@ -83,6 +83,24 @@ export async function PATCH(
       updateData.name = body.name;
     }
 
+    // Update phone ('' or null clears it). A driver's phone is unique within the factory.
+    if (body.phone !== undefined) {
+      const phone = body.phone || null;
+      const becomesDriver = (body.role ?? existing.role) === 'DRIVER';
+      if (phone && becomesDriver) {
+        // Compared by driver id: a driver without an account has no userId,
+        // and a NOT on a null column would let that row slip through.
+        const taken = await prisma.driver.findFirst({
+          where: { factoryId: session.factoryId, phone, id: { not: existing.driverProfile?.id } },
+          select: { id: true },
+        });
+        if (taken) {
+          return apiError('Số điện thoại này đã được dùng cho một tài xế khác', 409, 'PHONE_TAKEN');
+        }
+      }
+      updateData.phone = phone;
+    }
+
     const factoryId = session.factoryId;
     const { user, unassignedOrders } = await prisma.$transaction(async (tx) => {
       const updatedUser = await tx.user.update({
@@ -92,6 +110,7 @@ export async function PATCH(
           id: true,
           name: true,
           email: true,
+          phone: true,
           role: true,
           isActive: true,
           createdAt: true,
@@ -108,13 +127,20 @@ export async function PATCH(
         if (driver) {
           await tx.driver.update({
             where: { id: driver.id },
-            data: { name: updatedUser.name, isActive: updatedUser.isActive },
+            // The phone is copied only when the request changes it: drivers
+            // created earlier hold their number on the profile alone, and a
+            // lock or rename must not wipe it.
+            data: {
+              name: updatedUser.name,
+              isActive: updatedUser.isActive,
+              ...(body.phone !== undefined ? { phone: updatedUser.phone } : {}),
+            },
           });
         } else {
           await tx.driver.create({
             data: {
               name: updatedUser.name,
-              phone: null,
+              phone: updatedUser.phone,
               isActive: updatedUser.isActive,
               factoryId: session.factoryId!,
               userId: updatedUser.id,
