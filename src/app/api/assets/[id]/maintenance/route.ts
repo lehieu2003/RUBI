@@ -37,10 +37,13 @@ export async function GET(
   }
 }
 
+// A date (YYYY-MM-DD) or a full ISO timestamp; anything Date cannot read is rejected.
+const DateString = z.string().min(10).refine((value) => !Number.isNaN(new Date(value).getTime()));
+
 const CreateRecordSchema = z.object({
   type: z.enum(['ROUTINE', 'INSPECTION', 'INSURANCE', 'REPAIR']),
-  performedAt: z.string().datetime().or(z.string().min(10)),
-  dueAt: z.string().datetime().or(z.string().min(10)).nullable().optional(),
+  performedAt: DateString,
+  dueAt: DateString.nullable().optional(),
   cost: z.number().nonnegative().nullable().optional(),
   notes: z.string().nullable().optional(),
 });
@@ -68,7 +71,7 @@ export async function POST(
     const body = await request.json();
     const parsed = CreateRecordSchema.safeParse(body);
     if (!parsed.success) {
-      return apiError('Dữ liệu bảo trì không hợp lệ (cần performedAt)', 400);
+      return apiError('Dữ liệu bảo trì không hợp lệ (cần performedAt là ngày hợp lệ)', 400);
     }
 
     const record = await prisma.maintenanceRecord.create({
