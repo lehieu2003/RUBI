@@ -52,6 +52,30 @@ export const ErrorResponse = z.object({
   details: z.unknown().optional(),
 }).meta({ id: 'Error' });
 
+/** Standard pagination metadata of list responses. */
+export const PaginationMeta = z
+  .object({
+    page: z.number().int().min(1).meta({ description: 'Current 1-based page number', example: 1 }),
+    limit: z.number().int().min(1).max(200).meta({ description: 'Items per page limit', example: 20 }),
+    total_item: z.number().int().min(0).meta({ description: 'Total matching item count', example: 100 }),
+    total_page: z.number().int().min(0).meta({ description: 'Total number of pages', example: 5 }),
+  })
+  .meta({ id: 'PaginationMeta', description: 'Standard pagination metadata for list responses' });
+
+/** Query parameters of a paginated list: `?page=1&limit=20`. */
+export const paginationQuery = {
+  page: z.string().regex(/^\d+$/).optional().meta({ description: '1-based page number (default 1)', example: '1' }),
+  limit: z
+    .string()
+    .regex(/^\d+$/)
+    .optional()
+    .meta({ description: 'Items per page (default 20, maximum 200)', example: '20' }),
+};
+
+/** `{ success: true, data: [...], meta }` — a paginated list. */
+export const paginated = <T extends z.ZodType>(item: T) =>
+  z.object({ success: z.literal(true), data: z.array(item), meta: PaginationMeta });
+
 export const Id = z.string().min(1);
 /** ISO 8601 timestamp as produced by JSON-serialising a Date */
 export const IsoDateTime = z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/, 'ISO 8601 timestamp');

@@ -44,8 +44,6 @@ paths:
                         properties:
                           count:
                             type: integer
-                            minimum: -9007199254740991
-                            maximum: 9007199254740991
                         required:
                           - count
                         additionalProperties: false
@@ -217,12 +215,8 @@ paths:
                                       minLength: 1
                                     shellsOut:
                                       type: integer
-                                      minimum: -9007199254740991
-                                      maximum: 9007199254740991
                                     shellsIn:
                                       type: integer
-                                      minimum: -9007199254740991
-                                      maximum: 9007199254740991
                                     depositPerShell:
                                       type: number
                                     createdAt:

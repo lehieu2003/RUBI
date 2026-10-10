@@ -123,24 +123,14 @@ paths:
                               type: boolean
                             approvedShifts:
                               type: integer
-                              minimum: -9007199254740991
-                              maximum: 9007199254740991
                             hours:
                               type: integer
-                              minimum: -9007199254740991
-                              maximum: 9007199254740991
                             daysWorked:
                               type: integer
-                              minimum: -9007199254740991
-                              maximum: 9007199254740991
                             pendingShifts:
                               type: integer
-                              minimum: -9007199254740991
-                              maximum: 9007199254740991
                             rejectedShifts:
                               type: integer
-                              minimum: -9007199254740991
-                              maximum: 9007199254740991
                             days:
                               type: array
                               items:

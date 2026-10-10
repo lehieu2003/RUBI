@@ -244,6 +244,24 @@ async function main() {
   const orders = data(await call('listOrders'));
   await call('listOrders', { as: 'anon', expectError: 401 });
   await call('listOrders', { query: { status: 'PENDING' } });
+  const firstPage = await call('listOrders', { query: { page: '1', limit: '2' } });
+  if (firstPage.meta?.limit !== 2 || firstPage.data.length > 2 || firstPage.meta.total_page !== Math.ceil(firstPage.meta.total_item / 2)) {
+    failures.push(`listOrders: page=1&limit=2 returned ${firstPage.data?.length} rows with meta ${JSON.stringify(firstPage.meta)}`);
+  }
+  const secondPage = await call('listOrders', { query: { page: '2', limit: '2' } });
+  if (secondPage.data.some((row: Json) => firstPage.data.some((other: Json) => other.id === row.id))) {
+    failures.push('listOrders: page 2 repeats rows of page 1');
+  }
+  await call('listOrders', { query: { page: '9999', limit: '2' }, empty: true });
+  await call('listOrders', { query: { limit: '1000' }, expectError: 400 });
+  await call('listOrders', { query: { page: '0' }, expectError: 400 });
+  await call('listOrders', { query: { date: '10/10/2026' }, expectError: 400 });
+  await call('listOrders', { query: { driverId: 'unassigned', q: orders[0].customer.name.slice(0, 4) } });
+  const totals = data(await call('getOrderCounts'));
+  if (totals.total !== firstPage.meta.total_item) {
+    failures.push(`getOrderCounts: total ${totals.total} differs from the list's total_item ${firstPage.meta.total_item}`);
+  }
+  await call('getOrderCounts', { as: 'driver', expectError: 403 });
   const driver = drivers[0];
   const order = orders.find((item: Json) => item.status === 'PENDING') ?? orders.find((item: Json) => item.status === 'SHIPPING');
   if (!driver || !order) throw new Error('Seed data must contain a driver and a PENDING or SHIPPING order.');

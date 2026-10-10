@@ -120,8 +120,6 @@ paths:
                                     minLength: 1
                                   quantity:
                                     type: integer
-                                    minimum: -9007199254740991
-                                    maximum: 9007199254740991
                                   unitPrice:
                                     type: number
                                   lineTotal:
@@ -129,8 +127,6 @@ paths:
                                   actualQty:
                                     anyOf:
                                       - type: integer
-                                        minimum: -9007199254740991
-                                        maximum: 9007199254740991
                                       - type: "null"
                                   product:
                                     $ref: ./components/schemas/common.yaml#/Product
@@ -253,8 +249,6 @@ paths:
                                 properties:
                                   quantity:
                                     type: integer
-                                    minimum: -9007199254740991
-                                    maximum: 9007199254740991
                                   product:
                                     type: object
                                     properties:
@@ -262,8 +256,6 @@ paths:
                                         type: string
                                       sizeKg:
                                         type: integer
-                                        minimum: -9007199254740991
-                                        maximum: 9007199254740991
                                     required:
                                       - name
                                       - sizeKg

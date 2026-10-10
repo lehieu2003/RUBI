@@ -50,7 +50,8 @@ describe('RBAC API guard source checks', () => {
   it('allows STAFF to read orders without changing factory scoping', () => {
     const source = read('src/app/api/orders/route.ts');
     assert.match(source, /requireRole\(\['ADMIN', 'STAFF'\]\)/);
-    assert.match(source, /factoryId: session\.factoryId/);
+    assert.match(source, /orderWhere\(session\.factoryId, searchParams\)/);
+    assert.match(read('src/lib/order-filters.ts'), /const where: Prisma\.OrderWhereInput = \{ factoryId \}/);
   });
 
   it('has no super admin or impersonation path left in auth/middleware', () => {

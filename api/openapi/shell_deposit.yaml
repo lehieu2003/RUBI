@@ -35,12 +35,8 @@ paths:
                           type: string
                         shellsOut:
                           type: integer
-                          minimum: -9007199254740991
-                          maximum: 9007199254740991
                         shellsIn:
                           type: integer
-                          minimum: -9007199254740991
-                          maximum: 9007199254740991
                         depositPerShell:
                           type: number
                         netDepositOwed:
@@ -87,11 +83,9 @@ paths:
                 shellsOut:
                   type: integer
                   minimum: 0
-                  maximum: 9007199254740991
                 shellsIn:
                   type: integer
                   minimum: 0
-                  maximum: 9007199254740991
                 notes:
                   type: string
               required:
@@ -119,12 +113,8 @@ paths:
                         minLength: 1
                       shellsOut:
                         type: integer
-                        minimum: -9007199254740991
-                        maximum: 9007199254740991
                       shellsIn:
                         type: integer
-                        minimum: -9007199254740991
-                        maximum: 9007199254740991
                     required:
                       - success
                       - customerId
