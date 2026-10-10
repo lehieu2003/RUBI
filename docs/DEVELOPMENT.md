@@ -58,6 +58,16 @@ The application will be available at **http://localhost:3000**.
 - Password policy (`src/lib/password.ts`): at least 8 characters, letters and digits, not a well-known password.
 - `npm run db:seed` loads demo data with the default password `12345678`. It only runs against a local database (`localhost`, `127.0.0.1`, the compose `postgres` host) and never overwrites the password of an existing account. `SEED_ALLOW_REMOTE=true` overrides the check; do not use it on the real database.
 
+## API Contracts
+
+Every API endpoint has a contract in `src/lib/contracts` (Zod schemas for path/query parameters, request body and response, plus who may call it and the error statuses).
+
+- `npm run contract:docs` regenerates `docs/openapi.json` and `docs/API-CONTRACT.md`. The test suite fails when they are stale.
+- `npm run contract:verify` calls every endpoint of a running local server (seeded demo data) and checks the real responses against the contracts, including fields the contract does not declare. It changes data, so it refuses non-local servers. CI runs it against the built app.
+- The test suite also fails when a route handler has no contract, or a contract has no route.
+
+When you add or change an endpoint: update its contract, run `npm run contract:docs`, and commit both.
+
 ## Database Schema Changes
 
 The schema is managed with Prisma Migrate only; `prisma db push` is not used, because it changes the database without leaving a migration file.

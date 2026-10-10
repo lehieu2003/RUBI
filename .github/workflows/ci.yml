@@ -83,3 +83,15 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # Seeds demo data, starts the built app and checks every endpoint's real
+      # responses against the contracts in src/lib/contracts.
+      - name: Verify API contracts against the running app
+        run: |
+          npm run db:seed
+          PORT=3000 HOSTNAME=127.0.0.1 node .next/standalone/server.js > server.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            curl -sf http://127.0.0.1:3000/api/health > /dev/null && break
+            sleep 1
+          done
+          BASE_URL=http://127.0.0.1:3000 npm run contract:verify || { tail -50 server.log; exit 1; }

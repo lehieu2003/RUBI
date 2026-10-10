@@ -119,6 +119,8 @@ Configure your `.env` file with the following Supabase credentials:
 | `npm run db:deploy` | Apply pending migrations (shared/production database) |
 | `npm run db:seed` | Seed a local database with demo data (refuses remote databases) |
 | `npm run admin:create` | Create the single manager account interactively |
+| `npm run contract:docs` | Regenerate `docs/openapi.json` and `docs/API-CONTRACT.md` from the API contracts |
+| `npm run contract:verify` | Check a running local server against the API contracts |
 
 ## User Roles
 
