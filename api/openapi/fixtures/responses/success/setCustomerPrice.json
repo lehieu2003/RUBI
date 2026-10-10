@@ -1,0 +1,20 @@
+{
+  "operationId": "setCustomerPrice",
+  "request": {
+    "method": "POST",
+    "path": "/api/prices/customer/override",
+    "as": "admin",
+    "body": {
+      "customerId": "cmv24bqbf0003i9fmrdec3b4i",
+      "productId": "prod-bi-5",
+      "price": 11000
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "success": true
+    }
+  }
+}

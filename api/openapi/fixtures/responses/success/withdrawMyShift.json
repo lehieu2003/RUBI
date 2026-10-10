@@ -1,0 +1,19 @@
+{
+  "operationId": "withdrawMyShift",
+  "request": {
+    "method": "DELETE",
+    "path": "/api/schedule/my",
+    "as": "staff",
+    "body": {
+      "shiftDate": "2026-12-15",
+      "shift": "SLOT_12_15"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "success": true
+    }
+  }
+}

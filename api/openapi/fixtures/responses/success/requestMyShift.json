@@ -1,0 +1,23 @@
+{
+  "operationId": "requestMyShift",
+  "request": {
+    "method": "POST",
+    "path": "/api/schedule/my",
+    "as": "staff",
+    "body": {
+      "shiftDate": "2026-12-15",
+      "shift": "SLOT_09_12"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "shift": {
+        "shiftDate": "2026-12-15",
+        "shift": "SLOT_09_12",
+        "status": "PENDING"
+      }
+    }
+  }
+}

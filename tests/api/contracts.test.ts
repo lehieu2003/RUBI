@@ -1,0 +1,185 @@
+import assert from 'node:assert/strict';
+import { execSync } from 'node:child_process';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { describe, it } from 'node:test';
+import { parse } from 'yaml';
+import { apiContracts, domains, ErrorResponse, findContract } from '../../src/lib/contracts';
+import { OUT_DIR, renderAll } from '../../scripts/generate-api-docs';
+
+/** Every exported HTTP handler under src/app/api as "METHOD /api/path/{param}". */
+function routeHandlers(): string[] {
+  const files = execSync("git ls-files 'src/app/api/**/route.ts'", { encoding: 'utf8' }).trim().split('\n');
+  return files.flatMap((file) => {
+    const path = file
+      .replace(/^src\/app/, '')
+      .replace(/\/route\.ts$/, '')
+      .replace(/\[([^\]]+)\]/g, '{$1}');
+    const methods = readFileSync(file, 'utf8').matchAll(/export async function (GET|POST|PATCH|PUT|DELETE)\b/g);
+    return [...methods].map((match) => `${match[1]} ${path}`);
+  });
+}
+
+describe('API contracts', () => {
+  const declared = apiContracts.map((contract) => `${contract.method} ${contract.path}`);
+
+  it('every route handler has a contract', () => {
+    const missing = routeHandlers().filter((handler) => !declared.includes(handler));
+    assert.deepEqual(missing, [], 'add a contract in src/lib/contracts for: ' + missing.join(', '));
+  });
+
+  it('every contract points at an existing route handler', () => {
+    const handlers = routeHandlers();
+    const orphans = declared.filter((entry) => !handlers.includes(entry));
+    assert.deepEqual(orphans, [], 'remove or fix the contract for: ' + orphans.join(', '));
+  });
+
+  it('contract ids and method+path pairs are unique', () => {
+    const ids = apiContracts.map((contract) => contract.id);
+    assert.equal(new Set(ids).size, ids.length, 'duplicate contract id');
+    assert.equal(new Set(declared).size, declared.length, 'duplicate method + path');
+  });
+
+  it('path parameters are declared exactly', () => {
+    for (const contract of apiContracts) {
+      const inPath = [...contract.path.matchAll(/\{([^}]+)\}/g)].map((match) => match[1]).sort();
+      const inSchema = Object.keys(contract.params?.shape ?? {}).sort();
+      assert.deepEqual(inSchema, inPath, `${contract.id}: params must match the path placeholders`);
+    }
+  });
+
+  it('role-restricted endpoints list 401 and 403; session endpoints list 401', () => {
+    for (const contract of apiContracts) {
+      if (contract.auth.kind === 'roles') {
+        assert.ok(contract.errors.includes(401) && contract.errors.includes(403), `${contract.id} must list 401 and 403`);
+      }
+      if (contract.auth.kind === 'session') {
+        assert.ok(contract.errors.includes(401), `${contract.id} must list 401`);
+      }
+    }
+  });
+
+  it('accepts both error shapes the app produces', () => {
+    assert.ok(ErrorResponse.safeParse({ success: false, error: 'Không tìm thấy đơn hàng' }).success);
+    assert.ok(ErrorResponse.safeParse({ error: 'Chưa đăng nhập hoặc phiên đã hết hạn', code: 'X' }).success);
+    assert.equal(ErrorResponse.safeParse({ success: true, data: {} }).success, false);
+  });
+
+  it('request schemas accept valid input and reject invalid input', () => {
+    const login = findContract('POST', '/api/auth/login')!;
+    assert.ok(login.body!.safeParse({ email: 'a@rubi.vn', password: 'x' }).success);
+    assert.equal(login.body!.safeParse({ email: 'not-an-email', password: 'x' }).success, false);
+
+    const request = findContract('POST', '/api/schedule/my')!;
+    assert.ok(request.body!.safeParse({ shiftDate: '2026-10-11', shift: 'SLOT_06_09' }).success);
+    assert.equal(request.body!.safeParse({ shiftDate: '11/10/2026', shift: 'SLOT_06_09' }).success, false);
+    assert.equal(request.body!.safeParse({ shiftDate: '2026-10-11', shift: 'MORNING' }).success, false);
+  });
+
+});
+
+describe('OpenAPI files (api/openapi)', () => {
+  const rendered = renderAll();
+
+  it('are up to date with the contracts (run `npm run contract:docs`)', () => {
+    for (const [path, content] of Object.entries(rendered)) {
+      assert.ok(existsSync(path), `${path} is missing: run npm run contract:docs`);
+      assert.equal(readFileSync(path, 'utf8'), content, `${path} is stale: run npm run contract:docs`);
+    }
+  });
+
+  it('contain no leftover file of a removed domain', () => {
+    const onDisk = readdirSync(OUT_DIR)
+      .filter((name) => name.endsWith('.yaml'))
+      .map((name) => `${OUT_DIR}/${name}`);
+    const stray = onDisk.filter((path) => !(path in rendered));
+    assert.deepEqual(stray, [], 'delete these files: ' + stray.join(', '));
+  });
+
+  it('have one file per domain, each holding only its own endpoints', () => {
+    for (const domain of domains) {
+      const document = parse(rendered[`${OUT_DIR}/${domain.file}.yaml`]);
+      const operations = Object.values(document.paths as Record<string, Record<string, { operationId: string }>>)
+        .flatMap((methods) => Object.values(methods))
+        .map((operation) => operation.operationId)
+        .sort();
+      assert.deepEqual(operations, domain.contracts.map((contract) => contract.id).sort(), `${domain.file}.yaml`);
+    }
+  });
+
+  it('every $ref resolves to an existing file and location', () => {
+    const cache = new Map<string, unknown>();
+    const load = (path: string) => {
+      if (!cache.has(path)) cache.set(path, parse(rendered[path] ?? readFileSync(path, 'utf8')));
+      return cache.get(path);
+    };
+    const broken: string[] = [];
+    const walk = (node: unknown, file: string) => {
+      if (Array.isArray(node)) return node.forEach((item) => walk(item, file));
+      if (!node || typeof node !== 'object') return;
+      for (const [key, value] of Object.entries(node)) {
+        if (key !== '$ref' || typeof value !== 'string') {
+          walk(value, file);
+          continue;
+        }
+        const [target, pointer = ''] = value.split('#');
+        const targetFile = target ? join(dirname(file), target) : file;
+        let current: unknown = existsSync(targetFile) ? load(targetFile) : undefined;
+        for (const part of pointer.split('/').filter(Boolean)) {
+          const name = part.replace(/~1/g, '/').replace(/~0/g, '~');
+          current = current && typeof current === 'object' ? (current as Record<string, unknown>)[name] : undefined;
+        }
+        if (current === undefined) broken.push(`${file}: ${value}`);
+      }
+    };
+    for (const path of Object.keys(rendered).filter((name) => name.endsWith('.yaml'))) walk(load(path), path);
+    assert.deepEqual(broken, []);
+  });
+
+  it('the entry point references every endpoint path', () => {
+    const root = parse(rendered[`${OUT_DIR}/openapi.yaml`]);
+    assert.deepEqual(Object.keys(root.paths).sort(), [...new Set(apiContracts.map((contract) => contract.path))].sort());
+  });
+});
+
+describe('response fixtures (api/openapi/fixtures)', () => {
+  const dir = `${OUT_DIR}/fixtures/responses`;
+  const fixtures = (kind: string) =>
+    readdirSync(`${dir}/${kind}`)
+      .filter((name) => name.endsWith('.json'))
+      .map((name) => ({ name: `${kind}/${name}`, ...JSON.parse(readFileSync(`${dir}/${kind}/${name}`, 'utf8')) }));
+  const contractOf = (id: string) => apiContracts.find((contract) => contract.id === id);
+
+  it('success and empty fixtures match their contract', () => {
+    for (const fixture of [...fixtures('success'), ...fixtures('empty')]) {
+      const contract = contractOf(fixture.operationId);
+      assert.ok(contract, `${fixture.name}: unknown operation ${fixture.operationId}`);
+      assert.equal(fixture.status, contract.successStatus ?? 200, fixture.name);
+      const result = contract.response.safeParse(fixture.body);
+      assert.ok(result.success, `${fixture.name} no longer matches its contract; re-record with npm run contract:verify -- --record`);
+    }
+  });
+
+  it('error fixtures match the error contract and a declared status', () => {
+    for (const fixture of fixtures('error')) {
+      const contract = contractOf(fixture.operationId);
+      assert.ok(contract, `${fixture.name}: unknown operation ${fixture.operationId}`);
+      assert.ok(contract.errors.includes(fixture.status), `${fixture.name}: status ${fixture.status} is not declared`);
+      assert.ok(ErrorResponse.safeParse(fixture.body).success, `${fixture.name} does not match the error contract`);
+    }
+  });
+
+  it('every endpoint with a success response has a success fixture', () => {
+    const recorded = new Set(fixtures('success').map((fixture) => fixture.operationId));
+    const missing = apiContracts
+      .filter((contract) => contract.id !== 'createDriver') // always answers 405
+      .map((contract) => contract.id)
+      .filter((id) => !recorded.has(id));
+    assert.deepEqual(missing, [], 're-record with npm run contract:verify -- --record');
+  });
+
+  it('fixtures contain no token or password', () => {
+    const leaked = execSync(`grep -rlE "eyJ[A-Za-z0-9_-]{10,}|12345678" ${dir} || true`, { encoding: 'utf8' }).trim();
+    assert.equal(leaked, '', 'secrets found in: ' + leaked);
+  });
+});

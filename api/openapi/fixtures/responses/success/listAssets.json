@@ -1,0 +1,30 @@
+{
+  "operationId": "listAssets",
+  "request": {
+    "method": "GET",
+    "path": "/api/assets",
+    "as": "admin"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": [
+      {
+        "id": "cmv24bv4v000pi9fmkxtg0xi8",
+        "factoryId": "factory-mien-dong",
+        "type": "VEHICLE",
+        "name": "Xe kiểm tra",
+        "code": "XE-mv24bomy",
+        "licensePlate": "48A-000.00",
+        "capacityTons": null,
+        "status": "ACTIVE",
+        "notes": null,
+        "createdAt": "2026-10-10T08:14:26.911Z",
+        "updatedAt": "2026-10-10T08:14:26.911Z",
+        "maintenanceCount": 0,
+        "nextDue": null,
+        "nextDueType": null
+      }
+    ]
+  }
+}

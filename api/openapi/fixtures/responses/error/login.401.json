@@ -1,0 +1,17 @@
+{
+  "operationId": "login",
+  "request": {
+    "method": "POST",
+    "path": "/api/auth/login",
+    "as": "anon",
+    "body": {
+      "email": "quanly@rubi.local",
+      "password": "<password>"
+    }
+  },
+  "status": 401,
+  "body": {
+    "success": false,
+    "error": "Email hoặc mật khẩu không đúng"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "operationId": "saveScheduleAssignmentPatch",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/schedule/assignments",
+    "as": "admin",
+    "body": {
+      "userId": "cmv24bgzi0003i9dhler2d5j9",
+      "shiftDate": "2026-12-15",
+      "shift": null,
+      "removeShift": "SLOT_06_09"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "success": true,
+      "assignment": {
+        "userId": "cmv24bgzi0003i9dhler2d5j9",
+        "shift": null,
+        "removeShift": "SLOT_06_09",
+        "shiftDate": "2026-12-15"
+      }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "operationId": "getInventory",
+  "request": {
+    "method": "GET",
+    "path": "/api/inventory",
+    "as": "admin"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "items": [
+        {
+          "productId": "prod-bi-5",
+          "productName": "Đá Bi",
+          "sizeKg": 5,
+          "unit": "Bao",
+          "quantityOnHand": 200,
+          "totalKg": 1000
+        },
+        {
+          "productId": "prod-bi-10",
+          "productName": "Đá Bi",
+          "sizeKg": 10,
+          "unit": "Bao",
+          "quantityOnHand": 200,
+          "totalKg": 2000
+        }
+      ],
+      "totalBags": 1600,
+      "totalKg": 28000
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "operationId": "removeCustomerPrice",
+  "request": {
+    "method": "DELETE",
+    "path": "/api/prices/customer/override",
+    "as": "admin",
+    "query": {
+      "customerId": "cmv24bqbf0003i9fmrdec3b4i",
+      "productId": "prod-bi-5"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "success": true
+    }
+  }
+}

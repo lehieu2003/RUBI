@@ -1,0 +1,39 @@
+{
+  "operationId": "getMySchedule",
+  "request": {
+    "method": "GET",
+    "path": "/api/schedule/my",
+    "as": "staff",
+    "query": {
+      "week": "2026-12-13"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "userId": "cmv24bgzi0003i9dhler2d5j9",
+      "today": "2026-10-10",
+      "currentHour": 15,
+      "limits": {
+        "STAFF": null,
+        "DRIVER": null
+      },
+      "lockedMonths": [],
+      "people": [
+        {
+          "id": "cmv24bgzi0003i9dhler2d5j9",
+          "name": "Lê Văn Lên Đơn",
+          "role": "STAFF",
+          "shifts": []
+        },
+        {
+          "id": "cmv24bgzm0005i9dhhl5yjakn",
+          "name": "Phạm Văn Tài (Xe 1)",
+          "role": "DRIVER",
+          "shifts": []
+        }
+      ]
+    }
+  }
+}

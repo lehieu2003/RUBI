@@ -1,0 +1,30 @@
+{
+  "operationId": "listShellDeposits",
+  "request": {
+    "method": "GET",
+    "path": "/api/deposits/shells",
+    "as": "admin"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": [
+      {
+        "customerId": "cmv24bh1t001ti9dh0kjk7r00",
+        "customerName": "Vựa Hải Sản Năm Căn",
+        "shellsOut": 40,
+        "shellsIn": 10,
+        "depositPerShell": 50000,
+        "netDepositOwed": 1500000
+      },
+      {
+        "customerId": "cmv24bh1l001hi9dh3gur1kkk",
+        "customerName": "Đại Lý Nước Ngọt Minh Tâm",
+        "shellsOut": 50,
+        "shellsIn": 25,
+        "depositPerShell": 50000,
+        "netDepositOwed": 1250000
+      }
+    ]
+  }
+}

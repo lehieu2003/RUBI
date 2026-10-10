@@ -1,0 +1,81 @@
+{
+  "operationId": "exportCustomerDebt",
+  "request": {
+    "method": "GET",
+    "path": "/api/customers/debt-export",
+    "as": "admin"
+  },
+  "status": 200,
+  "body": {
+    "customers": [
+      {
+        "id": "cmv24bh1q001pi9dh78se39jp",
+        "code": "KH-003",
+        "name": "Cà Phê Sân Vườn Hướng Dương",
+        "address": "78 Võ Văn Ngân, Bình Thọ, Thủ Đức",
+        "phone": "0908345678",
+        "isActive": true,
+        "createdAt": "2026-10-10T08:14:08.654Z",
+        "updatedAt": "2026-10-10T08:14:08.654Z",
+        "factoryId": "factory-mien-dong",
+        "debtLedger": [],
+        "shellDeposit": {
+          "id": "cmv24bh1s001ri9dhni8820bf",
+          "customerId": "cmv24bh1q001pi9dh78se39jp",
+          "shellsOut": 15,
+          "shellsIn": 15,
+          "depositPerShell": "50000",
+          "createdAt": "2026-10-10T08:14:08.656Z",
+          "updatedAt": "2026-10-10T08:14:08.656Z"
+        }
+      },
+      {
+        "id": "cmv24bqbf0003i9fmrdec3b4i",
+        "code": "CT-mv24bomy",
+        "name": "Khách kiểm tra hợp đồng",
+        "address": "Đắk Nông",
+        "phone": "0900000000",
+        "isActive": true,
+        "createdAt": "2026-10-10T08:14:20.667Z",
+        "updatedAt": "2026-10-10T08:14:20.667Z",
+        "factoryId": "factory-mien-dong",
+        "debtLedger": [],
+        "shellDeposit": null
+      }
+    ],
+    "orders": [
+      {
+        "id": "cmv24bh2a002ji9dh6fgk7y4h",
+        "customerId": "cmv24bh1t001ti9dh0kjk7r00",
+        "status": "COMPLETED",
+        "total": "376000",
+        "notes": "Giao ướp cá",
+        "createdAt": "2026-10-10T08:14:08.674Z",
+        "updatedAt": "2026-10-10T08:14:08.674Z",
+        "driverId": "cmv24bgzr0007i9dhdod7ay67",
+        "assignerId": "cmv24bgzi0003i9dhler2d5j9",
+        "deliveredAt": "2026-10-10T08:14:08.666Z",
+        "factoryId": "factory-mien-dong",
+        "customer": {
+          "name": "Vựa Hải Sản Năm Căn"
+        }
+      },
+      {
+        "id": "cmv24bh28002fi9dh7u3h2900",
+        "customerId": "cmv24bh1q001pi9dh78se39jp",
+        "status": "DELIVERED",
+        "total": "60000",
+        "notes": "Đã thanh toán tiền mặt đủ",
+        "createdAt": "2026-10-10T08:14:08.672Z",
+        "updatedAt": "2026-10-10T08:14:08.672Z",
+        "driverId": "cmv24bgzr0007i9dhdod7ay67",
+        "assignerId": "cmv24bgzi0003i9dhler2d5j9",
+        "deliveredAt": "2026-10-10T08:14:08.666Z",
+        "factoryId": "factory-mien-dong",
+        "customer": {
+          "name": "Cà Phê Sân Vườn Hướng Dương"
+        }
+      }
+    ]
+  }
+}
