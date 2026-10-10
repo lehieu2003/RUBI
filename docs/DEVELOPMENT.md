@@ -6,7 +6,7 @@
 1. **Clone and install dependencies**
    ```bash
    git clone <repository-url>
-   cd iceflow-saas
+   cd RUBI
    npm install
    ```
 
