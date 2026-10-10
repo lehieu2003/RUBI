@@ -117,11 +117,10 @@ async function main() {
   // -------------------------------------------------------------
   console.log('\n[4/7] Setting up Drivers & Shifts...');
   const driver1 = await prisma.driver.upsert({
-    where: { slug: 'tai-xe-1-miendong' },
+    where: { userId: driverUser1.id },
     update: {},
     create: {
       name: 'Phạm Văn Tài',
-      slug: 'tai-xe-1-miendong',
       phone: '0909777888',
       factoryId: demoFactory.id,
       userId: driverUser1.id,
@@ -130,11 +129,10 @@ async function main() {
   });
 
   const driver2 = await prisma.driver.upsert({
-    where: { slug: 'tai-xe-2-miendong' },
+    where: { phone_factoryId: { phone: '0909999000', factoryId: demoFactory.id } },
     update: {},
     create: {
       name: 'Hoàng Văn Lộc',
-      slug: 'tai-xe-2-miendong',
       phone: '0909999000',
       factoryId: demoFactory.id,
       isActive: true,

@@ -74,10 +74,10 @@ export const orderContracts: ApiContract[] = [
       cancellationReason: z.string().optional(),
     }),
     response: envelope(OrderRow),
-    errors: [400, 401, 403, 404, 500],
+    errors: [400, 401, 403, 404, 409, 500],
     notes:
       '`cancellationReason` is required when the status is CANCELLED and is stored in `notes`. ' +
-      'COMPLETED is only reached through reconciliation.',
+      'COMPLETED is only reached through reconciliation. A COMPLETED or CANCELLED order is final: 409 `ORDER_FINAL`.',
   },
   {
     id: 'bulkAssignOrders',
@@ -85,13 +85,15 @@ export const orderContracts: ApiContract[] = [
     path: '/api/orders/bulk-assign',
     tag: 'Orders',
     summary: 'Assign several orders to a driver',
-    auth: roles('ADMIN'),
+    auth: roles('ADMIN', 'STAFF'),
     body: z.object({ orderIds: z.array(Id).min(1), driverId: Id }),
     response: envelope(
       Success.extend({ assignedCount: z.number().int(), driver: z.object({ id: Id, name: z.string() }) })
     ),
     errors: [400, 401, 403, 404, 500],
-    notes: 'Only PENDING and SHIPPING orders are assigned; others are skipped and not counted.',
+    notes:
+      'Only PENDING and SHIPPING orders are assigned; others are skipped and not counted. ' +
+      '404 when the driver does not exist or is deactivated.',
   },
   {
     id: 'confirmDelivery',
@@ -99,17 +101,14 @@ export const orderContracts: ApiContract[] = [
     path: '/api/orders/{id}/confirm',
     tag: 'Orders',
     summary: 'Driver confirms an order as delivered',
-    auth: {
-      kind: 'custom',
-      description:
-        'The assigned driver: a DRIVER session (cookie or Bearer JWT), or the driver share-link token ' +
-        'sent as `Authorization: Bearer <token>` or as `token` in the body.',
-    },
+    auth: roles('DRIVER'),
     params: orderId,
-    body: z.object({ token: z.string().optional() }).optional(),
     response: envelope(Success.extend({ orderId: Id, status: z.literal('DELIVERED') })),
-    errors: [401, 403, 404, 500],
-    notes: 'The body may be empty. Sets `deliveredAt`. No location is captured.',
+    errors: [401, 403, 404, 409, 500],
+    notes:
+      'No request body. The signed-in driver must be the one the order is assigned to (403 otherwise). ' +
+      'Only a SHIPPING order is confirmed: 409 `ORDER_NOT_SHIPPING` otherwise, except an already DELIVERED order, ' +
+      'which answers success unchanged. Sets `deliveredAt`. No location is captured.',
   },
   {
     id: 'reconcileOrder',

@@ -1,0 +1,19 @@
+{
+  "operationId": "recordCustomerPayment",
+  "request": {
+    "method": "POST",
+    "path": "/api/customers/{id}/payments",
+    "as": "staff",
+    "params": {
+      "id": "cmv2aenpc001hi9lew7if6hpx"
+    },
+    "body": {
+      "amount": 1000
+    }
+  },
+  "status": 403,
+  "body": {
+    "success": false,
+    "error": "Bạn không có quyền thực hiện thao tác này"
+  }
+}

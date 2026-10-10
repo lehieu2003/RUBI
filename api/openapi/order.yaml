@@ -306,7 +306,7 @@ paths:
       description: |-
         Access: ADMIN, STAFF.
 
-        `cancellationReason` is required when the status is CANCELLED and is stored in `notes`. COMPLETED is only reached through reconciliation.
+        `cancellationReason` is required when the status is CANCELLED and is stored in `notes`. COMPLETED is only reached through reconciliation. A COMPLETED or CANCELLED order is final: 409 `ORDER_FINAL`.
       parameters:
         - name: id
           in: path
@@ -358,6 +358,8 @@ paths:
           $ref: ./components/responses/errors.yaml#/Forbidden
         "404":
           $ref: ./components/responses/errors.yaml#/NotFound
+        "409":
+          $ref: ./components/responses/errors.yaml#/Conflict
         "500":
           $ref: ./components/responses/errors.yaml#/ServerError
   /api/orders/bulk-assign:
@@ -367,9 +369,9 @@ paths:
         - Orders
       summary: Assign several orders to a driver
       description: |-
-        Access: ADMIN.
+        Access: ADMIN, STAFF.
 
-        Only PENDING and SHIPPING orders are assigned; others are skipped and not counted.
+        Only PENDING and SHIPPING orders are assigned; others are skipped and not counted. 404 when the driver does not exist or is deactivated.
       requestBody:
         required: true
         content:
@@ -447,9 +449,9 @@ paths:
         - Orders
       summary: Driver confirms an order as delivered
       description: |-
-        Access: The assigned driver: a DRIVER session (cookie or Bearer JWT), or the driver share-link token sent as `Authorization: Bearer <token>` or as `token` in the body..
+        Access: DRIVER.
 
-        The body may be empty. Sets `deliveredAt`. No location is captured.
+        No request body. The signed-in driver must be the one the order is assigned to (403 otherwise). Only a SHIPPING order is confirmed: 409 `ORDER_NOT_SHIPPING` otherwise, except an already DELIVERED order, which answers success unchanged. Sets `deliveredAt`. No location is captured.
       parameters:
         - name: id
           in: path
@@ -457,16 +459,6 @@ paths:
           schema:
             type: string
             minLength: 1
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                token:
-                  type: string
-              additionalProperties: false
       responses:
         "200":
           description: Success
@@ -505,6 +497,8 @@ paths:
           $ref: ./components/responses/errors.yaml#/Forbidden
         "404":
           $ref: ./components/responses/errors.yaml#/NotFound
+        "409":
+          $ref: ./components/responses/errors.yaml#/Conflict
         "500":
           $ref: ./components/responses/errors.yaml#/ServerError
   /api/orders/{id}/reconcile:

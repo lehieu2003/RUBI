@@ -44,7 +44,7 @@ const menuMetadata = {
   '/my-schedule': { icon: Calendar, label: 'Ca làm của tôi' },
   '/reports/shifts': { icon: BarChart3, label: 'Bảng công' },
   '/settings': { icon: Settings, label: 'Cài đặt' },
-  '/config/prices': { icon: Package, label: 'Bảng giá' },
+  '/config/prices': { icon: Package, label: 'Sản phẩm & giá' },
 };
 
 export function Sidebar() {
@@ -71,8 +71,7 @@ export function Sidebar() {
         icon: FileText,
         label: route.label,
       }),
-    }))
-    .filter((item) => item.href !== '/config/prices');
+    }));
 
   const handleSignOut = async () => {
     if (signingOut) return;

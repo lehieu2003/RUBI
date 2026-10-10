@@ -10,36 +10,36 @@
     "success": true,
     "data": [
       {
-        "id": "cmv25du9e002ji93mohmcxw80",
-        "customerId": "cmv25du90001ti93m4mj9ipby",
+        "id": "cmv2aenq4002ji9lel2fgny9t",
+        "customerId": "cmv2aenpm001ti9lep2q4h8qo",
         "status": "COMPLETED",
         "total": 376000,
         "notes": "Giao ướp cá",
-        "createdAt": "2026-10-10T08:43:58.707Z",
-        "updatedAt": "2026-10-10T08:43:58.707Z",
-        "driverId": "cmv25du6o0007i93mlg4jsmx3",
-        "assignerId": "cmv25du6f0003i93m8jgfwhu9",
-        "deliveredAt": "2026-10-10T08:43:58.699Z",
+        "createdAt": "2026-10-10T11:04:34.972Z",
+        "updatedAt": "2026-10-10T11:04:34.972Z",
+        "driverId": "cmv2aenn40007i9lez13bjy2e",
+        "assignerId": "cmv2aenmy0003i9lelw6vldaa",
+        "deliveredAt": "2026-10-10T11:04:34.962Z",
         "factoryId": "factory-mien-dong",
         "customer": {
-          "id": "cmv25du90001ti93m4mj9ipby",
+          "id": "cmv2aenpm001ti9lep2q4h8qo",
           "code": "KH-004",
           "name": "Vựa Hải Sản Năm Căn",
           "address": "235 Đặng Văn Bi, Trường Thọ, Thủ Đức",
           "phone": "0908456789",
           "isActive": true,
-          "createdAt": "2026-10-10T08:43:58.692Z",
-          "updatedAt": "2026-10-10T08:43:58.692Z",
+          "createdAt": "2026-10-10T11:04:34.954Z",
+          "updatedAt": "2026-10-10T11:04:34.954Z",
           "factoryId": "factory-mien-dong"
         },
         "driver": {
-          "id": "cmv25du6o0007i93mlg4jsmx3",
+          "id": "cmv2aenn40007i9lez13bjy2e",
           "name": "Phạm Văn Tài"
         },
         "orderItems": [
           {
-            "id": "cmv25du9e002li93mumhjiz3m",
-            "orderId": "cmv25du9e002ji93mohmcxw80",
+            "id": "cmv2aenq4002li9leu6k71psv",
+            "orderId": "cmv2aenq4002ji9lel2fgny9t",
             "productId": "prod-cay-50",
             "quantity": 8,
             "unitPrice": 32000,
@@ -51,14 +51,14 @@
               "sizeKg": 50,
               "unit": "Cây",
               "isActive": true,
-              "createdAt": "2026-10-10T08:43:58.666Z",
-              "updatedAt": "2026-10-10T08:43:58.666Z",
+              "createdAt": "2026-10-10T11:04:34.924Z",
+              "updatedAt": "2026-10-10T11:04:34.924Z",
               "factoryId": "factory-mien-dong"
             }
           },
           {
-            "id": "cmv25du9e002mi93mb3t2davk",
-            "orderId": "cmv25du9e002ji93mohmcxw80",
+            "id": "cmv2aenq4002mi9leca4n9tn6",
+            "orderId": "cmv2aenq4002ji9lel2fgny9t",
             "productId": "prod-mi-20",
             "quantity": 4,
             "unitPrice": 30000,
@@ -70,44 +70,44 @@
               "sizeKg": 20,
               "unit": "Bao",
               "isActive": true,
-              "createdAt": "2026-10-10T08:43:58.672Z",
-              "updatedAt": "2026-10-10T08:43:58.672Z",
+              "createdAt": "2026-10-10T11:04:34.930Z",
+              "updatedAt": "2026-10-10T11:04:34.930Z",
               "factoryId": "factory-mien-dong"
             }
           }
         ]
       },
       {
-        "id": "cmv25du9c002fi93myxkbjiwg",
-        "customerId": "cmv25du8x001pi93mf5kmueja",
+        "id": "cmv2aenq1002fi9leodpxvtai",
+        "customerId": "cmv2aenpj001pi9le1vw0u04d",
         "status": "DELIVERED",
         "total": 60000,
         "notes": "Đã thanh toán tiền mặt đủ",
-        "createdAt": "2026-10-10T08:43:58.705Z",
-        "updatedAt": "2026-10-10T08:43:58.705Z",
-        "driverId": "cmv25du6o0007i93mlg4jsmx3",
-        "assignerId": "cmv25du6f0003i93m8jgfwhu9",
-        "deliveredAt": "2026-10-10T08:43:58.699Z",
+        "createdAt": "2026-10-10T11:04:34.969Z",
+        "updatedAt": "2026-10-10T11:04:34.969Z",
+        "driverId": "cmv2aenn40007i9lez13bjy2e",
+        "assignerId": "cmv2aenmy0003i9lelw6vldaa",
+        "deliveredAt": "2026-10-10T11:04:34.962Z",
         "factoryId": "factory-mien-dong",
         "customer": {
-          "id": "cmv25du8x001pi93mf5kmueja",
+          "id": "cmv2aenpj001pi9le1vw0u04d",
           "code": "KH-003",
           "name": "Cà Phê Sân Vườn Hướng Dương",
           "address": "78 Võ Văn Ngân, Bình Thọ, Thủ Đức",
           "phone": "0908345678",
           "isActive": true,
-          "createdAt": "2026-10-10T08:43:58.690Z",
-          "updatedAt": "2026-10-10T08:43:58.690Z",
+          "createdAt": "2026-10-10T11:04:34.951Z",
+          "updatedAt": "2026-10-10T11:04:34.951Z",
           "factoryId": "factory-mien-dong"
         },
         "driver": {
-          "id": "cmv25du6o0007i93mlg4jsmx3",
+          "id": "cmv2aenn40007i9lez13bjy2e",
           "name": "Phạm Văn Tài"
         },
         "orderItems": [
           {
-            "id": "cmv25du9c002hi93mskigqjhp",
-            "orderId": "cmv25du9c002fi93myxkbjiwg",
+            "id": "cmv2aenq1002hi9lemcefm841",
+            "orderId": "cmv2aenq1002fi9leodpxvtai",
             "productId": "prod-vien-5",
             "quantity": 4,
             "unitPrice": 15000,
@@ -119,8 +119,8 @@
               "sizeKg": 5,
               "unit": "Bao",
               "isActive": true,
-              "createdAt": "2026-10-10T08:43:58.651Z",
-              "updatedAt": "2026-10-10T08:43:58.651Z",
+              "createdAt": "2026-10-10T11:04:34.904Z",
+              "updatedAt": "2026-10-10T11:04:34.904Z",
               "factoryId": "factory-mien-dong"
             }
           }

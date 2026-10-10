@@ -1,6 +1,6 @@
 import type { Prisma } from '@prisma/client';
+import { vietnamDayRange } from '@/lib/vietnam-time';
 
-const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 const STATUSES = ['PENDING', 'SHIPPING', 'DELIVERED', 'COMPLETED', 'CANCELLED'] as const;
 type Status = (typeof STATUSES)[number];
 
@@ -32,11 +32,10 @@ export function orderWhere(
 
   const date = searchParams.get('date');
   if (date) {
-    if (!DATE_ONLY.test(date)) return null;
     // The factory works on Vietnam time whatever the server's time zone is.
-    const start = new Date(`${date}T00:00:00+07:00`);
-    if (Number.isNaN(start.getTime())) return null;
-    where.createdAt = { gte: start, lt: new Date(start.getTime() + 24 * 60 * 60 * 1000) };
+    const day = vietnamDayRange(date);
+    if (!day) return null;
+    where.createdAt = { gte: day.start, lt: day.end };
   }
 
   const q = searchParams.get('q')?.trim();

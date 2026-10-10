@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { requireRole } from '@/lib/auth/helpers';
+import { startOfVietnamToday } from '@/lib/vietnam-time';
 import { apiSuccess, apiError } from '@/lib/api-response';
 
 const RecordSchema = z.object({
@@ -27,8 +28,7 @@ export async function GET() {
     });
 
     // Start of today UTC
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = startOfVietnamToday();
 
     // Get inventory records
     const inventoryRecords = await prisma.inventory.findMany({
@@ -86,8 +86,7 @@ export async function POST(req: NextRequest) {
       return apiError('Không tìm thấy sản phẩm', 404);
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = startOfVietnamToday();
 
     const existing = await prisma.inventory.findFirst({
       where: {

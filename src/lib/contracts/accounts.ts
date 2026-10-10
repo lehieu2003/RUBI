@@ -53,7 +53,7 @@ export const accountContracts: ApiContract[] = [
     errors: [400, 401, 403, 409, 500],
     notes:
       'Password: at least 8 characters, letters and digits, not a well-known password. ' +
-      'The new account must change its password at first login. A DRIVER also gets a driver profile and share link. ' +
+      'The new account must change its password at first login. A DRIVER also gets a driver profile. ' +
       'Manager accounts cannot be created here. 409 when the email is taken.',
   },
   {
@@ -83,18 +83,6 @@ export const accountContracts: ApiContract[] = [
     errors: [400, 401, 403, 404, 500],
   },
   {
-    id: 'rotateDriverLink',
-    method: 'POST',
-    path: '/api/staff/{id}/rotate-link',
-    tag: 'Accounts',
-    summary: "Replace a driver's share link; the old link stops working",
-    auth: roles('ADMIN'),
-    params: userId,
-    response: envelope(z.object({ link: z.string(), driverName: z.string() })),
-    errors: [400, 401, 403, 404, 500],
-    notes: '`link` is a relative path such as `/d/<token>`.',
-  },
-  {
     id: 'listDrivers',
     method: 'GET',
     path: '/api/drivers',
@@ -107,14 +95,11 @@ export const accountContracts: ApiContract[] = [
           id: Id,
           name: z.string(),
           phone: z.string().nullable(),
-          slug: z.string(),
-          token: z.string(),
           isActive: z.boolean(),
         })
       )
     ),
     errors: [400, 401, 403, 500],
-    notes: 'Includes each driver\'s share-link `token`.',
   },
   {
     id: 'createDriver',

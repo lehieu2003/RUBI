@@ -59,6 +59,7 @@ docker compose exec app npm run db:seed
 - **Order Entry**: Fast order creation with customer search and automatic pricing
 - **Driver Delivery View**: Mobile-friendly read-only view for drivers to confirm deliveries
 - **Customer Management**: Track customer pricing and debt
+- **Customer payments**: The manager records money received on the debt report (`/reports/debt`), which lowers the customer's debt; each customer's debt and payment history is listed there
 - **Inventory Tracking**: Monitor stock levels
 - **Settlement**: End-of-day reconciliation by the manager
 - **Shift scheduling**: Staff and drivers register their own shifts (3-hour slots) at `/my-schedule`; the manager approves or rejects each request and can still assign shifts directly

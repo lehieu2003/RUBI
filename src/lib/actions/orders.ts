@@ -5,14 +5,23 @@ import { prisma } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth';
 
-// --- Price loading action ---
-export async function loadCustomerPrices(customerId: string): Promise<Record<string, number>> {
+// Order entry belongs to the office (manager and staff). Server actions are
+// reachable by anyone holding a session, drivers included, so the role is
+// checked here and not only by the page.
+async function requireOfficeFactoryId(): Promise<string> {
   const session = await getSession();
   if (!session?.factoryId) {
     throw new Error('Tài khoản chưa được gán nhà máy');
   }
+  if (session.role !== 'ADMIN' && session.role !== 'STAFF') {
+    throw new Error('Bạn không có quyền thực hiện thao tác này');
+  }
   const factoryId = session.factoryId;
+  return factoryId;
+}
 
+// The customer's price for every product: its own override, else the global price.
+async function customerPriceList(customerId: string, factoryId: string): Promise<Record<string, number>> {
   const customer = await prisma.customer.findFirst({
     where: { id: customerId, factoryId },
     select: { id: true },
@@ -49,12 +58,18 @@ export async function loadCustomerPrices(customerId: string): Promise<Record<str
   return result;
 }
 
+// --- Price loading action ---
+export async function loadCustomerPrices(customerId: string): Promise<Record<string, number>> {
+  const factoryId = await requireOfficeFactoryId();
+  return customerPriceList(customerId, factoryId);
+}
+
 // --- Save order action ---
+// No price in the input: the server prices every line from the price list, so
+// an edited request cannot create an order at a made-up price.
 const OrderItemSchema = z.object({
   productId: z.string(),
   quantity: z.number().int().min(0),
-  unitPrice: z.number().min(0),
-  lineTotal: z.number().min(0),
 });
 
 const SaveOrderSchema = z.object({
@@ -84,15 +99,51 @@ export type SaveOrderResult =
 
 async function saveOrderInternal(
   customerId: string,
-  lineItems: { productId: string; quantity: number; unitPrice: number; lineTotal: number }[]
+  lineItems: { productId: string; quantity: number }[]
 ) {
-  const session = await getSession();
-  if (!session?.factoryId) {
-    throw new Error('Tài khoản chưa được gán nhà máy');
-  }
-  const factoryId = session.factoryId;
+  const factoryId = await requireOfficeFactoryId();
 
-  const validItems = lineItems.filter((item) => item.quantity > 0);
+  const orderedItems = lineItems.filter((item) => item.quantity > 0);
+  const productIds = [...new Set(orderedItems.map((item) => item.productId))];
+
+  // Order entry is the hot path: one parallel round of checks, and only the
+  // prices of the products actually ordered.
+  const [customer, sellable, globalPrices, overrides] = await Promise.all([
+    prisma.customer.findFirst({ where: { id: customerId, factoryId }, select: { id: true } }),
+    prisma.product.count({
+      where: { id: { in: productIds }, factoryId, isActive: true },
+    }),
+    prisma.globalPrice.findMany({
+      where: { productId: { in: productIds }, product: { factoryId } },
+      select: { productId: true, pricePerUnit: true },
+    }),
+    prisma.customerPriceOverride.findMany({
+      where: { customerId, productId: { in: productIds }, customer: { factoryId }, product: { factoryId } },
+      select: { productId: true, pricePerUnit: true },
+    }),
+  ]);
+  if (!customer) {
+    throw new Error('Không tìm thấy khách hàng');
+  }
+  if (sellable !== productIds.length) {
+    throw new Error('Có sản phẩm không tồn tại hoặc đã ngừng bán');
+  }
+
+  // Overrides win over the global price.
+  const prices = new Map<string, number>();
+  for (const row of [...globalPrices, ...overrides]) {
+    prices.set(row.productId, Number(row.pricePerUnit));
+  }
+  // The server is the only source of prices, so a product with no price at
+  // all must stop the order instead of being sold for 0.
+  if (productIds.some((productId) => !prices.has(productId))) {
+    throw new Error('Có sản phẩm chưa có giá bán. Báo Quản lý cài giá trước khi lên đơn.');
+  }
+
+  const validItems = orderedItems.map((item) => ({
+    ...item,
+    unitPrice: prices.get(item.productId)!,
+  }));
   const total = validItems.reduce(
     (sum, item) => sum + item.quantity * item.unitPrice,
     0

@@ -6,6 +6,8 @@ import {
   IsoDateTime,
   OrderRow,
   envelope,
+  paginated,
+  paginationQuery,
   roles,
 } from './common';
 
@@ -36,6 +38,18 @@ export const CreateCustomerBody = z.object({
   phone: z.string().trim().max(30).optional(),
   isActive: z.boolean().optional(),
 });
+
+/** Body of POST /api/customers/{id}/payments; the route validates with this schema. */
+export const RecordPaymentBody = z.object({
+  amount: z
+    .number('Vui lòng nhập số tiền')
+    .int('Số tiền phải là số nguyên (VND)')
+    .positive('Số tiền phải lớn hơn 0')
+    .max(10_000_000_000, 'Số tiền quá lớn'),
+  notes: z.string().trim().max(300, 'Ghi chú quá dài').optional(),
+});
+
+const customerId = z.object({ id: Id });
 
 export const customerContracts: ApiContract[] = [
   {
@@ -78,5 +92,35 @@ export const customerContracts: ApiContract[] = [
       })
     ),
     errors: [400, 401, 403, 500],
+  },
+  {
+    id: 'recordCustomerPayment',
+    method: 'POST',
+    path: '/api/customers/{id}/payments',
+    tag: 'Customers',
+    summary: 'Record money received from a customer',
+    auth: roles('ADMIN'),
+    params: customerId,
+    body: RecordPaymentBody,
+    successStatus: 201,
+    response: envelope(z.object({ payment: DebtLedgerEntry, outstandingDebt: z.number() })),
+    errors: [400, 401, 403, 404, 409, 500],
+    notes:
+      'Stored as a PAYMENT entry in the debt ledger. `amount` is whole VND. ' +
+      '409 `PAYMENT_EXCEEDS_DEBT` when it is more than the customer currently owes. ' +
+      '`outstandingDebt` is what remains after this payment.',
+  },
+  {
+    id: 'listCustomerLedger',
+    method: 'GET',
+    path: '/api/customers/{id}/ledger',
+    tag: 'Customers',
+    summary: "A customer's debt and payment entries, newest first, paginated",
+    auth: roles('ADMIN'),
+    params: customerId,
+    query: z.object(paginationQuery),
+    response: paginated(DebtLedgerEntry),
+    errors: [400, 401, 403, 404, 500],
+    notes: 'DEBT entries are created when an order is reconciled; PAYMENT entries when a payment is recorded.',
   },
 ];

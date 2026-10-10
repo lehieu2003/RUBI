@@ -111,7 +111,7 @@ export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemov
         </div>
         {dayLabels.map((label, index) => {
           const dateStr = weekDates[index];
-          const isToday = dateStr === new Date().toISOString().slice(0, 10);
+          const isToday = dateStr === localToday();
           return (
             <div
               key={label}
@@ -255,6 +255,12 @@ export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemov
       )}
     </div>
   );
+}
+
+/** Today's date on this device as YYYY-MM-DD (toISOString() would give the UTC date). */
+function localToday(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
 function getRoleLabel(role: ScheduleRole): string {

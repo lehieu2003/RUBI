@@ -1,0 +1,30 @@
+{
+  "operationId": "recordCustomerPayment",
+  "request": {
+    "method": "POST",
+    "path": "/api/customers/{id}/payments",
+    "as": "admin",
+    "params": {
+      "id": "cmv2aenpc001hi9lew7if6hpx"
+    },
+    "body": {
+      "amount": 1000,
+      "notes": "Kiểm tra hợp đồng"
+    }
+  },
+  "status": 201,
+  "body": {
+    "success": true,
+    "data": {
+      "payment": {
+        "id": "cmv2af1l3000ki9pgreo3g76k",
+        "customerId": "cmv2aenpc001hi9lew7if6hpx",
+        "type": "PAYMENT",
+        "amount": 1000,
+        "notes": "Kiểm tra hợp đồng",
+        "createdAt": "2026-10-10T11:04:52.935Z"
+      },
+      "outstandingDebt": 3659000
+    }
+  }
+}

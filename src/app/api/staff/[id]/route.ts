@@ -9,17 +9,6 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 // The single manager (ADMIN) account is created with `npm run admin:create`,
 // never from the app: the request schema only accepts STAFF and DRIVER.
 
-function createDriverSlug(name: string): string {
-  const base = name
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-    .replace(/^-+|-+$/g, '');
-  return `${base || 'driver'}-${Date.now().toString(36)}`;
-}
-
 // PATCH /api/staff/[id] — Update user (ADMIN only)
 export async function PATCH(
   request: NextRequest,
@@ -110,7 +99,6 @@ export async function PATCH(
           await tx.driver.create({
             data: {
               name: updatedUser.name,
-              slug: createDriverSlug(updatedUser.name),
               phone: null,
               isActive: updatedUser.isActive,
               factoryId: session.factoryId!,
@@ -164,10 +152,17 @@ export async function DELETE(
       return apiError('Không thể xóa tài khoản Quản lý', 403);
     }
 
-    await prisma.user.update({
-      where: { id },
-      data: { isActive: false },
-    });
+    // A deactivated driver account must not stay assignable to orders.
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id },
+        data: { isActive: false },
+      }),
+      prisma.driver.updateMany({
+        where: { userId: id, factoryId: session.factoryId },
+        data: { isActive: false },
+      }),
+    ]);
 
     return apiSuccess({ success: true });
   } catch (error) {

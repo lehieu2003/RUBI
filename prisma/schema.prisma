@@ -132,8 +132,6 @@ model CustomerPriceOverride {
 model Driver {
   id        String   @id @default(cuid())
   name      String
-  slug      String   @unique
-  token     String   @unique @default(uuid())
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

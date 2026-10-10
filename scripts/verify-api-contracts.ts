@@ -131,7 +131,7 @@ async function call(id: string, options: CallOptions = {}): Promise<Json> {
       method: contract.method,
       path: contract.path,
       as: actor,
-      ...(options.params ? { params: options.params.token ? { ...options.params, token: '<token>' } : options.params } : {}),
+      ...(options.params ? { params: options.params } : {}),
       ...(options.query ? { query: options.query } : {}),
       ...(options.body !== undefined ? { body: options.body } : {}),
     },
@@ -303,6 +303,16 @@ async function main() {
   await call('exportCustomerDebt', { as: 'staff', expectError: 403 });
   const products = data(await call('listProducts', { as: 'staff' }));
   await call('setGlobalPrice', { body: { productId: products[0].id, price: 12000 } });
+
+  // ---- Products: the manager adds, edits and discontinues ----
+  const newProduct = data(await call('createProduct', { body: { name: `Đá Thử ${unique}`, sizeKg: 7, price: 9000 } }));
+  await call('createProduct', { body: { name: `đá thử ${unique}`, sizeKg: 7, price: 9000 }, expectError: 409 });
+  await call('createProduct', { body: { name: 'Thiếu giá', sizeKg: 7 }, expectError: 400 });
+  await call('createProduct', { as: 'staff', body: { name: 'Không được phép', sizeKg: 7, price: 9000 }, expectError: 403 });
+  await call('updateProduct', { params: { id: newProduct.id }, body: { unit: 'Túi', sizeKg: 8, isActive: false } });
+  await call('updateProduct', { params: { id: 'khong-ton-tai' }, body: { unit: 'Túi' }, expectError: 404 });
+  // The seeded Đá Bi 5kg already has orders: its size is fixed.
+  await call('updateProduct', { params: { id: 'prod-bi-5' }, body: { sizeKg: 6 }, expectError: 409 });
   await call('setCustomerPrice', { body: { customerId: customer.id, productId: products[0].id, price: 11000 } });
   await call('removeCustomerPrice', { query: { customerId: customer.id, productId: products[0].id } });
   await call('getInventory');
@@ -341,17 +351,57 @@ async function main() {
   const order = orders.find((item: Json) => item.status === 'PENDING') ?? orders.find((item: Json) => item.status === 'SHIPPING');
   if (!driver || !order) throw new Error('Seed data must contain a driver and a PENDING or SHIPPING order.');
   await call('bulkAssignOrders', { body: { orderIds: [order.id], driverId: driver.id } });
+  await call('bulkAssignOrders', { as: 'staff', body: { orderIds: [order.id], driverId: driver.id } });
+  if (order.status === 'PENDING') {
+    // Not out for delivery yet: the driver cannot confirm it.
+    await call('confirmDelivery', { as: 'driver', params: { id: order.id }, expectError: 409 });
+  }
   await call('updateOrderStatus', { params: { id: order.id }, body: { status: 'SHIPPING' } });
   await call('updateOrderStatus', { params: { id: order.id }, body: { status: 'COMPLETED' }, expectError: 400 });
   await call('listDriverOrders', { as: 'driver' });
-  await call('getDriverLink', { as: 'anon', params: { token: driver.token } });
-  await call('getDriverLink', { as: 'anon', params: { token: 'khong-ton-tai' }, expectError: 404 });
+  await call('listDriverOrders', { as: 'anon', expectError: 401 });
+  await call('listDriverOrders', { as: 'driver', query: { date: '2026-02-31' }, expectError: 400 });
   const settle = { items: order.orderItems.map((item: Json) => ({ id: item.id, actualQty: item.quantity })) };
   await call('reconcileOrder', { params: { id: 'khong-ton-tai' }, body: settle, expectError: 404 });
   await call('reconcileOrder', { params: { id: order.id }, body: settle, expectError: 409 }); // still SHIPPING
-  await call('confirmDelivery', { as: 'driver', params: { id: order.id }, body: {} });
+  await call('confirmDelivery', { as: 'anon', params: { id: order.id }, expectError: 401 });
+  await call('confirmDelivery', { as: 'staff', params: { id: order.id }, expectError: 403 });
+  await call('confirmDelivery', { as: 'driver', params: { id: order.id } });
   await call('reconcileOrder', { params: { id: order.id }, body: { items: [{ id: 'dong-la', actualQty: 1 }] }, expectError: 400 });
   await call('reconcileOrder', { params: { id: order.id }, body: settle });
+  // Once settled the order is final: it cannot be reopened and settled again.
+  await call('updateOrderStatus', { params: { id: order.id }, body: { status: 'PENDING' }, expectError: 409 });
+  await call('reconcileOrder', { params: { id: order.id }, body: settle, expectError: 409 });
+  await call('confirmDelivery', { as: 'driver', params: { id: order.id }, expectError: 409 });
+
+  // ---- Customer payments: the reconciled order left this customer in debt ----
+  const owedBefore = data(await call('getDebtReport')).find((row: Json) => row.customerId === order.customerId);
+  if (!owedBefore) throw new Error('The reconciled order did not create any debt.');
+  const pay = { params: { id: order.customerId } };
+  await call('recordCustomerPayment', { ...pay, body: { amount: owedBefore.outstandingDebt + 1 }, expectError: 409 });
+  await call('recordCustomerPayment', { ...pay, body: { amount: 0 }, expectError: 400 });
+  await call('recordCustomerPayment', { ...pay, body: { amount: 1000.5 }, expectError: 400 });
+  await call('recordCustomerPayment', { ...pay, as: 'staff', body: { amount: 1000 }, expectError: 403 });
+  await call('recordCustomerPayment', { params: { id: 'khong-ton-tai' }, body: { amount: 1000 }, expectError: 404 });
+  const paid = data(await call('recordCustomerPayment', { ...pay, body: { amount: 1000, notes: 'Kiểm tra hợp đồng' } }));
+  if (paid.outstandingDebt !== owedBefore.outstandingDebt - 1000) {
+    failures.push(`recordCustomerPayment: debt was ${owedBefore.outstandingDebt}, paid 1000, remaining ${paid.outstandingDebt}`);
+  }
+  const owedAfter = data(await call('getDebtReport')).find((row: Json) => row.customerId === order.customerId);
+  if ((owedAfter?.outstandingDebt ?? 0) !== paid.outstandingDebt) {
+    failures.push('getDebtReport does not reflect the recorded payment');
+  }
+  const ledger = await call('listCustomerLedger', { ...pay, query: { page: '1', limit: '5' } });
+  if (ledger.data[0]?.type !== 'PAYMENT' || ledger.data[0]?.amount !== 1000) {
+    failures.push('listCustomerLedger: the newest entry is not the payment just recorded');
+  }
+  await call('listCustomerLedger', { ...pay, query: { limit: '999' }, expectError: 400 });
+  await call('listCustomerLedger', { params: { id: customer.id }, empty: true });
+  // Paying off the rest leaves the customer out of the debt report.
+  await call('recordCustomerPayment', { ...pay, body: { amount: paid.outstandingDebt } });
+  if (data(await call('getDebtReport')).some((row: Json) => row.customerId === order.customerId)) {
+    failures.push('a fully paid customer is still listed in the debt report');
+  }
 
   // ---- Accounts ----
   const users = data(await call('listStaff')).users;
@@ -359,8 +409,6 @@ async function main() {
   await call('updateStaff', { params: { id: created.id }, body: { name: 'Nhân viên hợp đồng (đã sửa)' } });
   await call('updateStaff', { params: { id: created.id }, body: { role: 'ADMIN' }, expectError: 400 });
   await call('createStaff', { body: { name: 'Sai email', email: 'khong-phai-email', password: 'tamthoi2026', role: 'STAFF' }, expectError: 400 });
-  const driverUser = users.find((user: Json) => user.role === 'DRIVER');
-  await call('rotateDriverLink', { params: { id: driverUser.id } });
   await call('createDriver', { body: {}, expectError: 405 });
 
   // The new account sets its own password (it is flagged mustChangePassword).

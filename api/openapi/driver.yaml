@@ -2,7 +2,7 @@
 # Source: src/lib/contracts
 openapi: 3.1.0
 info:
-  title: "IceFlow API — Nhà máy đá tinh khiết Rubi: Driver views: session-based list and share link"
+  title: "IceFlow API — Nhà máy đá tinh khiết Rubi: The signed-in driver's order list"
   version: 1.0.0
 paths:
   /api/driver/orders:
@@ -10,17 +10,12 @@ paths:
       operationId: listDriverOrders
       tags:
         - Driver
-      summary: A driver's SHIPPING and DELIVERED orders for one day
+      summary: A driver's open SHIPPING orders and the orders DELIVERED on one day
       description: |-
-        Access: A DRIVER session, or the driver share-link token in the `token` query parameter..
+        Access: DRIVER.
 
-        `date` defaults to today. Rate limited to 60 per IP per minute.
+        `date` is a Vietnam calendar day and defaults to today; 400 when malformed. SHIPPING orders are listed whatever day they were taken (up to that day); DELIVERED orders only when delivered that day. Rate limited to 60 per IP per minute.
       parameters:
-        - name: token
-          in: query
-          required: false
-          schema:
-            type: string
         - name: date
           in: query
           required: false
@@ -166,121 +161,12 @@ paths:
                   - success
                   - data
                 additionalProperties: false
+        "400":
+          $ref: ./components/responses/errors.yaml#/BadRequest
         "401":
           $ref: ./components/responses/errors.yaml#/Unauthorized
         "403":
           $ref: ./components/responses/errors.yaml#/Forbidden
-        "429":
-          $ref: ./components/responses/errors.yaml#/TooManyRequests
-        "500":
-          $ref: ./components/responses/errors.yaml#/ServerError
-  /api/d/{token}:
-    get:
-      operationId: getDriverLink
-      tags:
-        - Driver
-      summary: Today's orders behind a driver share link
-      description: |-
-        Access: The share-link token in the path; no session..
-
-        Rate limited to 30 per IP per minute.
-      parameters:
-        - name: token
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    const: true
-                  data:
-                    type: object
-                    properties:
-                      driverName:
-                        type: string
-                      orders:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                              minLength: 1
-                            status:
-                              type: string
-                              enum:
-                                - SHIPPING
-                                - DELIVERED
-                            total:
-                              type: number
-                            customer:
-                              type: object
-                              properties:
-                                id:
-                                  type: string
-                                  minLength: 1
-                                code:
-                                  type: string
-                                name:
-                                  type: string
-                                address:
-                                  type: string
-                                phone:
-                                  type: string
-                              required:
-                                - id
-                                - code
-                                - name
-                                - address
-                                - phone
-                              additionalProperties: false
-                            orderItems:
-                              type: array
-                              items:
-                                type: object
-                                properties:
-                                  quantity:
-                                    type: integer
-                                  product:
-                                    type: object
-                                    properties:
-                                      name:
-                                        type: string
-                                      sizeKg:
-                                        type: integer
-                                    required:
-                                      - name
-                                      - sizeKg
-                                    additionalProperties: false
-                                required:
-                                  - quantity
-                                  - product
-                                additionalProperties: false
-                          required:
-                            - id
-                            - status
-                            - total
-                            - customer
-                            - orderItems
-                          additionalProperties: false
-                    required:
-                      - driverName
-                      - orders
-                    additionalProperties: false
-                required:
-                  - success
-                  - data
-                additionalProperties: false
-        "404":
-          $ref: ./components/responses/errors.yaml#/NotFound
         "429":
           $ref: ./components/responses/errors.yaml#/TooManyRequests
         "500":

@@ -9,17 +9,6 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 // The single manager (ADMIN) account is created with `npm run admin:create`,
 // never from the app: the request schema only accepts STAFF and DRIVER.
 
-function createDriverSlug(name: string): string {
-  const base = name
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-    .replace(/^-+|-+$/g, '');
-  return `${base || 'driver'}-${Date.now().toString(36)}`;
-}
-
 // GET /api/staff — List all users (ADMIN only)
 export async function GET(request: NextRequest) {
   try {
@@ -101,7 +90,6 @@ export async function POST(request: NextRequest) {
         await tx.driver.create({
           data: {
             name,
-            slug: createDriverSlug(name),
             phone: null,
             isActive: true,
             factoryId: session.factoryId!,

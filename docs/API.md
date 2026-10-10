@@ -39,15 +39,9 @@ For cross-origin requests or direct API testing, include the cookie header:
 Cookie: auth_token=<your_token>
 ```
 
-### Driver Token Authentication
+### Drivers
 
-The driver delivery confirmation endpoint uses a separate Bearer token authentication:
-
-```http
-Authorization: Bearer <driver_token>
-```
-
-Driver tokens are generated when creating a driver record and used instead of session cookies.
+Drivers sign in like everyone else (role `DRIVER`): the web app uses the session cookie, the mobile app sends `Authorization: Bearer <JWT>`. There is no share link or driver token.
 
 ### Auth Service
 
@@ -74,7 +68,7 @@ JWT signing and verification uses `JWT_SECRET` from environment variables.
 | PATCH | `/api/orders/[id]/confirm` | Confirm delivery (driver) | Driver session or Bearer token |
 | PATCH | `/api/orders/[id]/reconcile` | Reconcile order (confirm qty, create debt) | Admin only |
 | PATCH | `/api/orders/bulk-assign` | Bulk assign orders to driver | Yes |
-| GET | `/api/driver/orders` | Driver delivery view | Driver token |
+| GET | `/api/driver/orders` | Driver delivery view | Driver only |
 | GET | `/api/deposits/shells` | List shell deposit balances | Admin only |
 | PATCH | `/api/deposits/shells` | Update shell deposit (shells out/in) | Admin only |
 | GET | `/api/reports/debt` | Customer debt report | Admin only |
@@ -210,9 +204,7 @@ Valid statuses: `PENDING`, `SHIPPING`, `DELIVERED`, `COMPLETED`, `CANCELLED`
 ### Confirm Delivery (Driver)
 
 **Request** `PATCH /api/orders/[id]/confirm`
-```http
-Authorization: Bearer <driver_token>
-```
+Requires a signed-in driver (cookie, or `Authorization: Bearer <JWT>` from the mobile app); the order must be assigned to that driver.
 
 No request body is required. No GPS location is captured or stored.
 

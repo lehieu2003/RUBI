@@ -5,7 +5,7 @@
     "path": "/api/staff/{id}",
     "as": "admin",
     "params": {
-      "id": "cmv25e3eb0001i95gvw5pjonj"
+      "id": "cmv2af0ev0001i9pgzvgx9suw"
     },
     "body": {
       "name": "Nhân viên hợp đồng (đã sửa)"
@@ -16,12 +16,12 @@
     "success": true,
     "data": {
       "user": {
-        "id": "cmv25e3eb0001i95gvw5pjonj",
+        "id": "cmv2af0ev0001i9pgzvgx9suw",
         "name": "Nhân viên hợp đồng (đã sửa)",
-        "email": "hopdong-mv25e2cb@rubi.local",
+        "email": "hopdong-mv2aezz9@rubi.local",
         "role": "STAFF",
         "isActive": true,
-        "createdAt": "2026-10-10T08:44:10.548Z"
+        "createdAt": "2026-10-10T11:04:51.416Z"
       }
     }
   }

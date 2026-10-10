@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma, prismaAuth } from '@/lib/db';
 import { rateLimit, getIpFromRequest } from '@/lib/rate-limit';
 import { requireRole } from '@/lib/auth/helpers';
+import { vietnamDayRange } from '@/lib/vietnam-time';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
-// GET /api/driver/orders?token=xxx&date=YYYY-MM-DD
-// Returns orders for authenticated driver filtered by today's date
-// Orders visible when status IN (SHIPPING, DELIVERED)
+// GET /api/driver/orders?date=YYYY-MM-DD
+// Returns the authenticated driver's work for one day (today by default):
+// every order still SHIPPING plus the orders DELIVERED that day
 export async function GET(request: NextRequest) {
   try {
     const limit = await rateLimit(`driver-orders:${getIpFromRequest(request)}`, 60, 60 * 1000);
@@ -15,31 +16,34 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const token = searchParams.get('token');
     const dateParam = searchParams.get('date');
 
-    const driver = token
-      ? await prismaAuth.driver.findUnique({ where: { token } })
-      : await getSessionDriver();
+    const driver = await getSessionDriver();
 
     if (!driver) {
-      return apiError(token ? 'Link không hợp lệ hoặc đã hết hạn' : 'Tài khoản chưa được gắn với tài xế', 401);
+      return apiError('Tài khoản chưa được gắn với tài xế', 401);
     }
 
     // Get today's date range
-    const date = dateParam ? new Date(dateParam) : new Date();
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
+    // One Vietnam calendar day (today unless `date` is given).
+    const day = dateParam ? vietnamDayRange(dateParam) : vietnamDayRange();
+    if (!day) {
+      return apiError('Ngày không hợp lệ', 400);
+    }
 
-    // Fetch orders for this driver with SHIPPING or DELIVERED status
     const orders = await prisma.order.findMany({
       where: {
         factoryId: driver.factoryId,
         driverId: driver.id,
-        status: { in: ['SHIPPING', 'DELIVERED'] },
-        createdAt: { gte: startOfDay, lte: endOfDay },
+        OR: [
+          // Still to deliver, whatever day the order was taken: an order
+          // phoned in last night for this morning must not disappear.
+          { status: 'SHIPPING', createdAt: { lt: day.end } },
+          // Delivered that day. Orders marked delivered by the office carry
+          // no deliveredAt, so those fall back to the day they were taken.
+          { status: 'DELIVERED', deliveredAt: { gte: day.start, lt: day.end } },
+          { status: 'DELIVERED', deliveredAt: null, createdAt: { gte: day.start, lt: day.end } },
+        ],
       },
       include: {
         customer: true,

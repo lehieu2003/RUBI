@@ -37,3 +37,135 @@ paths:
           $ref: ./components/responses/errors.yaml#/Unauthorized
         "500":
           $ref: ./components/responses/errors.yaml#/ServerError
+    post:
+      operationId: createProduct
+      tags:
+        - Products
+      summary: Add a product together with its default price
+      description: |-
+        Access: ADMIN.
+
+        The price is required so that no product exists without one: an order cannot be taken for a product with no price. `unit` defaults to "Bao". 409 `PRODUCT_EXISTS` when a product with the same name and size already exists, even a discontinued one (reactivate it instead).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                sizeKg:
+                  type: integer
+                  exclusiveMinimum: 0
+                  maximum: 1000
+                unit:
+                  type: string
+                  minLength: 1
+                  maxLength: 20
+                price:
+                  type: number
+                  exclusiveMinimum: 0
+                  maximum: 99999999
+              required:
+                - name
+                - sizeKg
+                - price
+              additionalProperties: false
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    $ref: ./components/schemas/common.yaml#/Product
+                required:
+                  - success
+                  - data
+                additionalProperties: false
+        "400":
+          $ref: ./components/responses/errors.yaml#/BadRequest
+        "401":
+          $ref: ./components/responses/errors.yaml#/Unauthorized
+        "403":
+          $ref: ./components/responses/errors.yaml#/Forbidden
+        "409":
+          $ref: ./components/responses/errors.yaml#/Conflict
+        "500":
+          $ref: ./components/responses/errors.yaml#/ServerError
+  /api/products/{id}:
+    patch:
+      operationId: updateProduct
+      tags:
+        - Products
+      summary: Rename a product, change its unit or size, or stop / resume selling it
+      description: |-
+        Access: ADMIN.
+
+        Only the fields sent are changed. Products are never deleted: `isActive: false` takes one off order entry while past orders keep it. 409 `PRODUCT_HAS_ORDERS` when changing `sizeKg` of a product that already has orders; 409 `PRODUCT_EXISTS` when the new name and size collide with another product.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                sizeKg:
+                  type: integer
+                  exclusiveMinimum: 0
+                  maximum: 1000
+                unit:
+                  type: string
+                  minLength: 1
+                  maxLength: 20
+                isActive:
+                  type: boolean
+              additionalProperties: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    $ref: ./components/schemas/common.yaml#/Product
+                required:
+                  - success
+                  - data
+                additionalProperties: false
+        "400":
+          $ref: ./components/responses/errors.yaml#/BadRequest
+        "401":
+          $ref: ./components/responses/errors.yaml#/Unauthorized
+        "403":
+          $ref: ./components/responses/errors.yaml#/Forbidden
+        "404":
+          $ref: ./components/responses/errors.yaml#/NotFound
+        "409":
+          $ref: ./components/responses/errors.yaml#/Conflict
+        "500":
+          $ref: ./components/responses/errors.yaml#/ServerError

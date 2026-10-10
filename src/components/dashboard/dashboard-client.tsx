@@ -32,6 +32,8 @@ interface DashboardClientProps {
   customers: Customer[];
   products: Product[];
   orders: DashboardOrder[];
+  /** Every order created today (Vietnam time), light fields only */
+  todayOrders: { createdAt: Date | string; total: number; status: string }[];
   inventoryStats?: { totalBags: number; details: string };
   totalBagsOut?: number;
   yesterdayRevenue?: number;
@@ -42,6 +44,7 @@ export function DashboardClient({
   customers,
   products,
   orders: initialOrders,
+  todayOrders,
   inventoryStats = { totalBags: 0, details: 'Chưa có mẻ nhập kho' },
   totalBagsOut = 0,
   yesterdayRevenue = 0,
@@ -49,11 +52,8 @@ export function DashboardClient({
 }: DashboardClientProps) {
   const [orders] = useState(initialOrders);
 
-  // Calculate real stats
-  const today = new Date().toDateString();
-  const todayOrders = orders.filter(
-    (o) => new Date(o.createdAt).toDateString() === today
-  );
+  // KPI figures come from every order of today (loaded separately by the
+  // server), not from the capped recent-orders list.
   const todayRevenue = todayOrders.reduce(
     (sum, o) => sum + Number(o.total),
     0
@@ -177,7 +177,7 @@ export function DashboardClient({
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
           {/* Hourly Chart - 60% */}
           <div className="lg:col-span-3">
-            <HourlyChart orders={orders} />
+            <HourlyChart orders={todayOrders} />
           </div>
 
           {/* Quick Actions Hub - 40% */}

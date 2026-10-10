@@ -1,38 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma, prismaAuth } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
-import { verifyJWT } from '@/lib/auth';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 // PATCH /api/orders/[id]/confirm
-// Body: optional { token } for the driver share-link flow
+// No request body. The signed-in driver must be the one the order is assigned to.
 // Updates status to DELIVERED
 
 export async function PATCH(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
 
-    const body = await request.json().catch(() => null);
-
-    const authHeader = request.headers.get('authorization');
-    const bodyToken = typeof body?.token === 'string' ? body.token : null;
-    // Bearer JWT (logged-in mobile driver) resolves via the cookie-session
-    // path; a non-JWT Bearer value stays a driver share-token (web /d/[token]).
-    const bearerSession = authHeader?.startsWith('Bearer ')
-      ? await verifyJWT(authHeader.slice(7))
-      : null;
-    const driver = bearerSession
-      ? await getSessionDriver()
-      : authHeader?.startsWith('Bearer ')
-      ? await prismaAuth.driver.findUnique({ where: { token: authHeader.slice(7) } })
-      : bodyToken
-      ? await prismaAuth.driver.findUnique({ where: { token: bodyToken } })
-      : await getSessionDriver();
+    // The driver must be signed in: the web cookie or the mobile app's
+    // Bearer JWT, both resolved by getSession().
+    const driver = await getSessionDriver();
     if (!driver) {
-      return apiError('Thông tin tài xế không hợp lệ', 401);
+      return apiError('Tài khoản chưa được gắn với tài xế', 401);
     }
 
     // --- Order ownership check ---
@@ -46,19 +32,34 @@ export async function PATCH(
       return apiError('Đơn hàng này không được giao cho bạn', 403);
     }
 
+    // A repeated tap or a retry on an already delivered order changes nothing.
+    if (order.status === 'DELIVERED') {
+      return apiSuccess({ success: true, orderId: order.id, status: order.status });
+    }
+    // Only an order out for delivery can be confirmed. Reopening a COMPLETED
+    // order would let it be reconciled again: debt and stock counted twice.
+    if (order.status !== 'SHIPPING') {
+      return apiError('Chỉ xác nhận được đơn đang giao', 409, 'ORDER_NOT_SHIPPING');
+    }
+
     // --- Update order to DELIVERED ---
-    const updated = await prisma.order.update({
-      where: { id },
+    // The status is checked again in the write itself, so an order settled or
+    // cancelled in the meantime is left alone.
+    const updated = await prisma.order.updateMany({
+      where: { id, factoryId: driver.factoryId, driverId: driver.id, status: 'SHIPPING' },
       data: {
         status: 'DELIVERED',
         deliveredAt: new Date(),
       },
     });
+    if (updated.count === 0) {
+      return apiError('Chỉ xác nhận được đơn đang giao', 409, 'ORDER_NOT_SHIPPING');
+    }
 
     return apiSuccess({
           success: true,
-          orderId: updated.id,
-          status: updated.status,
+          orderId: order.id,
+          status: 'DELIVERED',
         });
   } catch (error) {
     if (error instanceof Response) return error;

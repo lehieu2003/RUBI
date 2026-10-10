@@ -70,11 +70,10 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
     setIsSaving(true);
     setSaveError(null);
 
+    // Prices are not sent: the server applies the customer's price list itself.
     const lineItems = Array.from(values.entries()).map(([productId, qty]) => ({
       productId,
       quantity: qty,
-      unitPrice: prices[productId] ?? 0,
-      lineTotal: qty * (prices[productId] ?? 0),
     }));
 
     if (lineItems.length === 0) {
@@ -101,7 +100,7 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
     } else {
       setSaveError(result.error);
     }
-  }, [customer, values, prices, isSaving, closeDrawer, queryClient, router]);
+  }, [customer, values, isSaving, closeDrawer, queryClient, router]);
 
   return (
     <>

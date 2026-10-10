@@ -1,0 +1,20 @@
+{
+  "operationId": "recordCustomerPayment",
+  "request": {
+    "method": "POST",
+    "path": "/api/customers/{id}/payments",
+    "as": "admin",
+    "params": {
+      "id": "cmv2aenpc001hi9lew7if6hpx"
+    },
+    "body": {
+      "amount": 3660001
+    }
+  },
+  "status": 409,
+  "body": {
+    "success": false,
+    "error": "Số tiền thu vượt quá công nợ hiện tại (3.660.000đ)",
+    "code": "PAYMENT_EXCEEDS_DEBT"
+  }
+}

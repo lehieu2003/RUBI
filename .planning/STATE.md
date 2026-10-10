@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-04-22)
 Phase: 10 (build-correctness) — COMPLETE
 Plan: 1 of 1
 Status: Milestone complete
-Last activity: 2026-10-10 - Completed quick task 261010-r1b: remove map/GPS + super admin/SaaS
+Last activity: 2026-10-10 - Completed quick task 261010-prd: product management
 
 Progress: [██████████] 100% execution complete
 
@@ -95,6 +95,9 @@ v3.0 decisions:
 | 261004-5240 | Security hardening: next 15.5.27 CVE bump, CSV formula guard, drop xlsx | 2026-10-04 | 377da37 | [261004-5240-security-hardening](./quick/261004-5240-security-hardening/) |
 | 261004-0586 | sslmode=require on Supabase connection strings (.env + .env.example) | 2026-10-04 | 479a666 | [261004-0586-sslmode-require](./quick/261004-0586-sslmode-require/) |
 | 261010-r1b | Remove delivery map/GPS (web + mobile) and super admin/SaaS — single factory Rubi | 2026-10-10 | 28452dc | [261010-r1b-remove-map-gps-and-saas](./quick/261010-r1b-remove-map-gps-and-saas/) |
+| 261010-pdf | Pre-deploy audit fixes: delivery confirm guard, driver list carry-over, STAFF assignment, server-side order pricing, settle list, maintenance dates | 2026-10-10 | 04c8064 | [261010-pdf-pre-deploy-audit-fixes](./quick/261010-pdf-pre-deploy-audit-fixes/) |
+| 261010-odf | Order drawer opens with the cursor in the customer search | 2026-10-10 | a4bac91 | [261010-odf-order-drawer-focus](./quick/261010-odf-order-drawer-focus/) |
+| 261010-prd | Product management: add, edit and discontinue products; order grid built from the catalogue | 2026-10-10 | feat/product-management | [261010-prd-product-management](./quick/261010-prd-product-management/) |
 
 ## Session Continuity
 

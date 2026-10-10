@@ -5,7 +5,7 @@
     "path": "/api/orders/{id}/status",
     "as": "admin",
     "params": {
-      "id": "cmv25du9b002ai93myrr2vg5d"
+      "id": "cmv2aenpy002ai9le6vvhcgpi"
     },
     "body": {
       "status": "SHIPPING"
@@ -15,15 +15,15 @@
   "body": {
     "success": true,
     "data": {
-      "id": "cmv25du9b002ai93myrr2vg5d",
-      "customerId": "cmv25du8s001hi93mz2wfqrco",
+      "id": "cmv2aenpy002ai9le6vvhcgpi",
+      "customerId": "cmv2aenpc001hi9lew7if6hpx",
       "status": "SHIPPING",
       "total": 260000,
       "notes": "Gọi trước khi tới 10 phút",
-      "createdAt": "2026-10-10T08:43:58.703Z",
-      "updatedAt": "2026-10-10T08:44:13.933Z",
-      "driverId": "cmv25du6o0007i93mlg4jsmx3",
-      "assignerId": "cmv25du6f0003i93m8jgfwhu9",
+      "createdAt": "2026-10-10T11:04:34.967Z",
+      "updatedAt": "2026-10-10T11:04:52.735Z",
+      "driverId": "cmv2aenn40007i9lez13bjy2e",
+      "assignerId": "cmv2aenmy0003i9lelw6vldaa",
       "deliveredAt": null,
       "factoryId": "factory-mien-dong"
     }

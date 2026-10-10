@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
-import { User, Shield, Palette, Save, Users, Key, Plus, X, LogOut, Link2 } from 'lucide-react';
+import { User, Shield, Palette, Save, Users, Key, Plus, X, LogOut } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { useAuth } from '@/lib/auth-provider';
 import { useTheme } from '@/lib/theme';
@@ -384,36 +384,6 @@ export default function SettingsPage() {
                           </td>
                           <td className="py-3 px-4 text-right">
                             <div className="flex items-center justify-end gap-2">
-                              {staff.role === 'DRIVER' && (
-                                <button
-                                  onClick={async () => {
-                                    try {
-                                      const res = await fetch(`${API_ENDPOINTS.STAFF.DETAIL(staff.id)}/rotate-link`, {
-                                        method: 'POST',
-                                      });
-                                      const json = await res.json().catch(() => ({}));
-                                      if (!res.ok) throw new Error(json.error ?? 'Không thể tạo link mới');
-                                      const data = json?.data !== undefined ? json.data : json;
-                                      await navigator.clipboard.writeText(`${window.location.origin}${data.link}`).catch(() => {});
-                                      toast({
-                                        type: 'success',
-                                        title: `Đã đổi link cho ${staff.name}`,
-                                        message: 'Link mới đã copy — link cũ không còn dùng được.',
-                                      });
-                                    } catch (err) {
-                                      toast({
-                                        type: 'error',
-                                        title: 'Đổi link thất bại',
-                                        message: err instanceof Error ? err.message : 'Đã xảy ra lỗi',
-                                      });
-                                    }
-                                  }}
-                                  className="p-1.5 text-on-surface-variant hover:text-primary-accent hover:bg-container-high rounded transition-colors"
-                                  title="Tạo link giao hàng mới (hủy link cũ)"
-                                >
-                                  <Link2 className="h-4 w-4" />
-                                </button>
-                              )}
                               <button
                                 onClick={() => setShowPasswordModal(staff.id)}
                                 className="p-1.5 text-on-surface-variant hover:text-primary-accent hover:bg-container-high rounded transition-colors"

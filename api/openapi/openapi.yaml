@@ -29,7 +29,7 @@ tags:
   - name: Orders
     description: "Orders: listing, status, assignment, delivery, reconciliation"
   - name: Driver
-    description: "Driver views: session-based list and share link"
+    description: The signed-in driver's order list
   - name: Schedule
     description: "Shift scheduling: manager assignment, self-registration, approval"
   - name: Reports
@@ -53,8 +53,6 @@ paths:
     $ref: ./account.yaml#/paths/~1api~1staff
   /api/staff/{id}:
     $ref: ./account.yaml#/paths/~1api~1staff~1{id}
-  /api/staff/{id}/rotate-link:
-    $ref: ./account.yaml#/paths/~1api~1staff~1{id}~1rotate-link
   /api/drivers:
     $ref: ./account.yaml#/paths/~1api~1drivers
   /api/factory:
@@ -63,8 +61,14 @@ paths:
     $ref: ./customer.yaml#/paths/~1api~1customers
   /api/customers/debt-export:
     $ref: ./customer.yaml#/paths/~1api~1customers~1debt-export
+  /api/customers/{id}/payments:
+    $ref: ./customer.yaml#/paths/~1api~1customers~1{id}~1payments
+  /api/customers/{id}/ledger:
+    $ref: ./customer.yaml#/paths/~1api~1customers~1{id}~1ledger
   /api/products:
     $ref: ./product.yaml#/paths/~1api~1products
+  /api/products/{id}:
+    $ref: ./product.yaml#/paths/~1api~1products~1{id}
   /api/prices/global:
     $ref: ./price.yaml#/paths/~1api~1prices~1global
   /api/prices/customer/override:
@@ -87,8 +91,6 @@ paths:
     $ref: ./order.yaml#/paths/~1api~1orders~1{id}~1reconcile
   /api/driver/orders:
     $ref: ./driver.yaml#/paths/~1api~1driver~1orders
-  /api/d/{token}:
-    $ref: ./driver.yaml#/paths/~1api~1d~1{token}
   /api/schedule/assignments:
     $ref: ./schedule.yaml#/paths/~1api~1schedule~1assignments
   /api/schedule/review:

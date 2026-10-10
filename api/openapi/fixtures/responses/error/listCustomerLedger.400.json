@@ -1,0 +1,19 @@
+{
+  "operationId": "listCustomerLedger",
+  "request": {
+    "method": "GET",
+    "path": "/api/customers/{id}/ledger",
+    "as": "admin",
+    "params": {
+      "id": "cmv2aenpc001hi9lew7if6hpx"
+    },
+    "query": {
+      "limit": "999"
+    }
+  },
+  "status": 400,
+  "body": {
+    "success": false,
+    "error": "Tham số phân trang không hợp lệ (limit tối đa 200)"
+  }
+}

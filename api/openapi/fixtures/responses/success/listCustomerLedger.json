@@ -1,0 +1,43 @@
+{
+  "operationId": "listCustomerLedger",
+  "request": {
+    "method": "GET",
+    "path": "/api/customers/{id}/ledger",
+    "as": "admin",
+    "params": {
+      "id": "cmv2aenpc001hi9lew7if6hpx"
+    },
+    "query": {
+      "page": "1",
+      "limit": "5"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": [
+      {
+        "id": "cmv2af1l3000ki9pgreo3g76k",
+        "customerId": "cmv2aenpc001hi9lew7if6hpx",
+        "type": "PAYMENT",
+        "amount": 1000,
+        "notes": "Kiểm tra hợp đồng",
+        "createdAt": "2026-10-10T11:04:52.935Z"
+      },
+      {
+        "id": "cmv2af1i7000ei9pgfiokcruc",
+        "customerId": "cmv2aenpc001hi9lew7if6hpx",
+        "type": "DEBT",
+        "amount": 260000,
+        "notes": "Order cmv2aenpy002ai9le6vvhcgpi delivered",
+        "createdAt": "2026-10-10T11:04:52.831Z"
+      }
+    ],
+    "meta": {
+      "page": 1,
+      "limit": 5,
+      "total_item": 3,
+      "total_page": 1
+    }
+  }
+}

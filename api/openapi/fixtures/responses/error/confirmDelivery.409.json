@@ -1,0 +1,17 @@
+{
+  "operationId": "confirmDelivery",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/orders/{id}/confirm",
+    "as": "driver",
+    "params": {
+      "id": "cmv2aenpy002ai9le6vvhcgpi"
+    }
+  },
+  "status": 409,
+  "body": {
+    "success": false,
+    "error": "Chỉ xác nhận được đơn đang giao",
+    "code": "ORDER_NOT_SHIPPING"
+  }
+}
