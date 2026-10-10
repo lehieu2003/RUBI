@@ -1,0 +1,33 @@
+{
+  "operationId": "listStockCounts",
+  "request": {
+    "method": "GET",
+    "path": "/api/inventory/counts",
+    "as": "admin"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": [
+      {
+        "id": "cmv2gkntk000ci99xcapw9api",
+        "productId": "prod-bi-5",
+        "productName": "Đá Bi",
+        "sizeKg": 5,
+        "unit": "Bao",
+        "bookQuantity": 201,
+        "countedQuantity": 150,
+        "difference": -51,
+        "note": "Kiểm kho cuối tuần",
+        "countedByName": "Nguyễn Văn Chủ Xưởng",
+        "createdAt": "2026-10-10T13:57:12.728Z"
+      }
+    ],
+    "meta": {
+      "page": 1,
+      "limit": 20,
+      "total_item": 1,
+      "total_page": 1
+    }
+  }
+}

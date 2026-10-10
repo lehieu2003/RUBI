@@ -16,6 +16,21 @@ interface InventoryItem {
   totalKg: number;
 }
 
+interface StockCountEntry {
+  id: string;
+  productName: string;
+  sizeKg: number;
+  unit: string;
+  bookQuantity: number;
+  countedQuantity: number;
+  difference: number;
+  note: string | null;
+  countedByName: string | null;
+  createdAt: string;
+}
+
+const HISTORY_PAGE_SIZE = 20;
+
 interface InventoryResponse {
   items: InventoryItem[];
   totalBags: number;
@@ -32,6 +47,31 @@ export default function InventoryPage() {
   // Stock count: the manager counts the cold store and corrects the balance
   const [countItem, setCountItem] = useState<InventoryItem | null>(null);
   const [counted, setCounted] = useState('');
+  const [countNote, setCountNote] = useState('');
+  // History of stock counts, newest first; more pages are appended on demand
+  const [history, setHistory] = useState<StockCountEntry[]>([]);
+  const [historyTotal, setHistoryTotal] = useState(0);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const fetchHistory = useCallback(async (page: number) => {
+    try {
+      setHistoryLoading(true);
+      const res = await fetch(`${API_ENDPOINTS.INVENTORY.COUNTS}?page=${page}&limit=${HISTORY_PAGE_SIZE}`);
+      const json = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(json?.error);
+      const entries = json.data as StockCountEntry[];
+      setHistory((previous) => (page === 1 ? entries : [...previous, ...entries]));
+      setHistoryTotal(json.meta?.total_item ?? entries.length);
+    } catch {
+      toast({ type: 'error', title: 'Lỗi nạp dữ liệu', message: 'Không thể tải lịch sử kiểm kho' });
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchHistory(1);
+  }, [fetchHistory]);
 
   const fetchInventory = useCallback(async () => {
     try {
@@ -102,7 +142,12 @@ export default function InventoryPage() {
       const res = await fetch(API_ENDPOINTS.INVENTORY.BASE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'SET', productId: countItem.productId, quantity: countedQty }),
+        body: JSON.stringify({
+          mode: 'SET',
+          productId: countItem.productId,
+          quantity: countedQty,
+          note: countNote.trim() || undefined,
+        }),
       });
       if (!res.ok) throw new Error('Không thể lưu kiểm kho');
 
@@ -116,7 +161,9 @@ export default function InventoryPage() {
       });
       setCountItem(null);
       setCounted('');
+      setCountNote('');
       fetchInventory();
+      fetchHistory(1);
     } catch {
       toast({ type: 'error', title: 'Thất bại', message: 'Không thể lưu kiểm kho' });
     } finally {
@@ -246,6 +293,7 @@ export default function InventoryPage() {
                         onClick={() => {
                           setCountItem(item);
                           setCounted('');
+                          setCountNote('');
                         }}
                         className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-outline-variant text-on-surface-variant hover:bg-container-high text-xs font-bold transition-colors"
                       >
@@ -259,6 +307,72 @@ export default function InventoryPage() {
             </table>
           </div>
         )}
+
+        {/* Stock count history */}
+        <div className="mt-8">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-on-surface-variant mb-2">Lịch sử kiểm kho</h2>
+          {history.length === 0 ? (
+            <div className="rounded border border-outline-variant bg-card p-6 text-center text-xs text-faint shadow-sm">
+              {historyLoading ? 'Đang tải...' : 'Chưa có lần kiểm kho nào'}
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded border border-outline-variant bg-card shadow-sm">
+              <table className="w-full text-left border-collapse table-industrial">
+                <thead>
+                  <tr className="border-b border-outline-variant bg-surface text-[12px] font-bold uppercase tracking-wider text-on-surface-variant">
+                    <th className="py-3 px-4">Thời gian</th>
+                    <th className="py-3 px-4">Sản phẩm</th>
+                    <th className="py-3 px-4 text-right">Trên sổ</th>
+                    <th className="py-3 px-4 text-right">Thực tế</th>
+                    <th className="py-3 px-4 text-right">Chênh lệch</th>
+                    <th className="py-3 px-4">Ghi chú</th>
+                    <th className="py-3 px-4">Người kiểm</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-outline-soft text-sm">
+                  {history.map((entry) => (
+                    <tr key={entry.id} className="h-11 hover:bg-container-low transition-colors">
+                      <td className="py-2.5 px-4 text-xs font-mono text-on-surface-variant whitespace-nowrap">
+                        {new Date(entry.createdAt).toLocaleString('vi-VN', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </td>
+                      <td className="py-2.5 px-4 font-bold text-on-surface">
+                        {entry.productName} {entry.sizeKg}kg
+                      </td>
+                      <td className="py-2.5 px-4 text-right font-mono">{entry.bookQuantity.toLocaleString('vi-VN')}</td>
+                      <td className="py-2.5 px-4 text-right font-mono font-bold">{entry.countedQuantity.toLocaleString('vi-VN')}</td>
+                      <td
+                        className={
+                          'py-2.5 px-4 text-right font-mono font-bold ' +
+                          (entry.difference < 0 ? 'text-error' : entry.difference > 0 ? 'text-secondary' : 'text-faint')
+                        }
+                      >
+                        {entry.difference > 0 ? '+' : ''}
+                        {entry.difference.toLocaleString('vi-VN')}
+                      </td>
+                      <td className="py-2.5 px-4 text-xs text-on-surface-variant">{entry.note || '—'}</td>
+                      <td className="py-2.5 px-4 text-xs text-on-surface-variant">{entry.countedByName || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {history.length < historyTotal && (
+            <button
+              onClick={() => fetchHistory(Math.floor(history.length / HISTORY_PAGE_SIZE) + 1)}
+              disabled={historyLoading}
+              className="mt-3 px-3.5 py-2 border border-outline-variant bg-card hover:bg-container-high text-primary-deep font-bold text-xs rounded transition-all shadow-sm disabled:opacity-50"
+            >
+              {historyLoading ? 'Đang tải...' : `Xem thêm (${history.length}/${historyTotal})`}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Add Production Modal */}
@@ -353,6 +467,20 @@ export default function InventoryPage() {
                   value={counted}
                   onChange={(e) => setCounted(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleStockCount()}
+                  className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">
+                  Ghi chú (không bắt buộc)
+                </label>
+                <input
+                  type="text"
+                  maxLength={200}
+                  value={countNote}
+                  onChange={(e) => setCountNote(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleStockCount()}
+                  placeholder="Ví dụ: tan chảy, vỡ bao, kiểm cuối tuần"
                   className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99]"
                 />
               </div>

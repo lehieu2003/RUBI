@@ -1,0 +1,19 @@
+{
+  "operationId": "listStockCounts",
+  "request": {
+    "method": "GET",
+    "path": "/api/inventory/counts",
+    "as": "admin"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": [],
+    "meta": {
+      "page": 1,
+      "limit": 20,
+      "total_item": 0,
+      "total_page": 0
+    }
+  }
+}
