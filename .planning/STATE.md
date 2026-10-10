@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-04-22)
 Phase: 10 (build-correctness) — COMPLETE
 Plan: 1 of 1
 Status: Milestone complete
-Last activity: 2026-04-24
+Last activity: 2026-10-10 - Completed quick task 261010-r1b: remove map/GPS + super admin/SaaS
 
 Progress: [██████████] 100% execution complete
 
@@ -91,6 +91,10 @@ v3.0 decisions:
 |---|-------------|------|--------|-----------|
 | 260423 | Prisma datasource URL fix | 2026-04-23 | uncommitted | [260423-prisma-datasource-url-fix](./quick/260423-prisma-datasource-url-fix/) |
 | 260618-prk | Add Docker and GitHub Actions quality gate | 2026-06-18 | uncommitted | [260618-prk-add-docker-and-github-actions-quality-ga](./quick/260618-prk-add-docker-and-github-actions-quality-ga/) |
+| 261003-14257 | Landing support chat widget (canned Q&A + Zalo handoff) | 2026-10-03 | 57b98ab | [261003-14257-landing-support-chat](./quick/261003-14257-landing-support-chat/) |
+| 261004-5240 | Security hardening: next 15.5.27 CVE bump, CSV formula guard, drop xlsx | 2026-10-04 | 377da37 | [261004-5240-security-hardening](./quick/261004-5240-security-hardening/) |
+| 261004-0586 | sslmode=require on Supabase connection strings (.env + .env.example) | 2026-10-04 | 479a666 | [261004-0586-sslmode-require](./quick/261004-0586-sslmode-require/) |
+| 261010-r1b | Remove delivery map/GPS (web + mobile) and super admin/SaaS — single factory Rubi | 2026-10-10 | 28452dc | [261010-r1b-remove-map-gps-and-saas](./quick/261010-r1b-remove-map-gps-and-saas/) |
 
 ## Session Continuity
 
