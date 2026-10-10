@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { AlertCircle, CheckCircle2, Download } from 'lucide-react';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
 import { exportToCSV } from '@/lib/export-excel';
+import { LedgerDialog, RecordPaymentDialog } from '@/components/debt/payment-dialogs';
 
 interface DebtRecord {
   customerId: string;
@@ -18,22 +19,27 @@ export default function DebtReportPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchDebts() {
-      try {
-        const res = await fetch(API_ENDPOINTS.REPORTS.DEBT);
-        if (!res.ok) throw new Error('Không thể tải báo cáo công nợ');
-        const json = await res.json();
-        const data = json?.data !== undefined ? json.data : json;
-        setDebts(Array.isArray(data) ? data : []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
-        setLoading(false);
-      }
+  const [paying, setPaying] = useState<DebtRecord | null>(null);
+  const [viewing, setViewing] = useState<DebtRecord | null>(null);
+
+  const fetchDebts = useCallback(async () => {
+    try {
+      const res = await fetch(API_ENDPOINTS.REPORTS.DEBT);
+      if (!res.ok) throw new Error('Không thể tải báo cáo công nợ');
+      const json = await res.json();
+      const data = json?.data !== undefined ? json.data : json;
+      setDebts(Array.isArray(data) ? data : []);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setLoading(false);
     }
-    fetchDebts();
   }, []);
+
+  useEffect(() => {
+    void fetchDebts();
+  }, [fetchDebts]);
 
   const totalOutstanding = debts.reduce((sum, d) => sum + Math.max(0, d.outstandingDebt), 0);
 
@@ -125,6 +131,7 @@ export default function DebtReportPage() {
                   <th className="py-3 px-4 text-right">Công nợ hiện tại</th>
                   <th className="py-3 px-4 text-center">Trạng thái</th>
                   <th className="py-3 px-4 text-right">Lần thanh toán cuối</th>
+                  <th className="py-3 px-4 text-right">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-soft text-sm">
@@ -150,6 +157,22 @@ export default function DebtReportPage() {
                     <td className="py-3 px-4 text-right text-xs text-faint">
                       {item.lastPaymentDate ? new Date(item.lastPaymentDate).toLocaleDateString('vi-VN') : '—'}
                     </td>
+                    <td className="py-2 px-4 text-right whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => setViewing(item)}
+                        className="mr-2 rounded border border-outline-variant bg-card px-2.5 py-1.5 text-xs font-bold text-on-surface-variant hover:bg-container-high"
+                      >
+                        Lịch sử
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPaying(item)}
+                        className="rounded bg-[#004a99] px-2.5 py-1.5 text-xs font-bold text-white hover:bg-[#00346f]"
+                      >
+                        Thu tiền
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -157,6 +180,18 @@ export default function DebtReportPage() {
           </div>
         )}
       </div>
+
+      {paying && (
+        <RecordPaymentDialog
+          customer={paying}
+          onClose={() => setPaying(null)}
+          onRecorded={() => {
+            setPaying(null);
+            void fetchDebts();
+          }}
+        />
+      )}
+      {viewing && <LedgerDialog customer={viewing} onClose={() => setViewing(null)} />}
     </DashboardLayout>
   );
 }

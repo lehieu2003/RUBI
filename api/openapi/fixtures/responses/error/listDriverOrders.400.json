@@ -1,0 +1,16 @@
+{
+  "operationId": "listDriverOrders",
+  "request": {
+    "method": "GET",
+    "path": "/api/driver/orders",
+    "as": "driver",
+    "query": {
+      "date": "2026-02-31"
+    }
+  },
+  "status": 400,
+  "body": {
+    "success": false,
+    "error": "Ngày không hợp lệ"
+  }
+}

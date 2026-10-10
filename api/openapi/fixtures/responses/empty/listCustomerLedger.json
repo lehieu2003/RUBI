@@ -1,0 +1,22 @@
+{
+  "operationId": "listCustomerLedger",
+  "request": {
+    "method": "GET",
+    "path": "/api/customers/{id}/ledger",
+    "as": "admin",
+    "params": {
+      "id": "cmv276ndw0003i98a5l4pwvju"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": [],
+    "meta": {
+      "page": 1,
+      "limit": 20,
+      "total_item": 0,
+      "total_page": 0
+    }
+  }
+}

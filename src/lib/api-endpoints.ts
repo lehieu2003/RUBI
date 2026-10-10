@@ -32,6 +32,8 @@ export const API_ENDPOINTS = {
   CUSTOMERS: {
     BASE: '/api/customers',
     DEBT_EXPORT: '/api/customers/debt-export',
+    PAYMENTS: (id: string) => `/api/customers/${id}/payments`,
+    LEDGER: (id: string) => `/api/customers/${id}/ledger`,
   },
 
   // Products & Pricing

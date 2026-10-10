@@ -61,6 +61,10 @@ paths:
     $ref: ./customer.yaml#/paths/~1api~1customers
   /api/customers/debt-export:
     $ref: ./customer.yaml#/paths/~1api~1customers~1debt-export
+  /api/customers/{id}/payments:
+    $ref: ./customer.yaml#/paths/~1api~1customers~1{id}~1payments
+  /api/customers/{id}/ledger:
+    $ref: ./customer.yaml#/paths/~1api~1customers~1{id}~1ledger
   /api/products:
     $ref: ./product.yaml#/paths/~1api~1products
   /api/prices/global:

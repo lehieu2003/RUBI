@@ -5,7 +5,7 @@
     "path": "/api/deposits/shells",
     "as": "admin",
     "body": {
-      "customerId": "cmv26r0me001pi970ec2a7hp1",
+      "customerId": "cmv276cnf001pi96y1lj72t8i",
       "shellsOut": 1
     }
   },
@@ -14,7 +14,7 @@
     "success": true,
     "data": {
       "success": true,
-      "customerId": "cmv26r0me001pi970ec2a7hp1",
+      "customerId": "cmv276cnf001pi96y1lj72t8i",
       "shellsOut": 1,
       "shellsIn": 0
     }

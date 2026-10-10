@@ -5,7 +5,7 @@
     "path": "/api/orders/{id}/confirm",
     "as": "anon",
     "params": {
-      "id": "cmv26r0n1002ai970qy1gkzg1"
+      "id": "cmv276cnz002ai96y9xi02bvm"
     }
   },
   "status": 401,

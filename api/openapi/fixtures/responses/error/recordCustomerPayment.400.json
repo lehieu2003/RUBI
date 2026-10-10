@@ -1,0 +1,19 @@
+{
+  "operationId": "recordCustomerPayment",
+  "request": {
+    "method": "POST",
+    "path": "/api/customers/{id}/payments",
+    "as": "admin",
+    "params": {
+      "id": "cmv276cn7001hi96ywar11d1j"
+    },
+    "body": {
+      "amount": 0
+    }
+  },
+  "status": 400,
+  "body": {
+    "success": false,
+    "error": "Số tiền phải lớn hơn 0"
+  }
+}

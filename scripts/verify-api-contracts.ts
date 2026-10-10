@@ -358,6 +358,35 @@ async function main() {
   await call('updateOrderStatus', { params: { id: order.id }, body: { status: 'PENDING' }, expectError: 409 });
   await call('reconcileOrder', { params: { id: order.id }, body: settle, expectError: 409 });
 
+  // ---- Customer payments: the reconciled order left this customer in debt ----
+  const owedBefore = data(await call('getDebtReport')).find((row: Json) => row.customerId === order.customerId);
+  if (!owedBefore) throw new Error('The reconciled order did not create any debt.');
+  const pay = { params: { id: order.customerId } };
+  await call('recordCustomerPayment', { ...pay, body: { amount: owedBefore.outstandingDebt + 1 }, expectError: 409 });
+  await call('recordCustomerPayment', { ...pay, body: { amount: 0 }, expectError: 400 });
+  await call('recordCustomerPayment', { ...pay, body: { amount: 1000.5 }, expectError: 400 });
+  await call('recordCustomerPayment', { ...pay, as: 'staff', body: { amount: 1000 }, expectError: 403 });
+  await call('recordCustomerPayment', { params: { id: 'khong-ton-tai' }, body: { amount: 1000 }, expectError: 404 });
+  const paid = data(await call('recordCustomerPayment', { ...pay, body: { amount: 1000, notes: 'Kiểm tra hợp đồng' } }));
+  if (paid.outstandingDebt !== owedBefore.outstandingDebt - 1000) {
+    failures.push(`recordCustomerPayment: debt was ${owedBefore.outstandingDebt}, paid 1000, remaining ${paid.outstandingDebt}`);
+  }
+  const owedAfter = data(await call('getDebtReport')).find((row: Json) => row.customerId === order.customerId);
+  if ((owedAfter?.outstandingDebt ?? 0) !== paid.outstandingDebt) {
+    failures.push('getDebtReport does not reflect the recorded payment');
+  }
+  const ledger = await call('listCustomerLedger', { ...pay, query: { page: '1', limit: '5' } });
+  if (ledger.data[0]?.type !== 'PAYMENT' || ledger.data[0]?.amount !== 1000) {
+    failures.push('listCustomerLedger: the newest entry is not the payment just recorded');
+  }
+  await call('listCustomerLedger', { ...pay, query: { limit: '999' }, expectError: 400 });
+  await call('listCustomerLedger', { params: { id: customer.id }, empty: true });
+  // Paying off the rest leaves the customer out of the debt report.
+  await call('recordCustomerPayment', { ...pay, body: { amount: paid.outstandingDebt } });
+  if (data(await call('getDebtReport')).some((row: Json) => row.customerId === order.customerId)) {
+    failures.push('a fully paid customer is still listed in the debt report');
+  }
+
   // ---- Accounts ----
   const users = data(await call('listStaff')).users;
   await call('createStaff', { body: { name: 'Trùng', email: newEmail, password: 'tamthoi2026', role: 'STAFF' }, expectError: 409 });

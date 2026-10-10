@@ -5,16 +5,16 @@
     "path": "/api/orders/{id}/reconcile",
     "as": "admin",
     "params": {
-      "id": "cmv26r0n1002ai970qy1gkzg1"
+      "id": "cmv276cnz002ai96y9xi02bvm"
     },
     "body": {
       "items": [
         {
-          "id": "cmv26r0n1002ci970t0d8bgl0",
+          "id": "cmv276cnz002ci96yrelbthdi",
           "actualQty": 10
         },
         {
-          "id": "cmv26r0n1002di9708hng9yrl",
+          "id": "cmv276cnz002di96yh9kgxzsl",
           "actualQty": 5
         }
       ]
