@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   const ip = getIpFromRequest(req);
   const limit = await rateLimit(ip, 30, 60 * 1000);
   if (!limit.success) {
-    return apiError('Too Many Requests', 429);
+    return apiError('Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút', 429);
   }
 
   try {
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     if (!session) {
       // getSession already re-checked user.isActive in the DB, so a
       // deactivated user fails here even with a still-unexpired token.
-      return apiError('Unauthorized', 401);
+      return apiError('Chưa đăng nhập hoặc phiên đã hết hạn', 401);
     }
 
     const token = await signJWT({

@@ -40,7 +40,7 @@ export default function ShellDepositsPage() {
           fetch(API_ENDPOINTS.DEPOSITS.SHELLS),
           fetch(API_ENDPOINTS.CUSTOMERS.BASE),
         ]);
-        if (!depositsRes.ok) throw new Error('Failed to fetch deposits');
+        if (!depositsRes.ok) throw new Error('Không thể tải dữ liệu vỏ bao');
         const depJson = await depositsRes.json();
         const depData = depJson?.data !== undefined ? depJson.data : depJson;
         setDeposits(Array.isArray(depData) ? depData : []);

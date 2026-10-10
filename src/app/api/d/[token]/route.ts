@@ -13,12 +13,12 @@ export async function GET(
     // Public endpoint: throttle per IP so leaked/shared links can't be scraped
     const limit = await rateLimit(`driver-link:${getIpFromRequest(request)}`, 30, 60 * 1000);
     if (!limit.success) {
-      return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+      return NextResponse.json({ error: 'Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút' }, { status: 429 });
     }
 
     const { token } = await params;
     if (!token) {
-      return NextResponse.json({ error: 'Invalid link' }, { status: 404 });
+      return NextResponse.json({ error: 'Link không hợp lệ hoặc đã hết hạn' }, { status: 404 });
     }
 
     const driver = await prismaAuth.driver.findUnique({
@@ -74,6 +74,6 @@ export async function GET(
     return NextResponse.json({ orders: serialized, driverName: driver.name });
   } catch (error) {
     console.error('[GET /api/d/[token]]', error);
-    return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
+    return NextResponse.json({ error: 'Không thể tải danh sách đơn hàng' }, { status: 500 });
   }
 }

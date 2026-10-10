@@ -32,7 +32,7 @@ export async function PATCH(
       ? await prismaAuth.driver.findUnique({ where: { token: bodyToken } })
       : await getSessionDriver();
     if (!driver) {
-      return apiError('Invalid driver credentials', 401);
+      return apiError('Thông tin tài xế không hợp lệ', 401);
     }
 
     // --- Order ownership check ---
@@ -40,10 +40,10 @@ export async function PATCH(
       where: { id, factoryId: driver.factoryId },
     });
     if (!order) {
-      return apiError('Order not found', 404);
+      return apiError('Không tìm thấy đơn hàng', 404);
     }
     if (order.driverId !== driver.id) {
-      return apiError('Not authorized to confirm this order', 403);
+      return apiError('Đơn hàng này không được giao cho bạn', 403);
     }
 
     // --- Update order to DELIVERED ---
@@ -64,10 +64,10 @@ export async function PATCH(
     if (error instanceof Response) return error;
     // Handle Prisma not found error specifically
     if (error instanceof Error && error.name === 'NotFoundError') {
-      return apiError('Order not found', 404);
+      return apiError('Không tìm thấy đơn hàng', 404);
     }
     console.error('[PATCH /api/orders/[id]/confirm]', error);
-    return apiError('Confirmation failed', 500);
+    return apiError('Không thể xác nhận giao hàng', 500);
   }
 }
 

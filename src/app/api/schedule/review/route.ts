@@ -15,12 +15,12 @@ export async function POST(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const parsed = ReviewSchema.safeParse(await request.json().catch(() => null));
     if (!parsed.success) {
-      return apiError('Invalid request. Required: ids (string[]) and action (APPROVE | REJECT)', 400);
+      return apiError('Yêu cầu không hợp lệ: thiếu ca cần duyệt', 400);
     }
 
     const result = await prisma.scheduleAssignment.updateMany({
@@ -35,6 +35,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[POST /api/schedule/review]', error);
-    return apiError('Review failed', 500);
+    return apiError('Không thể duyệt ca', 500);
   }
 }

@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const customers = await prisma.customer.findMany({
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[GET /api/deposits/shells]', error);
-    return apiError('Failed to fetch deposit data', 500);
+    return apiError('Không thể tải dữ liệu vỏ bao', 500);
   }
 }
 
@@ -58,13 +58,13 @@ export async function PATCH(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const body = await request.json();
     const parsed = ShellDepositSchema.safeParse(body);
     if (!parsed.success) {
-      return apiError('Invalid body', 400);
+      return apiError('Dữ liệu không hợp lệ', 400);
     }
 
     const { customerId, shellsOut, shellsIn } = parsed.data;
@@ -74,7 +74,7 @@ export async function PATCH(request: NextRequest) {
       where: { id: customerId, factoryId: session.factoryId },
     });
     if (!customer) {
-      return apiError('Customer not found', 404);
+      return apiError('Không tìm thấy khách hàng', 404);
     }
 
     await prisma.customerShellDeposit.upsert({
@@ -100,6 +100,6 @@ export async function PATCH(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[PATCH /api/deposits/shells]', error);
-    return apiError('Failed to update deposit', 500);
+    return apiError('Không thể cập nhật vỏ bao', 500);
   }
 }

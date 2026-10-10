@@ -16,14 +16,14 @@ export async function PATCH(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const body = await request.json();
     const parsed = BulkAssignSchema.safeParse(body);
 
     if (!parsed.success) {
-      return apiError('Invalid request. Required: orderIds (string[]) and driverId (string)', 400);
+      return apiError('Yêu cầu không hợp lệ: thiếu đơn hàng hoặc tài xế', 400);
     }
 
     const { orderIds, driverId } = parsed.data;
@@ -34,7 +34,7 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (!driver) {
-      return apiError('Driver not found', 404);
+      return apiError('Không tìm thấy tài xế', 404);
     }
 
     // Bulk update orders to assign to driver.
@@ -60,6 +60,6 @@ export async function PATCH(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[PATCH /api/orders/bulk-assign]', error);
-    return apiError('Bulk assign failed', 500);
+    return apiError('Không thể gán tài xế cho các đơn đã chọn', 500);
   }
 }

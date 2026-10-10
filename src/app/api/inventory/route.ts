@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const session = await getSession();
     if (!session?.factoryId) {
-      return apiError('Unauthorized', 401);
+      return apiError('Chưa đăng nhập hoặc phiên đã hết hạn', 401);
     }
 
     const factoryId = session.factoryId;
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
     if (!session?.factoryId) {
-      return apiError('Unauthorized', 401);
+      return apiError('Chưa đăng nhập hoặc phiên đã hết hạn', 401);
     }
 
     const body = await req.json();

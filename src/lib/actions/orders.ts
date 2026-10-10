@@ -9,7 +9,7 @@ import { getSession } from '@/lib/auth';
 export async function loadCustomerPrices(customerId: string): Promise<Record<string, number>> {
   const session = await getSession();
   if (!session?.factoryId) {
-    throw new Error('Factory context required');
+    throw new Error('Tài khoản chưa được gán nhà máy');
   }
   const factoryId = session.factoryId;
 
@@ -18,7 +18,7 @@ export async function loadCustomerPrices(customerId: string): Promise<Record<str
     select: { id: true },
   });
   if (!customer) {
-    throw new Error('Customer not found');
+    throw new Error('Không tìm thấy khách hàng');
   }
 
   // Fetch global prices
@@ -58,12 +58,12 @@ const OrderItemSchema = z.object({
 });
 
 const SaveOrderSchema = z.object({
-  customerId: z.string().min(1, 'Customer is required'),
+  customerId: z.string().min(1, 'Vui lòng chọn khách hàng'),
   lineItems: z
     .array(OrderItemSchema)
-    .min(1, 'At least one item is required')
+    .min(1, 'Cần ít nhất một sản phẩm')
     .refine((items) => items.some((i) => i.quantity > 0), {
-      message: 'At least one item must have quantity > 0',
+      message: 'Cần ít nhất một sản phẩm có số lượng lớn hơn 0',
     }),
 });
 
@@ -88,7 +88,7 @@ async function saveOrderInternal(
 ) {
   const session = await getSession();
   if (!session?.factoryId) {
-    throw new Error('Factory context required');
+    throw new Error('Tài khoản chưa được gán nhà máy');
   }
   const factoryId = session.factoryId;
 

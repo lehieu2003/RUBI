@@ -28,7 +28,7 @@ describe('change-password endpoint source checks', () => {
 
   it('is rate limited and requires a session', () => {
     assert.match(route, /await rateLimit\(`password:\$\{ip\}`, 5, 60 \* 1000\)/);
-    assert.match(route, /apiError\('Unauthorized', 401\)/);
+    assert.match(route, /apiError\('Chưa đăng nhập hoặc phiên đã hết hạn', 401\)/);
   });
 
   it('verifies the current password and applies the policy', () => {

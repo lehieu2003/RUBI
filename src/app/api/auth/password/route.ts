@@ -14,13 +14,13 @@ export async function POST(req: NextRequest) {
   const ip = getIpFromRequest(req);
   const limit = await rateLimit(`password:${ip}`, 5, 60 * 1000);
   if (!limit.success) {
-    return apiError('Too Many Requests', 429);
+    return apiError('Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút', 429);
   }
 
   try {
     const session = await getSession();
     if (!session) {
-      return apiError('Unauthorized', 401);
+      return apiError('Chưa đăng nhập hoặc phiên đã hết hạn', 401);
     }
 
     const body = await req.json().catch(() => null);
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
     const user = await prismaAuth.user.findUnique({ where: { id: session.userId } });
     if (!user || !user.isActive) {
-      return apiError('Unauthorized', 401);
+      return apiError('Chưa đăng nhập hoặc phiên đã hết hạn', 401);
     }
 
     const valid = await bcrypt.compare(currentPassword, user.password);

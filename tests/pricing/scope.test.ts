@@ -36,7 +36,7 @@ describe('pricing factory scope source checks', () => {
     const source = read('src/app/api/prices/global/route.ts');
     assert.match(source, /const session = await requireRole\(\['ADMIN'\]\)/);
     assert.match(source, /where: \{ id: productId, factoryId: session\.factoryId \}/);
-    assert.match(source, /Product not found/);
+    assert.match(source, /Không tìm thấy sản phẩm/);
   });
 
   it('validates customer and product ownership before customer override writes and deletes', () => {
@@ -46,6 +46,6 @@ describe('pricing factory scope source checks', () => {
 
     assert.equal(customerChecks.length, 2);
     assert.equal(productChecks.length, 2);
-    assert.match(source, /Customer or product not found/);
+    assert.match(source, /Không tìm thấy khách hàng hoặc sản phẩm/);
   });
 });

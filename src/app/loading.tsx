@@ -8,7 +8,7 @@ export default function RootLoading() {
           <Snowflake className="h-6 w-6 text-primary-accent animate-spin" />
         </div>
         <p className="text-xs font-bold text-primary-accent tracking-wider uppercase font-mono animate-pulse">
-          Đang tải dữ liệu IceFlow...
+          Đang tải dữ liệu...
         </p>
       </div>
     </div>

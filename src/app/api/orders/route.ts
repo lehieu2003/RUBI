@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     // --- Session auth ---
     const session = await requireRole(['ADMIN', 'STAFF']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const { searchParams } = new URL(request.url);
@@ -60,6 +60,6 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[GET /api/orders]', error);
-    return apiError('Failed to fetch orders', 500);
+    return apiError('Không thể tải danh sách đơn hàng', 500);
   }
 }

@@ -81,7 +81,7 @@ export default function SettlePage() {
         const res = await fetch(
           `${API_ENDPOINTS.ORDERS.BASE}?date=${todayStr}`,
         );
-        if (!res.ok) throw new Error('Failed to fetch orders');
+        if (!res.ok) throw new Error('Không thể tải danh sách đơn hàng');
         const json = await res.json();
         const data = unwrapEnvelope<unknown[]>(json);
         setOrders(Array.isArray(data) ? (data as OrderFromAPI[]) : []);

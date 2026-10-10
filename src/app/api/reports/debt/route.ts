@@ -8,13 +8,13 @@ export async function GET(request: NextRequest) {
     // --- Session auth ---
     const session = await getSession();
     if (!session) {
-      return apiError('Unauthorized', 401);
+      return apiError('Chưa đăng nhập hoặc phiên đã hết hạn', 401);
     }
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
     if (session.role !== 'ADMIN') {
-      return apiError('Forbidden', 403);
+      return apiError('Bạn không có quyền thực hiện thao tác này', 403);
     }
 
     const customers = await prisma.customer.findMany({
@@ -54,6 +54,6 @@ export async function GET(request: NextRequest) {
     return apiSuccess(sorted);
   } catch (error) {
     console.error('[GET /api/reports/debt]', error);
-    return apiError('Failed to fetch debt report', 500);
+    return apiError('Không thể tải báo cáo công nợ', 500);
   }
 }

@@ -24,16 +24,16 @@ export async function GET(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
     if (!(await ensureFactoryExists(session.factoryId))) {
-      return apiError('Factory mapping is invalid. Please relink this account to a valid factory.', 409);
+      return apiError('Tài khoản đang gắn với nhà máy không tồn tại. Vui lòng liên hệ Quản lý.', 409);
     }
 
     const { searchParams } = new URL(request.url);
     const weekStart = parseDateOnly(searchParams.get('week'));
     if (!weekStart) {
-      return apiError('Invalid week. Expected YYYY-MM-DD', 400);
+      return apiError('Tuần không hợp lệ', 400);
     }
 
     const weekEnd = addDays(weekStart, 7);
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[GET /api/schedule/assignments]', error);
-    return apiError('Schedule fetch failed', 500);
+    return apiError('Không thể tải lịch làm', 500);
   }
 }
 
@@ -77,22 +77,22 @@ async function handleSaveAssignment(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
     if (!(await ensureFactoryExists(session.factoryId))) {
-      return apiError('Factory mapping is invalid. Please relink this account to a valid factory.', 409);
+      return apiError('Tài khoản đang gắn với nhà máy không tồn tại. Vui lòng liên hệ Quản lý.', 409);
     }
 
     const body = await request.json();
     const parsed = ShiftAssignmentSchema.safeParse(body);
     if (!parsed.success) {
-      return apiError('Invalid request. Required: userId, shift, shiftDate', 400);
+      return apiError('Yêu cầu không hợp lệ: thiếu người, ca hoặc ngày làm', 400);
     }
 
     const { userId, shift, removeShift } = parsed.data;
     const shiftDate = parseDateOnly(parsed.data.shiftDate);
     if (!shiftDate) {
-      return apiError('Invalid shiftDate. Expected YYYY-MM-DD', 400);
+      return apiError('Ngày làm không hợp lệ', 400);
     }
 
     const person = await prisma.user.findFirst({
@@ -105,7 +105,7 @@ async function handleSaveAssignment(request: NextRequest) {
       select: { id: true, role: true },
     });
     if (!person) {
-      return apiError('Staff or driver not found', 404);
+      return apiError('Không tìm thấy nhân viên hoặc tài xế', 404);
     }
 
     if (shift === null) {
@@ -154,7 +154,7 @@ async function handleSaveAssignment(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[SAVE /api/schedule/assignments]', error);
-    return apiError('Schedule update failed', 500);
+    return apiError('Không thể cập nhật lịch làm', 500);
   }
 }
 
