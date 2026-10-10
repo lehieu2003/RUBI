@@ -318,6 +318,10 @@ async function main() {
   await call('getInventory');
   await call('getInventory', { as: 'staff', expectError: 403 });
   await call('recordInventory', { body: { productId: products[0].id, quantity: 1, mode: 'ADD' } });
+  // A stock count replaces the balance; the list then shows the counted number.
+  await call('recordInventory', { body: { productId: products[0].id, quantity: 150, mode: 'SET' } });
+  const counted = data(await call('getInventory')).items.find((item: Json) => item.productId === products[0].id);
+  if (counted?.quantityOnHand !== 150) throw new Error(`stock count not applied: ${counted?.quantityOnHand}`);
   await call('recordInventory', { body: { productId: products[0].id, quantity: -1 }, expectError: 400 });
   await call('updateShellDeposit', { body: { customerId: customers[0].id, shellsOut: 1 } });
   await call('listShellDeposits');

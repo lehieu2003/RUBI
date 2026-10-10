@@ -510,7 +510,7 @@ paths:
       description: |-
         Access: ADMIN.
 
-        404 when the order does not exist; 409 `ORDER_NOT_DELIVERED` unless it is DELIVERED; 400 when a line does not belong to the order. Creates a DEBT ledger entry and deducts today's inventory.
+        404 when the order does not exist; 409 `ORDER_NOT_DELIVERED` unless it is DELIVERED; 400 when a line does not belong to the order. Creates a DEBT ledger entry and deducts the delivered quantities from the stock on hand.
       parameters:
         - name: id
           in: path

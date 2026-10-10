@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
 import { redirect } from 'next/navigation';
 import { startOfVietnamToday } from '@/lib/vietnam-time';
+import { stockOnHand } from '@/lib/inventory';
 
 async function getCustomers(factoryId: string) {
   return prisma.customer.findMany({
@@ -44,17 +45,16 @@ async function getTodayOrders(factoryId: string) {
 }
 
 async function getInventoryStats(factoryId: string) {
-  const today = startOfVietnamToday();
-  const records = await prisma.inventory.findMany({
-    where: {
-      product: { factoryId },
-      date: { gte: today },
-    },
-    include: { product: true },
+  // Same running balance as the cold-storage screen.
+  const products = await prisma.product.findMany({
+    where: { isActive: true, factoryId },
+    orderBy: [{ name: 'asc' }, { sizeKg: 'asc' }],
   });
-  const totalBags = records.reduce((sum, r) => sum + r.quantityOnHand, 0);
+  const stock = await stockOnHand(prisma, products.map((product) => product.id));
+  const records = products.filter((product) => stock.has(product.id));
+  const totalBags = records.reduce((sum, product) => sum + stock.get(product.id)!, 0);
   const details = records.length > 0
-    ? records.map(r => `${r.product.name} ${r.product.sizeKg}kg: ${r.quantityOnHand}`).join(' | ')
+    ? records.map((product) => `${product.name} ${product.sizeKg}kg: ${stock.get(product.id)}`).join(' | ')
     : 'Chưa có mẻ nhập kho';
   return { totalBags, details };
 }

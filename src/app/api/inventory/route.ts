@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { requireRole } from '@/lib/auth/helpers';
-import { startOfVietnamToday } from '@/lib/vietnam-time';
+import { changeStock, stockOnHand } from '@/lib/inventory';
 import { apiSuccess, apiError } from '@/lib/api-response';
 
 const RecordSchema = z.object({
@@ -27,21 +27,8 @@ export async function GET() {
       orderBy: [{ name: 'asc' }, { sizeKg: 'asc' }],
     });
 
-    // Start of today UTC
-    const today = startOfVietnamToday();
-
-    // Get inventory records
-    const inventoryRecords = await prisma.inventory.findMany({
-      where: {
-        product: { factoryId },
-        date: { gte: today },
-      },
-      include: {
-        product: true,
-      },
-    });
-
-    const inventoryMap = new Map(inventoryRecords.map(r => [r.productId, r.quantityOnHand]));
+    // Running balance: yesterday's closing stock carries over to today.
+    const inventoryMap = await stockOnHand(prisma, products.map((product) => product.id));
 
     const items = products.map(product => ({
       productId: product.id,
@@ -86,35 +73,12 @@ export async function POST(req: NextRequest) {
       return apiError('Không tìm thấy sản phẩm', 404);
     }
 
-    const today = startOfVietnamToday();
-
-    const existing = await prisma.inventory.findFirst({
-      where: {
-        productId,
-        date: { gte: today },
-      },
-    });
-
-    let newQuantity = quantity;
-    if (existing) {
-      if (mode === 'ADD') {
-        newQuantity = existing.quantityOnHand + quantity;
-      }
-      const updated = await prisma.inventory.update({
-        where: { id: existing.id },
-        data: { quantityOnHand: newQuantity },
-      });
-      return apiSuccess(updated);
-    } else {
-      const created = await prisma.inventory.create({
-        data: {
-          productId,
-          date: today,
-          quantityOnHand: quantity,
-        },
-      });
-      return apiSuccess(created);
-    }
+    // ADD records a batch coming out of production; SET (the default) is a
+    // stock count: the counted quantity replaces the balance.
+    const record = await prisma.$transaction((tx) =>
+      changeStock(tx, productId, mode === 'ADD' ? { add: quantity } : { set: quantity })
+    );
+    return apiSuccess(record);
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[POST /api/inventory]', error);

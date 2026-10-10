@@ -14,7 +14,7 @@ export const inventoryContracts: ApiContract[] = [
     method: 'GET',
     path: '/api/inventory',
     tag: 'Inventory',
-    summary: "Today's stock per active product",
+    summary: 'Stock on hand per active product',
     auth: roles('ADMIN'),
     response: envelope(
       z.object({
@@ -33,17 +33,22 @@ export const inventoryContracts: ApiContract[] = [
       })
     ),
     errors: [400, 401, 403, 500],
+    notes:
+      'Stock is a running balance: the closing stock of one day is the opening stock of the next. ' +
+      'A negative quantity means more was delivered than was ever recorded as produced.',
   },
   {
     id: 'recordInventory',
     method: 'POST',
     path: '/api/inventory',
     tag: 'Inventory',
-    summary: "Set or add to today's stock of a product",
+    summary: 'Record a production batch or a stock count',
     auth: roles('ADMIN'),
     body: z.object({ productId: Id, quantity: z.number().int().min(0), mode: z.enum(['ADD', 'SET']).optional() }),
     response: envelope(InventoryRow),
     errors: [400, 401, 403, 404, 500],
-    notes: 'With `mode: "ADD"` the quantity is added to today\'s record; otherwise (`SET` or omitted) it replaces it.',
+    notes:
+      'With `mode: "ADD"` (a production batch) the quantity is added to the stock on hand. Otherwise (`SET` or omitted) ' +
+      'it is a stock count: the counted quantity replaces the balance. The returned row is today\'s closing balance.',
   },
 ];

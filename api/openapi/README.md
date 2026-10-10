@@ -109,8 +109,8 @@ Daily cold-storage stock.
 
 | Method | Path | Access | Summary |
 |---|---|---|---|
-| GET | `/api/inventory` | ADMIN | Today's stock per active product |
-| POST | `/api/inventory` | ADMIN | Set or add to today's stock of a product |
+| GET | `/api/inventory` | ADMIN | Stock on hand per active product |
+| POST | `/api/inventory` | ADMIN | Record a production batch or a stock count |
 
 ### [shell_deposit.yaml](shell_deposit.yaml)
 
