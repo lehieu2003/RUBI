@@ -5,7 +5,7 @@
     "path": "/api/assets/{id}",
     "as": "admin",
     "params": {
-      "id": "cmv276t6m000ti98ajnenua36"
+      "id": "cmv2af283000wi9pg5ok0ta1a"
     },
     "body": {
       "status": "MAINTENANCE",
@@ -16,17 +16,17 @@
   "body": {
     "success": true,
     "data": {
-      "id": "cmv276t6m000ti98ajnenua36",
+      "id": "cmv2af283000wi9pg5ok0ta1a",
       "factoryId": "factory-mien-dong",
       "type": "VEHICLE",
       "name": "Xe kiểm tra",
-      "code": "XE-mv276lny",
+      "code": "XE-mv2aezz9",
       "licensePlate": "48A-000.00",
       "capacityTons": null,
       "status": "MAINTENANCE",
       "notes": "Kiểm tra hợp đồng",
-      "createdAt": "2026-10-10T09:34:29.950Z",
-      "updatedAt": "2026-10-10T09:34:30.830Z"
+      "createdAt": "2026-10-10T11:04:53.763Z",
+      "updatedAt": "2026-10-10T11:04:53.815Z"
     }
   }
 }

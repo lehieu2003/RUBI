@@ -12,25 +12,21 @@ interface OrderMatrixProps {
   disabled?: boolean;
 }
 
-// Build 2x3 grid from products
-// Rows: Đá Bi (name includes "Bi"), Đá Viên (name includes "Viên")
-// Cols: 5kg, 10kg, 20kg
+// Build the grid from the catalogue itself, so a product the manager adds is
+// orderable at once: one row per product name, one column per bag size.
 function buildGrid(products: Product[]) {
-  const rows = [
-    { label: 'Đá Bi', types: ['Đá Bi'] },
-    { label: 'Đá Viên', types: ['Đá Viên'] },
-  ];
-  const cols = [5, 10, 20];
+  const active = products.filter((p) => p.isActive);
+  const names = [...new Set(active.map((p) => p.name))];
+  const cols = [...new Set(active.map((p) => p.sizeKg))].sort((a, b) => a - b);
 
-  return rows.map((row) => {
+  const rows = names.map((name) => {
     const cells = cols.map((sizeKg) => {
-      const product = products.find(
-        (p) => p.name === row.types[0] && p.sizeKg === sizeKg && p.isActive
-      );
+      const product = active.find((p) => p.name === name && p.sizeKg === sizeKg);
       return product ? { product, sizeKg } : null;
     });
-    return { label: row.label, cells };
+    return { label: name, cells };
   });
+  return { cols, rows };
 }
 
 export function OrderMatrix({
@@ -41,7 +37,9 @@ export function OrderMatrix({
   onConfirm,
   disabled = false,
 }: OrderMatrixProps) {
-  const grid = buildGrid(products);
+  const { cols, rows: grid } = buildGrid(products);
+  // The cursor starts on the first product of the grid.
+  const firstProductId = grid.flatMap((row) => row.cells).find((cell) => cell)?.product.id;
   const firstInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-focus first qty input on mount
@@ -62,26 +60,28 @@ export function OrderMatrix({
   );
 
   return (
-    <div className="overflow-x-auto rounded border border-outline-variant bg-card p-3 shadow-2xs">
+    <div className="overflow-x-auto rounded border border-outline-variant bg-card p-2 shadow-2xs">
       <table className="w-full text-sm border-collapse">
         <thead>
           <tr className="border-b border-outline-soft">
-            <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-on-surface-variant">Loại đá</th>
-            <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-on-surface-variant">5kg</th>
-            <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-on-surface-variant">10kg</th>
-            <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider text-on-surface-variant">20kg</th>
+            <th className="px-2 py-2 text-left text-xs font-bold uppercase tracking-wider text-on-surface-variant">Loại đá</th>
+            {cols.map((sizeKg) => (
+              <th key={sizeKg} className="px-1 py-2 text-center text-xs font-bold uppercase tracking-wider text-on-surface-variant">
+                {sizeKg}kg
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody className="divide-y divide-outline-soft">
-          {grid.map((row, rowIdx) => (
+          {grid.map((row) => (
             <tr key={row.label} className="hover:bg-surface transition-colors">
-              <td className="whitespace-nowrap px-3 py-3 font-bold text-on-surface">
+              <td className="whitespace-nowrap px-2 py-3 font-bold text-on-surface">
                 {row.label}
               </td>
               {row.cells.map((cell, colIdx) => {
                 if (!cell) {
                   return (
-                    <td key={colIdx} className="px-3 py-3 text-center">
+                    <td key={colIdx} className="px-1 py-3 text-center">
                       <span className="text-[#c2c6d3] font-mono">—</span>
                     </td>
                   );
@@ -90,10 +90,10 @@ export function OrderMatrix({
                 const price = prices[product.id] ?? 0;
                 const qty = values.get(product.id) ?? 0;
                 const lineTotal = qty * price;
-                const isFirst = rowIdx === 0 && colIdx === 0;
+                const isFirst = product.id === firstProductId;
 
                 return (
-                  <td key={product.id} className="px-3 py-3">
+                  <td key={product.id} className="px-1 py-3">
                     <div className="flex flex-col items-center gap-1">
                       <input
                         ref={isFirst ? firstInputRef : undefined}
@@ -108,7 +108,7 @@ export function OrderMatrix({
                         onKeyDown={handleKeyDown}
                         disabled={disabled}
                         tabIndex={0}
-                        className="w-20 rounded border border-outline-variant bg-card px-2 py-1.5 text-center text-sm font-bold text-on-surface focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99] disabled:bg-container-low transition-all shadow-2xs font-mono"
+                        className="w-16 rounded border border-outline-variant bg-card px-1 py-1.5 text-center text-sm font-bold text-on-surface focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99] disabled:bg-container-low transition-all shadow-2xs font-mono"
                       />
                       <span className="text-[11px] font-mono text-faint">
                         {price > 0 ? `${price.toLocaleString('vi-VN')}đ` : 'Chưa có giá'}

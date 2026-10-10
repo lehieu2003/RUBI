@@ -67,6 +67,8 @@ paths:
     $ref: ./customer.yaml#/paths/~1api~1customers~1{id}~1ledger
   /api/products:
     $ref: ./product.yaml#/paths/~1api~1products
+  /api/products/{id}:
+    $ref: ./product.yaml#/paths/~1api~1products~1{id}
   /api/prices/global:
     $ref: ./price.yaml#/paths/~1api~1prices~1global
   /api/prices/customer/override:

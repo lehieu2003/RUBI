@@ -1,0 +1,19 @@
+{
+  "operationId": "createProduct",
+  "request": {
+    "method": "POST",
+    "path": "/api/products",
+    "as": "admin",
+    "body": {
+      "name": "đá thử mv2aezz9",
+      "sizeKg": 7,
+      "price": 9000
+    }
+  },
+  "status": 409,
+  "body": {
+    "success": false,
+    "error": "Đã có sản phẩm đá thử mv2aezz9 7kg",
+    "code": "PRODUCT_EXISTS"
+  }
+}

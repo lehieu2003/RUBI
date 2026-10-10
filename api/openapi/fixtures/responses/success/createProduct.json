@@ -1,0 +1,27 @@
+{
+  "operationId": "createProduct",
+  "request": {
+    "method": "POST",
+    "path": "/api/products",
+    "as": "admin",
+    "body": {
+      "name": "Đá Thử mv2aezz9",
+      "sizeKg": 7,
+      "price": 9000
+    }
+  },
+  "status": 201,
+  "body": {
+    "success": true,
+    "data": {
+      "id": "cmv2af0t90007i9pgqcdxnq5w",
+      "name": "Đá Thử mv2aezz9",
+      "sizeKg": 7,
+      "unit": "Bao",
+      "isActive": true,
+      "createdAt": "2026-10-10T11:04:51.934Z",
+      "updatedAt": "2026-10-10T11:04:51.934Z",
+      "factoryId": "factory-mien-dong"
+    }
+  }
+}

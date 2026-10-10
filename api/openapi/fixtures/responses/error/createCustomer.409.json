@@ -5,13 +5,13 @@
     "path": "/api/customers",
     "as": "admin",
     "body": {
-      "code": "CT-mv276lny",
+      "code": "CT-mv2aezz9",
       "name": "Trùng mã"
     }
   },
   "status": 409,
   "body": {
     "success": false,
-    "error": "Mã khách hàng \"CT-mv276lny\" đã tồn tại"
+    "error": "Mã khách hàng \"CT-mv2aezz9\" đã tồn tại"
   }
 }

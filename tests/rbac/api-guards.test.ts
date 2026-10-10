@@ -9,6 +9,8 @@ const adminWriteRoutes = [
   'src/app/api/staff/route.ts',
   'src/app/api/staff/[id]/route.ts',
   'src/app/api/prices/global/route.ts',
+  'src/app/api/products/route.ts',
+  'src/app/api/products/[id]/route.ts',
   'src/app/api/prices/customer/override/route.ts',
 ];
 

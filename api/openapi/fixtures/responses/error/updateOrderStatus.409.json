@@ -5,7 +5,7 @@
     "path": "/api/orders/{id}/status",
     "as": "admin",
     "params": {
-      "id": "cmv276cnz002ai96y9xi02bvm"
+      "id": "cmv2aenpy002ai9le6vvhcgpi"
     },
     "body": {
       "status": "PENDING"

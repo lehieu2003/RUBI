@@ -1,0 +1,18 @@
+{
+  "operationId": "createProduct",
+  "request": {
+    "method": "POST",
+    "path": "/api/products",
+    "as": "staff",
+    "body": {
+      "name": "Không được phép",
+      "sizeKg": 7,
+      "price": 9000
+    }
+  },
+  "status": 403,
+  "body": {
+    "success": false,
+    "error": "Bạn không có quyền thực hiện thao tác này"
+  }
+}

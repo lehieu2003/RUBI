@@ -9,6 +9,7 @@ import './auth/enter-submit.test';
 import './auth/session-validity.test';
 import './lib/theme.test';
 import './api/assets.test';
+import './api/products.test';
 import './components/schedule/calendar-grid.test';
 import './components/sidebar.test';
 import './components/drawer-focus.test';

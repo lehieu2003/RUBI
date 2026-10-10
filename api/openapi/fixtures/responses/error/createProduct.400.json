@@ -1,0 +1,17 @@
+{
+  "operationId": "createProduct",
+  "request": {
+    "method": "POST",
+    "path": "/api/products",
+    "as": "admin",
+    "body": {
+      "name": "Thiếu giá",
+      "sizeKg": 7
+    }
+  },
+  "status": 400,
+  "body": {
+    "success": false,
+    "error": "Invalid input: expected number, received undefined"
+  }
+}

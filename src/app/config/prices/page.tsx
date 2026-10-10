@@ -1,18 +1,19 @@
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
-import { GlobalPricesTable } from '@/components/pricing/global-prices-table';
+import { ProductTable } from '@/components/pricing/product-table';
 import { redirect } from 'next/navigation';
 
-export default async function GlobalPricesPage() {
+export default async function ProductsAndPricesPage() {
   const session = await getSession();
   if (!session?.factoryId) {
     redirect('/login');
   }
 
-  // Fetch all active products
+  // Every product, discontinued ones included, so they can be sold again
   const products = await prisma.product.findMany({
-    where: { isActive: true, factoryId: session.factoryId },
+    where: { factoryId: session.factoryId },
+    include: { _count: { select: { orderItems: true } } },
     orderBy: [{ name: 'asc' }, { sizeKg: 'asc' }],
   });
 
@@ -29,14 +30,24 @@ export default async function GlobalPricesPage() {
     <DashboardLayout>
       <div className="p-4 sm:p-6 lg:p-8 max-w-[1000px]">
         <div className="mb-6 border-b border-outline-variant pb-4">
-          <h1 className="text-2xl font-bold tracking-tight text-on-surface">Cấu Hình Bảng Giá Cơ Bản</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-on-surface">Sản Phẩm & Bảng Giá Cơ Bản</h1>
           <p className="text-xs text-on-surface-variant mt-1">
             Giá cơ bản áp dụng chung cho tất cả khách hàng (đại lý có giá riêng sẽ áp dụng giá riêng).
           </p>
         </div>
 
         <div className="rounded border border-outline-variant bg-card p-6 shadow-sm">
-          <GlobalPricesTable products={products} globalPrices={priceMap} />
+          <ProductTable
+            products={products.map((product) => ({
+              id: product.id,
+              name: product.name,
+              sizeKg: product.sizeKg,
+              unit: product.unit,
+              isActive: product.isActive,
+              price: priceMap.get(product.id) ?? null,
+              hasOrders: product._count.orderItems > 0,
+            }))}
+          />
         </div>
       </div>
     </DashboardLayout>

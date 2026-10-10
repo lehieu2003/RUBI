@@ -1,0 +1,30 @@
+{
+  "operationId": "updateProduct",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/products/{id}",
+    "as": "admin",
+    "params": {
+      "id": "cmv2af0t90007i9pgqcdxnq5w"
+    },
+    "body": {
+      "unit": "Túi",
+      "sizeKg": 8,
+      "isActive": false
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "id": "cmv2af0t90007i9pgqcdxnq5w",
+      "name": "Đá Thử mv2aezz9",
+      "sizeKg": 8,
+      "unit": "Túi",
+      "isActive": false,
+      "createdAt": "2026-10-10T11:04:51.934Z",
+      "updatedAt": "2026-10-10T11:04:51.986Z",
+      "factoryId": "factory-mien-dong"
+    }
+  }
+}
