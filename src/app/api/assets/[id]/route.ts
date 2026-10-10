@@ -20,7 +20,7 @@ export async function PATCH(
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const { id } = await params;
@@ -47,7 +47,7 @@ export async function PATCH(
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[PATCH /api/assets/[id]]', error);
-    return apiError('Failed to update asset', 500);
+    return apiError('Không thể cập nhật tài sản', 500);
   }
 }
 
@@ -59,7 +59,7 @@ export async function DELETE(
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const { id } = await params;
@@ -77,6 +77,6 @@ export async function DELETE(
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[DELETE /api/assets/[id]]', error);
-    return apiError('Failed to delete asset', 500);
+    return apiError('Không thể xoá tài sản', 500);
   }
 }

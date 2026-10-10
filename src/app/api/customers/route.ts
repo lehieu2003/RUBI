@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN', 'STAFF']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const { searchParams } = new URL(request.url);
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[GET /api/customers]', error);
-    return apiError('Failed to fetch customers', 500);
+    return apiError('Không thể tải danh sách khách hàng', 500);
   }
 }
 
@@ -35,14 +35,14 @@ export async function POST(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const body = await request.json();
     const { code, name, address, phone, isActive = true } = body;
 
     if (!code || !name) {
-      return apiError('code and name are required', 400);
+      return apiError('Vui lòng nhập mã và tên', 400);
     }
 
     const customer = await prisma.customer.create({
@@ -53,6 +53,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[POST /api/customers]', error);
-    return apiError('Failed to create customer', 500);
+    return apiError('Không thể tạo khách hàng', 500);
   }
 }

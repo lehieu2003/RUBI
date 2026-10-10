@@ -23,7 +23,7 @@ export async function PATCH(
 
     const session = await requireRole(['ADMIN', 'STAFF']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     // Explicit guard so callers get a meaningful message, not a schema error
@@ -34,12 +34,12 @@ export async function PATCH(
     const parsed = StatusSchema.safeParse(body);
 
     if (!parsed.success) {
-      return apiError('Invalid status. Must be PENDING, SHIPPING, DELIVERED, or CANCELLED. Use settlement (Đối soát) to complete an order', 400);
+      return apiError('Trạng thái không hợp lệ. Để hoàn thành đơn, hãy dùng màn Đối soát.', 400);
     }
 
     // Require cancellation reason when cancelling
     if (parsed.data.status === 'CANCELLED' && !parsed.data.cancellationReason) {
-      return apiError('Cancellation reason is required when cancelling an order', 400);
+      return apiError('Vui lòng nhập lý do khi huỷ đơn', 400);
     }
 
     // Verify order belongs to current factory before updating
@@ -47,7 +47,7 @@ export async function PATCH(
       where: { id, factoryId: session.factoryId },
     });
     if (!existing) {
-      return apiError('Order not found or access denied', 404);
+      return apiError('Không tìm thấy đơn hàng', 404);
     }
 
     const order = await prisma.order.update({
@@ -64,6 +64,6 @@ export async function PATCH(
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[PATCH /api/orders/[id]/status]', error);
-    return apiError('Update failed', 500);
+    return apiError('Cập nhật thất bại', 500);
   }
 }

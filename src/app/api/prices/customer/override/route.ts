@@ -15,14 +15,14 @@ export async function POST(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const body = await request.json();
     const parsed = CustomerPriceOverrideSchema.safeParse(body);
 
     if (!parsed.success) {
-      return apiError('Invalid request', 400);
+      return apiError('Yêu cầu không hợp lệ', 400);
     }
 
     const { customerId, productId, price } = parsed.data;
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       }),
     ]);
     if (!customer || !product) {
-      return apiError('Customer or product not found', 404);
+      return apiError('Không tìm thấy khách hàng hoặc sản phẩm', 404);
     }
 
     await prisma.customerPriceOverride.upsert({
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('Error setting customer price override:', error);
-    return apiError('Internal server error', 500);
+    return apiError('Lỗi máy chủ', 500);
   }
 }
 
@@ -66,7 +66,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const { searchParams } = new URL(request.url);
@@ -74,7 +74,7 @@ export async function DELETE(request: NextRequest) {
     const productId = searchParams.get('productId');
 
     if (!customerId || !productId) {
-      return apiError('Missing customerId or productId', 400);
+      return apiError('Thiếu khách hàng hoặc sản phẩm', 400);
     }
 
     const [customer, product] = await Promise.all([
@@ -88,7 +88,7 @@ export async function DELETE(request: NextRequest) {
       }),
     ]);
     if (!customer || !product) {
-      return apiError('Customer or product not found', 404);
+      return apiError('Không tìm thấy khách hàng hoặc sản phẩm', 404);
     }
 
     await prisma.customerPriceOverride.deleteMany({
@@ -99,6 +99,6 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('Error removing customer price override:', error);
-    return apiError('Internal server error', 500);
+    return apiError('Lỗi máy chủ', 500);
   }
 }

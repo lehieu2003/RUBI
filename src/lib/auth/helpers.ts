@@ -10,7 +10,7 @@ import { getSession } from '@/lib/auth';
 export async function requireSession() {
   const session = await getSession();
   if (!session) {
-    throw NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    throw NextResponse.json({ error: 'Chưa đăng nhập hoặc phiên đã hết hạn' }, { status: 401 });
   }
   if (session.mustChangePassword) {
     throw NextResponse.json(
@@ -24,7 +24,7 @@ export async function requireSession() {
 export async function requireRole(roles: string[]) {
   const session = await requireSession();
   if (!session.role || !roles.includes(session.role)) {
-    throw NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    throw NextResponse.json({ error: 'Bạn không có quyền thực hiện thao tác này' }, { status: 403 });
   }
   return session;
 }
@@ -32,7 +32,7 @@ export async function requireRole(roles: string[]) {
 export async function requireFactoryId() {
   const session = await requireSession();
   if (!session.factoryId) {
-    throw NextResponse.json({ error: 'Bad Request: factoryId not found' }, { status: 400 });
+    throw NextResponse.json({ error: 'Tài khoản chưa được gán nhà máy' }, { status: 400 });
   }
   return session;
 }

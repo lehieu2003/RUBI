@@ -7,10 +7,10 @@ export async function GET() {
   try {
     const session = await getSession();
     if (!session) {
-      return apiError('Unauthorized', 401);
+      return apiError('Chưa đăng nhập hoặc phiên đã hết hạn', 401);
     }
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const products = await prisma.product.findMany({
@@ -20,6 +20,6 @@ export async function GET() {
     return apiSuccess(products);
   } catch (error) {
     console.error('[GET /api/products]', error);
-    return apiError('Failed to fetch products', 500);
+    return apiError('Không thể tải danh sách sản phẩm', 500);
   }
 }

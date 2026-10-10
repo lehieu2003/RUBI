@@ -149,7 +149,7 @@ export default function DriverPage() {
               <Snowflake className="h-5 w-5 text-[#9bbdff]" />
             </div>
             <div>
-              <h1 className="text-base font-bold tracking-tight">IceFlow Tài Xế</h1>
+              <h1 className="text-base font-bold tracking-tight">Rubi · Tài xế</h1>
               {driver && <p className="text-[11px] text-[#9bbdff] font-medium">Xe / Tài xế: {driver.name}</p>}
             </div>
           </div>

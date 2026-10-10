@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const { searchParams } = new URL(request.url);
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[GET /api/assets]', error);
-    return apiError('Failed to fetch assets', 500);
+    return apiError('Không thể tải danh sách tài sản', 500);
   }
 }
 
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const body = await request.json();
@@ -107,6 +107,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[POST /api/assets]', error);
-    return apiError('Failed to create asset', 500);
+    return apiError('Không thể tạo tài sản', 500);
   }
 }

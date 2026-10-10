@@ -17,14 +17,14 @@ export async function GET() {
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
     const factory = await prisma.factory.findUnique({
       where: { id: session.factoryId },
       select: profileSelect,
     });
     if (!factory) {
-      return apiError('Factory not found', 404);
+      return apiError('Không tìm thấy nhà máy', 404);
     }
     return apiSuccess({ factory });
   } catch (error) {
@@ -39,7 +39,7 @@ export async function PATCH(req: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const parsed = ProfileSchema.safeParse(await req.json().catch(() => null));

@@ -21,12 +21,12 @@ export async function GET(request: NextRequest) {
   try {
     const session = await requireRole(['STAFF', 'DRIVER']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const weekStart = parseDateOnly(new URL(request.url).searchParams.get('week'));
     if (!weekStart) {
-      return apiError('Invalid week. Expected YYYY-MM-DD', 400);
+      return apiError('Tuần không hợp lệ', 400);
     }
 
     const people = await prisma.user.findMany({
@@ -59,19 +59,19 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[GET /api/schedule/my]', error);
-    return apiError('Schedule fetch failed', 500);
+    return apiError('Không thể tải lịch làm', 500);
   }
 }
 
 async function parseOwnShift(request: NextRequest) {
   const session = await requireRole(['STAFF', 'DRIVER']);
   if (!session.factoryId) {
-    return { error: apiError('Bad Request: factoryId not found', 400) } as const;
+    return { error: apiError('Tài khoản chưa được gán nhà máy', 400) } as const;
   }
   const parsed = ShiftRequestSchema.safeParse(await request.json().catch(() => null));
   const shiftDate = parsed.success ? parseDateOnly(parsed.data.shiftDate) : null;
   if (!parsed.success || !shiftDate) {
-    return { error: apiError('Invalid request. Required: shiftDate (YYYY-MM-DD), shift', 400) } as const;
+    return { error: apiError('Yêu cầu không hợp lệ: thiếu ngày hoặc ca làm', 400) } as const;
   }
   if (parsed.data.shiftDate < todayInVietnam()) {
     return { error: apiError('Không thể thay đổi ca của ngày đã qua', 400) } as const;
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[POST /api/schedule/my]', error);
-    return apiError('Schedule update failed', 500);
+    return apiError('Không thể cập nhật lịch làm', 500);
   }
 }
 
@@ -130,6 +130,6 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[DELETE /api/schedule/my]', error);
-    return apiError('Schedule update failed', 500);
+    return apiError('Không thể cập nhật lịch làm', 500);
   }
 }

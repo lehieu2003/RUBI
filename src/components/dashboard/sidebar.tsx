@@ -106,10 +106,10 @@ export function Sidebar() {
             {!isSidebarCollapsed && (
               <div className="flex flex-col">
                 <span className="text-xl font-black tracking-tight text-primary-dark font-sans">
-                  IceFlow
+                  Rubi
                 </span>
                 <span className="text-[10px] uppercase tracking-wider text-primary-accent font-bold">
-                  Quản Lý Xưởng Đá
+                  Nhà máy đá tinh khiết
                 </span>
               </div>
             )}

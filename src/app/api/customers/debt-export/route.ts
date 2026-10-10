@@ -9,12 +9,12 @@ export async function GET() {
   try {
     const session = await getSession();
     if (!session) {
-      return apiError('Unauthorized', 401);
+      return apiError('Chưa đăng nhập hoặc phiên đã hết hạn', 401);
     }
 
     const factoryId = session.factoryId;
     if (!factoryId) {
-      return apiError('Factory not found', 400);
+      return apiError('Không tìm thấy nhà máy', 400);
     }
 
     const customers = await prisma.customer.findMany({
@@ -48,6 +48,6 @@ export async function GET() {
     return NextResponse.json({ customers, orders });
   } catch (error) {
     console.error('[GET /api/customers/debt-export]', error);
-    return apiError('Failed to fetch export data', 500);
+    return apiError('Không thể tải dữ liệu xuất file', 500);
   }
 }

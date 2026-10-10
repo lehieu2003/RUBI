@@ -148,7 +148,7 @@ export default function DriverViewPage({ params }: DriverViewPageProps) {
               <Snowflake className="h-5 w-5 text-[#9bbdff]" />
             </div>
             <div>
-              <h1 className="text-base font-bold text-white">IceFlow Driver</h1>
+              <h1 className="text-base font-bold text-white">Rubi · Tài xế</h1>
               <p className="text-xs text-[#9bbdff] font-medium">{driverName}</p>
             </div>
           </div>

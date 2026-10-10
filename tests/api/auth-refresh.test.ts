@@ -28,6 +28,6 @@ describe('auth refresh API source checks', () => {
 
   it('returns 401 Unauthorized without a valid session', () => {
     const route = readFileSync(routePath, 'utf-8');
-    assert.match(route, /apiError\('Unauthorized',\s*401\)/);
+    assert.match(route, /apiError\('Chưa đăng nhập hoặc phiên đã hết hạn',\s*401\)/);
   });
 });

@@ -11,13 +11,13 @@ export async function GET(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
-      return apiError('Bad Request: factoryId not found', 400);
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const month = new URL(request.url).searchParams.get('month') ?? '';
     const match = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(month);
     if (!match) {
-      return apiError('Invalid month. Expected YYYY-MM', 400);
+      return apiError('Tháng không hợp lệ', 400);
     }
     const monthStart = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, 1));
     const monthEnd = new Date(Date.UTC(Number(match[1]), Number(match[2]), 1));
@@ -82,6 +82,6 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[GET /api/reports/shifts]', error);
-    return apiError('Report failed', 500);
+    return apiError('Không thể tải báo cáo', 500);
   }
 }
