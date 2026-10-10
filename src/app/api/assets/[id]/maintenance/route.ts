@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { requireRole } from '@/lib/auth/helpers';
+import { vietnamDayRange } from '@/lib/vietnam-time';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 // GET /api/assets/[id]/maintenance — history, newest first
@@ -37,10 +38,17 @@ export async function GET(
   }
 }
 
+// A full ISO timestamp or a real calendar date (YYYY-MM-DD). Date alone is
+// too lenient: it rolls 2026-02-31 over to March instead of refusing it.
+const DateString = z
+  .string()
+  .datetime()
+  .or(z.string().refine((value) => vietnamDayRange(value) !== null));
+
 const CreateRecordSchema = z.object({
   type: z.enum(['ROUTINE', 'INSPECTION', 'INSURANCE', 'REPAIR']),
-  performedAt: z.string().datetime().or(z.string().min(10)),
-  dueAt: z.string().datetime().or(z.string().min(10)).nullable().optional(),
+  performedAt: DateString,
+  dueAt: DateString.nullable().optional(),
   cost: z.number().nonnegative().nullable().optional(),
   notes: z.string().nullable().optional(),
 });
@@ -68,7 +76,7 @@ export async function POST(
     const body = await request.json();
     const parsed = CreateRecordSchema.safeParse(body);
     if (!parsed.success) {
-      return apiError('Dữ liệu bảo trì không hợp lệ (cần performedAt)', 400);
+      return apiError('Dữ liệu bảo trì không hợp lệ (cần performedAt là ngày hợp lệ)', 400);
     }
 
     const record = await prisma.maintenanceRecord.create({

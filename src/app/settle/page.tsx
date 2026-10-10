@@ -56,11 +56,11 @@ const statusConfig = {
   CANCELLED: { label: 'Đã hủy', color: 'bg-red-500/20 text-error' },
 };
 
-/** Every order of one day. The list is paginated, so read page after page. */
-async function fetchOrdersOfDay(date: string): Promise<OrderFromAPI[]> {
+/** Every order matching a filter. The list is paginated, so read page after page. */
+async function fetchAllOrders(filter: string): Promise<OrderFromAPI[]> {
   const all: OrderFromAPI[] = [];
   for (let page = 1; ; page += 1) {
-    const res = await fetch(`${API_ENDPOINTS.ORDERS.BASE}?date=${date}&page=${page}&limit=${MAX_PAGE_SIZE}`);
+    const res = await fetch(`${API_ENDPOINTS.ORDERS.BASE}?${filter}&page=${page}&limit=${MAX_PAGE_SIZE}`);
     const json = await res.json().catch(() => null);
     if (!res.ok) throw new Error(json?.error ?? 'Không thể tải danh sách đơn hàng');
     all.push(...(json.data as OrderFromAPI[]));
@@ -68,8 +68,23 @@ async function fetchOrdersOfDay(date: string): Promise<OrderFromAPI[]> {
   }
 }
 
+/** Every order of one day: the stat cards need every status. */
+function fetchOrdersOfDay(date: string): Promise<OrderFromAPI[]> {
+  return fetchAllOrders(`date=${date}`);
+}
+
+/**
+ * Every order waiting to be settled, whatever day it was taken: a night-shift
+ * order settled the next morning must still be listed here, the only screen
+ * that can complete it.
+ */
+function fetchOrdersAwaitingSettlement(): Promise<OrderFromAPI[]> {
+  return fetchAllOrders('status=DELIVERED');
+}
+
 export default function SettlePage() {
   const [orders, setOrders] = useState<OrderFromAPI[]>([]);
+  const [awaiting, setAwaiting] = useState<OrderFromAPI[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -89,9 +104,12 @@ export default function SettlePage() {
   useEffect(() => {
     async function fetchOrders() {
       try {
-        // Fetch all of today's orders: the stat cards need every status,
-        // the reconcile list filters DELIVERED client-side.
-        setOrders(await fetchOrdersOfDay(todayStr));
+        const [ofToday, toSettle] = await Promise.all([
+          fetchOrdersOfDay(todayStr),
+          fetchOrdersAwaitingSettlement(),
+        ]);
+        setOrders(ofToday);
+        setAwaiting(toSettle);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
@@ -102,7 +120,7 @@ export default function SettlePage() {
   }, [todayStr]);
 
   // Map API orders to display format
-  const mappedOrders = orders.map((order) => ({
+  const mappedOrders = awaiting.map((order) => ({
     id: order.id,
     code: order.code || `DH-${order.id.slice(-6).toUpperCase()}`,
     customerName: order.customer?.name || 'Unknown',
@@ -118,17 +136,20 @@ export default function SettlePage() {
     total:
       typeof order.total === 'number' ? order.total : Number(order.total) || 0,
     status: order.status || 'PENDING',
+    // Orders carried over from an earlier day show their date as well.
     createdAt: order.createdAt
-      ? new Date(order.createdAt).toLocaleTimeString('vi-VN', {
+      ? new Date(order.createdAt).toLocaleString('vi-VN', {
+          ...(new Date(order.createdAt).toDateString() === today.toDateString()
+            ? {}
+            : { day: '2-digit', month: '2-digit' }),
           hour: '2-digit',
           minute: '2-digit',
         })
       : '--:--',
   }));
 
-  // Reconciliation list = only DELIVERED orders of today
+  // Reconciliation list = every DELIVERED order, whatever day it was taken
   const filteredOrders = mappedOrders.filter((order) => {
-    if (order.status !== 'DELIVERED') return false;
     if (
       search &&
       !order.customerName.toLowerCase().includes(search.toLowerCase()) &&
@@ -138,7 +159,7 @@ export default function SettlePage() {
     return true;
   });
 
-  const pendingCount = orders.filter((o) => o.status === 'DELIVERED').length;
+  const pendingCount = awaiting.length;
   const completedCount = orders.filter((o) => o.status === 'COMPLETED').length;
 
   // Open reconcile modal with order details
@@ -173,10 +194,22 @@ export default function SettlePage() {
         const err = await res.json();
         throw new Error(err.error || 'Reconciliation failed');
       }
-      // Refresh orders
-      setOrders(await fetchOrdersOfDay(todayStr));
+      // The order is settled from here on: close and say so before
+      // refreshing, so a failed refresh is never reported as a failed settlement.
+      const settledId = reconcileOrder.id;
+      setAwaiting((previous) => previous.filter((order) => order.id !== settledId));
       setReconcileOrder(null);
       toast({ type: 'success', title: 'Đã chốt đơn thành công' });
+      try {
+        const [ofToday, toSettle] = await Promise.all([
+          fetchOrdersOfDay(todayStr),
+          fetchOrdersAwaitingSettlement(),
+        ]);
+        setOrders(ofToday);
+        setAwaiting(toSettle);
+      } catch {
+        toast({ type: 'error', title: 'Không tải lại được danh sách', message: 'Đơn đã chốt. Tải lại trang để cập nhật.' });
+      }
     } catch (err) {
       toast({
         type: 'error',
@@ -324,7 +357,7 @@ export default function SettlePage() {
         ) : (
           <div className='space-y-3'>
             {filteredOrders.map((order) => {
-              const rawOrder = orders.find((o) => o.id === order.id);
+              const rawOrder = awaiting.find((o) => o.id === order.id);
               const status =
                 statusConfig[order.status as keyof typeof statusConfig] ||
                 statusConfig.PENDING;
@@ -360,7 +393,7 @@ export default function SettlePage() {
                           </strong>
                         </span>
                         <span>
-                          Giờ giao:{' '}
+                          Giờ tạo:{' '}
                           <strong className='text-on-surface font-mono tabular-nums'>
                             {order.createdAt}
                           </strong>

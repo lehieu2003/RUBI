@@ -32,13 +32,25 @@ describe('RBAC API guard source checks', () => {
   });
 
   it('uses ADMIN-only requireRole in operational write route files', () => {
-    for (const route of operationalWriteRoutes.filter((r) => !r.includes('orders/[id]/status'))) {
+    const office = ['orders/[id]/status', 'orders/bulk-assign'];
+    for (const route of operationalWriteRoutes.filter((r) => !office.some((path) => r.includes(path)))) {
       assert.match(read(route), /requireRole\(\['ADMIN'\]\)/, `${route} should use ops requireRole`);
     }
   });
 
   it('lets STAFF update order status (matches /orders = all tenant roles)', () => {
     assert.match(read('src/app/api/orders/[id]/status/route.ts'), /requireRole\(\['ADMIN', 'STAFF'\]\)/);
+  });
+
+  it('lets STAFF assign orders to a driver, but only to an active one', () => {
+    const source = read('src/app/api/orders/bulk-assign/route.ts');
+    assert.match(source, /requireRole\(\['ADMIN', 'STAFF'\]\)/);
+    assert.match(source, /isActive: true,\s*user: \{ role: 'DRIVER', isActive: true \}/);
+  });
+
+  it('deactivating an account also deactivates its driver profile', () => {
+    const source = read('src/app/api/staff/[id]/route.ts');
+    assert.match(source, /prisma\.driver\.updateMany\(\{\s*where: \{ userId: id, factoryId: session\.factoryId \},\s*data: \{ isActive: false \}/);
   });
 
   it('removes manual session.role comparisons from migrated route files', () => {

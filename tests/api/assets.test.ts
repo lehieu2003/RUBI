@@ -33,6 +33,11 @@ describe('assets API source checks', () => {
     assert.match(maintenanceRoute, /performedAt/);
   });
 
+  it('maintenance route: an unreadable date is a 400, not a server error', () => {
+    assert.match(maintenanceRoute, /\.datetime\(\)\s*\.or\(z\.string\(\)\.refine\(\(value\) => vietnamDayRange\(value\) !== null\)\)/);
+    assert.match(maintenanceRoute, /performedAt: DateString/);
+  });
+
   it('all routes use the response envelope', () => {
     for (const [name, source] of [['list', listRoute], ['detail', detailRoute], ['maintenance', maintenanceRoute]]) {
       assert.match(source, /apiSuccess/, `${name} missing apiSuccess`);

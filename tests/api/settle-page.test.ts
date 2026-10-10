@@ -16,12 +16,21 @@ const ordersApi = readFileSync(
 describe('settle page source checks', () => {
   it('reads the orders out of the response envelope on every fetch', () => {
     assert.match(settle, /json\.data as OrderFromAPI\[\]/);
-    assert.equal(settle.match(/setOrders\(await fetchOrdersOfDay\(todayStr\)\)/g)?.length, 2);
+    assert.match(settle, /\?\$\{filter\}&page=\$\{page\}&limit=\$\{MAX_PAGE_SIZE\}/);
   });
 
-  it('fetches all of today orders without status filter (counters derive client-side)', () => {
-    assert.doesNotMatch(settle, /ORDERS\.BASE\?status=DELIVERED/);
-    assert.match(settle, /\?date=\$\{date\}&page=\$\{page\}&limit=\$\{MAX_PAGE_SIZE\}/);
+  it('fetches all of today orders without status filter for the stat cards', () => {
+    assert.match(settle, /fetchAllOrders\(`date=\$\{date\}`\)/);
+    assert.equal(settle.match(/fetchOrdersOfDay\(todayStr\)/g)?.length, 2);
+  });
+
+  it('lists every DELIVERED order whatever day it was taken, on load and after each settlement', () => {
+    assert.match(settle, /fetchAllOrders\('status=DELIVERED'\)/);
+    assert.equal(settle.match(/fetchOrdersAwaitingSettlement\(\),/g)?.length, 2);
+    // success is reported before the refresh, so a failed refresh is not a failed settlement
+    assert.ok(settle.indexOf("title: 'Đã chốt đơn thành công'") < settle.lastIndexOf('fetchOrdersAwaitingSettlement(),'));
+    assert.match(settle, /const mappedOrders = awaiting\.map/);
+    assert.match(settle, /const pendingCount = awaiting\.length/);
   });
 
   it('never falls back to raw driverId for display', () => {
