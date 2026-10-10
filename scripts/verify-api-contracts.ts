@@ -341,6 +341,11 @@ async function main() {
   const order = orders.find((item: Json) => item.status === 'PENDING') ?? orders.find((item: Json) => item.status === 'SHIPPING');
   if (!driver || !order) throw new Error('Seed data must contain a driver and a PENDING or SHIPPING order.');
   await call('bulkAssignOrders', { body: { orderIds: [order.id], driverId: driver.id } });
+  await call('bulkAssignOrders', { as: 'staff', body: { orderIds: [order.id], driverId: driver.id } });
+  if (order.status === 'PENDING') {
+    // Not out for delivery yet: the driver cannot confirm it.
+    await call('confirmDelivery', { as: 'driver', params: { id: order.id }, expectError: 409 });
+  }
   await call('updateOrderStatus', { params: { id: order.id }, body: { status: 'SHIPPING' } });
   await call('updateOrderStatus', { params: { id: order.id }, body: { status: 'COMPLETED' }, expectError: 400 });
   await call('listDriverOrders', { as: 'driver' });
@@ -357,6 +362,7 @@ async function main() {
   // Once settled the order is final: it cannot be reopened and settled again.
   await call('updateOrderStatus', { params: { id: order.id }, body: { status: 'PENDING' }, expectError: 409 });
   await call('reconcileOrder', { params: { id: order.id }, body: settle, expectError: 409 });
+  await call('confirmDelivery', { as: 'driver', params: { id: order.id }, expectError: 409 });
 
   // ---- Customer payments: the reconciled order left this customer in debt ----
   const owedBefore = data(await call('getDebtReport')).find((row: Json) => row.customerId === order.customerId);

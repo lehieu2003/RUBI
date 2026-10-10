@@ -85,13 +85,15 @@ export const orderContracts: ApiContract[] = [
     path: '/api/orders/bulk-assign',
     tag: 'Orders',
     summary: 'Assign several orders to a driver',
-    auth: roles('ADMIN'),
+    auth: roles('ADMIN', 'STAFF'),
     body: z.object({ orderIds: z.array(Id).min(1), driverId: Id }),
     response: envelope(
       Success.extend({ assignedCount: z.number().int(), driver: z.object({ id: Id, name: z.string() }) })
     ),
     errors: [400, 401, 403, 404, 500],
-    notes: 'Only PENDING and SHIPPING orders are assigned; others are skipped and not counted.',
+    notes:
+      'Only PENDING and SHIPPING orders are assigned; others are skipped and not counted. ' +
+      '404 when the driver does not exist or is deactivated.',
   },
   {
     id: 'confirmDelivery',
@@ -102,10 +104,11 @@ export const orderContracts: ApiContract[] = [
     auth: roles('DRIVER'),
     params: orderId,
     response: envelope(Success.extend({ orderId: Id, status: z.literal('DELIVERED') })),
-    errors: [401, 403, 404, 500],
+    errors: [401, 403, 404, 409, 500],
     notes:
       'No request body. The signed-in driver must be the one the order is assigned to (403 otherwise). ' +
-      'Sets `deliveredAt`. No location is captured.',
+      'Only a SHIPPING order is confirmed: 409 `ORDER_NOT_SHIPPING` otherwise, except an already DELIVERED order, ' +
+      'which answers success unchanged. Sets `deliveredAt`. No location is captured.',
   },
   {
     id: 'reconcileOrder',

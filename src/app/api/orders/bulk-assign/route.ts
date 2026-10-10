@@ -14,7 +14,8 @@ const BulkAssignSchema = z.object({
 
 export async function PATCH(request: NextRequest) {
   try {
-    const session = await requireRole(['ADMIN']);
+    // Office staff take the order on the phone and hand it to a driver themselves.
+    const session = await requireRole(['ADMIN', 'STAFF']);
     if (!session.factoryId) {
       return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
@@ -28,9 +29,14 @@ export async function PATCH(request: NextRequest) {
 
     const { orderIds, driverId } = parsed.data;
 
-    // Verify driver exists
+    // Verify driver exists and can still sign in to deliver
     const driver = await prisma.driver.findFirst({
-      where: { id: driverId, factoryId: session.factoryId },
+      where: {
+        id: driverId,
+        factoryId: session.factoryId,
+        isActive: true,
+        user: { role: 'DRIVER', isActive: true },
+      },
     });
 
     if (!driver) {
