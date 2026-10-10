@@ -29,6 +29,11 @@ describe('settings lives inside the main menu', () => {
     assert.doesNotMatch(sidebar, /item\.href !== '\/settings'/);
   });
 
+  it('shows the products and prices screen to the manager', () => {
+    assert.doesNotMatch(sidebar, /item\.href !== '\/config\/prices'/);
+    assert.match(sidebar, /'\/config\/prices': \{ icon: Package, label: 'Sản phẩm & giá' \}/);
+  });
+
   it('has no separate settings block at the bottom', () => {
     assert.doesNotMatch(sidebar, /\{\/\* Settings Link \*\//);
     assert.doesNotMatch(sidebar, /title="Cài đặt hệ thống"/);
