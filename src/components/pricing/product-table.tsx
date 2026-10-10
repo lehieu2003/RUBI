@@ -16,6 +16,10 @@ export interface ProductRow {
   price: number | null;
   /** A product with orders keeps its size: past orders were written for it */
   hasOrders: boolean;
+  /** Units on the books in the cold store */
+  stock: number;
+  /** Order lines of this product on orders that are not settled yet */
+  openOrders: number;
 }
 
 interface ProductForm {
@@ -62,6 +66,8 @@ export function ProductTable({ products }: { products: ProductRow[] }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<ProductForm>(EMPTY_FORM);
   const [busy, setBusy] = useState<string | null>(null);
+  // A product that still has stock or open orders is confirmed before it goes off sale
+  const [confirmStop, setConfirmStop] = useState<ProductRow | null>(null);
 
   const fail = (message: string) => toast({ type: 'error', title: 'Lưu thất bại', message });
 
@@ -113,7 +119,16 @@ export function ProductTable({ products }: { products: ProductRow[] }) {
     setEditingId(null);
   };
 
+  const requestToggleActive = (product: ProductRow) => {
+    if (product.isActive && (product.stock > 0 || product.openOrders > 0)) {
+      setConfirmStop(product);
+      return;
+    }
+    handleToggleActive(product);
+  };
+
   const handleToggleActive = async (product: ProductRow) => {
+    setConfirmStop(null);
     setBusy(product.id);
     const error = await send(API_ENDPOINTS.PRODUCTS.BY_ID(product.id), 'PATCH', { isActive: !product.isActive });
     setBusy(null);
@@ -321,7 +336,7 @@ export function ProductTable({ products }: { products: ProductRow[] }) {
                               Chỉnh sửa
                             </button>
                             <button
-                              onClick={() => handleToggleActive(product)}
+                              onClick={() => requestToggleActive(product)}
                               disabled={isBusy}
                               className="px-3 py-1 text-xs font-bold border border-outline-variant text-on-surface-variant rounded hover:bg-container-high transition-colors disabled:opacity-50"
                             >
@@ -337,6 +352,54 @@ export function ProductTable({ products }: { products: ProductRow[] }) {
           </div>
         </div>
       ))}
+
+      {/* Confirm taking a product off sale while it still has stock or open orders */}
+      {confirmStop && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs" onClick={() => setConfirmStop(null)} />
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-card border border-outline-variant rounded shadow-xl p-6"
+          >
+            <h3 className="text-lg font-bold text-on-surface mb-2">
+              Ngừng bán {confirmStop.name} {confirmStop.sizeKg}kg?
+            </h3>
+            <ul className="space-y-1.5 text-sm text-on-surface mb-3 list-disc pl-5">
+              {confirmStop.stock > 0 && (
+                <li>
+                  Kho còn <strong>{confirmStop.stock.toLocaleString('vi-VN')} {confirmStop.unit}</strong> trên sổ.
+                </li>
+              )}
+              {confirmStop.openOrders > 0 && (
+                <li>
+                  Đang nằm trong <strong>{confirmStop.openOrders.toLocaleString('vi-VN')}</strong> đơn chưa đối soát.
+                </li>
+              )}
+            </ul>
+            <p className="text-xs text-on-surface-variant mb-5">
+              Sản phẩm sẽ không còn trong lưới lên đơn và màn Kho lạnh. Các đơn đang có vẫn giao và đối soát bình
+              thường; bấm &quot;Bán lại&quot; bất cứ lúc nào để mở lại.
+            </p>
+            <div className="flex gap-2.5">
+              <button
+                type="button"
+                onClick={() => setConfirmStop(null)}
+                className="flex-1 py-2.5 border border-outline-variant text-on-surface-variant font-bold text-xs rounded hover:bg-container-high transition-colors"
+              >
+                HỦY
+              </button>
+              <button
+                type="button"
+                onClick={() => handleToggleActive(confirmStop)}
+                className="flex-1 py-2.5 bg-[#ba1a1a] hover:bg-[#93000a] text-white font-bold text-xs rounded transition-colors shadow-sm"
+              >
+                VẪN NGỪNG BÁN
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

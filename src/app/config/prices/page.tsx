@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { ProductTable } from '@/components/pricing/product-table';
 import { redirect } from 'next/navigation';
+import { stockOnHand } from '@/lib/inventory';
 
 export default async function ProductsAndPricesPage() {
   const session = await getSession();
@@ -26,6 +27,22 @@ export default async function ProductsAndPricesPage() {
     priceMap.set(gp.productId, Number(gp.pricePerUnit));
   }
 
+  // What discontinuing a product would leave behind: stock in the cold store
+  // and orders that are not settled yet.
+  const productIds = products.map((product) => product.id);
+  const [stock, openOrderItems] = await Promise.all([
+    stockOnHand(prisma, productIds),
+    prisma.orderItem.groupBy({
+      by: ['productId'],
+      where: {
+        productId: { in: productIds },
+        order: { factoryId: session.factoryId, status: { in: ['PENDING', 'SHIPPING', 'DELIVERED'] } },
+      },
+      _count: { _all: true },
+    }),
+  ]);
+  const openOrders = new Map(openOrderItems.map((row) => [row.productId, row._count._all]));
+
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 lg:p-8 max-w-[1000px]">
@@ -46,6 +63,8 @@ export default async function ProductsAndPricesPage() {
               isActive: product.isActive,
               price: priceMap.get(product.id) ?? null,
               hasOrders: product._count.orderItems > 0,
+              stock: stock.get(product.id) ?? 0,
+              openOrders: openOrders.get(product.id) ?? 0,
             }))}
           />
         </div>

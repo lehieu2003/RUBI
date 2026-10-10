@@ -345,6 +345,13 @@ async function main() {
   await call('recordInventory', { body: { productId: products[0].id, quantity: -1 }, expectError: 400 });
   await call('updateShellDeposit', { body: { customerId: customers[0].id, shellsOut: 1 } });
   await call('listShellDeposits');
+  // A correction replaces both totals; it needs both numbers.
+  await call('updateShellDeposit', { body: { customerId: customers[0].id, mode: 'SET', shellsOut: 7, shellsIn: 2 } });
+  const corrected = data(await call('listShellDeposits')).find((row: Json) => row.customerId === customers[0].id);
+  if (corrected?.shellsOut !== 7 || corrected?.shellsIn !== 2) {
+    throw new Error(`shell correction not applied: ${JSON.stringify(corrected)}`);
+  }
+  await call('updateShellDeposit', { body: { customerId: customers[0].id, mode: 'SET', shellsOut: 7 }, expectError: 400 });
   await call('getDebtReport');
 
   // ---- Orders: assign -> ship -> driver confirms -> reconcile ----
@@ -443,6 +450,13 @@ async function main() {
   const staffList = data(await call('listStaff'));
   const driverAccount = (Array.isArray(staffList) ? staffList : staffList.users).find((item: Json) => item.email === ACCOUNTS.driver);
   await call('updateStaff', { params: { id: driverAccount.id }, body: { name: driverAccount.name } });
+  // A driver's phone reaches the driver profile the office assigns orders to.
+  const phoned = data(await call('updateStaff', { params: { id: driverAccount.id }, body: { phone: '0909 000 111' } }));
+  const driverProfile = data(await call('listDrivers')).find((item: Json) => item.name === driverAccount.name);
+  if (phoned.user.phone !== '0909 000 111' || driverProfile?.phone !== '0909 000 111') {
+    throw new Error(`driver phone not saved: ${JSON.stringify([phoned.user.phone, driverProfile?.phone])}`);
+  }
+  await call('updateStaff', { params: { id: driverAccount.id }, body: { phone: 'khong phai so' }, expectError: 400 });
   await call('createStaff', { body: { name: 'Sai email', email: 'khong-phai-email', password: 'tamthoi2026', role: 'STAFF' }, expectError: 400 });
   await call('createDriver', { body: {}, expectError: 405 });
 

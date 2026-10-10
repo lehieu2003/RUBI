@@ -23,14 +23,20 @@ export async function GET(request: NextRequest) {
         id: true,
         name: true,
         email: true,
+        phone: true,
         role: true,
         isActive: true,
         createdAt: true,
+        driverProfile: { select: { phone: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    return apiSuccess({ users });
+    // Drivers created before accounts carried a phone hold it on the driver
+    // profile only: show that number rather than an empty cell.
+    return apiSuccess({
+      users: users.map(({ driverProfile, ...user }) => ({ ...user, phone: user.phone ?? driverProfile?.phone ?? null })),
+    });
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[GET /api/staff]', error);
@@ -51,6 +57,7 @@ export async function POST(request: NextRequest) {
       return apiError(parsed.error.issues[0]?.message ?? 'Thiếu thông tin bắt buộc', 400);
     }
     const { name, email, password, role } = parsed.data;
+    const phone = parsed.data.phone || null;
 
     const policyError = validatePassword(password);
     if (policyError) {
@@ -62,6 +69,16 @@ export async function POST(request: NextRequest) {
     if (existing) {
       return apiError('Email đã được đăng ký', 409);
     }
+    // A driver's phone is unique within the factory.
+    if (role === 'DRIVER' && phone) {
+      const taken = await prisma.driver.findFirst({
+        where: { factoryId: session.factoryId, phone },
+        select: { id: true },
+      });
+      if (taken) {
+        return apiError('Số điện thoại này đã được dùng cho một tài xế khác', 409, 'PHONE_TAKEN');
+      }
+    }
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
@@ -71,6 +88,7 @@ export async function POST(request: NextRequest) {
           name,
           email,
           password: hashedPassword,
+          phone,
           role,
           factoryId: session.factoryId,
           // The manager knows this initial password; force a change on first login.
@@ -80,6 +98,7 @@ export async function POST(request: NextRequest) {
           id: true,
           name: true,
           email: true,
+          phone: true,
           role: true,
           isActive: true,
           createdAt: true,
@@ -90,7 +109,7 @@ export async function POST(request: NextRequest) {
         await tx.driver.create({
           data: {
             name,
-            phone: null,
+            phone,
             isActive: true,
             factoryId: session.factoryId!,
             userId: createdUser.id,

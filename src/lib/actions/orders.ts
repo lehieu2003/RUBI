@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth';
+import { stockOnHand } from '@/lib/inventory';
 
 // Order entry belongs to the office (manager and staff). Server actions are
 // reachable by anyone holding a session, drivers included, so the role is
@@ -62,6 +63,40 @@ async function customerPriceList(customerId: string, factoryId: string): Promise
 export async function loadCustomerPrices(customerId: string): Promise<Record<string, number>> {
   const factoryId = await requireOfficeFactoryId();
   return customerPriceList(customerId, factoryId);
+}
+
+// --- Sellable stock action ---
+// What can still be promised on the phone, per product: the stock on the
+// books minus what open orders already took. Stock only leaves the books at
+// settlement, so PENDING, SHIPPING and DELIVERED orders are subtracted here.
+// Products that never had a stock record are left out: nothing is known.
+export async function loadSellableStock(): Promise<Record<string, number>> {
+  const factoryId = await requireOfficeFactoryId();
+
+  const products = await prisma.product.findMany({
+    where: { isActive: true, factoryId },
+    select: { id: true },
+  });
+  const productIds = products.map((product) => product.id);
+
+  const [onHand, openOrders] = await Promise.all([
+    stockOnHand(prisma, productIds),
+    prisma.orderItem.groupBy({
+      by: ['productId'],
+      where: {
+        productId: { in: productIds },
+        order: { factoryId, status: { in: ['PENDING', 'SHIPPING', 'DELIVERED'] } },
+      },
+      _sum: { quantity: true },
+    }),
+  ]);
+  const reserved = new Map(openOrders.map((row) => [row.productId, row._sum.quantity ?? 0]));
+
+  const result: Record<string, number> = {};
+  for (const [productId, quantity] of onHand) {
+    result[productId] = quantity - (reserved.get(productId) ?? 0);
+  }
+  return result;
 }
 
 // --- Save order action ---

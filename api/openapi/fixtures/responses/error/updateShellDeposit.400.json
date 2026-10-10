@@ -1,0 +1,18 @@
+{
+  "operationId": "updateShellDeposit",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/deposits/shells",
+    "as": "admin",
+    "body": {
+      "customerId": "cmv2itfl6001pi9c2qr5bdu8m",
+      "mode": "SET",
+      "shellsOut": 7
+    }
+  },
+  "status": 400,
+  "body": {
+    "success": false,
+    "error": "Sửa số vỏ cần cả số vỏ trả ra và số vỏ thu về"
+  }
+}

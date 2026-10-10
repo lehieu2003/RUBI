@@ -5,7 +5,7 @@
     "path": "/api/products",
     "as": "admin",
     "body": {
-      "name": "đá thử mv2hjhrd",
+      "name": "đá thử mv2itgnv",
       "sizeKg": 7,
       "price": 9000
     }
@@ -13,7 +13,7 @@
   "status": 409,
   "body": {
     "success": false,
-    "error": "Đã có sản phẩm đá thử mv2hjhrd 7kg",
+    "error": "Đã có sản phẩm đá thử mv2itgnv 7kg",
     "code": "PRODUCT_EXISTS"
   }
 }

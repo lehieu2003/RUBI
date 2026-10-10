@@ -121,7 +121,7 @@ Shell (bag) deposits owed by customers.
 | Method | Path | Access | Summary |
 |---|---|---|---|
 | GET | `/api/deposits/shells` | ADMIN | Shell deposit balance of customers with deposit activity, highest owed first |
-| PATCH | `/api/deposits/shells` | ADMIN | Add shells handed out or returned to a customer's balance |
+| PATCH | `/api/deposits/shells` | ADMIN | Add shells handed out or returned to a customer's balance, or correct the totals |
 
 ### [order.yaml](order.yaml)
 

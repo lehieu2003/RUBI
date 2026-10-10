@@ -5,7 +5,7 @@
     "path": "/api/customers/{id}/ledger",
     "as": "admin",
     "params": {
-      "id": "cmv2hj5cm001hi901v0pw6xie"
+      "id": "cmv2itfkz001hi9c2mkffopbj"
     },
     "query": {
       "page": "1",
@@ -17,20 +17,20 @@
     "success": true,
     "data": [
       {
-        "id": "cmv2hjj4l000ii939oaucxyyw",
-        "customerId": "cmv2hj5cm001hi901v0pw6xie",
+        "id": "cmv2ithnu000ki9c44t4zokhj",
+        "customerId": "cmv2itfkz001hi9c2mkffopbj",
         "type": "PAYMENT",
         "amount": 1000,
         "notes": "Kiểm tra hợp đồng",
-        "createdAt": "2026-10-10T14:24:19.605Z"
+        "createdAt": "2026-10-10T15:00:03.883Z"
       },
       {
-        "id": "cmv2hjj0e000gi9398rne58m0",
-        "customerId": "cmv2hj5cm001hi901v0pw6xie",
+        "id": "cmv2ithm3000ii9c4s44j3vhg",
+        "customerId": "cmv2itfkz001hi9c2mkffopbj",
         "type": "DEBT",
         "amount": 260000,
-        "notes": "Order cmv2hj5de002ai901itabz8zi delivered",
-        "createdAt": "2026-10-10T14:24:19.455Z"
+        "notes": "Order cmv2itflq002ai9c2uyygwumx delivered",
+        "createdAt": "2026-10-10T15:00:03.820Z"
       }
     ],
     "meta": {

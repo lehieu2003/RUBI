@@ -7,7 +7,7 @@ import { useOrderStore } from '@/stores/order-store';
 import { Drawer } from '@/components/ui/drawer';
 import { SearchBar } from '@/components/order/search-bar';
 import { OrderMatrix } from '@/components/order/order-matrix';
-import { saveOrder, loadCustomerPrices } from '@/lib/actions/orders';
+import { saveOrder, loadCustomerPrices, loadSellableStock } from '@/lib/actions/orders';
 import { toast } from '@/components/dashboard/toast';
 import { Check, Loader2, AlertCircle } from 'lucide-react';
 import type { Customer, Product } from '@prisma/client';
@@ -22,6 +22,7 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
   const queryClient = useQueryClient();
   const router = useRouter();
   const [prices, setPrices] = useState<Record<string, number>>({});
+  const [stock, setStock] = useState<Record<string, number>>({});
   const [values, setValues] = useState<Map<string, number>>(new Map());
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -41,9 +42,14 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
     async (selectedCustomer: Customer) => {
       useOrderStore.getState().setCustomer(selectedCustomer, new Map());
       useOrderStore.getState().addToRecent(selectedCustomer.id);
-      // Load prices for this customer via server action
-      const priceList = await loadCustomerPrices(selectedCustomer.id);
+      // Load this customer's prices and what is left to sell, together.
+      // The stock figure is only a hint: failing to load it must not block the order.
+      const [priceList, sellable] = await Promise.all([
+        loadCustomerPrices(selectedCustomer.id),
+        loadSellableStock().catch(() => ({})),
+      ]);
       setPrices(priceList);
+      setStock(sellable);
       setValues(new Map());
     },
     []
@@ -146,6 +152,7 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
                 <OrderMatrix
                   products={products}
                   prices={prices}
+                  stock={stock}
                   values={values}
                   onChange={handleQuantityChange}
                   onConfirm={handleConfirm}

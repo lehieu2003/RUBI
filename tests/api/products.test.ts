@@ -78,3 +78,38 @@ describe('order entry grid', () => {
     assert.match(matrix, /const active = products\.filter\(\(p\) => p\.isActive\)/);
   });
 });
+
+describe('sellable stock in the order drawer', () => {
+  const action = readFileSync('src/lib/actions/orders.ts', 'utf8');
+  const drawer = readFileSync('src/components/order/order-entry-drawer.tsx', 'utf8');
+  const matrix = readFileSync('src/components/order/order-matrix.tsx', 'utf8');
+
+  it('is the book stock minus what unsettled orders already took', () => {
+    assert.match(action, /status: \{ in: \['PENDING', 'SHIPPING', 'DELIVERED'\] \}/);
+    assert.match(action, /result\[productId\] = quantity - \(reserved\.get\(productId\) \?\? 0\)/);
+  });
+
+  it('is loaded next to the prices and never blocks the order when it fails', () => {
+    assert.match(drawer, /Promise\.all\(\[\s*loadCustomerPrices\(selectedCustomer\.id\),\s*loadSellableStock\(\)\.catch\(\(\) => \(\{\}\)\),/);
+  });
+
+  it('shows no figure for a product without a stock record, and flags a shortage', () => {
+    assert.match(matrix, /left !== undefined && \(left <= 0 \|\| qty > left\)/);
+    assert.match(matrix, /\{left !== undefined && \(/);
+  });
+});
+
+describe('discontinuing a product that is still in use', () => {
+  const page = readFileSync('src/app/config/prices/page.tsx', 'utf8');
+  const table = readFileSync('src/components/pricing/product-table.tsx', 'utf8');
+
+  it('asks first when there is stock or an unsettled order, and only then', () => {
+    assert.match(table, /product\.isActive && \(product\.stock > 0 \|\| product\.openOrders > 0\)/);
+    assert.match(table, /VẪN NGỪNG BÁN/);
+  });
+
+  it('the screen feeds it the stock and the open orders of each product', () => {
+    assert.match(page, /stock: stock\.get\(product\.id\) \?\? 0/);
+    assert.match(page, /openOrders: openOrders\.get\(product\.id\) \?\? 0/);
+  });
+});

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
-import { User, Shield, Palette, Save, Users, Key, Plus, X, LogOut } from 'lucide-react';
+import { User, Shield, Palette, Save, Users, Key, Plus, X, LogOut, Pencil } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { useAuth } from '@/lib/auth-provider';
 import { useTheme } from '@/lib/theme';
@@ -16,6 +16,7 @@ interface StaffUser {
   id: string;
   name: string;
   email: string;
+  phone: string | null;
   role: UserRole;
   isActive: boolean;
   createdAt: string;
@@ -63,6 +64,42 @@ export default function SettingsPage() {
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<UserRole>('STAFF');
+  const [newPhone, setNewPhone] = useState('');
+  // Editing the name and phone of one account
+  const [editStaff, setEditStaff] = useState<StaffUser | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [savingStaff, setSavingStaff] = useState(false);
+
+  const handleSaveStaff = async () => {
+    if (!editStaff) return;
+    if (!editName.trim()) {
+      toast({ type: 'error', title: 'Thiếu thông tin', message: 'Vui lòng nhập họ tên' });
+      return;
+    }
+    setSavingStaff(true);
+    try {
+      const res = await fetch(API_ENDPOINTS.STAFF.DETAIL(editStaff.id), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: editName.trim(), phone: editPhone.trim() }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(json?.error ?? 'Không thể cập nhật nhân sự');
+      const updated: StaffUser = json.data.user;
+      setStaffUsers((prev) => prev.map((s) => (s.id === updated.id ? { ...s, ...updated } : s)));
+      setEditStaff(null);
+      toast({ type: 'success', title: 'Đã cập nhật nhân sự' });
+    } catch (err) {
+      toast({
+        type: 'error',
+        title: 'Thao tác thất bại',
+        message: err instanceof Error ? err.message : 'Không thể cập nhật nhân sự',
+      });
+    } finally {
+      setSavingStaff(false);
+    }
+  };
 
   // Factory profile form state
   const [factoryForm, setFactoryForm] = useState(emptyFactoryForm);
@@ -359,6 +396,7 @@ export default function SettingsPage() {
                         <th className="py-3 px-4">Họ tên</th>
                         <th className="py-3 px-4">Vai trò</th>
                         <th className="py-3 px-4">Email</th>
+                        <th className="py-3 px-4">SĐT</th>
                         <th className="py-3 px-4">Trạng thái</th>
                         <th className="py-3 px-4 text-right">Thao tác</th>
                       </tr>
@@ -373,6 +411,7 @@ export default function SettingsPage() {
                             </span>
                           </td>
                           <td className="py-3 px-4 text-faint font-mono">{staff.email}</td>
+                          <td className="py-3 px-4 font-mono text-on-surface">{staff.phone || '—'}</td>
                           <td className="py-3 px-4">
                             <span className={`px-2 py-0.5 rounded font-bold ${
                               staff.isActive
@@ -384,6 +423,18 @@ export default function SettingsPage() {
                           </td>
                           <td className="py-3 px-4 text-right">
                             <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => {
+                                  setEditStaff(staff);
+                                  setEditName(staff.name);
+                                  setEditPhone(staff.phone ?? '');
+                                }}
+                                className="p-1.5 text-on-surface-variant hover:text-primary-accent hover:bg-container-high rounded transition-colors"
+                                title="Sửa họ tên và số điện thoại"
+                                aria-label={`Sửa ${staff.name}`}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </button>
                               <button
                                 onClick={() => setShowPasswordModal(staff.id)}
                                 className="p-1.5 text-on-surface-variant hover:text-primary-accent hover:bg-container-high rounded transition-colors"
@@ -435,7 +486,7 @@ export default function SettingsPage() {
                       ))}
                       {staffUsers.length === 0 && (
                         <tr>
-                          <td colSpan={5} className="py-8 text-center text-faint">
+                          <td colSpan={6} className="py-8 text-center text-faint">
                             Chưa có nhân sự nào được thêm
                           </td>
                         </tr>
@@ -455,7 +506,7 @@ export default function SettingsPage() {
                     <button
                       onClick={() => {
                         setShowCreateModal(false);
-                        setNewName(''); setNewEmail(''); setNewPassword(''); setNewRole('STAFF');
+                        setNewName(''); setNewEmail(''); setNewPassword(''); setNewRole('STAFF'); setNewPhone('');
                       }}
                       className="text-faint hover:text-on-surface"
                     >
@@ -481,6 +532,16 @@ export default function SettingsPage() {
                         onChange={e => setNewEmail(e.target.value)}
                         className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] outline-none"
                         placeholder="VD: nv-a@email.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">Số điện thoại</label>
+                      <input
+                        type="tel"
+                        value={newPhone}
+                        onChange={e => setNewPhone(e.target.value)}
+                        className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] outline-none"
+                        placeholder="VD: 0909123456"
                       />
                     </div>
                     <div>
@@ -519,16 +580,18 @@ export default function SettingsPage() {
                           const res = await fetch(API_ENDPOINTS.STAFF.BASE, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ name: newName, email: newEmail, password: newPassword, role: newRole }),
+                            body: JSON.stringify({ name: newName, email: newEmail, password: newPassword, role: newRole, phone: newPhone.trim() }),
                           });
                           const data = await res.json().catch(() => ({}));
                           if (!res.ok) {
                             throw new Error(data.error ?? 'Không thể tạo nhân sự');
                           }
-                          if (data.user) {
-                            setStaffUsers(prev => [data.user, ...prev]);
+                          // The account sits inside the response envelope: { success, data: { user } }
+                          const createdUser: StaffUser | undefined = data?.data?.user ?? data?.user;
+                          if (createdUser) {
+                            setStaffUsers(prev => [createdUser, ...prev]);
                             setShowCreateModal(false);
-                            setNewName(''); setNewEmail(''); setNewPassword(''); setNewRole('STAFF');
+                            setNewName(''); setNewEmail(''); setNewPassword(''); setNewRole('STAFF'); setNewPhone('');
                             toast({ type: 'success', title: 'Đã tạo nhân sự thành công' });
                           }
                         } catch (err) {
@@ -544,6 +607,59 @@ export default function SettingsPage() {
                     >
                       TẠO NHÂN SỰ MỚI
                     </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Edit Staff Modal */}
+            {editStaff && (
+              <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+                <div role="dialog" aria-modal="true" className="rounded border border-outline-variant bg-card p-6 w-full max-w-md shadow-xl">
+                  <div className="flex items-center justify-between mb-5 border-b border-outline-soft pb-3">
+                    <h3 className="text-base font-bold text-on-surface">Sửa thông tin nhân sự</h3>
+                    <button onClick={() => setEditStaff(null)} className="text-faint hover:text-on-surface">
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="edit-staff-name" className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">Họ và tên *</label>
+                      <input
+                        id="edit-staff-name"
+                        type="text"
+                        value={editName}
+                        onChange={e => setEditName(e.target.value)}
+                        className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="edit-staff-phone" className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">Số điện thoại</label>
+                      <input
+                        id="edit-staff-phone"
+                        type="tel"
+                        value={editPhone}
+                        onChange={e => setEditPhone(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handleSaveStaff()}
+                        className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] outline-none"
+                        placeholder="Để trống nếu chưa có"
+                      />
+                    </div>
+                    <div className="flex gap-2.5 pt-2">
+                      <button
+                        onClick={() => setEditStaff(null)}
+                        className="flex-1 py-2.5 border border-outline-variant text-on-surface-variant font-bold text-xs rounded hover:bg-container-high transition-colors"
+                      >
+                        HỦY
+                      </button>
+                      <button
+                        onClick={handleSaveStaff}
+                        disabled={savingStaff}
+                        className="flex-1 py-2.5 bg-[#004a99] hover:bg-[#00346f] disabled:opacity-50 text-white font-bold text-xs rounded transition-colors shadow-sm"
+                      >
+                        {savingStaff ? 'ĐANG LƯU...' : 'LƯU THAY ĐỔI'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

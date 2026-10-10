@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-04-22)
 Phase: 10 (build-correctness) — COMPLETE
 Plan: 1 of 1
 Status: Milestone complete
-Last activity: 2026-10-10 - Completed quick task 261010-ops: ops follow-ups
+Last activity: 2026-10-10 - Completed quick task 261010-qol: office quality of life
 
 Progress: [██████████] 100% execution complete
 
@@ -101,6 +101,7 @@ v3.0 decisions:
 | 261010-inv | Inventory as a running balance carried over day to day, plus stock count | 2026-10-10 | fix/inventory-carry-over | [261010-inv-inventory-carry-over](./quick/261010-inv-inventory-carry-over/) |
 | 261010-sch | Stock count history: stock_counts table, list API and history on the cold-storage screen | 2026-10-10 | feat/stock-count-history | [261010-sch-stock-count-history](./quick/261010-sch-stock-count-history/) |
 | 261010-ops | Follow-ups: unassign a deactivated driver's orders, customer price link, settled-today counter, stock count filters and totals | 2026-10-10 | feat/ops-followups | [261010-ops-ops-followups](./quick/261010-ops-ops-followups/) |
+| 261010-qol | Office quality of life: sellable stock in the order drawer, discontinue confirmation, shell count correction, staff phone | 2026-10-10 | feat/office-quality-of-life | [261010-qol-office-quality-of-life](./quick/261010-qol-office-quality-of-life/) |
 
 ## Session Continuity
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
-import { Plus, ArrowDownToLine, ArrowUpFromLine, AlertCircle, CheckCircle2, Loader2, Download } from 'lucide-react';
+import { Plus, ArrowDownToLine, ArrowUpFromLine, AlertCircle, CheckCircle2, Loader2, Download, Pencil } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
 import { exportToCSV } from '@/lib/export-excel';
@@ -26,6 +26,10 @@ export default function ShellDepositsPage() {
   const [shellsOut, setShellsOut] = useState('');
   const [shellsIn, setShellsIn] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // Correcting a mistyped total: the totals of one customer are replaced
+  const [editing, setEditing] = useState<DepositRecord | null>(null);
+  const [editOut, setEditOut] = useState('');
+  const [editIn, setEditIn] = useState('');
 
   const [deposits, setDeposits] = useState<DepositRecord[]>([]);
   const [allCustomers, setAllCustomers] = useState<Customer[]>([]);
@@ -91,6 +95,40 @@ export default function ShellDepositsPage() {
       toast({ type: 'success', title: 'Đã ghi nhận giao dịch vỏ bao' });
     } catch (err) {
       toast({ type: 'error', title: 'Lỗi', message: err instanceof Error ? err.message : 'Unknown error' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const editOutQty = editOut.trim() === '' ? NaN : Number(editOut);
+  const editInQty = editIn.trim() === '' ? NaN : Number(editIn);
+  const editValid = [editOutQty, editInQty].every((value) => Number.isInteger(value) && value >= 0);
+
+  const handleCorrect = async () => {
+    if (!editing || !editValid) {
+      toast({ type: 'error', title: 'Nhập hai số nguyên từ 0 trở lên' });
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await fetch(API_ENDPOINTS.DEPOSITS.SHELLS, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerId: editing.customerId, mode: 'SET', shellsOut: editOutQty, shellsIn: editInQty }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        throw new Error(err?.error || 'Không thể sửa số vỏ');
+      }
+      const refreshRes = await fetch(API_ENDPOINTS.DEPOSITS.SHELLS);
+      if (refreshRes.ok) {
+        const refreshJson = await refreshRes.json();
+        setDeposits(refreshJson?.data !== undefined ? refreshJson.data : refreshJson);
+      }
+      toast({ type: 'success', title: `Đã sửa số vỏ của ${editing.customerName}` });
+      setEditing(null);
+    } catch (err) {
+      toast({ type: 'error', title: 'Lỗi', message: err instanceof Error ? err.message : 'Không thể sửa số vỏ' });
     } finally {
       setSubmitting(false);
     }
@@ -194,6 +232,7 @@ export default function ShellDepositsPage() {
                   <th className="py-3 px-4 text-right">Vỏ thu về (Bao)</th>
                   <th className="py-3 px-4 text-right">Đơn giá cọc</th>
                   <th className="py-3 px-4 text-right">Dư nợ cọc</th>
+                  <th className="py-3 px-4 text-right w-28">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-soft text-sm">
@@ -214,6 +253,19 @@ export default function ShellDepositsPage() {
                         {Math.abs(deposit.netDepositOwed).toLocaleString('vi-VN')}đ
                         {deposit.netDepositOwed > 0 ? ' (Nợ cọc)' : deposit.netDepositOwed < 0 ? ' (Thừa cọc)' : ''}
                       </span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <button
+                        onClick={() => {
+                          setEditing(deposit);
+                          setEditOut(String(deposit.shellsOut));
+                          setEditIn(String(deposit.shellsIn));
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-outline-variant text-on-surface-variant hover:bg-container-high text-xs font-bold transition-colors"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                        Sửa số
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -297,6 +349,70 @@ export default function ShellDepositsPage() {
               >
                 {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                 XÁC NHẬN
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Correct Totals Modal */}
+      {editing && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs" onClick={() => setEditing(null)} />
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-card border border-outline-variant rounded shadow-xl p-6"
+          >
+            <h3 className="text-lg font-bold text-on-surface mb-1">Sửa số vỏ: {editing.customerName}</h3>
+            <p className="text-on-surface-variant text-xs mb-5">
+              Dùng khi nhập nhầm. Hai số dưới đây thay cho tổng hiện tại, không cộng thêm.
+            </p>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">
+                  Tổng vỏ trả ra
+                </label>
+                <input
+                  aria-label="Tổng vỏ trả ra"
+                  type="number"
+                  min="0"
+                  value={editOut}
+                  onChange={(e) => setEditOut(e.target.value)}
+                  className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">
+                  Tổng vỏ thu về
+                </label>
+                <input
+                  aria-label="Tổng vỏ thu về"
+                  type="number"
+                  min="0"
+                  value={editIn}
+                  onChange={(e) => setEditIn(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleCorrect()}
+                  className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99]"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2.5 mt-6">
+              <button
+                type="button"
+                onClick={() => setEditing(null)}
+                className="flex-1 py-2.5 border border-outline-variant text-on-surface-variant font-bold text-xs rounded hover:bg-container-high transition-colors"
+              >
+                HỦY
+              </button>
+              <button
+                type="button"
+                onClick={handleCorrect}
+                disabled={submitting || !editValid}
+                className="flex-1 py-2.5 bg-[#004a99] hover:bg-[#00346f] disabled:opacity-50 text-white font-bold text-xs rounded transition-colors shadow-sm inline-flex items-center justify-center gap-2"
+              >
+                {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                LƯU SỐ ĐÚNG
               </button>
             </div>
           </div>

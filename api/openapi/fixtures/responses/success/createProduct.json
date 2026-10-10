@@ -5,7 +5,7 @@
     "path": "/api/products",
     "as": "admin",
     "body": {
-      "name": "Đá Thử mv2hjhrd",
+      "name": "Đá Thử mv2itgnv",
       "sizeKg": 7,
       "price": 9000
     }
@@ -14,13 +14,13 @@
   "body": {
     "success": true,
     "data": {
-      "id": "cmv2hjijj0007i939fl4s12hv",
-      "name": "Đá Thử mv2hjhrd",
+      "id": "cmv2ithax0007i9c4wayxh36v",
+      "name": "Đá Thử mv2itgnv",
       "sizeKg": 7,
       "unit": "Bao",
       "isActive": true,
-      "createdAt": "2026-10-10T14:24:18.848Z",
-      "updatedAt": "2026-10-10T14:24:18.848Z",
+      "createdAt": "2026-10-10T15:00:03.417Z",
+      "updatedAt": "2026-10-10T15:00:03.417Z",
       "factoryId": "factory-mien-dong"
     }
   }
