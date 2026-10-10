@@ -356,6 +356,8 @@ async function main() {
 
   // ---- Orders: assign -> ship -> driver confirms -> reconcile ----
   const drivers = data(await call('listDrivers'));
+  // The driver the script signs in as: account and driver profile share a name.
+  const signedInDriver = data(await call('listStaff')).users.find((item: Json) => item.email === ACCOUNTS.driver);
   const orders = data(await call('listOrders'));
   await call('listOrders', { as: 'anon', expectError: 401 });
   await call('listOrders', { query: { status: 'PENDING' } });
@@ -378,7 +380,7 @@ async function main() {
   }
   await call('getOrderCounts', { as: 'driver', expectError: 403 });
   await verifyOrderPagination();
-  const driver = drivers[0];
+  const driver = drivers.find((item: Json) => item.name === signedInDriver?.name);
   const order = orders.find((item: Json) => item.status === 'PENDING') ?? orders.find((item: Json) => item.status === 'SHIPPING');
   if (!driver || !order) throw new Error('Seed data must contain a driver and a PENDING or SHIPPING order.');
   await call('bulkAssignOrders', { body: { orderIds: [order.id], driverId: driver.id } });
