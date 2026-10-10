@@ -59,6 +59,8 @@ JWT signing and verification uses `JWT_SECRET` from environment variables.
 | POST | `/api/auth/login` | Login with email/password | No |
 | POST | `/api/auth/logout` | Clear session cookie | No |
 | GET | `/api/auth/me` | Get current user | Yes |
+| GET | `/api/factory` | Factory profile (name, phone, address) | Admin only |
+| PATCH | `/api/factory` | Update the factory profile | Admin only |
 | GET | `/api/customers` | List all active customers | Yes |
 | POST | `/api/customers` | Create new customer | Admin only |
 | GET | `/api/products` | List all active products | Yes |
