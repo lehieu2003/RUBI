@@ -25,3 +25,12 @@ status: complete
 
 - Màn `/settle` và drawer lên đơn chưa được bấm thử trên trình duyệt (chỉ kiểm qua API, build và test nguồn).
 - Fixture lỗi 409 của `confirmDelivery` chưa được ghi lại (`contract:verify --record`).
+
+## Sau code review (cùng ngày)
+
+- Route `status`: văn phòng đánh dấu DELIVERED thì ghi `deliveredAt`, mở lại đơn thì xoá — nếu không, đơn ngày trước do văn phòng đánh dấu sẽ rơi khỏi danh sách tài xế.
+- `saveOrder`: một lượt truy vấn song song, chỉ lấy giá của sản phẩm được đặt; sản phẩm chưa có giá thì từ chối thay vì bán 0đ.
+- `/settle`: báo thành công và đóng hộp thoại trước khi tải lại, lỗi tải lại không còn bị báo thành "Chốt đơn thất bại".
+- Ngày bảo trì: chỉ nhận ISO timestamp hoặc ngày lịch có thật (`2026-02-31` trả 400).
+- Kiểm lại: suite 226/226, `contract:verify` 50/50, gọi trực tiếp từng trường hợp trên Postgres tạm.
+- Để lại: thẻ "đã đối soát hôm nay" chỉ đếm đơn tạo hôm nay; đơn đang giao của tài xế bị vô hiệu hoá không tự gỡ gán; `/settle` tải đơn DELIVERED hôm nay hai lần.
