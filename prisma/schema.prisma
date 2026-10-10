@@ -13,7 +13,6 @@ model Factory {
   name      String
   phone     String?
   address   String?
-  onboardingCompleted Boolean  @default(false) @map("onboarding_completed")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   users         User[]

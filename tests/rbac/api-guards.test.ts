@@ -13,7 +13,6 @@ const adminWriteRoutes = [
 ];
 
 const operationalWriteRoutes = [
-  'src/app/api/customers/import/route.ts',
   'src/app/api/deposits/shells/route.ts',
   'src/app/api/orders/[id]/status/route.ts',
   'src/app/api/orders/[id]/reconcile/route.ts',

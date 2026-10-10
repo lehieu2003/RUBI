@@ -1,14 +1,7 @@
-import { prisma, prismaAuth } from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
 import { redirect } from 'next/navigation';
-
-async function getFactory(factoryId: string) {
-  return prismaAuth.factory.findUnique({
-    where: { id: factoryId },
-    select: { onboardingCompleted: true },
-  });
-}
 
 async function getCustomers(factoryId: string) {
   return prisma.customer.findMany({
@@ -119,12 +112,6 @@ export default async function DashboardPage() {
     getDueMaintenance(session.factoryId),
   ]);
 
-  let showOnboardingPrompt = false;
-  if (session?.role === 'ADMIN' && session.factoryId) {
-    const factory = await getFactory(session.factoryId);
-    showOnboardingPrompt = factory?.onboardingCompleted === false;
-  }
-
   return (
     <DashboardClient
       customers={customers}
@@ -141,7 +128,6 @@ export default async function DashboardPage() {
       inventoryStats={inventoryStats}
       totalBagsOut={totalBagsOut}
       yesterdayRevenue={yesterdayRevenue}
-      showOnboardingPrompt={showOnboardingPrompt}
       dueAssets={dueAssets.map((r) => ({
         assetName: r.asset.name,
         assetCode: r.asset.code,
