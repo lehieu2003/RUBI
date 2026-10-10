@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { requireRole } from '@/lib/auth/helpers';
+import { vietnamDayRange } from '@/lib/vietnam-time';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 // GET /api/assets/[id]/maintenance — history, newest first
@@ -37,8 +38,12 @@ export async function GET(
   }
 }
 
-// A date (YYYY-MM-DD) or a full ISO timestamp; anything Date cannot read is rejected.
-const DateString = z.string().min(10).refine((value) => !Number.isNaN(new Date(value).getTime()));
+// A full ISO timestamp or a real calendar date (YYYY-MM-DD). Date alone is
+// too lenient: it rolls 2026-02-31 over to March instead of refusing it.
+const DateString = z
+  .string()
+  .datetime()
+  .or(z.string().refine((value) => vietnamDayRange(value) !== null));
 
 const CreateRecordSchema = z.object({
   type: z.enum(['ROUTINE', 'INSPECTION', 'INSURANCE', 'REPAIR']),

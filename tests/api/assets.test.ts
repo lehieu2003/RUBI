@@ -34,7 +34,7 @@ describe('assets API source checks', () => {
   });
 
   it('maintenance route: an unreadable date is a 400, not a server error', () => {
-    assert.match(maintenanceRoute, /refine\(\(value\) => !Number\.isNaN\(new Date\(value\)\.getTime\(\)\)\)/);
+    assert.match(maintenanceRoute, /\.datetime\(\)\s*\.or\(z\.string\(\)\.refine\(\(value\) => vietnamDayRange\(value\) !== null\)\)/);
     assert.match(maintenanceRoute, /performedAt: DateString/);
   });
 
