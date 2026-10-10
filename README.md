@@ -63,6 +63,7 @@ docker compose exec app npm run db:seed
 - **Settlement**: End-of-day reconciliation by the manager
 - **Shift scheduling**: Staff and drivers register their own shifts (3-hour slots) at `/my-schedule`; the manager approves or rejects each request and can still assign shifts directly
 - **Shift report**: Monthly count of approved shifts, hours and days per person at `/reports/shifts`, exportable to CSV as the basis for payroll
+- **Payroll lock**: The manager closes a month on the shift report so its shifts can no longer change; optional caps on how many staff and drivers self-register per shift
 - **Print Support**: Print delivery slips directly from the browser
 
 ## Project Structure
