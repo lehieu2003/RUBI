@@ -14,7 +14,9 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx src/db/seed.ts",
-    "admin:create": "tsx scripts/create-admin.ts"
+    "admin:create": "tsx scripts/create-admin.ts",
+    "contract:docs": "tsx scripts/generate-api-docs.ts",
+    "contract:verify": "tsx scripts/verify-api-contracts.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",
