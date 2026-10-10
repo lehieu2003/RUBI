@@ -28,3 +28,5 @@ import './api/factory-profile.test';
 import './api/schedule/self-service.test';
 import './components/date-picker.test';
 import './api/vietnamese-errors.test';
+import './api/contracts.test';
+import './lib/pagination.test';

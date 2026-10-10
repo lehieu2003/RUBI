@@ -1,0 +1,84 @@
+{
+  "operationId": "exportCustomerDebt",
+  "request": {
+    "method": "GET",
+    "path": "/api/customers/debt-export",
+    "as": "admin"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "customers": [
+        {
+          "id": "cmv25du8x001pi93mf5kmueja",
+          "code": "KH-003",
+          "name": "Cà Phê Sân Vườn Hướng Dương",
+          "address": "78 Võ Văn Ngân, Bình Thọ, Thủ Đức",
+          "phone": "0908345678",
+          "isActive": true,
+          "createdAt": "2026-10-10T08:43:58.690Z",
+          "updatedAt": "2026-10-10T08:43:58.690Z",
+          "factoryId": "factory-mien-dong",
+          "debtLedger": [],
+          "shellDeposit": {
+            "id": "cmv25du8z001ri93mz1vb1eh8",
+            "customerId": "cmv25du8x001pi93mf5kmueja",
+            "shellsOut": 15,
+            "shellsIn": 15,
+            "depositPerShell": 50000,
+            "createdAt": "2026-10-10T08:43:58.691Z",
+            "updatedAt": "2026-10-10T08:43:58.691Z"
+          }
+        },
+        {
+          "id": "cmv25e4630003i95gblxb88t3",
+          "code": "CT-mv25e2cb",
+          "name": "Khách kiểm tra hợp đồng",
+          "address": "Đắk Nông",
+          "phone": "0900000000",
+          "isActive": true,
+          "createdAt": "2026-10-10T08:44:11.548Z",
+          "updatedAt": "2026-10-10T08:44:11.548Z",
+          "factoryId": "factory-mien-dong",
+          "debtLedger": [],
+          "shellDeposit": null
+        }
+      ],
+      "orders": [
+        {
+          "id": "cmv25du9e002ji93mohmcxw80",
+          "customerId": "cmv25du90001ti93m4mj9ipby",
+          "status": "COMPLETED",
+          "total": 376000,
+          "notes": "Giao ướp cá",
+          "createdAt": "2026-10-10T08:43:58.707Z",
+          "updatedAt": "2026-10-10T08:43:58.707Z",
+          "driverId": "cmv25du6o0007i93mlg4jsmx3",
+          "assignerId": "cmv25du6f0003i93m8jgfwhu9",
+          "deliveredAt": "2026-10-10T08:43:58.699Z",
+          "factoryId": "factory-mien-dong",
+          "customer": {
+            "name": "Vựa Hải Sản Năm Căn"
+          }
+        },
+        {
+          "id": "cmv25du9c002fi93myxkbjiwg",
+          "customerId": "cmv25du8x001pi93mf5kmueja",
+          "status": "DELIVERED",
+          "total": 60000,
+          "notes": "Đã thanh toán tiền mặt đủ",
+          "createdAt": "2026-10-10T08:43:58.705Z",
+          "updatedAt": "2026-10-10T08:43:58.705Z",
+          "driverId": "cmv25du6o0007i93mlg4jsmx3",
+          "assignerId": "cmv25du6f0003i93m8jgfwhu9",
+          "deliveredAt": "2026-10-10T08:43:58.699Z",
+          "factoryId": "factory-mien-dong",
+          "customer": {
+            "name": "Cà Phê Sân Vườn Hướng Dương"
+          }
+        }
+      ]
+    }
+  }
+}

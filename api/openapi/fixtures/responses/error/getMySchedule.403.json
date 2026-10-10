@@ -1,0 +1,16 @@
+{
+  "operationId": "getMySchedule",
+  "request": {
+    "method": "GET",
+    "path": "/api/schedule/my",
+    "as": "admin",
+    "query": {
+      "week": "2026-12-13"
+    }
+  },
+  "status": 403,
+  "body": {
+    "success": false,
+    "error": "Bạn không có quyền thực hiện thao tác này"
+  }
+}

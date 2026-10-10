@@ -30,17 +30,22 @@ export async function PATCH(
     }
 
     // --- Atomic transaction: reconcile + inventory deduction + debt entry ---
-    await prisma.$transaction(async (tx) => {
+    const rejection = await prisma.$transaction(async (tx) => {
       // 0. Fetch order within transaction scope for atomicity
       const order = await tx.order.findFirst({
         where: { id, factoryId: session.factoryId },
         include: { orderItems: true, customer: true },
       });
       if (!order) {
-        throw new Error('Không tìm thấy đơn hàng');
+        return apiError('Không tìm thấy đơn hàng', 404);
       }
       if (order.status !== 'DELIVERED') {
-        throw new Error('Chỉ đối soát được đơn đã giao');
+        return apiError('Chỉ đối soát được đơn đã giao', 409, 'ORDER_NOT_DELIVERED');
+      }
+      // Every line being settled must belong to this order.
+      const ownItemIds = new Set(order.orderItems.map((item) => item.id));
+      if (parsed.data.items.some((item) => !ownItemIds.has(item.id))) {
+        return apiError('Dữ liệu không hợp lệ: có dòng hàng không thuộc đơn này', 400);
       }
 
       // 1. Update actualQty for each line item
@@ -98,7 +103,9 @@ export async function PATCH(
           },
         });
       }
+      return null;
     });
+    if (rejection) return rejection;
 
     return apiSuccess({
           success: true,

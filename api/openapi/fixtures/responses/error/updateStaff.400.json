@@ -1,0 +1,19 @@
+{
+  "operationId": "updateStaff",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/staff/{id}",
+    "as": "admin",
+    "params": {
+      "id": "cmv25e3eb0001i95gvw5pjonj"
+    },
+    "body": {
+      "role": "ADMIN"
+    }
+  },
+  "status": 400,
+  "body": {
+    "success": false,
+    "error": "Vai trò không hợp lệ"
+  }
+}

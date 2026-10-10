@@ -1,0 +1,26 @@
+{
+  "operationId": "getDebtReport",
+  "request": {
+    "method": "GET",
+    "path": "/api/reports/debt",
+    "as": "admin"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": [
+      {
+        "customerId": "cmv25du8s001hi93mz2wfqrco",
+        "customerName": "Đại Lý Nước Ngọt Minh Tâm",
+        "outstandingDebt": 3400000,
+        "lastPaymentDate": null
+      },
+      {
+        "customerId": "cmv25du90001ti93m4mj9ipby",
+        "customerName": "Vựa Hải Sản Năm Căn",
+        "outstandingDebt": 2100000,
+        "lastPaymentDate": null
+      }
+    ]
+  }
+}

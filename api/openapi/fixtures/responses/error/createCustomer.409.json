@@ -1,0 +1,17 @@
+{
+  "operationId": "createCustomer",
+  "request": {
+    "method": "POST",
+    "path": "/api/customers",
+    "as": "admin",
+    "body": {
+      "code": "CT-mv25e2cb",
+      "name": "Trùng mã"
+    }
+  },
+  "status": 409,
+  "body": {
+    "success": false,
+    "error": "Mã khách hàng \"CT-mv25e2cb\" đã tồn tại"
+  }
+}

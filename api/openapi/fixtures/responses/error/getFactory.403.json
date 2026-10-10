@@ -1,0 +1,13 @@
+{
+  "operationId": "getFactory",
+  "request": {
+    "method": "GET",
+    "path": "/api/factory",
+    "as": "staff"
+  },
+  "status": 403,
+  "body": {
+    "success": false,
+    "error": "Bạn không có quyền thực hiện thao tác này"
+  }
+}

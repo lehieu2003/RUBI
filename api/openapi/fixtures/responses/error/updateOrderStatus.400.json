@@ -1,0 +1,19 @@
+{
+  "operationId": "updateOrderStatus",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/orders/{id}/status",
+    "as": "admin",
+    "params": {
+      "id": "cmv25du9b002ai93myrr2vg5d"
+    },
+    "body": {
+      "status": "COMPLETED"
+    }
+  },
+  "status": 400,
+  "body": {
+    "success": false,
+    "error": "Đơn hoàn thành phải qua Đối soát (settlement)"
+  }
+}

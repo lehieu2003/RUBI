@@ -1,0 +1,19 @@
+{
+  "operationId": "rotateDriverLink",
+  "request": {
+    "method": "POST",
+    "path": "/api/staff/{id}/rotate-link",
+    "as": "admin",
+    "params": {
+      "id": "cmv25du6k0005i93mn6crf9ne"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "link": "/d/<token>",
+      "driverName": "Phạm Văn Tài (Xe 1)"
+    }
+  }
+}

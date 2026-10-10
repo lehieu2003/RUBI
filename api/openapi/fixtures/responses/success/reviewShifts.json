@@ -1,0 +1,21 @@
+{
+  "operationId": "reviewShifts",
+  "request": {
+    "method": "POST",
+    "path": "/api/schedule/review",
+    "as": "admin",
+    "body": {
+      "ids": [
+        "cmv25e941000ji95gcd4vp95p"
+      ],
+      "action": "APPROVE"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "updated": 1
+    }
+  }
+}

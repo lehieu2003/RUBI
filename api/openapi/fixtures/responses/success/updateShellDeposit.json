@@ -1,0 +1,22 @@
+{
+  "operationId": "updateShellDeposit",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/deposits/shells",
+    "as": "admin",
+    "body": {
+      "customerId": "cmv25du8x001pi93mf5kmueja",
+      "shellsOut": 1
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "success": true,
+      "customerId": "cmv25du8x001pi93mf5kmueja",
+      "shellsOut": 1,
+      "shellsIn": 0
+    }
+  }
+}

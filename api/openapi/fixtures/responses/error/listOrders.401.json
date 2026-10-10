@@ -1,0 +1,13 @@
+{
+  "operationId": "listOrders",
+  "request": {
+    "method": "GET",
+    "path": "/api/orders",
+    "as": "anon"
+  },
+  "status": 401,
+  "body": {
+    "success": false,
+    "error": "Chưa đăng nhập hoặc phiên đã hết hạn"
+  }
+}

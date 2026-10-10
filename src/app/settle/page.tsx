@@ -5,7 +5,7 @@ import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { CheckCircle2, Clock, Search, Download, Package } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
-import { unwrapEnvelope } from '@/lib/api-response';
+import { MAX_PAGE_SIZE } from '@/lib/pagination';
 import { exportToCSV } from '@/lib/export-excel';
 
 // Types for API response
@@ -56,6 +56,18 @@ const statusConfig = {
   CANCELLED: { label: 'Đã hủy', color: 'bg-red-500/20 text-error' },
 };
 
+/** Every order of one day. The list is paginated, so read page after page. */
+async function fetchOrdersOfDay(date: string): Promise<OrderFromAPI[]> {
+  const all: OrderFromAPI[] = [];
+  for (let page = 1; ; page += 1) {
+    const res = await fetch(`${API_ENDPOINTS.ORDERS.BASE}?date=${date}&page=${page}&limit=${MAX_PAGE_SIZE}`);
+    const json = await res.json().catch(() => null);
+    if (!res.ok) throw new Error(json?.error ?? 'Không thể tải danh sách đơn hàng');
+    all.push(...(json.data as OrderFromAPI[]));
+    if (page >= (json.meta?.total_page ?? 1)) return all;
+  }
+}
+
 export default function SettlePage() {
   const [orders, setOrders] = useState<OrderFromAPI[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,20 +83,15 @@ export default function SettlePage() {
 
   // Compute today string for default date filter
   const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
+  // Local calendar date: toISOString() is UTC and gives yesterday before 7 a.m. in Vietnam.
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
   useEffect(() => {
     async function fetchOrders() {
       try {
         // Fetch all of today's orders: the stat cards need every status,
         // the reconcile list filters DELIVERED client-side.
-        const res = await fetch(
-          `${API_ENDPOINTS.ORDERS.BASE}?date=${todayStr}`,
-        );
-        if (!res.ok) throw new Error('Không thể tải danh sách đơn hàng');
-        const json = await res.json();
-        const data = unwrapEnvelope<unknown[]>(json);
-        setOrders(Array.isArray(data) ? (data as OrderFromAPI[]) : []);
+        setOrders(await fetchOrdersOfDay(todayStr));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
@@ -167,11 +174,7 @@ export default function SettlePage() {
         throw new Error(err.error || 'Reconciliation failed');
       }
       // Refresh orders
-      const ordersRes = await fetch(
-        `${API_ENDPOINTS.ORDERS.BASE}?date=${todayStr}`,
-      );
-      const refreshed = unwrapEnvelope<unknown[]>(await ordersRes.json());
-      setOrders(Array.isArray(refreshed) ? (refreshed as OrderFromAPI[]) : []);
+      setOrders(await fetchOrdersOfDay(todayStr));
       setReconcileOrder(null);
       toast({ type: 'success', title: 'Đã chốt đơn thành công' });
     } catch (err) {

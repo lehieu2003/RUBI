@@ -1,0 +1,13 @@
+{
+  "operationId": "health",
+  "request": {
+    "method": "GET",
+    "path": "/api/health",
+    "as": "anon"
+  },
+  "status": 200,
+  "body": {
+    "ok": true,
+    "db": "up"
+  }
+}

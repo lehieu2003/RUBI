@@ -1,0 +1,21 @@
+{
+  "operationId": "confirmDelivery",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/orders/{id}/confirm",
+    "as": "driver",
+    "params": {
+      "id": "cmv25du9b002ai93myrr2vg5d"
+    },
+    "body": {}
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "success": true,
+      "orderId": "cmv25du9b002ai93myrr2vg5d",
+      "status": "DELIVERED"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "operationId": "listStaff",
+  "request": {
+    "method": "GET",
+    "path": "/api/staff",
+    "as": "admin"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "users": [
+        {
+          "id": "cmv25e3eb0001i95gvw5pjonj",
+          "name": "Nhân viên hợp đồng",
+          "email": "hopdong-mv25e2cb@rubi.local",
+          "role": "STAFF",
+          "isActive": true,
+          "createdAt": "2026-10-10T08:44:10.548Z"
+        },
+        {
+          "id": "cmv25du6k0005i93mn6crf9ne",
+          "name": "Phạm Văn Tài (Xe 1)",
+          "email": "taixe1@miendong.vn",
+          "role": "DRIVER",
+          "isActive": true,
+          "createdAt": "2026-10-10T08:43:58.604Z"
+        }
+      ]
+    }
+  }
+}

@@ -60,7 +60,7 @@ export async function PATCH(
       },
     });
 
-    return apiSuccess(order);
+    return apiSuccess({ ...order, total: order.total.toNumber() });
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[PATCH /api/orders/[id]/status]', error);

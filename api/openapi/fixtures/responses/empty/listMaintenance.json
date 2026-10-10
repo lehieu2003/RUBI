@@ -1,0 +1,16 @@
+{
+  "operationId": "listMaintenance",
+  "request": {
+    "method": "GET",
+    "path": "/api/assets/{id}/maintenance",
+    "as": "admin",
+    "params": {
+      "id": "cmv25e9jk000pi95gu215hahz"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": []
+  }
+}

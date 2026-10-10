@@ -1,0 +1,19 @@
+{
+  "operationId": "createStaff",
+  "request": {
+    "method": "POST",
+    "path": "/api/staff",
+    "as": "admin",
+    "body": {
+      "name": "Sai email",
+      "email": "khong-phai-email",
+      "password": "<password>",
+      "role": "STAFF"
+    }
+  },
+  "status": 400,
+  "body": {
+    "success": false,
+    "error": "Email không hợp lệ"
+  }
+}

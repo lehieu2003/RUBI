@@ -1,0 +1,19 @@
+{
+  "operationId": "createStaff",
+  "request": {
+    "method": "POST",
+    "path": "/api/staff",
+    "as": "admin",
+    "body": {
+      "name": "Trùng",
+      "email": "hopdong-mv25e2cb@rubi.local",
+      "password": "<password>",
+      "role": "STAFF"
+    }
+  },
+  "status": 409,
+  "body": {
+    "success": false,
+    "error": "Email đã được đăng ký"
+  }
+}

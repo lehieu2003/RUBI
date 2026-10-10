@@ -1,0 +1,16 @@
+{
+  "operationId": "listOrders",
+  "request": {
+    "method": "GET",
+    "path": "/api/orders",
+    "as": "admin",
+    "query": {
+      "limit": "1000"
+    }
+  },
+  "status": 400,
+  "body": {
+    "success": false,
+    "error": "Tham số phân trang không hợp lệ (limit tối đa 200)"
+  }
+}

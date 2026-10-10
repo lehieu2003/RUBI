@@ -1,0 +1,16 @@
+{
+  "operationId": "listScheduleAssignments",
+  "request": {
+    "method": "GET",
+    "path": "/api/schedule/assignments",
+    "as": "admin",
+    "query": {
+      "week": "abc"
+    }
+  },
+  "status": 400,
+  "body": {
+    "success": false,
+    "error": "Tuần không hợp lệ"
+  }
+}

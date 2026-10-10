@@ -1,0 +1,15 @@
+{
+  "operationId": "logout",
+  "request": {
+    "method": "POST",
+    "path": "/api/auth/logout",
+    "as": "admin"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "success": true
+    }
+  }
+}

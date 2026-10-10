@@ -1,0 +1,28 @@
+{
+  "operationId": "updateFactory",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/factory",
+    "as": "admin",
+    "body": {
+      "name": "Nhà máy đá tinh khiết Rubi",
+      "phone": "028 3899 9999",
+      "address": "128 Xa Lộ Hà Nội, TP. Thủ Đức, TP.HCM",
+      "maxStaffPerShift": null,
+      "maxDriversPerShift": null
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "factory": {
+        "name": "Nhà máy đá tinh khiết Rubi",
+        "phone": "028 3899 9999",
+        "address": "128 Xa Lộ Hà Nội, TP. Thủ Đức, TP.HCM",
+        "maxStaffPerShift": null,
+        "maxDriversPerShift": null
+      }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "operationId": "getShiftReport",
+  "request": {
+    "method": "GET",
+    "path": "/api/reports/shifts",
+    "as": "admin",
+    "query": {
+      "month": "2031-01"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "month": "2031-01",
+      "shiftHours": 3,
+      "lockedAt": null,
+      "people": []
+    }
+  }
+}

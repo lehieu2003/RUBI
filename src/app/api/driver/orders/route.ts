@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       : await getSessionDriver();
 
     if (!driver) {
-      return apiError(token ? 'Invalid token' : 'Driver profile not found', 401);
+      return apiError(token ? 'Link không hợp lệ hoặc đã hết hạn' : 'Tài khoản chưa được gắn với tài xế', 401);
     }
 
     // Get today's date range

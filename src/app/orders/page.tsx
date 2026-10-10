@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { DatePicker } from '@/components/ui/date-picker';
+import { Pagination } from '@/components/ui/pagination';
+import type { PaginationMeta } from '@/lib/pagination';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { useReactToPrint } from 'react-to-print';
@@ -87,12 +89,15 @@ const statusConfig = {
   },
 };
 
+const PAGE_SIZE = 20;
+
 export default function OrdersPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [selectedDriverId, setSelectedDriverId] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState('Tất cả');
   const [filterDate, setFilterDate] = useState('');
+  const [page, setPage] = useState(1);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
@@ -108,17 +113,58 @@ export default function OrdersPage() {
     contentRef: printRef,
   });
 
+  // Search is sent to the server; wait for a pause in typing.
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Filters shared by the list and the per-status counters.
+  const filterParams = useMemo(() => {
+    const params = new URLSearchParams();
+    if (selectedDriverId !== 'all') params.set('driverId', selectedDriverId);
+    if (filterDate) params.set('date', filterDate);
+    if (debouncedSearch) params.set('q', debouncedSearch);
+    return params.toString();
+  }, [selectedDriverId, filterDate, debouncedSearch]);
+
+  // Any change of filter starts again from the first page with nothing selected.
+  useEffect(() => {
+    setPage(1);
+    setSelectedOrderIds(new Set());
+  }, [filterParams, selectedStatus]);
+
   const {
-    data: orders = [],
+    data: orderPage,
     isLoading: ordersLoading,
+    isFetching: ordersFetching,
     error: ordersError,
-  } = useQuery<OrderFromAPI[]>({
-    queryKey: ['orders'],
+  } = useQuery<{ orders: OrderFromAPI[]; meta: PaginationMeta }>({
+    queryKey: ['orders', 'list', filterParams, selectedStatus, page],
     queryFn: async () => {
-      const res = await fetch(API_ENDPOINTS.ORDERS.BASE);
-      if (!res.ok) throw new Error('Không thể tải danh sách đơn hàng');
-      const json = await res.json();
-      return json?.data !== undefined ? json.data : json;
+      const params = new URLSearchParams(filterParams);
+      if (selectedStatus !== 'Tất cả') params.set('status', selectedStatus);
+      params.set('page', String(page));
+      params.set('limit', String(PAGE_SIZE));
+      const res = await fetch(`${API_ENDPOINTS.ORDERS.BASE}?${params}`);
+      const json = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(json?.error ?? 'Không thể tải danh sách đơn hàng');
+      return { orders: json.data, meta: json.meta };
+    },
+    // Keep the current rows on screen while the next page loads.
+    placeholderData: (previous) => previous,
+  });
+  const orders = useMemo(() => orderPage?.orders ?? [], [orderPage]);
+  const meta = orderPage?.meta ?? { page: 1, limit: PAGE_SIZE, total_item: 0, total_page: 0 };
+
+  const { data: statusCounts } = useQuery<{ total: number; byStatus: Record<string, number> }>({
+    queryKey: ['orders', 'counts', filterParams],
+    queryFn: async () => {
+      const res = await fetch(`${API_ENDPOINTS.ORDERS.COUNTS}?${filterParams}`);
+      const json = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(json?.error ?? 'Không thể tải danh sách đơn hàng');
+      return json.data;
     },
   });
 
@@ -193,33 +239,16 @@ export default function OrdersPage() {
     };
   });
 
-  const filteredOrders = mappedOrders.filter((order) => {
-    if (selectedDriverId === 'unassigned' && order.driverId !== null)
-      return false;
-    if (
-      selectedDriverId !== 'all' &&
-      selectedDriverId !== 'unassigned' &&
-      order.driverId !== selectedDriverId
-    )
-      return false;
-    if (selectedStatus !== 'Tất cả' && order.status !== selectedStatus)
-      return false;
-    if (
-      search &&
-      !order.customer.toLowerCase().includes(search.toLowerCase()) &&
-      !order.code.toLowerCase().includes(search.toLowerCase())
-    )
-      return false;
-    return true;
-  });
+  // Filtering, search and paging happen on the server; these are the rows of the current page.
+  const filteredOrders = mappedOrders;
 
   const counts = {
-    all: mappedOrders.length,
-    pending: mappedOrders.filter((o) => o.status === 'PENDING').length,
-    shipping: mappedOrders.filter((o) => o.status === 'SHIPPING').length,
-    delivered: mappedOrders.filter((o) => o.status === 'DELIVERED').length,
-    completed: mappedOrders.filter((o) => o.status === 'COMPLETED').length,
-    cancelled: mappedOrders.filter((o) => o.status === 'CANCELLED').length,
+    all: statusCounts?.total ?? 0,
+    pending: statusCounts?.byStatus.PENDING ?? 0,
+    shipping: statusCounts?.byStatus.SHIPPING ?? 0,
+    delivered: statusCounts?.byStatus.DELIVERED ?? 0,
+    completed: statusCounts?.byStatus.COMPLETED ?? 0,
+    cancelled: statusCounts?.byStatus.CANCELLED ?? 0,
   };
 
   const selectedOrder = selectedOrderId
@@ -373,7 +402,7 @@ export default function OrdersPage() {
               Quản Lý Đơn Hàng
             </h1>
             <p className='text-xs text-on-surface-variant mt-1'>
-              {mappedOrders.length} đơn hàng trong ca trực
+              {counts.all.toLocaleString('vi-VN')} đơn hàng
             </p>
           </div>
           <div className='flex items-center gap-3'>
@@ -643,6 +672,8 @@ export default function OrdersPage() {
               })}
             </tbody>
           </table>
+
+          <Pagination meta={meta} onPageChange={setPage} itemLabel="đơn" disabled={ordersFetching} />
 
           {filteredOrders.length === 0 && (
             <div className='py-16 text-center'>

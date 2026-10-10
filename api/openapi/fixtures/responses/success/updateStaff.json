@@ -1,0 +1,28 @@
+{
+  "operationId": "updateStaff",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/staff/{id}",
+    "as": "admin",
+    "params": {
+      "id": "cmv25e3eb0001i95gvw5pjonj"
+    },
+    "body": {
+      "name": "Nhân viên hợp đồng (đã sửa)"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "user": {
+        "id": "cmv25e3eb0001i95gvw5pjonj",
+        "name": "Nhân viên hợp đồng (đã sửa)",
+        "email": "hopdong-mv25e2cb@rubi.local",
+        "role": "STAFF",
+        "isActive": true,
+        "createdAt": "2026-10-10T08:44:10.548Z"
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "operationId": "me",
+  "request": {
+    "method": "GET",
+    "path": "/api/auth/me",
+    "as": "admin"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": {
+      "user": {
+        "id": "cmv25du660001i93m6yl4iqp9",
+        "email": "quanly@rubi.local",
+        "name": "Nguyễn Văn Chủ Xưởng",
+        "role": "ADMIN",
+        "factoryId": "factory-mien-dong",
+        "mustChangePassword": false
+      }
+    }
+  }
+}

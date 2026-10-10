@@ -1,0 +1,18 @@
+{
+  "operationId": "requestMyShift",
+  "request": {
+    "method": "POST",
+    "path": "/api/schedule/my",
+    "as": "staff",
+    "body": {
+      "shiftDate": "2026-12-15",
+      "shift": "SLOT_15_18"
+    }
+  },
+  "status": 409,
+  "body": {
+    "success": false,
+    "error": "Bảng công tháng 12/2026 đã chốt, không thể thay đổi ca. Quản lý cần mở lại bảng công trước.",
+    "code": "PAYROLL_LOCKED"
+  }
+}

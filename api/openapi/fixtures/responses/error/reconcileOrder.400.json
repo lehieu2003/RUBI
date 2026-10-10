@@ -1,0 +1,24 @@
+{
+  "operationId": "reconcileOrder",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/orders/{id}/reconcile",
+    "as": "admin",
+    "params": {
+      "id": "cmv25du9b002ai93myrr2vg5d"
+    },
+    "body": {
+      "items": [
+        {
+          "id": "dong-la",
+          "actualQty": 1
+        }
+      ]
+    }
+  },
+  "status": 400,
+  "body": {
+    "success": false,
+    "error": "Dữ liệu không hợp lệ: có dòng hàng không thuộc đơn này"
+  }
+}

@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prismaAuth } from '@/lib/db';
 import { rateLimit, getIpFromRequest } from '@/lib/rate-limit';
+import { apiSuccess, apiError } from '@/lib/api-response';
 
 // GET /api/d/[token] - Public driver share-link payload (no login).
 // Backs /d/[token]: the client reads { orders, driverName } at top level,
@@ -13,22 +14,19 @@ export async function GET(
     // Public endpoint: throttle per IP so leaked/shared links can't be scraped
     const limit = await rateLimit(`driver-link:${getIpFromRequest(request)}`, 30, 60 * 1000);
     if (!limit.success) {
-      return NextResponse.json({ error: 'Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút' }, { status: 429 });
+      return apiError('Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút', 429);
     }
 
     const { token } = await params;
     if (!token) {
-      return NextResponse.json({ error: 'Link không hợp lệ hoặc đã hết hạn' }, { status: 404 });
+      return apiError('Link không hợp lệ hoặc đã hết hạn', 404);
     }
 
     const driver = await prismaAuth.driver.findUnique({
       where: { token },
     });
     if (!driver || !driver.isActive) {
-      return NextResponse.json(
-        { error: 'Link không hợp lệ hoặc đã hết hạn' },
-        { status: 404 }
-      );
+      return apiError('Link không hợp lệ hoặc đã hết hạn', 404);
     }
 
     const date = new Date();
@@ -71,9 +69,9 @@ export async function GET(
       })),
     }));
 
-    return NextResponse.json({ orders: serialized, driverName: driver.name });
+    return apiSuccess({ orders: serialized, driverName: driver.name });
   } catch (error) {
     console.error('[GET /api/d/[token]]', error);
-    return NextResponse.json({ error: 'Không thể tải danh sách đơn hàng' }, { status: 500 });
+    return apiError('Không thể tải danh sách đơn hàng', 500);
   }
 }

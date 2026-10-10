@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
+import { orderWhere } from '@/lib/order-filters';
+import { MAX_PAGE_SIZE, paginationMeta, parsePagination } from '@/lib/pagination';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 // GET /api/orders - List orders with filters (D-06)
@@ -14,38 +16,31 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const customerId = searchParams.get('customerId');
-    const status = searchParams.get('status');
-    const date = searchParams.get('date');
-
-    const where: Record<string, unknown> = { factoryId: session.factoryId };
-
-    if (customerId) where.customerId = customerId;
-    if (status) {
-      const validStatuses = ['PENDING', 'SHIPPING', 'DELIVERED', 'COMPLETED', 'CANCELLED'];
-      if (validStatuses.includes(status)) {
-        where.status = status as 'PENDING' | 'SHIPPING' | 'DELIVERED' | 'COMPLETED' | 'CANCELLED';
-      }
+    const pageRequest = parsePagination(searchParams);
+    if (!pageRequest) {
+      return apiError(`Tham số phân trang không hợp lệ (limit tối đa ${MAX_PAGE_SIZE})`, 400);
     }
-    if (date) {
-      const startOfDay = new Date(date);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(date);
-      endOfDay.setHours(23, 59, 59, 999);
-      where.createdAt = { gte: startOfDay, lte: endOfDay };
+    const where = orderWhere(session.factoryId, searchParams);
+    if (!where) {
+      return apiError('Ngày không hợp lệ', 400);
     }
 
-    const orders = await prisma.order.findMany({
-      where,
-      include: {
-        customer: true,
-        driver: { select: { id: true, name: true } },
-        orderItems: { include: { product: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const [totalItem, orders] = await Promise.all([
+      prisma.order.count({ where }),
+      prisma.order.findMany({
+        where,
+        include: {
+          customer: true,
+          driver: { select: { id: true, name: true } },
+          orderItems: { include: { product: true } },
+        },
+        // id breaks ties so pages never overlap or skip a row
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        skip: pageRequest.skip,
+        take: pageRequest.limit,
+      }),
+    ]);
 
-    // Serialize Decimals to numbers for client compatibility
     const serialized = orders.map((order) => ({
       ...order,
       total: order.total.toNumber(),
@@ -56,7 +51,7 @@ export async function GET(request: NextRequest) {
       })),
     }));
 
-    return apiSuccess(serialized);
+    return apiSuccess(serialized, 200, paginationMeta(pageRequest, totalItem));
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[GET /api/orders]', error);
