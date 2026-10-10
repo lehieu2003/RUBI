@@ -66,6 +66,12 @@ function dueLabel(due: string | null): string {
   return new Date(due).toLocaleDateString('vi-VN');
 }
 
+/** Today's date on this device as YYYY-MM-DD (toISOString() would give the UTC date). */
+function localToday(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
 export default function AssetsPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
@@ -89,7 +95,7 @@ export default function AssetsPage() {
   const [showRecord, setShowRecord] = useState(false);
   const [recordForm, setRecordForm] = useState({
     type: 'ROUTINE' as MaintenanceType,
-    performedAt: new Date().toISOString().slice(0, 10),
+    performedAt: localToday(),
     dueAt: '',
     cost: '',
     notes: '',
@@ -205,7 +211,7 @@ export default function AssetsPage() {
       setShowRecord(false);
       setRecordForm({
         type: 'ROUTINE',
-        performedAt: new Date().toISOString().slice(0, 10),
+        performedAt: localToday(),
         dueAt: '',
         cost: '',
         notes: '',

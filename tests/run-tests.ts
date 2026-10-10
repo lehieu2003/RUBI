@@ -29,3 +29,4 @@ import './components/date-picker.test';
 import './api/vietnamese-errors.test';
 import './api/contracts.test';
 import './lib/pagination.test';
+import './lib/vietnam-time.test';

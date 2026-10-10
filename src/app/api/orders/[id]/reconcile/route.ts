@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
 import { z } from 'zod';
+import { startOfVietnamToday } from '@/lib/vietnam-time';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 const ReconcileSchema = z.object({
@@ -82,8 +83,7 @@ export async function PATCH(
       }
 
       // 5. Deduct inventory for each product (upsert daily record)
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const today = startOfVietnamToday();
 
       for (const itemInput of parsed.data.items) {
         const orderItem = order.orderItems.find(oi => oi.id === itemInput.id);

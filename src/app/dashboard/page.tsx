@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
 import { redirect } from 'next/navigation';
+import { startOfVietnamToday } from '@/lib/vietnam-time';
 
 async function getCustomers(factoryId: string) {
   return prisma.customer.findMany({
@@ -31,9 +32,19 @@ async function getOrders(factoryId: string) {
   });
 }
 
+// Every order of today, in the few fields the KPI cards and the hourly chart
+// need. The recent-orders list is capped at 50, so it cannot feed the totals:
+// the factory takes 50-100 orders a day.
+async function getTodayOrders(factoryId: string) {
+  return prisma.order.findMany({
+    where: { factoryId, createdAt: { gte: startOfVietnamToday() } },
+    select: { createdAt: true, total: true, status: true },
+    orderBy: { createdAt: 'asc' },
+  });
+}
+
 async function getInventoryStats(factoryId: string) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = startOfVietnamToday();
   const records = await prisma.inventory.findMany({
     where: {
       product: { factoryId },
@@ -57,17 +68,13 @@ async function getShellDepositStats(factoryId: string) {
 }
 
 async function getYesterdayRevenue(factoryId: string) {
-  const startOfYesterday = new Date();
-  startOfYesterday.setDate(startOfYesterday.getDate() - 1);
-  startOfYesterday.setHours(0, 0, 0, 0);
-  const endOfYesterday = new Date();
-  endOfYesterday.setDate(endOfYesterday.getDate() - 1);
-  endOfYesterday.setHours(23, 59, 59, 999);
+  const startOfToday = startOfVietnamToday();
+  const startOfYesterday = new Date(startOfToday.getTime() - 24 * 60 * 60 * 1000);
 
   const yesterdayOrders = await prisma.order.findMany({
     where: {
       factoryId,
-      createdAt: { gte: startOfYesterday, lte: endOfYesterday },
+      createdAt: { gte: startOfYesterday, lt: startOfToday },
     },
     select: { total: true },
   });
@@ -98,6 +105,7 @@ export default async function DashboardPage() {
     customers,
     products,
     orders,
+    todayOrders,
     inventoryStats,
     totalBagsOut,
     yesterdayRevenue,
@@ -106,6 +114,7 @@ export default async function DashboardPage() {
     getCustomers(session.factoryId),
     getProducts(session.factoryId),
     getOrders(session.factoryId),
+    getTodayOrders(session.factoryId),
     getInventoryStats(session.factoryId),
     getShellDepositStats(session.factoryId),
     getYesterdayRevenue(session.factoryId),
@@ -125,6 +134,7 @@ export default async function DashboardPage() {
           lineTotal: item.lineTotal.toString(),
         })),
       }))}
+      todayOrders={todayOrders.map((order) => ({ ...order, total: order.total.toNumber() }))}
       inventoryStats={inventoryStats}
       totalBagsOut={totalBagsOut}
       yesterdayRevenue={yesterdayRevenue}

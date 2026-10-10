@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma, prismaAuth } from '@/lib/db';
 import { rateLimit, getIpFromRequest } from '@/lib/rate-limit';
 import { requireRole } from '@/lib/auth/helpers';
+import { vietnamDayRange } from '@/lib/vietnam-time';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 // GET /api/driver/orders?date=YYYY-MM-DD
@@ -24,19 +25,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Get today's date range
-    const date = dateParam ? new Date(dateParam) : new Date();
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
+    // One Vietnam calendar day (today unless `date` is given).
+    const day = dateParam ? vietnamDayRange(dateParam) : vietnamDayRange();
+    if (!day) {
+      return apiError('Ngày không hợp lệ', 400);
+    }
 
-    // Fetch orders for this driver with SHIPPING or DELIVERED status
     const orders = await prisma.order.findMany({
       where: {
         factoryId: driver.factoryId,
         driverId: driver.id,
         status: { in: ['SHIPPING', 'DELIVERED'] },
-        createdAt: { gte: startOfDay, lte: endOfDay },
+        createdAt: { gte: day.start, lt: day.end },
       },
       include: {
         customer: true,

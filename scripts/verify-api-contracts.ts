@@ -345,6 +345,7 @@ async function main() {
   await call('updateOrderStatus', { params: { id: order.id }, body: { status: 'COMPLETED' }, expectError: 400 });
   await call('listDriverOrders', { as: 'driver' });
   await call('listDriverOrders', { as: 'anon', expectError: 401 });
+  await call('listDriverOrders', { as: 'driver', query: { date: '2026-02-31' }, expectError: 400 });
   const settle = { items: order.orderItems.map((item: Json) => ({ id: item.id, actualQty: item.quantity })) };
   await call('reconcileOrder', { params: { id: 'khong-ton-tai' }, body: settle, expectError: 404 });
   await call('reconcileOrder', { params: { id: order.id }, body: settle, expectError: 409 }); // still SHIPPING

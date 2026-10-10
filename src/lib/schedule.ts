@@ -1,5 +1,7 @@
 // Shared date/shift helpers for the schedule API routes.
 
+export { hourInVietnam, todayInVietnam } from './vietnam-time';
+
 export const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 export const SHIFTS = [
@@ -32,15 +34,7 @@ export function toDateOnly(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-/** Today's calendar date at the factory (Vietnam, UTC+7) as YYYY-MM-DD. */
-export function todayInVietnam(now: Date = new Date()): string {
-  return toDateOnly(new Date(now.getTime() + 7 * 60 * 60 * 1000));
-}
 
-/** Current hour (0-23) at the factory (Vietnam, UTC+7). */
-export function hourInVietnam(now: Date = new Date()): number {
-  return new Date(now.getTime() + 7 * 60 * 60 * 1000).getUTCHours();
-}
 
 /** Hour at which a slot ends: SLOT_06_09 -> 9, SLOT_21_24 -> 24. */
 export function shiftEndHour(shift: string): number {
