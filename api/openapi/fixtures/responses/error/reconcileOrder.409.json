@@ -1,0 +1,29 @@
+{
+  "operationId": "reconcileOrder",
+  "request": {
+    "method": "PATCH",
+    "path": "/api/orders/{id}/reconcile",
+    "as": "admin",
+    "params": {
+      "id": "cmv24p901002ai9rsg9576ko2"
+    },
+    "body": {
+      "items": [
+        {
+          "id": "cmv24p901002ci9rsy8r1eafj",
+          "actualQty": 10
+        },
+        {
+          "id": "cmv24p901002di9rs724i0pjq",
+          "actualQty": 5
+        }
+      ]
+    }
+  },
+  "status": 409,
+  "body": {
+    "success": false,
+    "error": "Chỉ đối soát được đơn đã giao",
+    "code": "ORDER_NOT_DELIVERED"
+  }
+}

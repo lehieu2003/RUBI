@@ -80,7 +80,7 @@ paths:
       description: |-
         Access: ADMIN.
 
-        The new account must change its password at first login. A DRIVER also gets a driver profile and share link. Manager accounts cannot be created here. 409 when the email is taken.
+        Password: at least 8 characters, letters and digits, not a well-known password. The new account must change its password at first login. A DRIVER also gets a driver profile and share link. Manager accounts cannot be created here. 409 when the email is taken.
       requestBody:
         required: true
         content:
@@ -91,13 +91,15 @@ paths:
                 name:
                   type: string
                   minLength: 1
+                  maxLength: 100
                 email:
                   type: string
                   minLength: 1
+                  format: email
+                  pattern: ^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
                 password:
                   type: string
-                  minLength: 8
-                  maxLength: 72
+                  minLength: 1
                 role:
                   type: string
                   enum:
@@ -197,8 +199,7 @@ paths:
                   type: boolean
                 password:
                   type: string
-                  minLength: 8
-                  maxLength: 72
+                  minLength: 1
                 role:
                   type: string
                   enum:
@@ -207,6 +208,7 @@ paths:
                 name:
                   type: string
                   minLength: 1
+                  maxLength: 100
               additionalProperties: false
       responses:
         "200":

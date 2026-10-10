@@ -10,6 +10,7 @@
   },
   "status": 404,
   "body": {
+    "success": false,
     "error": "Link không hợp lệ hoặc đã hết hạn"
   }
 }

@@ -5,7 +5,7 @@
     "path": "/api/customers",
     "as": "admin",
     "body": {
-      "code": "CT-mv24bomy",
+      "code": "CT-mv24penp",
       "name": "Khách kiểm tra hợp đồng",
       "address": "Đắk Nông",
       "phone": "0900000000"
@@ -15,14 +15,14 @@
   "body": {
     "success": true,
     "data": {
-      "id": "cmv24bqbf0003i9fmrdec3b4i",
-      "code": "CT-mv24bomy",
+      "id": "cmv24pglw0003i9t3ssqg3umb",
+      "code": "CT-mv24penp",
       "name": "Khách kiểm tra hợp đồng",
       "address": "Đắk Nông",
       "phone": "0900000000",
       "isActive": true,
-      "createdAt": "2026-10-10T08:14:20.667Z",
-      "updatedAt": "2026-10-10T08:14:20.667Z",
+      "createdAt": "2026-10-10T08:25:01.269Z",
+      "updatedAt": "2026-10-10T08:25:01.269Z",
       "factoryId": "factory-mien-dong"
     }
   }

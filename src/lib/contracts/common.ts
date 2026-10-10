@@ -44,12 +44,9 @@ export interface ApiContract {
 /** `{ success: true, data }` — what `apiSuccess()` produces. */
 export const envelope = <T extends z.ZodType>(data: T) => z.object({ success: z.literal(true), data });
 
-/**
- * Error body. `apiError()` sends `{ success: false, error, code? }`; the auth
- * guards and the middleware send `{ error, code? }` without `success`.
- */
+/** Error body: `{ success: false, error, code? }`, from every endpoint, guard and the middleware. */
 export const ErrorResponse = z.object({
-  success: z.literal(false).optional(),
+  success: z.literal(false),
   error: z.string(),
   code: z.string().optional(),
   details: z.unknown().optional(),
@@ -62,8 +59,6 @@ export const IsoDateTime = z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2
 export const DateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD');
 /** Calendar month, YYYY-MM */
 export const MonthOnly = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'YYYY-MM');
-/** Prisma Decimal serialised by JSON: a numeric string such as "48000" */
-export const DecimalString = z.string().regex(/^-?\d+(\.\d+)?$/, 'decimal as string');
 
 export const RoleEnum = z.enum(['ADMIN', 'STAFF', 'DRIVER']);
 export const OrderStatus = z.enum(['PENDING', 'SHIPPING', 'DELIVERED', 'COMPLETED', 'CANCELLED']);
@@ -119,10 +114,10 @@ const orderFields = {
   factoryId: Id,
 };
 
-/** Order row as stored: `total` is a Decimal, so it arrives as a string. */
-export const OrderRow = z.object({ ...orderFields, total: DecimalString }).meta({ id: 'OrderRow' });
+/** Order without its relations. */
+export const OrderRow = z.object({ ...orderFields, total: z.number() }).meta({ id: 'OrderRow' });
 
-/** Order with money converted to numbers, as the list endpoints return it. */
+/** Order with customer and items, as the list endpoints return it. */
 export const OrderWithItems = z.object({
   ...orderFields,
   total: z.number(),

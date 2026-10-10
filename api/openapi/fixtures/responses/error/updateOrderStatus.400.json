@@ -5,7 +5,7 @@
     "path": "/api/orders/{id}/status",
     "as": "admin",
     "params": {
-      "id": "cmv24bh26002ai9dhvto32gp4"
+      "id": "cmv24p901002ai9rsg9576ko2"
     },
     "body": {
       "status": "COMPLETED"

@@ -3,11 +3,11 @@ import { prisma, prismaAuth } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import { requireRole } from '@/lib/auth/helpers';
 import { validatePassword } from '@/lib/password';
+import { CreateStaffBody } from '@/lib/contracts/accounts';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 // The single manager (ADMIN) account is created with `npm run admin:create`,
-// never from the app: managers can only hand out STAFF and DRIVER accounts.
-const STAFF_ROLES = ['STAFF', 'DRIVER'] as const;
+// never from the app: the request schema only accepts STAFF and DRIVER.
 
 function createDriverSlug(name: string): string {
   const base = name
@@ -57,19 +57,15 @@ export async function POST(request: NextRequest) {
       return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
-    const { name, email, password, role } = await request.json();
-
-    if (!name || !email || !password) {
-      return apiError('Thiếu thông tin bắt buộc', 400);
+    const parsed = CreateStaffBody.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return apiError(parsed.error.issues[0]?.message ?? 'Thiếu thông tin bắt buộc', 400);
     }
+    const { name, email, password, role } = parsed.data;
 
     const policyError = validatePassword(password);
     if (policyError) {
       return apiError(policyError, 400);
-    }
-
-    if (!STAFF_ROLES.includes(role)) {
-      return apiError('Vai trò không hợp lệ', 400);
     }
 
     // Check if email exists

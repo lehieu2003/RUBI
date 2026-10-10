@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
+import { apiError } from '@/lib/api-response';
 import { getSession } from '@/lib/auth';
 
-// NOTE: These helper functions throw NextResponse objects as exceptions.
+// NOTE: These helper functions throw NextResponse objects (built by apiError) as exceptions.
 // Route handlers convert them into real responses with
 // `if (error instanceof Response) return error;` in their catch block —
 // Next.js route handlers do NOT serve a thrown Response by themselves.
@@ -10,13 +10,10 @@ import { getSession } from '@/lib/auth';
 export async function requireSession() {
   const session = await getSession();
   if (!session) {
-    throw NextResponse.json({ error: 'Chưa đăng nhập hoặc phiên đã hết hạn' }, { status: 401 });
+    throw apiError('Chưa đăng nhập hoặc phiên đã hết hạn', 401);
   }
   if (session.mustChangePassword) {
-    throw NextResponse.json(
-      { error: 'Bạn cần đổi mật khẩu trước khi tiếp tục', code: 'PASSWORD_CHANGE_REQUIRED' },
-      { status: 403 }
-    );
+    throw apiError('Bạn cần đổi mật khẩu trước khi tiếp tục', 403, 'PASSWORD_CHANGE_REQUIRED');
   }
   return session;
 }
@@ -24,7 +21,7 @@ export async function requireSession() {
 export async function requireRole(roles: string[]) {
   const session = await requireSession();
   if (!session.role || !roles.includes(session.role)) {
-    throw NextResponse.json({ error: 'Bạn không có quyền thực hiện thao tác này' }, { status: 403 });
+    throw apiError('Bạn không có quyền thực hiện thao tác này', 403);
   }
   return session;
 }
@@ -32,7 +29,7 @@ export async function requireRole(roles: string[]) {
 export async function requireFactoryId() {
   const session = await requireSession();
   if (!session.factoryId) {
-    throw NextResponse.json({ error: 'Tài khoản chưa được gán nhà máy' }, { status: 400 });
+    throw apiError('Tài khoản chưa được gán nhà máy', 400);
   }
   return session;
 }

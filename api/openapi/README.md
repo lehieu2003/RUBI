@@ -27,11 +27,11 @@ The contract of all 49 API endpoints, describing the API as it behaves today. Th
 ## Conventions
 
 - **Authentication**: the httpOnly cookie `auth_token`, or `Authorization: Bearer <JWT>`. Both carry the same 7-day JWT.
-- **Success**: `{ "success": true, "data": … }` unless an endpoint says it has no envelope.
-- **Errors**: `{ "success": false, "error": "<Vietnamese message>", "code"?: "<CODE>" }`. The role guards and the middleware send `{ "error", "code"? }` without `success`.
+- **Success**: `{ "success": true, "data": … }`. The only exception is the health probe `/api/health`.
+- **Errors**: `{ "success": false, "error": "<Vietnamese message>", "code"?: "<CODE>" }`, from every endpoint, role guard and the middleware.
 - **Password change required**: an account flagged `mustChangePassword` gets `403` with `code: "PASSWORD_CHANGE_REQUIRED"` on every endpoint outside `/api/auth/*`.
 - **Dates**: timestamps are ISO 8601 strings; calendar dates are `YYYY-MM-DD`; months are `YYYY-MM`.
-- **Money**: numbers, except where a schema says "decimal as string".
+- **Money**: always numbers (VND).
 
 ## Endpoints
 
@@ -78,7 +78,7 @@ Customers and the debt export.
 |---|---|---|---|
 | GET | `/api/customers` | ADMIN, STAFF | Active customers, ordered by name |
 | POST | `/api/customers` | ADMIN | Create a customer |
-| GET | `/api/customers/debt-export` | Any signed-in user | Customers with debt ledger and shell deposit, plus their orders of the last 6 months |
+| GET | `/api/customers/debt-export` | ADMIN | Customers with debt ledger and shell deposit, plus their orders of the last 6 months |
 
 ### [product.yaml](product.yaml)
 
@@ -104,8 +104,8 @@ Daily cold-storage stock.
 
 | Method | Path | Access | Summary |
 |---|---|---|---|
-| GET | `/api/inventory` | Any signed-in user | Today's stock per active product |
-| POST | `/api/inventory` | Any signed-in user | Set or add to today's stock of a product |
+| GET | `/api/inventory` | ADMIN | Today's stock per active product |
+| POST | `/api/inventory` | ADMIN | Set or add to today's stock of a product |
 
 ### [shell_deposit.yaml](shell_deposit.yaml)
 

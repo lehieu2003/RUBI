@@ -3,11 +3,11 @@ import { prisma } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import { requireRole } from '@/lib/auth/helpers';
 import { validatePassword } from '@/lib/password';
+import { UpdateStaffBody } from '@/lib/contracts/accounts';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 // The single manager (ADMIN) account is created with `npm run admin:create`,
-// never from the app: managers can only hand out STAFF and DRIVER accounts.
-const STAFF_ROLES = ['STAFF', 'DRIVER'] as const;
+// never from the app: the request schema only accepts STAFF and DRIVER.
 
 function createDriverSlug(name: string): string {
   const base = name
@@ -32,7 +32,11 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const body = await request.json();
+    const parsed = UpdateStaffBody.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return apiError(parsed.error.issues[0]?.message ?? 'Dữ liệu không hợp lệ', 400);
+    }
+    const body = parsed.data;
 
     // Prevent admin from modifying themselves
     if (id === session.userId) {
@@ -68,7 +72,7 @@ export async function PATCH(
     }
 
     // Update role
-    if (body.role && STAFF_ROLES.includes(body.role)) {
+    if (body.role) {
       updateData.role = body.role;
     }
 

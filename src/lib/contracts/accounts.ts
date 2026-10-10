@@ -11,6 +11,24 @@ const StaffUser = z.object({
 });
 
 const userId = z.object({ id: Id });
+const AccountRole = z.enum(['STAFF', 'DRIVER'], 'Vai trò không hợp lệ');
+
+/** Body of POST /api/staff; the route validates with this schema. */
+export const CreateStaffBody = z.object({
+  name: z.string('Thiếu thông tin bắt buộc').trim().min(1, 'Thiếu thông tin bắt buộc').max(100),
+  email: z.string('Thiếu thông tin bắt buộc').trim().min(1, 'Thiếu thông tin bắt buộc').email('Email không hợp lệ'),
+  // Strength is checked by the shared password policy (src/lib/password.ts).
+  password: z.string('Thiếu thông tin bắt buộc').min(1, 'Thiếu thông tin bắt buộc'),
+  role: AccountRole,
+});
+
+/** Body of PATCH /api/staff/{id}; the route validates with this schema. */
+export const UpdateStaffBody = z.object({
+  isActive: z.boolean().optional(),
+  password: z.string().min(1).optional(),
+  role: AccountRole.optional(),
+  name: z.string().trim().min(1, 'Tên không được để trống').max(100).optional(),
+});
 
 export const accountContracts: ApiContract[] = [
   {
@@ -30,15 +48,11 @@ export const accountContracts: ApiContract[] = [
     tag: 'Accounts',
     summary: 'Create a staff or driver account',
     auth: roles('ADMIN'),
-    body: z.object({
-      name: z.string().min(1),
-      email: z.string().min(1),
-      password: z.string().min(8).max(72),
-      role: z.enum(['STAFF', 'DRIVER']),
-    }),
+    body: CreateStaffBody,
     response: envelope(z.object({ user: StaffUser })),
     errors: [400, 401, 403, 409, 500],
     notes:
+      'Password: at least 8 characters, letters and digits, not a well-known password. ' +
       'The new account must change its password at first login. A DRIVER also gets a driver profile and share link. ' +
       'Manager accounts cannot be created here. 409 when the email is taken.',
   },
@@ -50,12 +64,7 @@ export const accountContracts: ApiContract[] = [
     summary: 'Lock/unlock, rename, change role or reset the password of an account',
     auth: roles('ADMIN'),
     params: userId,
-    body: z.object({
-      isActive: z.boolean().optional(),
-      password: z.string().min(8).max(72).optional(),
-      role: z.enum(['STAFF', 'DRIVER']).optional(),
-      name: z.string().min(1).optional(),
-    }),
+    body: UpdateStaffBody,
     response: envelope(z.object({ user: StaffUser })),
     errors: [400, 401, 403, 404, 500],
     notes:

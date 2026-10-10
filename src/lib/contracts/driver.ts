@@ -30,32 +30,32 @@ export const driverContracts: ApiContract[] = [
     summary: "Today's orders behind a driver share link",
     auth: { kind: 'custom', description: 'The share-link token in the path; no session.' },
     params: z.object({ token: z.string() }),
-    response: z.object({
-      driverName: z.string(),
-      orders: z.array(
-        z.object({
-          id: Id,
-          status: z.enum(['SHIPPING', 'DELIVERED']),
-          total: z.number(),
-          customer: z.object({
+    response: envelope(
+      z.object({
+        driverName: z.string(),
+        orders: z.array(
+          z.object({
             id: Id,
-            code: z.string(),
-            name: z.string(),
-            address: z.string(),
-            phone: z.string(),
-          }),
-          orderItems: z.array(
-            z.object({
-              quantity: z.number().int(),
-              product: z.object({ name: z.string(), sizeKg: z.number().int() }),
-            })
-          ),
-        })
-      ),
-    }),
+            status: z.enum(['SHIPPING', 'DELIVERED']),
+            total: z.number(),
+            customer: z.object({
+              id: Id,
+              code: z.string(),
+              name: z.string(),
+              address: z.string(),
+              phone: z.string(),
+            }),
+            orderItems: z.array(
+              z.object({
+                quantity: z.number().int(),
+                product: z.object({ name: z.string(), sizeKg: z.number().int() }),
+              })
+            ),
+          })
+        ),
+      })
+    ),
     errors: [404, 429, 500],
-    notes:
-      'Returned WITHOUT the `{ success, data }` envelope; errors are `{ error }`. ' +
-      'Rate limited to 30 per IP per minute.',
+    notes: 'Rate limited to 30 per IP per minute.',
   },
 ];

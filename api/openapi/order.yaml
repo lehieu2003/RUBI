@@ -192,7 +192,7 @@ paths:
       description: |-
         Access: ADMIN, STAFF.
 
-        `cancellationReason` is required when the status is CANCELLED and is stored in `notes`. COMPLETED is only reached through reconciliation. `total` comes back as a decimal string here.
+        `cancellationReason` is required when the status is CANCELLED and is stored in `notes`. COMPLETED is only reached through reconciliation.
       parameters:
         - name: id
           in: path
@@ -404,7 +404,7 @@ paths:
       description: |-
         Access: ADMIN.
 
-        Only a DELIVERED order can be reconciled. A missing order or a wrong status is reported as 500 ("Đối soát thất bại"), not 404/409. Creates a DEBT ledger entry and deducts today's inventory.
+        404 when the order does not exist; 409 `ORDER_NOT_DELIVERED` unless it is DELIVERED; 400 when a line does not belong to the order. Creates a DEBT ledger entry and deducts today's inventory.
       parameters:
         - name: id
           in: path
@@ -477,5 +477,9 @@ paths:
           $ref: ./components/responses/errors.yaml#/Unauthorized
         "403":
           $ref: ./components/responses/errors.yaml#/Forbidden
+        "404":
+          $ref: ./components/responses/errors.yaml#/NotFound
+        "409":
+          $ref: ./components/responses/errors.yaml#/Conflict
         "500":
           $ref: ./components/responses/errors.yaml#/ServerError

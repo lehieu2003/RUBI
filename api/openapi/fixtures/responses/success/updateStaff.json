@@ -5,7 +5,7 @@
     "path": "/api/staff/{id}",
     "as": "admin",
     "params": {
-      "id": "cmv24bpmx0001i9fmh7hvn2aj"
+      "id": "cmv24pftc0001i9t3hcq1qqz4"
     },
     "body": {
       "name": "Nhân viên hợp đồng (đã sửa)"
@@ -16,12 +16,12 @@
     "success": true,
     "data": {
       "user": {
-        "id": "cmv24bpmx0001i9fmh7hvn2aj",
+        "id": "cmv24pftc0001i9t3hcq1qqz4",
         "name": "Nhân viên hợp đồng (đã sửa)",
-        "email": "hopdong-mv24bomy@rubi.local",
+        "email": "hopdong-mv24penp@rubi.local",
         "role": "STAFF",
         "isActive": true,
-        "createdAt": "2026-10-10T08:14:19.786Z"
+        "createdAt": "2026-10-10T08:25:00.240Z"
       }
     }
   }

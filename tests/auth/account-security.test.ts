@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { readFileSync } from 'node:fs';
 import { validatePassword } from '../../src/lib/password';
+import { CreateStaffBody, UpdateStaffBody } from '../../src/lib/contracts/accounts';
 
 function read(path: string): string {
   return readFileSync(path, 'utf8');
@@ -63,9 +64,13 @@ describe('forced password change', () => {
 
 describe('single manager', () => {
   it('the app can only create STAFF and DRIVER accounts', () => {
-    for (const file of ['src/app/api/staff/route.ts', 'src/app/api/staff/[id]/route.ts']) {
-      assert.match(read(file), /const STAFF_ROLES = \['STAFF', 'DRIVER'\] as const/);
-    }
+    // Both routes validate with schemas whose role is limited to STAFF and DRIVER.
+    assert.match(read('src/lib/contracts/accounts.ts'), /const AccountRole = z\.enum\(\['STAFF', 'DRIVER'\]/);
+    assert.match(read('src/app/api/staff/route.ts'), /CreateStaffBody\.safeParse/);
+    assert.match(read('src/app/api/staff/[id]/route.ts'), /UpdateStaffBody\.safeParse/);
+    assert.equal(CreateStaffBody.safeParse({ name: 'A', email: 'a@rubi.vn', password: 'x', role: 'ADMIN' }).success, false);
+    assert.equal(UpdateStaffBody.safeParse({ role: 'ADMIN' }).success, false);
+    assert.equal(CreateStaffBody.safeParse({ name: 'A', email: 'a@rubi.vn', password: 'x', role: 'DRIVER' }).success, true);
     assert.doesNotMatch(read('src/app/settings/page.tsx'), /<option value="ADMIN">/);
   });
 

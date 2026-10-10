@@ -17,14 +17,14 @@ describe('driver share-link API source checks', () => {
     assert.match(route, /driverName/);
   });
 
-  it('returns top-level orders payload, not an envelope', () => {
+  it('returns the orders in the standard envelope', () => {
     const route = readFileSync(routePath, 'utf-8');
-    assert.match(route, /orders:\s*serialized/);
-    assert.doesNotMatch(route, /apiSuccess/);
+    assert.match(route, /apiSuccess\(\{ orders: serialized, driverName: driver\.name \}\)/);
+    assert.doesNotMatch(route, /NextResponse\.json/);
   });
 
   it('returns 404 for unknown token', () => {
     const route = readFileSync(routePath, 'utf-8');
-    assert.match(route, /status:\s*404/);
+    assert.match(route, /apiError\('Link không hợp lệ hoặc đã hết hạn', 404\)/);
   });
 });

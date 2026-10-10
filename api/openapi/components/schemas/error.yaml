@@ -12,5 +12,6 @@ Error:
       type: string
     details: {}
   required:
+    - success
     - error
   additionalProperties: false

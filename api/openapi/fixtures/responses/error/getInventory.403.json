@@ -1,0 +1,13 @@
+{
+  "operationId": "getInventory",
+  "request": {
+    "method": "GET",
+    "path": "/api/inventory",
+    "as": "staff"
+  },
+  "status": 403,
+  "body": {
+    "success": false,
+    "error": "Bạn không có quyền thực hiện thao tác này"
+  }
+}

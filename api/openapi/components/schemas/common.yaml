@@ -82,8 +82,7 @@ OrderRow:
       type: string
       minLength: 1
     total:
-      type: string
-      pattern: ^-?\d+(\.\d+)?$
+      type: number
   required:
     - id
     - customerId

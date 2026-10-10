@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   // 30 refreshes per IP per minute — well above the proactive app-open
   // cadence while blocking token-minting abuse.
   const ip = getIpFromRequest(req);
-  const limit = await rateLimit(ip, 30, 60 * 1000);
+  const limit = await rateLimit(`refresh:${ip}`, 30, 60 * 1000);
   if (!limit.success) {
     return apiError('Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút', 429);
   }

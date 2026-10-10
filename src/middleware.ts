@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
   if (isAppRoute && !session) {
     // For API routes, return 401 JSON instead of redirect
     if (pathname.startsWith('/api/')) {
-      return NextResponse.json({ error: 'Chưa đăng nhập hoặc phiên đã hết hạn' }, { status: 401 });
+      return NextResponse.json({ success: false, error: 'Chưa đăng nhập hoặc phiên đã hết hạn' }, { status: 401 });
     }
     const url = request.nextUrl.clone();
     url.pathname = '/login';
@@ -48,7 +48,7 @@ export async function middleware(request: NextRequest) {
     if (pathname.startsWith('/api/')) {
       if (!pathname.startsWith('/api/auth/')) {
         return NextResponse.json(
-          { error: 'Bạn cần đổi mật khẩu trước khi tiếp tục', code: 'PASSWORD_CHANGE_REQUIRED' },
+          { success: false, error: 'Bạn cần đổi mật khẩu trước khi tiếp tục', code: 'PASSWORD_CHANGE_REQUIRED' },
           { status: 403 }
         );
       }

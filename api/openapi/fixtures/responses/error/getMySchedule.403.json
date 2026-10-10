@@ -10,6 +10,7 @@
   },
   "status": 403,
   "body": {
+    "success": false,
     "error": "Bạn không có quyền thực hiện thao tác này"
   }
 }
