@@ -2,7 +2,8 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
-import { DATE_ONLY_PATTERN, SHIFTS, addDays, parseDateOnly } from '@/lib/schedule';
+import { DATE_ONLY_PATTERN, SHIFTS, addDays, monthOf, parseDateOnly } from '@/lib/schedule';
+import { rejectIfMonthLocked } from '@/lib/payroll-lock';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 const ShiftAssignmentSchema = z.object({
@@ -94,6 +95,9 @@ async function handleSaveAssignment(request: NextRequest) {
     if (!shiftDate) {
       return apiError('Ngày làm không hợp lệ', 400);
     }
+
+    const locked = await rejectIfMonthLocked(session.factoryId, [monthOf(parsed.data.shiftDate)]);
+    if (locked) return locked;
 
     const person = await prisma.user.findFirst({
       where: {

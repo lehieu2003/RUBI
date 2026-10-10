@@ -36,3 +36,24 @@ export function toDateOnly(date: Date): string {
 export function todayInVietnam(now: Date = new Date()): string {
   return toDateOnly(new Date(now.getTime() + 7 * 60 * 60 * 1000));
 }
+
+/** Current hour (0-23) at the factory (Vietnam, UTC+7). */
+export function hourInVietnam(now: Date = new Date()): number {
+  return new Date(now.getTime() + 7 * 60 * 60 * 1000).getUTCHours();
+}
+
+/** Hour at which a slot ends: SLOT_06_09 -> 9, SLOT_21_24 -> 24. */
+export function shiftEndHour(shift: string): number {
+  return Number(shift.slice(-2));
+}
+
+/** 2026-10-05 -> 2026-10 */
+export function monthOf(dateOnly: string): string {
+  return dateOnly.slice(0, 7);
+}
+
+/** 2026-10 -> 10/2026 */
+export function formatMonthVi(month: string): string {
+  const [year, value] = month.split('-');
+  return `${Number(value)}/${year}`;
+}

@@ -29,6 +29,24 @@ interface AuthUser {
   isActive: boolean;
 }
 
+const emptyFactoryForm = { name: '', phone: '', address: '', maxStaffPerShift: '', maxDriversPerShift: '' };
+
+function toFactoryForm(factory: {
+  name?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  maxStaffPerShift?: number | null;
+  maxDriversPerShift?: number | null;
+}) {
+  return {
+    name: factory.name ?? '',
+    phone: factory.phone ?? '',
+    address: factory.address ?? '',
+    maxStaffPerShift: factory.maxStaffPerShift?.toString() ?? '',
+    maxDriversPerShift: factory.maxDriversPerShift?.toString() ?? '',
+  };
+}
+
 export default function SettingsPage() {
   const { signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
@@ -47,7 +65,7 @@ export default function SettingsPage() {
   const [newRole, setNewRole] = useState<UserRole>('STAFF');
 
   // Factory profile form state
-  const [factoryForm, setFactoryForm] = useState({ name: '', phone: '', address: '' });
+  const [factoryForm, setFactoryForm] = useState(emptyFactoryForm);
   const [factoryLoaded, setFactoryLoaded] = useState(false);
   const [savingFactory, setSavingFactory] = useState(false);
 
@@ -93,7 +111,7 @@ export default function SettingsPage() {
         const json = await res.json();
         const factory = (json?.data !== undefined ? json.data : json)?.factory;
         if (factory) {
-          setFactoryForm({ name: factory.name ?? '', phone: factory.phone ?? '', address: factory.address ?? '' });
+          setFactoryForm(toFactoryForm(factory));
           setFactoryLoaded(true);
         }
       } catch (err) {
@@ -110,13 +128,20 @@ export default function SettingsPage() {
       const res = await fetch(API_ENDPOINTS.FACTORY.PROFILE, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(factoryForm),
+        body: JSON.stringify({
+          name: factoryForm.name,
+          phone: factoryForm.phone,
+          address: factoryForm.address,
+          // An empty field means no limit
+          maxStaffPerShift: factoryForm.maxStaffPerShift === '' ? null : Number(factoryForm.maxStaffPerShift),
+          maxDriversPerShift: factoryForm.maxDriversPerShift === '' ? null : Number(factoryForm.maxDriversPerShift),
+        }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error ?? 'Không thể lưu hồ sơ nhà máy');
       const factory = (json?.data !== undefined ? json.data : json)?.factory;
       if (factory) {
-        setFactoryForm({ name: factory.name ?? '', phone: factory.phone ?? '', address: factory.address ?? '' });
+        setFactoryForm(toFactoryForm(factory));
       }
       toast({ type: 'success', title: 'Đã lưu hồ sơ nhà máy' });
     } catch (err) {
@@ -219,6 +244,43 @@ export default function SettingsPage() {
                       onChange={(e) => setFactoryForm((prev) => ({ ...prev, address: e.target.value }))}
                       className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] focus:outline-none"
                     />
+                  </div>
+
+                  <div className="border-t border-outline-soft pt-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Giới hạn tự đăng ký ca</p>
+                    <p className="mt-1 text-xs text-faint">
+                      Số người tối đa được tự đăng ký vào một ca 3 tiếng. Để trống là không giới hạn. Quản lý vẫn gán thêm được.
+                    </p>
+                    <div className="mt-3 grid grid-cols-2 gap-3">
+                      <div>
+                        <label htmlFor="factory-max-staff" className="block text-xs font-bold text-on-surface-variant mb-1">Nhân viên mỗi ca</label>
+                        <input
+                          id="factory-max-staff"
+                          type="number"
+                          min={1}
+                          max={100}
+                          inputMode="numeric"
+                          placeholder="Không giới hạn"
+                          value={factoryForm.maxStaffPerShift}
+                          onChange={(e) => setFactoryForm((prev) => ({ ...prev, maxStaffPerShift: e.target.value }))}
+                          className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="factory-max-drivers" className="block text-xs font-bold text-on-surface-variant mb-1">Tài xế mỗi ca</label>
+                        <input
+                          id="factory-max-drivers"
+                          type="number"
+                          min={1}
+                          max={100}
+                          inputMode="numeric"
+                          placeholder="Không giới hạn"
+                          value={factoryForm.maxDriversPerShift}
+                          onChange={(e) => setFactoryForm((prev) => ({ ...prev, maxDriversPerShift: e.target.value }))}
+                          className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] focus:outline-none"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <button

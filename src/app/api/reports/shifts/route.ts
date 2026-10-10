@@ -78,7 +78,12 @@ export async function GET(request: NextRequest) {
       }))
       .sort((a, b) => a.role.localeCompare(b.role) || a.name.localeCompare(b.name, 'vi'));
 
-    return apiSuccess({ month, shiftHours: SHIFT_HOURS, people });
+    const lock = await prisma.payrollLock.findUnique({
+      where: { factoryId_month: { factoryId: session.factoryId, month } },
+      select: { lockedAt: true },
+    });
+
+    return apiSuccess({ month, shiftHours: SHIFT_HOURS, lockedAt: lock?.lockedAt ?? null, people });
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[GET /api/reports/shifts]', error);

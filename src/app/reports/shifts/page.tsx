@@ -1,7 +1,8 @@
 'use client';
 
 import { Fragment, useCallback, useEffect, useState } from 'react';
-import { AlertCircle, ChevronDown, ChevronRight, Download, Loader2 } from 'lucide-react';
+import { AlertCircle, ChevronDown, ChevronRight, Download, Loader2, Lock, LockOpen } from 'lucide-react';
+import { toast } from '@/components/dashboard/toast';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
 import { exportToCSV } from '@/lib/export-excel';
@@ -37,6 +38,8 @@ export default function ShiftReportPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [lockedAt, setLockedAt] = useState<string | null>(null);
+  const [locking, setLocking] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -47,6 +50,7 @@ export default function ShiftReportPage() {
       if (!response.ok) throw new Error(payload?.error ?? 'Không thể tải bảng công');
       const data = payload?.data !== undefined ? payload.data : payload;
       setPeople(Array.isArray(data?.people) ? data.people : []);
+      setLockedAt(data?.lockedAt ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Không thể tải bảng công');
     } finally {
@@ -60,6 +64,30 @@ export default function ShiftReportPage() {
 
   const totalShifts = people.reduce((sum, person) => sum + person.approvedShifts, 0);
   const totalPending = people.reduce((sum, person) => sum + person.pendingShifts, 0);
+
+  const setLocked = async (locked: boolean) => {
+    setLocking(true);
+    try {
+      const response = await fetch(API_ENDPOINTS.REPORTS.SHIFTS_LOCK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ month, locked }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error ?? 'Không thể chốt bảng công');
+      const data = payload?.data !== undefined ? payload.data : payload;
+      setLockedAt(data?.lockedAt ?? null);
+      toast({ type: 'success', title: locked ? 'Đã chốt bảng công' : 'Đã mở lại bảng công' });
+    } catch (err) {
+      toast({
+        type: 'error',
+        title: locked ? 'Chưa chốt được bảng công' : 'Chưa mở lại được bảng công',
+        message: err instanceof Error ? err.message : 'Đã xảy ra lỗi',
+      });
+    } finally {
+      setLocking(false);
+    }
+  };
 
   const exportSummary = () =>
     exportToCSV(
@@ -124,6 +152,44 @@ export default function ShiftReportPage() {
             </button>
           </div>
         </div>
+
+        {!loading && !error && (
+          <div
+            className={`mb-4 flex flex-col gap-3 rounded border px-4 py-3 sm:flex-row sm:items-center sm:justify-between ${
+              lockedAt ? 'border-secondary/40 bg-[#a0f399]/20' : 'border-outline-variant bg-card'
+            }`}
+          >
+            <p className="flex items-start gap-2 text-xs text-on-surface">
+              {lockedAt ? <Lock className="mt-0.5 h-4 w-4 shrink-0 text-secondary" /> : <LockOpen className="mt-0.5 h-4 w-4 shrink-0 text-on-surface-variant" />}
+              <span>
+                {lockedAt ? (
+                  <>
+                    <span className="font-bold text-secondary">Đã chốt bảng công</span> lúc{' '}
+                    {new Date(lockedAt).toLocaleString('vi-VN')}. Không ai sửa được ca của tháng này cho tới khi mở lại.
+                  </>
+                ) : (
+                  <>
+                    <span className="font-bold">Chưa chốt.</span> Ca trong tháng vẫn có thể thay đổi. Chốt bảng công khi đã
+                    duyệt xong để khoá số liệu tính lương.
+                  </>
+                )}
+              </span>
+            </p>
+            <button
+              type="button"
+              disabled={locking}
+              onClick={() => void setLocked(!lockedAt)}
+              className={`flex shrink-0 items-center justify-center gap-1.5 rounded px-3.5 py-2 text-xs font-bold transition-colors disabled:opacity-50 ${
+                lockedAt
+                  ? 'border border-outline-variant bg-card text-primary-deep hover:bg-container-high'
+                  : 'bg-[#004a99] text-white hover:bg-[#00346f]'
+              }`}
+            >
+              {lockedAt ? <LockOpen className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+              {lockedAt ? 'MỞ LẠI BẢNG CÔNG' : 'CHỐT BẢNG CÔNG'}
+            </button>
+          </div>
+        )}
 
         {totalPending > 0 && (
           <div className="mb-4 rounded border border-tertiary-container/40 bg-tertiary-fixed/40 px-4 py-3 text-xs text-on-surface">

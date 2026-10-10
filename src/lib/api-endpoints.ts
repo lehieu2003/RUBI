@@ -80,6 +80,7 @@ export const API_ENDPOINTS = {
   REPORTS: {
     DEBT: '/api/reports/debt',
     SHIFTS: '/api/reports/shifts',
+    SHIFTS_LOCK: '/api/reports/shifts/lock',
   },
 } as const;
 

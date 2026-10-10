@@ -50,6 +50,9 @@ export default function MySchedulePage() {
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [myId, setMyId] = useState<string | null>(null);
   const [today, setToday] = useState(() => toDateOnly(new Date()));
+  const [currentHour, setCurrentHour] = useState(() => new Date().getHours());
+  const [limits, setLimits] = useState<{ STAFF: number | null; DRIVER: number | null }>({ STAFF: null, DRIVER: null });
+  const [lockedMonths, setLockedMonths] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [savingKey, setSavingKey] = useState<string | null>(null);
@@ -71,6 +74,9 @@ export default function MySchedulePage() {
       setTeam(Array.isArray(data?.people) ? data.people : []);
       setMyId(data?.userId ?? null);
       if (data?.today) setToday(data.today);
+      if (typeof data?.currentHour === 'number') setCurrentHour(data.currentHour);
+      if (data?.limits) setLimits(data.limits);
+      setLockedMonths(Array.isArray(data?.lockedMonths) ? data.lockedMonths : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Không thể tải lịch');
     } finally {
@@ -82,7 +88,9 @@ export default function MySchedulePage() {
     void load();
   }, [load]);
 
-  const myShifts = team.find((member) => member.id === myId)?.shifts ?? [];
+  const me = team.find((member) => member.id === myId);
+  const myShifts = me?.shifts ?? [];
+  const myLimit = me ? limits[me.role] : null;
   const myCount = (status: ShiftStatus) => myShifts.filter((item) => item.status === status).length;
 
   const toggleShift = async (shiftDate: string, shift: Shift, current?: ShiftStatus) => {
@@ -198,6 +206,7 @@ export default function MySchedulePage() {
           <div className="space-y-3">
             {weekDates.map((shiftDate, dayIndex) => {
               const isPast = shiftDate < today;
+              const isLocked = lockedMonths.includes(shiftDate.slice(0, 7));
               return (
                 <section
                   key={shiftDate}
@@ -209,6 +218,7 @@ export default function MySchedulePage() {
                       <span className="rounded bg-[#004a99] px-1.5 py-0.5 text-[10px] font-bold uppercase text-white">Hôm nay</span>
                     )}
                     {isPast && <span className="text-[11px] font-medium text-faint">Đã qua</span>}
+                    {isLocked && <span className="text-[11px] font-bold text-secondary">Đã chốt bảng công</span>}
                   </h2>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {shiftSlots.map((slot) => {
@@ -219,11 +229,15 @@ export default function MySchedulePage() {
                           member.shifts.some((item) => item.shiftDate === shiftDate && item.shift === slot.value)
                       );
                       const key = `${shiftDate}:${slot.value}`;
+                      // Slots of today that have already ended cannot be registered any more.
+                      const ended = shiftDate === today && Number(slot.value.slice(-2)) <= currentHour;
+                      const sameRole = others.filter((member) => member.role === me?.role).length;
+                      const full = !mine && myLimit != null && sameRole >= myLimit;
                       return (
                         <button
                           key={slot.value}
                           type="button"
-                          disabled={isPast || savingKey !== null}
+                          disabled={isPast || isLocked || ended || full || savingKey !== null}
                           onClick={() => void toggleShift(shiftDate, slot.value, mine?.status)}
                           className={`min-h-[64px] rounded border px-2 py-1.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                             mine ? statusStyle[mine.status] : 'border-outline-variant bg-surface text-on-surface hover:border-primary-accent'
@@ -234,7 +248,9 @@ export default function MySchedulePage() {
                             <span className="font-mono">{slot.time}</span>
                             {savingKey === key && <Loader2 className="h-3 w-3 animate-spin" />}
                           </span>
-                          <span className="mt-0.5 block text-[11px] font-bold">{mine ? statusLabel[mine.status] : slot.label}</span>
+                          <span className="mt-0.5 block text-[11px] font-bold">
+                            {mine ? statusLabel[mine.status] : ended ? 'Đã qua giờ' : full ? 'Đã đủ người' : slot.label}
+                          </span>
                           <span
                             className="block truncate text-[10px] font-medium opacity-80"
                             title={others.map((member) => member.name).join(', ')}

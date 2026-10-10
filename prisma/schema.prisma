@@ -13,6 +13,9 @@ model Factory {
   name      String
   phone     String?
   address   String?
+  // Self-registration limits per 3-hour shift; null = no limit
+  maxStaffPerShift   Int? @map("max_staff_per_shift")
+  maxDriversPerShift Int? @map("max_drivers_per_shift")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   users         User[]
@@ -23,8 +26,22 @@ model Factory {
   scheduleAssignments ScheduleAssignment[]
   assets             Asset[]
   maintenanceRecords MaintenanceRecord[]
+  payrollLocks       PayrollLock[]
 
   @@map("factories")
+}
+
+// A closed payroll month: its shifts can no longer be changed by anyone
+// until the manager reopens it.
+model PayrollLock {
+  id        String   @id @default(cuid())
+  factoryId String   @map("factory_id")
+  month     String   // YYYY-MM
+  lockedAt  DateTime @default(now()) @map("locked_at")
+  factory   Factory  @relation(fields: [factoryId], references: [id])
+
+  @@unique([factoryId, month])
+  @@map("payroll_locks")
 }
 
 model User {

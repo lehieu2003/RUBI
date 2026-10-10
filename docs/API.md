@@ -83,6 +83,7 @@ JWT signing and verification uses `JWT_SECRET` from environment variables.
 | GET | `/api/schedule/my?week=YYYY-MM-DD` | Team schedule for the week, with the caller's own requests | Staff, Driver |
 | POST | `/api/schedule/my` | Request a shift for yourself (`shiftDate`, `shift`); created as `PENDING` | Staff, Driver |
 | DELETE | `/api/schedule/my` | Withdraw your own pending or rejected request | Staff, Driver |
+| POST | `/api/reports/shifts/lock` | Close or reopen a payroll month (`month`, `locked`) | Admin only |
 | GET | `/api/staff` | List all staff members | Admin only |
 | POST | `/api/staff` | Create new staff member | Admin only |
 | PATCH | `/api/staff/[id]` | Update staff member | Admin only |
