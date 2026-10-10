@@ -28,18 +28,22 @@ export const shellDepositContracts: ApiContract[] = [
     method: 'PATCH',
     path: '/api/deposits/shells',
     tag: 'Shell deposits',
-    summary: "Add shells handed out or returned to a customer's balance",
+    summary: "Add shells handed out or returned to a customer's balance, or correct the totals",
     auth: roles('ADMIN'),
     body: z.object({
       customerId: Id,
       shellsOut: z.number().int().min(0).optional(),
       shellsIn: z.number().int().min(0).optional(),
+      mode: z.enum(['ADD', 'SET']).optional(),
       notes: z.string().optional(),
     }),
     response: envelope(
       Success.extend({ customerId: Id, shellsOut: z.number().int(), shellsIn: z.number().int() })
     ),
     errors: [400, 401, 403, 404, 500],
-    notes: 'The numbers are increments, and the response echoes the increments sent, not the new balance.',
+    notes:
+      'By default (`mode: "ADD"` or omitted) the numbers are increments. With `mode: "SET"` they replace both totals, ' +
+      'to correct a mistyped entry; both `shellsOut` and `shellsIn` are then required (400 otherwise). ' +
+      'The response echoes the numbers sent, not the new balance.',
   },
 ];
