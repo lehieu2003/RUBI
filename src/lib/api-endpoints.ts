@@ -39,6 +39,7 @@ export const API_ENDPOINTS = {
   // Products & Pricing
   PRODUCTS: {
     BASE: '/api/products',
+    BY_ID: (id: string) => `/api/products/${id}`,
   },
   INVENTORY: {
     BASE: '/api/inventory',

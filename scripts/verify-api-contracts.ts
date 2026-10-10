@@ -303,6 +303,16 @@ async function main() {
   await call('exportCustomerDebt', { as: 'staff', expectError: 403 });
   const products = data(await call('listProducts', { as: 'staff' }));
   await call('setGlobalPrice', { body: { productId: products[0].id, price: 12000 } });
+
+  // ---- Products: the manager adds, edits and discontinues ----
+  const newProduct = data(await call('createProduct', { body: { name: `Đá Thử ${unique}`, sizeKg: 7, price: 9000 } }));
+  await call('createProduct', { body: { name: `đá thử ${unique}`, sizeKg: 7, price: 9000 }, expectError: 409 });
+  await call('createProduct', { body: { name: 'Thiếu giá', sizeKg: 7 }, expectError: 400 });
+  await call('createProduct', { as: 'staff', body: { name: 'Không được phép', sizeKg: 7, price: 9000 }, expectError: 403 });
+  await call('updateProduct', { params: { id: newProduct.id }, body: { unit: 'Túi', sizeKg: 8, isActive: false } });
+  await call('updateProduct', { params: { id: 'khong-ton-tai' }, body: { unit: 'Túi' }, expectError: 404 });
+  // The seeded Đá Bi 5kg already has orders: its size is fixed.
+  await call('updateProduct', { params: { id: 'prod-bi-5' }, body: { sizeKg: 6 }, expectError: 409 });
   await call('setCustomerPrice', { body: { customerId: customer.id, productId: products[0].id, price: 11000 } });
   await call('removeCustomerPrice', { query: { customerId: customer.id, productId: products[0].id } });
   await call('getInventory');
