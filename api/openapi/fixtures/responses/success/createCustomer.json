@@ -5,7 +5,7 @@
     "path": "/api/customers",
     "as": "admin",
     "body": {
-      "code": "CT-mv2hjhrd",
+      "code": "CT-mv2itgnv",
       "name": "Khách kiểm tra hợp đồng",
       "address": "Đắk Nông",
       "phone": "0900000000"
@@ -15,14 +15,14 @@
   "body": {
     "success": true,
     "data": {
-      "id": "cmv2hjihw0003i939v0asg30l",
-      "code": "CT-mv2hjhrd",
+      "id": "cmv2ith9m0003i9c4vktsiw8v",
+      "code": "CT-mv2itgnv",
       "name": "Khách kiểm tra hợp đồng",
       "address": "Đắk Nông",
       "phone": "0900000000",
       "isActive": true,
-      "createdAt": "2026-10-10T14:24:18.788Z",
-      "updatedAt": "2026-10-10T14:24:18.788Z",
+      "createdAt": "2026-10-10T15:00:03.370Z",
+      "updatedAt": "2026-10-10T15:00:03.370Z",
       "factoryId": "factory-mien-dong"
     }
   }

@@ -5,7 +5,7 @@
     "path": "/api/customers/{id}/ledger",
     "as": "admin",
     "params": {
-      "id": "cmv2hj5cm001hi901v0pw6xie"
+      "id": "cmv2itfkz001hi9c2mkffopbj"
     },
     "query": {
       "limit": "999"

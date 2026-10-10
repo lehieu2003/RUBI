@@ -6,6 +6,8 @@ import type { Product } from '@prisma/client';
 interface OrderMatrixProps {
   products: Product[];
   prices: Record<string, number>;
+  /** Units still sellable per product; a product without a figure shows none */
+  stock?: Record<string, number>;
   values: Map<string, number>;
   onChange: (productId: string, quantity: number) => void;
   onConfirm: () => void;
@@ -32,6 +34,7 @@ function buildGrid(products: Product[]) {
 export function OrderMatrix({
   products,
   prices,
+  stock = {},
   values,
   onChange,
   onConfirm,
@@ -90,6 +93,8 @@ export function OrderMatrix({
                 const price = prices[product.id] ?? 0;
                 const qty = values.get(product.id) ?? 0;
                 const lineTotal = qty * price;
+                const left = stock[product.id];
+                const short = left !== undefined && (left <= 0 || qty > left);
                 const isFirst = product.id === firstProductId;
 
                 return (
@@ -113,6 +118,14 @@ export function OrderMatrix({
                       <span className="text-[11px] font-mono text-faint">
                         {price > 0 ? `${price.toLocaleString('vi-VN')}đ` : 'Chưa có giá'}
                       </span>
+                      {left !== undefined && (
+                        <span
+                          className={'text-[11px] font-mono ' + (short ? 'font-bold text-error' : 'text-on-surface-variant')}
+                          title="Tồn kho trên sổ trừ các đơn chưa đối soát"
+                        >
+                          Còn {left.toLocaleString('vi-VN')}
+                        </span>
+                      )}
                       {lineTotal > 0 && (
                         <span className="text-xs font-bold text-secondary font-mono">
                           {lineTotal.toLocaleString('vi-VN')}đ

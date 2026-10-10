@@ -5,13 +5,13 @@
     "path": "/api/customers",
     "as": "admin",
     "body": {
-      "code": "CT-mv2hjhrd",
+      "code": "CT-mv2itgnv",
       "name": "Trùng mã"
     }
   },
   "status": 409,
   "body": {
     "success": false,
-    "error": "Mã khách hàng \"CT-mv2hjhrd\" đã tồn tại"
+    "error": "Mã khách hàng \"CT-mv2itgnv\" đã tồn tại"
   }
 }

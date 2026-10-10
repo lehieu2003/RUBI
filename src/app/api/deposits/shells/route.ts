@@ -8,6 +8,9 @@ const ShellDepositSchema = z.object({
   customerId: z.string(),
   shellsOut: z.number().int().min(0).optional(),
   shellsIn: z.number().int().min(0).optional(),
+  // ADD (default) records shells handed out or returned; SET corrects a
+  // mistyped total by replacing both counts.
+  mode: z.enum(['ADD', 'SET']).optional(),
   notes: z.string().optional(),
 });
 
@@ -67,7 +70,10 @@ export async function PATCH(request: NextRequest) {
       return apiError('Dữ liệu không hợp lệ', 400);
     }
 
-    const { customerId, shellsOut, shellsIn } = parsed.data;
+    const { customerId, shellsOut, shellsIn, mode } = parsed.data;
+    if (mode === 'SET' && (shellsOut === undefined || shellsIn === undefined)) {
+      return apiError('Sửa số vỏ cần cả số vỏ trả ra và số vỏ thu về', 400);
+    }
 
     // Verify customer exists
     const customer = await prisma.customer.findFirst({
@@ -85,10 +91,13 @@ export async function PATCH(request: NextRequest) {
         shellsIn: shellsIn ?? 0,
         depositPerShell: 50000, // Default 50,000 VND per D-09
       },
-      update: {
-        shellsOut: { increment: shellsOut ?? 0 },
-        shellsIn: { increment: shellsIn ?? 0 },
-      },
+      update:
+        mode === 'SET'
+          ? { shellsOut, shellsIn }
+          : {
+              shellsOut: { increment: shellsOut ?? 0 },
+              shellsIn: { increment: shellsIn ?? 0 },
+            },
     });
 
     return apiSuccess({

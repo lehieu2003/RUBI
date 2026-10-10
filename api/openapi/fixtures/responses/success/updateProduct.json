@@ -5,7 +5,7 @@
     "path": "/api/products/{id}",
     "as": "admin",
     "params": {
-      "id": "cmv2hjijj0007i939fl4s12hv"
+      "id": "cmv2ithax0007i9c4wayxh36v"
     },
     "body": {
       "unit": "Túi",
@@ -17,13 +17,13 @@
   "body": {
     "success": true,
     "data": {
-      "id": "cmv2hjijj0007i939fl4s12hv",
-      "name": "Đá Thử mv2hjhrd",
+      "id": "cmv2ithax0007i9c4wayxh36v",
+      "name": "Đá Thử mv2itgnv",
       "sizeKg": 8,
       "unit": "Túi",
       "isActive": false,
-      "createdAt": "2026-10-10T14:24:18.848Z",
-      "updatedAt": "2026-10-10T14:24:18.878Z",
+      "createdAt": "2026-10-10T15:00:03.417Z",
+      "updatedAt": "2026-10-10T15:00:03.439Z",
       "factoryId": "factory-mien-dong"
     }
   }
