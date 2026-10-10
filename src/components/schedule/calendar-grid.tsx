@@ -10,15 +10,20 @@ export type Shift =
   | 'SLOT_18_21'
   | 'SLOT_21_24';
 export type ScheduleRole = 'STAFF' | 'DRIVER';
+export type ShiftStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export type ScheduleShift = {
+  id?: string;
+  shiftDate: string;
+  shift: Shift;
+  status?: ShiftStatus;
+};
 
 export type SchedulePerson = {
   id: string;
   name: string;
   role: ScheduleRole;
-  shifts: Array<{
-    shiftDate: string;
-    shift: Shift;
-  }>;
+  shifts: ScheduleShift[];
 };
 
 export const dayLabels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
@@ -94,9 +99,10 @@ type CalendarGridProps = {
   pendingCell: string | null;
   onAssign: (userId: string, shiftDate: string, shift: Shift) => void;
   onRemove: (userId: string, shiftDate: string, shift: Shift) => void;
+  onReview?: (assignmentId: string, action: 'APPROVE' | 'REJECT') => void;
 };
 
-export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemove }: CalendarGridProps) {
+export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemove, onReview }: CalendarGridProps) {
   return (
     <div className="overflow-x-auto rounded border border-outline-variant bg-card shadow-sm">
       <div className="grid min-w-[920px] grid-cols-8">
@@ -135,14 +141,18 @@ export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemov
               <span className="mt-0.5 text-[10px] font-mono text-on-surface-variant">{slot.time}</span>
             </div>
             {weekDates.map((shiftDate) => {
-              const assignedPeople = people.filter((person) =>
-                person.shifts.some((assignment) => assignment.shiftDate === shiftDate && assignment.shift === slot.value)
-              );
-              const availablePeople = people.filter((person) =>
-                !person.shifts.some((assignment) => assignment.shiftDate === shiftDate && assignment.shift === slot.value)
-              );
+              // Rejected requests leave the person free to be assigned by the manager.
+              const cellShift = (person: SchedulePerson) =>
+                person.shifts.find(
+                  (assignment) =>
+                    assignment.shiftDate === shiftDate &&
+                    assignment.shift === slot.value &&
+                    assignment.status !== 'REJECTED'
+                );
+              const assignedPeople = people.filter((person) => cellShift(person));
+              const availablePeople = people.filter((person) => !cellShift(person));
               const cellKey = `${slot.value}:${shiftDate}`;
-              const isPending = pendingCell === cellKey || pendingCell === `REMOVE:${shiftDate}`;
+              const isPending = pendingCell === 'REVIEWING' || pendingCell === cellKey || pendingCell === `REMOVE:${shiftDate}`;
 
               return (
                 <div
@@ -150,28 +160,58 @@ export function CalendarGrid({ people, weekDates, pendingCell, onAssign, onRemov
                   className="min-h-24 border-r border-t border-outline-soft bg-card p-1.5 hover:bg-surface transition-colors"
                 >
                   <div className="space-y-1.5">
-                    {assignedPeople.map((person) => (
+                    {assignedPeople.map((person) => {
+                      const assignment = cellShift(person);
+                      const awaitingReview = assignment?.status === 'PENDING';
+                      return (
                       <div
                         key={person.id}
-                        className="flex items-center justify-between gap-1.5 rounded border border-outline-variant bg-container-low px-2 py-1 shadow-2xs"
+                        className={`flex items-center justify-between gap-1.5 rounded border px-2 py-1 shadow-2xs ${
+                          awaitingReview
+                            ? 'border-dashed border-tertiary-container bg-tertiary-fixed/40'
+                            : 'border-outline-variant bg-container-low'
+                        }`}
                       >
                         <div className="min-w-0" title={person.name}>
                           <span className="block truncate text-xs font-bold text-on-surface">{person.name}</span>
                           <span className={`inline-flex rounded px-1 text-[10px] font-bold ${person.role === 'DRIVER' ? 'bg-[#a0f399]/40 text-secondary' : 'bg-container-high text-primary-accent'}`}>
                             {getRoleLabel(person.role)}
                           </span>
+                          {awaitingReview && (
+                            <span className="ml-1 text-[10px] font-bold text-tertiary-container">Chờ duyệt</span>
+                          )}
                         </div>
+                        {awaitingReview && assignment?.id && onReview && (
+                          <button
+                            type="button"
+                            disabled={isPending}
+                            onClick={() => onReview(assignment.id!, 'APPROVE')}
+                            className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-[#a0f399]/50 text-secondary text-xs font-bold hover:bg-[#a0f399] transition-colors disabled:opacity-50"
+                            aria-label={`Duyệt ca ${slot.label} ${shiftDate} của ${person.name}`}
+                          >
+                            ✓
+                          </button>
+                        )}
                         <button
                           type="button"
                           disabled={isPending}
-                          onClick={() => onRemove(person.id, shiftDate, slot.value)}
-                          className="flex h-4 w-4 shrink-0 items-center justify-center rounded text-faint hover:bg-error-container hover:text-error transition-colors disabled:opacity-50"
-                          aria-label={`Bỏ ${person.name} khỏi ca ${slot.label} ${shiftDate}`}
+                          onClick={() =>
+                            awaitingReview && assignment?.id && onReview
+                              ? onReview(assignment.id, 'REJECT')
+                              : onRemove(person.id, shiftDate, slot.value)
+                          }
+                          className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-faint hover:bg-error-container hover:text-error transition-colors disabled:opacity-50"
+                          aria-label={
+                            awaitingReview
+                              ? `Từ chối ca ${slot.label} ${shiftDate} của ${person.name}`
+                              : `Bỏ ${person.name} khỏi ca ${slot.label} ${shiftDate}`
+                          }
                         >
                           ×
                         </button>
                       </div>
-                    ))}
+                      );
+                    })}
 
                     <select
                       value=""

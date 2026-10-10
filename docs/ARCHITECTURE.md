@@ -130,8 +130,10 @@ PENDING → SHIPPING → DELIVERED → COMPLETED
 
 Role-based access control protecting app routes:
 - `ADMIN` (Quản lý): every office route — `/settle`, `/inventory`, `/vehicles`, `/assets`, `/schedule`, `/reports/debt`, `/deposits/shells`, `/settings`, `/config/prices` are ADMIN-only
-- `STAFF` (Nhân viên): `/dashboard`, `/orders`, `/customers`
-- `DRIVER` (Tài xế): `/driver`
+- `STAFF` (Nhân viên): `/dashboard`, `/orders`, `/customers`, `/my-schedule`
+- `DRIVER` (Tài xế): `/driver`, `/my-schedule`
+
+Shift scheduling: a `ScheduleAssignment` has a `status`. Staff and drivers create their own as `PENDING` at `/my-schedule`; the manager approves or rejects them on `/schedule` (shifts the manager assigns are `APPROVED` directly). Only `APPROVED` shifts are counted by the monthly shift report at `/reports/shifts`.
 - Unauthenticated API requests return 401 JSON
 
 ## Directory Structure

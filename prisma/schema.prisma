@@ -139,6 +139,8 @@ model ScheduleAssignment {
   userId    String   @map("user_id")
   shiftDate DateTime @map("shift_date") @db.Date
   shift     Shift
+  status    ShiftStatus @default(APPROVED)
+  reviewedAt DateTime? @map("reviewed_at")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   factory   Factory  @relation(fields: [factoryId], references: [id])
@@ -237,6 +239,14 @@ enum OrderStatus {
   DELIVERED
   COMPLETED
   CANCELLED
+}
+
+// PENDING: requested by the person, waiting for the manager.
+// Only APPROVED shifts count towards the shift report.
+enum ShiftStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum Shift {

@@ -69,6 +69,8 @@ export const API_ENDPOINTS = {
   // Schedule & Shifts
   SCHEDULE: {
     ASSIGNMENTS: '/api/schedule/assignments',
+    MY: '/api/schedule/my',
+    REVIEW: '/api/schedule/review',
   },
 
   // Deposits (Vỏ bao)
@@ -79,6 +81,7 @@ export const API_ENDPOINTS = {
   // Reports
   REPORTS: {
     DEBT: '/api/reports/debt',
+    SHIFTS: '/api/reports/shifts',
   },
 } as const;
 
