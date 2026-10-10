@@ -1,7 +1,7 @@
 <!-- generated-by: gsd-doc-writer -->
-# IceFlow SaaS
+# IceFlow — Nhà máy đá tinh khiết Rubi
 
-Web-based order and inventory management system for ice factories. Replaces pen-and-paper/Zalo workflows with fast digital order entry, printed delivery slips, and automated inventory/debt tracking for small-to-medium ice factory operations.
+Web-based order and inventory management system for a single ice factory (Nhà máy đá tinh khiết Rubi). Replaces pen-and-paper/Zalo workflows with fast digital order entry, printed delivery slips, and automated inventory/debt tracking for small-to-medium ice factory operations.
 
 ## Quick Start
 
@@ -13,9 +13,10 @@ npm install
 cp .env.example .env
 # Edit .env with your Supabase project credentials
 
-# Initialize database
-npm run db:push
-npm run db:seed
+# Initialize database (applies prisma/migrations)
+npm run db:deploy
+npm run admin:create   # create the manager account (asks for email and password)
+# npm run db:seed      # demo data instead, local databases only
 
 # Start development server
 npm run dev
@@ -40,7 +41,7 @@ postgresql://iceflow:iceflow@localhost:5432/iceflow?schema=public
 Run Prisma commands inside the app container when using Docker:
 
 ```bash
-docker compose exec app npm run db:push
+docker compose exec app npm run db:deploy
 docker compose exec app npm run db:seed
 ```
 
@@ -59,7 +60,7 @@ docker compose exec app npm run db:seed
 - **Driver Delivery View**: Mobile-friendly read-only view for drivers to confirm deliveries
 - **Customer Management**: Track customer pricing and debt
 - **Inventory Tracking**: Monitor stock levels
-- **Settlement**: End-of-day reconciliation for accountants
+- **Settlement**: End-of-day reconciliation by the manager
 - **Print Support**: Print delivery slips directly from the browser
 
 ## Project Structure
@@ -68,7 +69,7 @@ docker compose exec app npm run db:seed
 src/
   app/              # Next.js App Router pages and API routes
     api/            # REST API endpoints
-    (auth)/         # Authentication pages (login, register)
+    (auth)/         # Authentication pages (login)
     dashboard/      # Main dashboard
     orders/         # Order management
     customers/      # Customer management
@@ -111,16 +112,19 @@ Configure your `.env` file with the following Supabase credentials:
 | `npm run lint` | Run ESLint |
 | `npm run typecheck` | Run TypeScript without emitting files |
 | `npm run db:generate` | Generate Prisma client |
-| `npm run db:push` | Push schema to database |
-| `npm run db:migrate` | Run database migrations |
-| `npm run db:seed` | Seed database with initial data |
+| `npm run db:migrate` | Create a migration from schema changes and apply it (development) |
+| `npm run db:deploy` | Apply pending migrations (shared/production database) |
+| `npm run db:seed` | Seed a local database with demo data (refuses remote databases) |
+| `npm run admin:create` | Create the single manager account interactively |
 
 ## User Roles
 
-- **Admin**: Full access, view all reports
-- **Accountant**: Confirm deliveries, track debt, reconciliation
-- **Staff**: Order entry, print delivery slips
+- **Quản lý** (`ADMIN`, the factory owner): Full access — reconciliation, debt, inventory, vehicles, assets, scheduling, prices, settings, and all accounts
+- **Nhân viên** (`STAFF`): Dashboard, order entry, customers, print delivery slips
+- **Tài xế** (`DRIVER`): Daily delivery list and delivery confirmation (web `/driver` or the Flutter app in `mobile/`)
+
+There is no public registration and no super admin: the app serves a single factory, and only the Quản lý creates accounts (Settings); nobody can create their own. The Quản lý account itself is created once with `npm run admin:create`. Accounts handed out by the Quản lý must set their own password at first login.
 
 ## Deployment
 
-The app builds to a standalone Node server (`next.config.mjs` → `output: 'standalone'`) and ships as a Docker image (`Dockerfile`, multi-stage `node:20-alpine`). Configure at minimum `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET` and — in production — `PAYMENT_WEBHOOK_SECRET` (the payment webhook fails closed without it).
+The app builds to a standalone Node server (`next.config.mjs` → `output: 'standalone'`) and ships as a Docker image (`Dockerfile`, multi-stage `node:20-alpine`). Configure at minimum `DATABASE_URL`, `DIRECT_URL` and `JWT_SECRET`.

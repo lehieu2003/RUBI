@@ -3,10 +3,11 @@ import { verifyJWT } from '@/lib/auth';
 import { canAccessPath, isTenantAppPath } from '@/lib/rbac/permissions';
 import { setTenantContext, TenantContext } from '@/lib/tenant';
 
-type UserRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'DRIVER' | 'SUPER_ADMIN';
+type UserRole = 'ADMIN' | 'STAFF' | 'DRIVER';
 
 export async function middleware(request: NextRequest) {
-  const token = request.cookies.get('auth_token')?.value;
+  const authHeader = request.headers.get('authorization');
+  const token = authHeader?.toLowerCase().startsWith('bearer ') ? authHeader.slice(7).trim() : request.cookies.get('auth_token')?.value;
   const session = token ? await verifyJWT(token) : null;
 
   // Set tenant context for Prisma  hooks (auto-injects factoryId filter)
@@ -34,47 +35,56 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect authenticated users away from login/register pages
-  const isAuthRoute = pathname === '/login' || pathname === '/register';
+  // The change-password page needs a session but is open to every role.
+  if (pathname === '/change-password') {
+    if (session) return NextResponse.next();
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    return NextResponse.redirect(url);
+  }
+
+  // Accounts handed out by the manager must set their own password first.
+  if (session?.mustChangePassword) {
+    if (pathname.startsWith('/api/')) {
+      if (!pathname.startsWith('/api/auth/')) {
+        return NextResponse.json(
+          { error: 'Bạn cần đổi mật khẩu trước khi tiếp tục', code: 'PASSWORD_CHANGE_REQUIRED' },
+          { status: 403 }
+        );
+      }
+    } else {
+      const url = request.nextUrl.clone();
+      url.pathname = '/change-password';
+      url.search = '';
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // No public landing page: "/" goes straight to login
+  if (pathname === '/' && !session) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    return NextResponse.redirect(url);
+  }
+
+  // Redirect authenticated users away from the login page (and "/")
+  const isAuthRoute = pathname === '/login' || pathname === '/';
   if (session && isAuthRoute) {
     const userRole = (session as { role?: UserRole }).role as UserRole | undefined;
     const url = request.nextUrl.clone();
-    url.pathname = userRole === 'SUPER_ADMIN' ? '/admin/dashboard' : userRole === 'DRIVER' ? '/driver' : '/dashboard';
+    url.pathname = userRole === 'DRIVER' ? '/driver' : '/dashboard';
     return NextResponse.redirect(url);
   }
 
   // Check role-based access in pure memory (0ms network delay)
   if (session) {
     const userRole = (session as { role?: UserRole }).role as UserRole | undefined;
-    const impersonateToken = request.cookies.get('impersonate_token')?.value;
 
-    // During an impersonation session the SUPER_ADMIN acts as the tenant's
-    // ADMIN for page access — otherwise they could never reach tenant pages.
-    const effectiveRole: UserRole | undefined =
-      impersonateToken && userRole === 'SUPER_ADMIN' && !pathname.startsWith('/admin')
-        ? 'ADMIN'
-        : userRole;
-
-    if (isAppRoute && !canAccessPath(effectiveRole, pathname)) {
+    if (isAppRoute && !canAccessPath(userRole, pathname)) {
       const url = request.nextUrl.clone();
-      url.pathname = effectiveRole === 'SUPER_ADMIN' ? '/admin/dashboard' : effectiveRole === 'DRIVER' ? '/driver' : '/dashboard';
+      url.pathname = userRole === 'DRIVER' ? '/driver' : '/dashboard';
       url.searchParams.set('error', 'unauthorized');
       return NextResponse.redirect(url);
-    }
-
-    // Read-only during impersonation — except ending the impersonation
-    // itself and logging out, otherwise the session could never be left.
-    if (
-      request.method !== 'GET' &&
-      pathname.startsWith('/api/') &&
-      impersonateToken &&
-      pathname !== '/api/auth/logout' &&
-      pathname !== '/api/admin/impersonate/end'
-    ) {
-      return NextResponse.json(
-        { error: 'Read-only during impersonation. End impersonation to make changes.', code: 'READ_ONLY_IMPERSONATION' },
-        { status: 403 }
-      );
     }
   }
 

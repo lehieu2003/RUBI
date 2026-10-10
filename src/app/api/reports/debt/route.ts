@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }
-    if (session.role !== 'ACCOUNTANT' && session.role !== 'ADMIN') {
+    if (session.role !== 'ADMIN') {
       return apiError('Forbidden', 403);
     }
 

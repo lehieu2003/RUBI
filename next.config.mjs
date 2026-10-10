@@ -3,8 +3,8 @@ const securityHeaders = [
   { key: 'X-Frame-Options', value: 'DENY' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-  // Camera + geolocation are used by the driver proof-of-delivery flow.
-  { key: 'Permissions-Policy', value: 'camera=(self), geolocation=(self), microphone=()' },
+  // Camera is used by the driver proof-of-delivery flow.
+  { key: 'Permissions-Policy', value: 'camera=(self), geolocation=(), microphone=()' },
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
 ];
 

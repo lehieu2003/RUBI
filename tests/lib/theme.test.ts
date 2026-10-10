@@ -39,6 +39,12 @@ describe('dark mode theming subsystem', () => {
     assert.match(sidebar, /toggleTheme/);
   });
 
+  it('stat cards use theme tokens instead of a hard-coded white background', () => {
+    const statCard = readFileSync(join(process.cwd(), 'src/components/dashboard/stat-card.tsx'), 'utf-8');
+    assert.match(statCard, /bg-card/);
+    assert.doesNotMatch(statCard, /bg-\[#f{3,6}\]|bg-white\b/i);
+  });
+
   it('offers light/dark/system options in the appearance settings tab', () => {
     assert.match(settings, /useTheme\(\)/);
     assert.match(settings, /'Sáng Công Nghiệp'/);

@@ -13,7 +13,7 @@
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd iceflow-saas
+   cd RUBI
    ```
 
 2. **Install dependencies**
@@ -34,15 +34,16 @@
    <!-- VERIFY: Supabase project URL and anon key format -->
    <!-- VERIFY: DIRECT_URL connection string format for Supabase -->
 
-4. **Generate Prisma client and push database schema**
+4. **Generate Prisma client and apply database migrations**
    ```bash
    npm run db:generate
-   npm run db:push
+   npm run db:deploy
    ```
 
 5. **(Optional) Seed the database with sample data**
    ```bash
-   npm run db:seed
+   npm run db:seed        # local database only (demo data, password 12345678)
+   npm run admin:create   # real database: create the manager account
    ```
 
 ## First Run

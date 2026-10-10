@@ -1,5 +1,4 @@
-export type TenantRole = 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'DRIVER';
-export type AppRole = TenantRole | 'SUPER_ADMIN';
+export type TenantRole = 'ADMIN' | 'STAFF' | 'DRIVER';
 
 export type AppRoutePermission = {
   href: string;
@@ -8,8 +7,8 @@ export type AppRoutePermission = {
   match?: 'exact' | 'prefix';
 };
 
-const allTenantRoles: TenantRole[] = ['ADMIN', 'ACCOUNTANT', 'STAFF'];
-const opsRoles: TenantRole[] = ['ADMIN', 'ACCOUNTANT'];
+const allTenantRoles: TenantRole[] = ['ADMIN', 'STAFF'];
+const opsRoles: TenantRole[] = ['ADMIN'];
 
 export const tenantRoutePermissions: AppRoutePermission[] = [
   { href: '/dashboard', label: 'Tong quan', roles: allTenantRoles, match: 'exact' },
@@ -23,10 +22,7 @@ export const tenantRoutePermissions: AppRoutePermission[] = [
   { href: '/schedule', label: 'Lich trinh', roles: opsRoles, match: 'prefix' },
   { href: '/reports/debt', label: 'Bao cao no', roles: opsRoles, match: 'prefix' },
   { href: '/deposits/shells', label: 'Vo bao', roles: opsRoles, match: 'prefix' },
-  { href: '/dashboard/map', label: 'Ban do', roles: opsRoles, match: 'prefix' },
-  { href: '/settings/billing', label: 'Thanh toan', roles: opsRoles, match: 'prefix' },
   { href: '/settings', label: 'Cai dat', roles: opsRoles, match: 'prefix' },
-  { href: '/billing', label: 'Thanh toan', roles: opsRoles, match: 'prefix' },
   { href: '/config/prices', label: 'Bang gia', roles: ['ADMIN'], match: 'prefix' },
 ];
 
@@ -51,8 +47,8 @@ export function isTenantAppPath(pathname: string): boolean {
   return getRoutePermission(pathname) !== null;
 }
 
-export function canAccessPath(role: AppRole | undefined, pathname: string): boolean {
-  if (!role || role === 'SUPER_ADMIN') return false;
+export function canAccessPath(role: TenantRole | undefined, pathname: string): boolean {
+  if (!role) return false;
   const allowedRoles = getAllowedRolesForPath(pathname);
   return allowedRoles ? allowedRoles.includes(role) : false;
 }

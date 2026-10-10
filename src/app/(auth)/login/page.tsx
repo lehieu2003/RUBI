@@ -2,12 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from '@/lib/auth-provider';
-import { TrialWarningModal } from '@/components/trial/TrialWarningModal';
-import { isWithinWarningPeriod } from '@/lib/subscription-status';
 import { Snowflake } from 'lucide-react';
-import type { Subscription } from '@prisma/client';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
 
 export default function LoginPage() {
@@ -17,29 +13,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showTrialWarning, setShowTrialWarning] = useState(false);
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
 
   useEffect(() => {
     if (!user) return;
 
     // Auto redirect if user is already logged in
-    const target = user.role === 'SUPER_ADMIN' ? '/admin/dashboard' : user.role === 'DRIVER' ? '/driver' : '/dashboard';
+    const target = user.mustChangePassword ? '/change-password' : user.role === 'DRIVER' ? '/driver' : '/dashboard';
     router.replace(target);
 
-    async function checkSubscription() {
-      try {
-        const res = await fetch(API_ENDPOINTS.AUTH.ME);
-        const data = await res.json();
-        if (data.subscription && isWithinWarningPeriod({ endDate: new Date(data.subscription.endDate) } as Subscription)) {
-          setSubscription({ ...data.subscription, endDate: new Date(data.subscription.endDate) } as Subscription);
-          setShowTrialWarning(true);
-        }
-      } catch {
-        // Ignore - trial warning is optional
-      }
-    }
-    checkSubscription();
   }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,9 +39,10 @@ export default function LoginPage() {
     try {
       const meRes = await fetch(API_ENDPOINTS.AUTH.ME);
       const meData = await meRes.json();
-      if (meData.user?.role === 'SUPER_ADMIN') {
-        router.push('/admin/dashboard');
-      } else if (meData.user?.role === 'DRIVER') {
+      const me = meData?.data?.user ?? meData.user;
+      if (me?.mustChangePassword) {
+        router.push('/change-password');
+      } else if (me?.role === 'DRIVER') {
         router.push('/driver');
       } else {
         router.push('/dashboard');
@@ -80,9 +62,6 @@ export default function LoginPage() {
 
   return (
     <>
-      {showTrialWarning && subscription && (
-        <TrialWarningModal subscription={subscription} />
-      )}
       <div className="relative rounded border border-outline-variant bg-card p-8 shadow-sm">
         {/* Header */}
         <div className="text-center mb-6">
@@ -90,7 +69,7 @@ export default function LoginPage() {
             <Snowflake className="h-6 w-6 text-[#9bbdff]" />
           </div>
           <h1 className="text-2xl font-bold text-on-surface">Đăng nhập hệ thống</h1>
-          <p className="text-xs text-on-surface-variant mt-1">IceFlow SaaS — Quản lý lò đá tốc độ cao</p>
+          <p className="text-xs text-on-surface-variant mt-1">Nhà máy đá tinh khiết Rubi</p>
         </div>
 
         {error && (
@@ -113,7 +92,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@miendong.vn"
+              placeholder="Nhập email của bạn"
               required
               className="w-full px-3.5 py-3 rounded border border-outline-variant bg-card text-on-surface placeholder-faint focus:border-[#004a99] focus:outline-none focus:ring-1 focus:ring-[#004a99] text-sm font-medium"
             />
@@ -152,13 +131,6 @@ export default function LoginPage() {
             )}
           </button>
         </form>
-
-        <p className="mt-6 text-center text-xs text-on-surface-variant">
-          Chưa có tài khoản xưởng?{' '}
-          <Link href="/register" className="text-primary-accent hover:underline font-bold">
-            Đăng ký dùng thử 14 ngày
-          </Link>
-        </p>
       </div>
     </>
   );

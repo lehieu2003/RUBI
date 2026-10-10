@@ -4,7 +4,8 @@ on:
   pull_request:
   push:
     branches:
-      - main
+      - master
+      - dev
 
 permissions:
   contents: read
@@ -21,9 +22,38 @@ jobs:
       DIRECT_URL: postgresql://postgres:postgres@localhost:5432/iceflow?schema=public
       JWT_SECRET: ci-jwt-secret-for-builds-only
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: iceflow
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d iceflow"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate branch name and commit messages
+        if: github.event_name == 'pull_request'
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          # The release PR (dev -> master) is the one PR whose head is a protected branch.
+          if [ "$HEAD_REF" != "dev" ] || [ "$BASE_REF" != "master" ]; then
+            bash scripts/validate.sh branch "$HEAD_REF"
+          fi
+          bash scripts/validate.sh range "origin/$BASE_REF" HEAD
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -36,6 +66,11 @@ jobs:
 
       - name: Generate Prisma client
         run: npm run db:generate
+
+      - name: Check migrations match schema
+        run: |
+          npx prisma migrate deploy
+          npx prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --exit-code
 
       - name: Lint
         run: npm run lint

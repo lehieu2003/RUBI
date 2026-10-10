@@ -1,15 +1,16 @@
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
-**IceFlow SaaS**
+**IceFlow — Nhà máy đá tinh khiết Rubi**
 
-Web-based order and inventory management system for ice factories. Replaces pen-and-paper/Zalo workflows with fast digital order entry, printed delivery slips, and automated inventory/debt tracking for 10-15 person operations with 2-4 delivery trucks handling 50-100 orders/day.
+Web-based order and inventory management system for a single ice factory, Nhà máy đá tinh khiết Rubi (not a multi-tenant SaaS: no super admin, no public registration, no subscriptions). Replaces pen-and-paper/Zalo workflows with fast digital order entry, printed delivery slips, and automated inventory/debt tracking for a 10-15 person operation with 2-4 delivery trucks handling 50-100 orders/day.
 
 **Target users:**
-- Office staff (order entry + phone) — primary power users
-- Drivers (view delivery list on phone) — read-only web-view
-- Accountants (confirm deliveries + track debt) — reconciliation
-- Factory owner (reports + debt overview) — decision-maker
+- Staff / Nhân viên (order entry + phone) — primary power users
+- Drivers / Tài xế (delivery list + delivery confirmation on phone)
+- Manager / Quản lý, the factory owner (reconciliation, debt, inventory, reports, settings) — decision-maker
+
+There are exactly three roles: `ADMIN` (Quản lý), `STAFF` (Nhân viên), `DRIVER` (Tài xế). There is no accountant role. Nobody can self-register: every account is created and handed out by the Manager.
 
 **Core Value:** **Speed over everything.** Staff taking phone calls under pressure must enter orders faster than writing by hand (30 seconds). If the system is slower than pen-and-paper, staff rejects it and returns to chaos.
 
@@ -89,6 +90,17 @@ Use these entry points:
 
 Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
 <!-- GSD:workflow-end -->
+
+## Git Workflow (bắt buộc)
+
+Applies to every code change, including those made through a GSD command:
+
+1. **One branch per task.** Branch off `dev` before the first edit: `feat/<slug>`, `fix/<slug>`, `refactor/<slug>`, `docs/<slug>`, `chore/<slug>`. Do not add unrelated work to an existing branch.
+2. **Never commit or push directly to `dev` or `master`.** `dev` is the integration branch; `master` is the released line.
+3. **Every change lands through a Pull Request into `dev`**, with a description that says why, what changed, how it was verified and how to roll back. Rollback = revert the PR's merge commit.
+4. **Commits follow Conventional Commits:** `type(scope): summary` — types `feat`, `fix`, `refactor`, `docs`, `test`, `chore`; scope optional (`mobile`, `api`, `ci`, ...); imperative summary; one logical change per commit.
+5. **Merge only when the CI "Quality Gate" is green** (lint, typecheck, test, build). Fix a red CI on the branch; do not merge around it.
+6. Schema changes go through Prisma Migrate only (`npm run db:migrate` creates the migration file, `npm run db:deploy` applies it); never `prisma db push`. Call them out in the PR, because reverting the code does not restore dropped data.
 
 
 

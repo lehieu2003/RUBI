@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
-import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
+import { requireRole } from '@/lib/auth/helpers';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 // GET /api/assets/[id]/maintenance — history, newest first
@@ -10,7 +10,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
+    const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }
@@ -51,8 +51,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
-    await requireActiveSubscription();
+    const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }

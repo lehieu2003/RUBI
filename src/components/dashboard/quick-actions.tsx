@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { MapPin, DollarSign, Package, Snowflake, FileSpreadsheet, AlertCircle, ArrowRight } from 'lucide-react';
+import { DollarSign, Package, Snowflake, FileSpreadsheet, AlertCircle, ArrowRight } from 'lucide-react';
 import { AlertTriangle, CalendarClock } from 'lucide-react';
 import { useAuth } from '@/lib/auth-provider';
 import type { TenantRole } from '@/lib/rbac/permissions';
@@ -21,12 +21,15 @@ interface QuickActionsProps {
 
 // Keep in sync with src/lib/rbac/permissions.ts route table.
 const ACTION_ROLES: Record<string, TenantRole[]> = {
-  '/dashboard/map': ['ADMIN', 'ACCOUNTANT'],
-  '/settle': ['ADMIN', 'ACCOUNTANT'],
-  '/deposits/shells': ['ADMIN', 'ACCOUNTANT'],
-  '/inventory': ['ADMIN', 'ACCOUNTANT'],
-  '/reports/debt': ['ADMIN', 'ACCOUNTANT'],
+  '/settle': ['ADMIN'],
+  '/deposits/shells': ['ADMIN'],
+  '/inventory': ['ADMIN'],
+  '/reports/debt': ['ADMIN'],
 };
+
+function daysUntil(dueAt: string) {
+  return Math.ceil((new Date(dueAt).getTime() - Date.now()) / 86400000);
+}
 
 export function QuickActions({ pendingOrdersCount = 0, totalBagsOut = 0, dueAssets = [] }: QuickActionsProps) {
   const { user } = useAuth();
@@ -42,21 +45,6 @@ export function QuickActions({ pendingOrdersCount = 0, totalBagsOut = 0, dueAsse
           Lối tắt nghiệp vụ nhanh
         </h4>
         <div className="grid grid-cols-2 gap-2.5">
-          {can('/dashboard/map') && (
-          <Link
-            href="/dashboard/map"
-            className="flex items-center gap-2.5 p-2.5 rounded border border-outline-soft bg-surface hover:bg-container-high hover:border-[#004a99] transition-all group"
-          >
-            <div className="w-8 h-8 rounded bg-container-high group-hover:bg-[#004a99] group-hover:text-white text-primary-accent flex items-center justify-center transition-colors">
-              <MapPin className="h-4 w-4" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-bold text-on-surface truncate">Bản đồ GPS</p>
-              <p className="text-[10px] text-faint">Vị trí xe & đơn</p>
-            </div>
-          </Link>
-          )}
-
           {can('/settle') && (
           <Link
             href="/settle"
@@ -126,7 +114,7 @@ export function QuickActions({ pendingOrdersCount = 0, totalBagsOut = 0, dueAsse
           </h4>
           <div className="space-y-2">
             {dueAssets.map((item, index) => {
-              const days = Math.ceil((new Date(item.dueAt).getTime() - Date.now()) / 86400000);
+              const days = daysUntil(item.dueAt);
               const urgent = days <= 7;
               return (
                 <div

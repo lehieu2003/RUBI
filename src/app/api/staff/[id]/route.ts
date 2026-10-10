@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import bcrypt from 'bcryptjs';
-import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
+import { requireRole } from '@/lib/auth/helpers';
+import { validatePassword } from '@/lib/password';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
-const STAFF_ROLES = ['ADMIN', 'ACCOUNTANT', 'STAFF', 'DRIVER'] as const;
+// The single manager (ADMIN) account is created with `npm run admin:create`,
+// never from the app: managers can only hand out STAFF and DRIVER accounts.
+const STAFF_ROLES = ['STAFF', 'DRIVER'] as const;
 
 function createDriverSlug(name: string): string {
   const base = name
@@ -24,7 +27,6 @@ export async function PATCH(
 ) {
   try {
     const session = await requireRole(['ADMIN']);
-    await requireActiveSubscription();
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }
@@ -44,6 +46,9 @@ export async function PATCH(
     if (!existing) {
       return apiError('Staff not found', 404);
     }
+    if (existing.role === 'ADMIN') {
+      return apiError('Không thể sửa tài khoản Quản lý', 403);
+    }
 
     const updateData: Record<string, unknown> = {};
 
@@ -54,10 +59,12 @@ export async function PATCH(
 
     // Reset password
     if (body.password) {
-      if (body.password.length < 8) {
-        return apiError('Mật khẩu phải có ít nhất 8 ký tự', 400);
+      const policyError = validatePassword(body.password);
+      if (policyError) {
+        return apiError(policyError, 400);
       }
       updateData.password = await bcrypt.hash(body.password, 12);
+      updateData.mustChangePassword = true;
     }
 
     // Update role
@@ -132,7 +139,6 @@ export async function DELETE(
 ) {
   try {
     const session = await requireRole(['ADMIN']);
-    await requireActiveSubscription();
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }
@@ -145,10 +151,13 @@ export async function DELETE(
 
     const existing = await prisma.user.findFirst({
       where: { id, factoryId: session.factoryId },
-      select: { id: true },
+      select: { id: true, role: true },
     });
     if (!existing) {
       return apiError('Staff not found', 404);
+    }
+    if (existing.role === 'ADMIN') {
+      return apiError('Không thể xóa tài khoản Quản lý', 403);
     }
 
     await prisma.user.update({

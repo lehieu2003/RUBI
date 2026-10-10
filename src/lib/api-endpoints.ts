@@ -1,5 +1,5 @@
 /**
- * IceFlow SaaS - API Endpoints Registry
+ * IceFlow - API Endpoints Registry
  * Toàn bộ URL endpoints của hệ thống được tập trung tại đây.
  * Khi cần thay đổi route/path, chỉ cần cập nhật file này.
  */
@@ -9,19 +9,19 @@ export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: '/api/auth/login',
     LOGOUT: '/api/auth/logout',
-    REGISTER: '/api/auth/register',
     ME: '/api/auth/me',
+    PASSWORD: '/api/auth/password',
   },
 
-  // Tenant / Factory
+  // Factory
   FACTORY: {
+    PROFILE: '/api/factory',
     ONBOARDING: '/api/factory/onboarding',
   },
 
   // Orders
   ORDERS: {
     BASE: '/api/orders',
-    MAP: '/api/orders/map',
     BULK_ASSIGN: '/api/orders/bulk-assign',
     STATUS: (id: string) => '/api/orders/' + id + '/status',
     CONFIRM: (id: string) => '/api/orders/' + id + '/confirm',
@@ -76,37 +76,9 @@ export const API_ENDPOINTS = {
     SHELLS: '/api/deposits/shells',
   },
 
-  // Payments & Billing
-  PAYMENTS: {
-    CONFIRM: '/api/payments/confirm',
-  },
-  BILLING: {
-    SUBSCRIPTION: '/api/billing/subscription',
-  },
-  SUBSCRIPTIONS: {
-    DETAIL: (id: string) => '/api/subscriptions/' + id,
-    CANCEL: '/api/subscriptions/cancel',
-  },
-
   // Reports
   REPORTS: {
     DEBT: '/api/reports/debt',
-  },
-
-  // Super Admin
-  ADMIN: {
-    STATS: '/api/admin/stats',
-    PAYMENTS: '/api/admin/payments',
-    FACTORIES: '/api/admin/factories',
-    FACTORY_DETAIL: (factoryId: string) => '/api/admin/factories/' + factoryId,
-    SUBSCRIPTION_DETAIL: (id: string) => '/api/admin/subscriptions/' + id,
-    AUDIT_LOGS: '/api/admin/audit-logs',
-    AUDIT_LOGS_EXPORT: '/api/admin/audit-logs/export',
-    IMPERSONATE: {
-      START: (factoryId: string) => '/api/admin/impersonate/' + factoryId,
-      END: '/api/admin/impersonate/end',
-      STATUS: '/api/admin/impersonate/status',
-    },
   },
 } as const;
 

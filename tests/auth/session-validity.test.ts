@@ -1,5 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -51,7 +52,6 @@ describe('rate limiter backends', () => {
   });
 
   it('all rateLimit call sites await the async limiter', () => {
-    const { execSync } = require('child_process');
     const hits = execSync(
       "grep -rn '= rateLimit(' src/app --include='*.ts' | grep -v await || true",
       { encoding: 'utf8' }

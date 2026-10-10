@@ -24,10 +24,10 @@ describe('staff password policy', () => {
   const updateRoute = readFileSync('src/app/api/staff/[id]/route.ts', 'utf8');
   const settingsPage = readFileSync('src/app/settings/page.tsx', 'utf8');
 
-  it('enforces minimum 8 characters everywhere (create, reset, UI)', () => {
+  it('enforces the shared password policy everywhere (create, reset, UI)', () => {
     for (const [name, source] of [['create', createRoute], ['update', updateRoute]]) {
       assert.doesNotMatch(source, /length < 6/, `${name} route still allows 6-char passwords`);
-      assert.match(source, /length < 8|minimum: 8/, `${name} route must require 8 characters`);
+      assert.match(source, /validatePassword\(/, `${name} route must apply the shared password policy`);
     }
     assert.match(settingsPage, /length < 8/);
     assert.doesNotMatch(settingsPage, /length < 6/);

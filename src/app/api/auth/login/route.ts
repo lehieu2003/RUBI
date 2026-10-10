@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       return apiError('Tài khoản đã bị vô hiệu hóa', 403);
     }
 
-    if (user.role !== 'SUPER_ADMIN' && !user.factoryId) {
+    if (!user.factoryId) {
       return apiError('Tài khoản chưa được gán nhà máy. Vui lòng liên hệ admin.', 403);
     }
 
@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
       name: user.name,
       role: user.role,
       factoryId: (user as { factoryId?: string }).factoryId ?? undefined,
+      mustChangePassword: user.mustChangePassword,
     });
     await setSessionCookie(token);
 
@@ -63,7 +64,9 @@ export async function POST(req: NextRequest) {
             name: user.name,
             role: user.role,
             factoryId: user.factoryId,
+            mustChangePassword: user.mustChangePassword,
           },
+          token,
         });
   } catch (error) {
     console.error('Login error:', error);

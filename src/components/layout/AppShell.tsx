@@ -1,6 +1,5 @@
 'use client';
 
-import { TrialBanner } from '@/components/trial/TrialBanner';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { useAuth } from '@/lib/auth-provider';
 
@@ -19,7 +18,6 @@ export function AppShell({ children }: AppShellProps) {
     <div className="min-h-screen bg-surface text-on-surface">
       <Sidebar />
       <div className="pl-64 transition-all duration-300">
-        <TrialBanner />
         <main className="p-8 max-w-[1400px]">
           {children}
         </main>

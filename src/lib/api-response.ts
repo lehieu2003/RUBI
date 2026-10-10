@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 /**
- * Standard API Response Structure across IceFlow SaaS
+ * Standard API Response Structure across IceFlow
  */
 export interface ApiResponse<T = unknown> {
   success: boolean;

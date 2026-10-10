@@ -1,7 +1,7 @@
 <!-- generated-by: gsd-doc-writer -->
 # Configuration
 
-This document describes all environment variables and configuration settings for IceFlow SaaS.
+This document describes all environment variables and configuration settings for IceFlow.
 
 ## Environment Variables
 
@@ -133,9 +133,7 @@ IceFlow does not currently use per-environment env files (`.env.development`, `.
 
 5. Run database migrations:
    ```bash
-   npm run db:push
-   # or for new schemas
-   npm run db:migrate
+   npm run db:deploy
    ```
 
 6. Start the development server:

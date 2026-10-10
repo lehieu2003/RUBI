@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { setTenantContext } from '@/lib/tenant';
 import { prismaAuth } from '@/lib/db';
 
@@ -21,6 +21,7 @@ export interface JWTPayload {
   name: string;
   role?: string;
   factoryId?: string;
+  mustChangePassword?: boolean;
 }
 
 export async function signJWT(payload: JWTPayload): Promise<string> {
@@ -41,8 +42,19 @@ export async function verifyJWT(token: string): Promise<JWTPayload | null> {
 }
 
 export async function getSession(): Promise<JWTPayload | null> {
+  // Mobile clients (Flutter) send the JWT in an Authorization: Bearer header;
+  // the web app keeps using the httpOnly auth_token cookie. A Bearer token
+  // wins when present; without one, resolution falls back to the cookie.
+  let authHeader: string | null = null;
+  try {
+    authHeader = (await headers()).get('authorization');
+  } catch {
+    authHeader = null; // headers() unavailable outside request scope — cookie-only
+  }
+  const bearerToken =
+    authHeader && /^bearer /i.test(authHeader) ? authHeader.slice(7).trim() : null;
   const cookieStore = await cookies();
-  const token = cookieStore.get('auth_token')?.value;
+  const token = bearerToken || cookieStore.get('auth_token')?.value;
   if (!token) return null;
   const session = await verifyJWT(token);
   if (session) {
@@ -51,28 +63,16 @@ export async function getSession(): Promise<JWTPayload | null> {
     // of riding out the token lifetime.
     const userState = await prismaAuth.user.findUnique({
       where: { id: session.userId },
-      select: { isActive: true },
+      select: { isActive: true, mustChangePassword: true },
     });
     if (!userState || !userState.isActive) {
       return null;
     }
-
-    // During an impersonation session the SUPER_ADMIN acts on the tenant:
-    // swap the session's factoryId to the impersonated factory so every
-    // tenant-scoped query targets the right data. Writes stay blocked by
-    // the middleware's READ_ONLY_IMPERSONATION guard.
-    const impersonateToken = cookieStore.get('impersonate_token')?.value;
-    if (session.role === 'SUPER_ADMIN' && impersonateToken) {
-      const impersonationLog = await prismaAuth.impersonationLog.findUnique({
-        where: { token: impersonateToken },
-        select: { factoryId: true, endedAt: true },
-      });
-      if (impersonationLog && !impersonationLog.endedAt) {
-        session.factoryId = impersonationLog.factoryId;
-      }
-    }
+    // The database is the source of truth: a manager reset takes effect on
+    // the next request, even for a token issued before the reset.
+    session.mustChangePassword = userState.mustChangePassword;
     // Propagate tenant context so Prisma $extends hooks work in API route handlers
-    setTenantContext(session.factoryId ?? null, session.role as 'ADMIN' | 'ACCOUNTANT' | 'STAFF' | 'DRIVER' | 'SUPER_ADMIN' | null);
+    setTenantContext(session.factoryId ?? null, session.role as 'ADMIN' | 'STAFF' | 'DRIVER' | null);
   }
   return session;
 }

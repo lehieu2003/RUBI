@@ -41,7 +41,6 @@ const menuMetadata = {
   '/vehicles': { icon: Truck, label: 'Đội xe' },
   '/assets': { icon: Wrench, label: 'Tài sản' },
   '/schedule': { icon: Calendar, label: 'Lịch trình' },
-  '/dashboard/map': { icon: Truck, label: 'Bản đồ' },
   '/settings': { icon: Settings, label: 'Cài đặt' },
   '/config/prices': { icon: Package, label: 'Bảng giá' },
 };
@@ -61,8 +60,8 @@ export function Sidebar() {
 
   const role = user?.role as TenantRole | undefined;
 
-  // Operational menu items (excluding billing shortcuts; Cài đặt stays in
-  // the menu, role-gated by the route permission table)
+  // Operational menu items (Cài đặt stays in the menu, role-gated by the
+  // route permission table)
   const operationalMenuItems = getVisibleTenantRoutes(role)
     .map((route) => ({
       href: route.href,
@@ -71,12 +70,7 @@ export function Sidebar() {
         label: route.label,
       }),
     }))
-    .filter(
-      (item) =>
-        item.href !== '/settings/billing' &&
-        item.href !== '/billing' &&
-        item.href !== '/config/prices',
-    );
+    .filter((item) => item.href !== '/config/prices');
 
   const handleSignOut = async () => {
     if (signingOut) return;
@@ -200,8 +194,11 @@ export function Sidebar() {
                     {user?.name || 'User'}
                   </p>
                   <p className="truncate text-[10px] text-faint font-mono mt-0.5">
-                    {user?.role === 'ADMIN' ? 'Quản lý' : user?.role === 'ACCOUNTANT' ? 'Kế toán' : user?.role === 'DRIVER' ? 'Tài xế' : 'Nhân viên'}
+                    {user?.role === 'ADMIN' ? 'Quản lý' : user?.role === 'DRIVER' ? 'Tài xế' : 'Nhân viên'}
                   </p>
+                  <Link href="/change-password" className="text-[10px] text-primary-accent hover:underline">
+                    Đổi mật khẩu
+                  </Link>
                 </div>
               )}
             </div>

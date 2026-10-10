@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
-import { requireRole, requireActiveSubscription } from '@/lib/auth/helpers';
+import { requireRole } from '@/lib/auth/helpers';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 const UpdateAssetSchema = z.object({
@@ -12,14 +12,13 @@ const UpdateAssetSchema = z.object({
   notes: z.string().nullable().optional(),
 });
 
-// PATCH /api/assets/[id] — update asset fields (ADMIN, ACCOUNTANT)
+// PATCH /api/assets/[id] — update asset fields (ADMIN)
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await requireRole(['ADMIN', 'ACCOUNTANT']);
-    await requireActiveSubscription();
+    const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
       return apiError('Bad Request: factoryId not found', 400);
     }
