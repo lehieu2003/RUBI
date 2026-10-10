@@ -32,6 +32,11 @@ describe('driver confirm source checks', () => {
     assert.match(list, /\{ status: 'DELIVERED', deliveredAt: \{ gte: day\.start, lt: day\.end \} \}/);
   });
 
+  it('the office marking an order delivered stamps deliveredAt, and reopening clears it', () => {
+    const status = readFileSync(join(process.cwd(), 'src/app/api/orders/[id]/status/route.ts'), 'utf-8');
+    assert.match(status, /parsed\.data\.status !== 'DELIVERED' \? null : existing\.status === 'DELIVERED' \? undefined : new Date\(\)/);
+  });
+
   it('confirms delivery without capturing GPS', () => {
     assert.doesNotMatch(confirmRoute, /gps/i);
     assert.doesNotMatch(driverPage, /getCurrentPosition|gps/i);
