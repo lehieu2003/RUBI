@@ -10,9 +10,7 @@ interface Driver {
   id: string;
   name: string;
   phone: string | null;
-  slug: string;
   isActive: boolean;
-  token?: string;
 }
 
 export default function VehiclesPage() {

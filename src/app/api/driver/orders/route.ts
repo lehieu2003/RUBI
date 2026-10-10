@@ -4,7 +4,7 @@ import { rateLimit, getIpFromRequest } from '@/lib/rate-limit';
 import { requireRole } from '@/lib/auth/helpers';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
-// GET /api/driver/orders?token=xxx&date=YYYY-MM-DD
+// GET /api/driver/orders?date=YYYY-MM-DD
 // Returns orders for authenticated driver filtered by today's date
 // Orders visible when status IN (SHIPPING, DELIVERED)
 export async function GET(request: NextRequest) {
@@ -15,15 +15,12 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const token = searchParams.get('token');
     const dateParam = searchParams.get('date');
 
-    const driver = token
-      ? await prismaAuth.driver.findUnique({ where: { token } })
-      : await getSessionDriver();
+    const driver = await getSessionDriver();
 
     if (!driver) {
-      return apiError(token ? 'Link không hợp lệ hoặc đã hết hạn' : 'Tài khoản chưa được gắn với tài xế', 401);
+      return apiError('Tài khoản chưa được gắn với tài xế', 401);
     }
 
     // Get today's date range

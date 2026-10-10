@@ -8,32 +8,17 @@ const confirmRoute = readFileSync(
   'utf-8',
 );
 
-describe('driver confirm JWT Bearer resolution', () => {
-  it('verifies the Bearer header as a JWT', () => {
-    assert.match(confirmRoute, /verifyJWT\(/);
-    assert.match(confirmRoute, /verifyJWT\(authHeader\.slice\(7\)\)/);
+describe('driver confirm requires a signed-in driver', () => {
+  it('resolves the driver from the session only (cookie or Bearer JWT via getSession)', () => {
+    assert.match(confirmRoute, /const driver = await getSessionDriver\(\);/);
+    assert.match(confirmRoute, /requireRole\(\['DRIVER'\]\)/);
   });
 
-  it('routes a verified JWT session to getSessionDriver()', () => {
-    assert.match(confirmRoute, /bearerSession\s*\?\s*await getSessionDriver\(\)/);
+  it('has no share-link token path left', () => {
+    assert.doesNotMatch(confirmRoute, /bodyToken|where:\s*\{\s*token|authHeader/);
   });
 
-  it('keeps the share-token lookup for non-JWT Bearer headers', () => {
-    assert.match(
-      confirmRoute,
-      /prismaAuth\.driver\.findUnique\(\{\s*where:\s*\{\s*token:\s*authHeader\.slice\(7\)\s*\}\s*\}\)/,
-    );
-  });
-
-  it('keeps the body share-token path unchanged', () => {
-    assert.match(
-      confirmRoute,
-      /prismaAuth\.driver\.findUnique\(\{\s*where:\s*\{\s*token:\s*bodyToken\s*\}\s*\}\)/,
-    );
-  });
-
-  it('keeps the cookie-session fallback via getSessionDriver', () => {
-    assert.match(confirmRoute, /async function getSessionDriver\(\)/);
-    assert.match(confirmRoute, /:\s*await getSessionDriver\(\)/);
+  it('only confirms an order assigned to that driver', () => {
+    assert.match(confirmRoute, /order\.driverId !== driver\.id/);
   });
 });

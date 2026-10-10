@@ -1,0 +1,13 @@
+{
+  "operationId": "listDriverOrders",
+  "request": {
+    "method": "GET",
+    "path": "/api/driver/orders",
+    "as": "anon"
+  },
+  "status": 401,
+  "body": {
+    "success": false,
+    "error": "Chưa đăng nhập hoặc phiên đã hết hạn"
+  }
+}

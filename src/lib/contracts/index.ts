@@ -39,7 +39,7 @@ export const domains: ContractDomain[] = [
   { file: 'inventory', description: 'Daily cold-storage stock', contracts: inventoryContracts },
   { file: 'shell_deposit', description: 'Shell (bag) deposits owed by customers', contracts: shellDepositContracts },
   { file: 'order', description: 'Orders: listing, status, assignment, delivery, reconciliation', contracts: orderContracts },
-  { file: 'driver', description: 'Driver views: session-based list and share link', contracts: driverContracts },
+  { file: 'driver', description: "The signed-in driver's order list", contracts: driverContracts },
   { file: 'schedule', description: 'Shift scheduling: manager assignment, self-registration, approval', contracts: scheduleContracts },
   { file: 'report', description: 'Debt report, monthly shift report and payroll lock', contracts: reportContracts },
   { file: 'asset', description: 'Machines, vehicles and their maintenance', contracts: assetContracts },
