@@ -77,6 +77,8 @@ paths:
     $ref: ./inventory.yaml#/paths/~1api~1inventory
   /api/inventory/counts:
     $ref: ./inventory.yaml#/paths/~1api~1inventory~1counts
+  /api/inventory/counts/summary:
+    $ref: ./inventory.yaml#/paths/~1api~1inventory~1counts~1summary
   /api/deposits/shells:
     $ref: ./shell_deposit.yaml#/paths/~1api~1deposits~1shells
   /api/orders:

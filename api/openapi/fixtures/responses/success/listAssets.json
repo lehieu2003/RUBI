@@ -10,17 +10,17 @@
     "success": true,
     "data": [
       {
-        "id": "cmv2af283000wi9pg5ok0ta1a",
+        "id": "cmv2hjjr9000ui939z5rpq5kg",
         "factoryId": "factory-mien-dong",
         "type": "VEHICLE",
         "name": "Xe kiểm tra",
-        "code": "XE-mv2aezz9",
+        "code": "XE-mv2hjhrd",
         "licensePlate": "48A-000.00",
         "capacityTons": null,
         "status": "ACTIVE",
         "notes": null,
-        "createdAt": "2026-10-10T11:04:53.763Z",
-        "updatedAt": "2026-10-10T11:04:53.763Z",
+        "createdAt": "2026-10-10T14:24:20.421Z",
+        "updatedAt": "2026-10-10T14:24:20.421Z",
         "maintenanceCount": 0,
         "nextDue": null,
         "nextDueType": null

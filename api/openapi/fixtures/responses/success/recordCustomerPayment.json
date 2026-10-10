@@ -5,7 +5,7 @@
     "path": "/api/customers/{id}/payments",
     "as": "admin",
     "params": {
-      "id": "cmv2aenpc001hi9lew7if6hpx"
+      "id": "cmv2hj5cm001hi901v0pw6xie"
     },
     "body": {
       "amount": 1000,
@@ -17,12 +17,12 @@
     "success": true,
     "data": {
       "payment": {
-        "id": "cmv2af1l3000ki9pgreo3g76k",
-        "customerId": "cmv2aenpc001hi9lew7if6hpx",
+        "id": "cmv2hjj4l000ii939oaucxyyw",
+        "customerId": "cmv2hj5cm001hi901v0pw6xie",
         "type": "PAYMENT",
         "amount": 1000,
         "notes": "Kiểm tra hợp đồng",
-        "createdAt": "2026-10-10T11:04:52.935Z"
+        "createdAt": "2026-10-10T14:24:19.605Z"
       },
       "outstandingDebt": 3659000
     }

@@ -11,35 +11,35 @@
     "data": {
       "customers": [
         {
-          "id": "cmv2aenpj001pi9le1vw0u04d",
+          "id": "cmv2hj5cv001pi901o6zpe065",
           "code": "KH-003",
           "name": "Cà Phê Sân Vườn Hướng Dương",
           "address": "78 Võ Văn Ngân, Bình Thọ, Thủ Đức",
           "phone": "0908345678",
           "isActive": true,
-          "createdAt": "2026-10-10T11:04:34.951Z",
-          "updatedAt": "2026-10-10T11:04:34.951Z",
+          "createdAt": "2026-10-10T14:24:01.760Z",
+          "updatedAt": "2026-10-10T14:24:01.760Z",
           "factoryId": "factory-mien-dong",
           "debtLedger": [],
           "shellDeposit": {
-            "id": "cmv2aenpk001ri9leaup473v4",
-            "customerId": "cmv2aenpj001pi9le1vw0u04d",
+            "id": "cmv2hj5cx001ri901mzqmqokc",
+            "customerId": "cmv2hj5cv001pi901o6zpe065",
             "shellsOut": 15,
             "shellsIn": 15,
             "depositPerShell": 50000,
-            "createdAt": "2026-10-10T11:04:34.953Z",
-            "updatedAt": "2026-10-10T11:04:34.953Z"
+            "createdAt": "2026-10-10T14:24:01.762Z",
+            "updatedAt": "2026-10-10T14:24:01.762Z"
           }
         },
         {
-          "id": "cmv2af0r40003i9pg7754xbxm",
-          "code": "CT-mv2aezz9",
+          "id": "cmv2hjihw0003i939v0asg30l",
+          "code": "CT-mv2hjhrd",
           "name": "Khách kiểm tra hợp đồng",
           "address": "Đắk Nông",
           "phone": "0900000000",
           "isActive": true,
-          "createdAt": "2026-10-10T11:04:51.856Z",
-          "updatedAt": "2026-10-10T11:04:51.856Z",
+          "createdAt": "2026-10-10T14:24:18.788Z",
+          "updatedAt": "2026-10-10T14:24:18.788Z",
           "factoryId": "factory-mien-dong",
           "debtLedger": [],
           "shellDeposit": null
@@ -47,32 +47,34 @@
       ],
       "orders": [
         {
-          "id": "cmv2aenq4002ji9lel2fgny9t",
-          "customerId": "cmv2aenpm001ti9lep2q4h8qo",
+          "id": "cmv2hj5dm002ji901sjoherhu",
+          "customerId": "cmv2hj5cz001ti901hg8dga20",
           "status": "COMPLETED",
           "total": 376000,
           "notes": "Giao ướp cá",
-          "createdAt": "2026-10-10T11:04:34.972Z",
-          "updatedAt": "2026-10-10T11:04:34.972Z",
-          "driverId": "cmv2aenn40007i9lez13bjy2e",
-          "assignerId": "cmv2aenmy0003i9lelw6vldaa",
-          "deliveredAt": "2026-10-10T11:04:34.962Z",
+          "createdAt": "2026-10-10T14:24:01.787Z",
+          "updatedAt": "2026-10-10T14:24:01.787Z",
+          "driverId": "cmv2hj5ab0007i901xjt6ifjh",
+          "assignerId": "cmv2hj5a30003i901v2om4gcu",
+          "deliveredAt": "2026-10-10T14:24:01.772Z",
+          "completedAt": null,
           "factoryId": "factory-mien-dong",
           "customer": {
             "name": "Vựa Hải Sản Năm Căn"
           }
         },
         {
-          "id": "cmv2aenq1002fi9leodpxvtai",
-          "customerId": "cmv2aenpj001pi9le1vw0u04d",
+          "id": "cmv2hj5di002fi901b1mciz24",
+          "customerId": "cmv2hj5cv001pi901o6zpe065",
           "status": "DELIVERED",
           "total": 60000,
           "notes": "Đã thanh toán tiền mặt đủ",
-          "createdAt": "2026-10-10T11:04:34.969Z",
-          "updatedAt": "2026-10-10T11:04:34.969Z",
-          "driverId": "cmv2aenn40007i9lez13bjy2e",
-          "assignerId": "cmv2aenmy0003i9lelw6vldaa",
-          "deliveredAt": "2026-10-10T11:04:34.962Z",
+          "createdAt": "2026-10-10T14:24:01.783Z",
+          "updatedAt": "2026-10-10T14:24:01.783Z",
+          "driverId": "cmv2hj5ab0007i901xjt6ifjh",
+          "assignerId": "cmv2hj5a30003i901v2om4gcu",
+          "deliveredAt": "2026-10-10T14:24:01.772Z",
+          "completedAt": null,
           "factoryId": "factory-mien-dong",
           "customer": {
             "name": "Cà Phê Sân Vườn Hướng Dương"

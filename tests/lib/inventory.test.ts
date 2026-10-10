@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { changeStock, stockOnHand } from '../../src/lib/inventory';
 import { startOfVietnamToday } from '../../src/lib/vietnam-time';
+import { stockCountWhere } from '../../src/lib/stock-count-filters';
 
 type Row = { id: string; productId: string; date: Date; quantityOnHand: number };
 type Db = Parameters<typeof changeStock>[0];
@@ -133,7 +134,7 @@ describe('stock count history', () => {
 
   it('the history is manager-only, scoped to the factory and paginated with a stable order', () => {
     assert.match(list, /requireRole\(\['ADMIN'\]\)/);
-    assert.match(list, /const where = \{ factoryId: session\.factoryId \}/);
+    assert.match(list, /const where = stockCountWhere\(session\.factoryId, searchParams\)/);
     assert.match(list, /orderBy: \[\{ createdAt: 'desc' \}, \{ id: 'desc' \}\]/);
     assert.match(list, /difference: count\.countedQuantity - count\.bookQuantity/);
   });
@@ -143,5 +144,44 @@ describe('stock count history', () => {
     assert.match(page, /note: countNote\.trim\(\) \|\| undefined/);
     assert.match(page, /Lịch sử kiểm kho/);
     assert.match(page, /fetchHistory\(1\);\s*\} catch/);
+  });
+});
+
+describe('stock count history filters', () => {
+  const where = (query: string) => stockCountWhere('factory-1', new URLSearchParams(query));
+
+  it('always stays inside the factory', () => {
+    assert.deepEqual(where(''), { factoryId: 'factory-1' });
+  });
+
+  it('filters one product', () => {
+    assert.deepEqual(where('productId=bi-5'), { factoryId: 'factory-1', productId: 'bi-5' });
+  });
+
+  it('treats from and to as whole Vietnam days, both included', () => {
+    const range = where('from=2026-10-01&to=2026-10-07')!.createdAt as { gte: Date; lt: Date };
+    assert.equal(range.gte.toISOString(), '2026-09-30T17:00:00.000Z');
+    assert.equal(range.lt.toISOString(), '2026-10-07T17:00:00.000Z');
+  });
+
+  it('accepts an open range', () => {
+    const range = where('to=2026-10-07')!.createdAt as { gte?: Date; lt: Date };
+    assert.equal(range.gte, undefined);
+    assert.equal(range.lt.toISOString(), '2026-10-07T17:00:00.000Z');
+  });
+
+  it('refuses a malformed date and a range that ends before it starts', () => {
+    assert.equal(where('from=07/10/2026'), null);
+    assert.equal(where('to=2026-02-31'), null);
+    assert.equal(where('from=2026-10-08&to=2026-10-07'), null);
+  });
+
+  it('the history and the summary share this filter, and the summary splits loss from surplus', () => {
+    const read = (path: string) => readFileSync(path, 'utf8');
+    const summary = read('src/app/api/inventory/counts/summary/route.ts');
+    assert.match(read('src/app/api/inventory/counts/route.ts'), /stockCountWhere\(session\.factoryId, searchParams\)/);
+    assert.match(summary, /stockCountWhere\(session\.factoryId,/);
+    assert.match(summary, /requireRole\(\['ADMIN'\]\)/);
+    assert.match(summary, /if \(difference < 0\) totalLoss -= difference;\s*else totalSurplus \+= difference;/);
   });
 });

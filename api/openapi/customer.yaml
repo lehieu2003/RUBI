@@ -292,6 +292,11 @@ paths:
                                 - type: string
                                   pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}
                                 - type: "null"
+                            completedAt:
+                              anyOf:
+                                - type: string
+                                  pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}
+                                - type: "null"
                             factoryId:
                               type: string
                               minLength: 1
@@ -315,6 +320,7 @@ paths:
                             - driverId
                             - assignerId
                             - deliveredAt
+                            - completedAt
                             - factoryId
                             - total
                             - customer
