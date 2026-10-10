@@ -9,6 +9,7 @@ const RecordSchema = z.object({
   productId: z.string().min(1),
   quantity: z.number().int().min(0),
   mode: z.enum(['ADD', 'SET']).optional(),
+  note: z.string().trim().max(200).optional(),
 });
 
 export async function GET() {
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) {
       return apiError('Thông tin sản lượng không hợp lệ', 400);
     }
-    const { productId, quantity, mode } = parsed.data;
+    const { productId, quantity, mode, note } = parsed.data;
 
     const product = await prisma.product.findFirst({
       where: { id: productId, factoryId: session.factoryId },
@@ -75,9 +76,27 @@ export async function POST(req: NextRequest) {
 
     // ADD records a batch coming out of production; SET (the default) is a
     // stock count: the counted quantity replaces the balance.
-    const record = await prisma.$transaction((tx) =>
-      changeStock(tx, productId, mode === 'ADD' ? { add: quantity } : { set: quantity })
-    );
+    const factoryId = session.factoryId;
+    const record = await prisma.$transaction(async (tx) => {
+      if (mode === 'ADD') {
+        return changeStock(tx, productId, { add: quantity });
+      }
+      // Keep what the books said next to what was counted: the difference
+      // is the loss or surplus the manager reviews later.
+      const bookQuantity = (await stockOnHand(tx, [productId])).get(productId) ?? 0;
+      const counted = await changeStock(tx, productId, { set: quantity });
+      await tx.stockCount.create({
+        data: {
+          factoryId,
+          productId,
+          bookQuantity,
+          countedQuantity: quantity,
+          note: note || null,
+          countedById: session.userId,
+        },
+      });
+      return counted;
+    });
     return apiSuccess(record);
   } catch (error) {
     if (error instanceof Response) return error;

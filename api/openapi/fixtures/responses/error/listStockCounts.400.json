@@ -1,0 +1,16 @@
+{
+  "operationId": "listStockCounts",
+  "request": {
+    "method": "GET",
+    "path": "/api/inventory/counts",
+    "as": "admin",
+    "query": {
+      "limit": "0"
+    }
+  },
+  "status": 400,
+  "body": {
+    "success": false,
+    "error": "Tham số phân trang không hợp lệ (limit tối đa 200)"
+  }
+}
