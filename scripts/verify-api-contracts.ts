@@ -327,6 +327,18 @@ async function main() {
     throw new Error(`stock count not kept in the history: ${JSON.stringify(lastCount)}`);
   }
   await call('listStockCounts', { as: 'staff', expectError: 403 });
+  // Filters and totals: the count above is the only one of this product.
+  const filtered = data(await call('listStockCounts', { query: { productId: products[0].id } }));
+  const summary = data(await call('getStockCountSummary', { query: { productId: products[0].id } }));
+  const expectedLoss = Math.max(0, book - 150);
+  const expectedSurplus = Math.max(0, 150 - book);
+  if (filtered.length !== 1 || summary.counts !== 1 || summary.totalLoss !== expectedLoss || summary.totalSurplus !== expectedSurplus) {
+    throw new Error(`stock count summary is off: ${JSON.stringify(summary)}`);
+  }
+  await call('listStockCounts', { query: { to: '2020-01-01' }, empty: true });
+  await call('listStockCounts', { query: { from: '2026-10-11', to: '2026-10-10' }, expectError: 400 });
+  await call('getStockCountSummary', { query: { from: '31/12/2026' }, expectError: 400 });
+  await call('getStockCountSummary', { as: 'staff', expectError: 403 });
   await call('listStockCounts', { query: { limit: '0' }, expectError: 400 });
   const counted = data(await call('getInventory')).items.find((item: Json) => item.productId === products[0].id);
   if (counted?.quantityOnHand !== 150) throw new Error(`stock count not applied: ${counted?.quantityOnHand}`);
@@ -381,6 +393,13 @@ async function main() {
   await call('confirmDelivery', { as: 'driver', params: { id: order.id } });
   await call('reconcileOrder', { params: { id: order.id }, body: { items: [{ id: 'dong-la', actualQty: 1 }] }, expectError: 400 });
   await call('reconcileOrder', { params: { id: order.id }, body: settle });
+  // The settled order is found by the day it was settled, whatever day it was taken.
+  const vietnamToday = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const settledToday = data(await call('listOrders', { query: { status: 'COMPLETED', completedDate: vietnamToday, limit: '200' } }));
+  if (!settledToday.some((item: Json) => item.id === order.id && item.completedAt)) {
+    throw new Error('the settled order is not listed under completedDate of today');
+  }
+  await call('listOrders', { query: { completedDate: '10/10/2026' }, expectError: 400 });
   // Once settled the order is final: it cannot be reopened and settled again.
   await call('updateOrderStatus', { params: { id: order.id }, body: { status: 'PENDING' }, expectError: 409 });
   await call('reconcileOrder', { params: { id: order.id }, body: settle, expectError: 409 });
@@ -420,6 +439,10 @@ async function main() {
   await call('createStaff', { body: { name: 'Trùng', email: newEmail, password: 'tamthoi2026', role: 'STAFF' }, expectError: 409 });
   await call('updateStaff', { params: { id: created.id }, body: { name: 'Nhân viên hợp đồng (đã sửa)' } });
   await call('updateStaff', { params: { id: created.id }, body: { role: 'ADMIN' }, expectError: 400 });
+  // Editing a driver account also goes through its driver profile.
+  const staffList = data(await call('listStaff'));
+  const driverAccount = (Array.isArray(staffList) ? staffList : staffList.users).find((item: Json) => item.email === ACCOUNTS.driver);
+  await call('updateStaff', { params: { id: driverAccount.id }, body: { name: driverAccount.name } });
   await call('createStaff', { body: { name: 'Sai email', email: 'khong-phai-email', password: 'tamthoi2026', role: 'STAFF' }, expectError: 400 });
   await call('createDriver', { body: {}, expectError: 405 });
 

@@ -5,7 +5,7 @@
     "path": "/api/customers/{id}/payments",
     "as": "staff",
     "params": {
-      "id": "cmv2aenpc001hi9lew7if6hpx"
+      "id": "cmv2hj5cm001hi901v0pw6xie"
     },
     "body": {
       "amount": 1000

@@ -7,9 +7,10 @@ type Status = (typeof STATUSES)[number];
 /**
  * Builds the Prisma filter shared by the order list and the order counts
  * from the query string: customerId, driverId (an id or "unassigned"),
- * date (YYYY-MM-DD, a Vietnam calendar day), q (customer name/code or order
+ * date (YYYY-MM-DD, the Vietnam calendar day the order was taken), completedDate
+ * (the day it was settled), q (customer name/code or order
  * code) and, unless `withStatus` is false, status.
- * Returns null when `date` is malformed.
+ * Returns null when `date` or `completedDate` is malformed.
  */
 export function orderWhere(
   factoryId: string,
@@ -36,6 +37,14 @@ export function orderWhere(
     const day = vietnamDayRange(date);
     if (!day) return null;
     where.createdAt = { gte: day.start, lt: day.end };
+  }
+
+  // Orders settled on one Vietnam day, whatever day they were taken.
+  const completedDate = searchParams.get('completedDate');
+  if (completedDate) {
+    const day = vietnamDayRange(completedDate);
+    if (!day) return null;
+    where.completedAt = { gte: day.start, lt: day.end };
   }
 
   const q = searchParams.get('q')?.trim();

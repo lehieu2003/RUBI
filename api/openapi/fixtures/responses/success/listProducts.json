@@ -15,8 +15,8 @@
         "sizeKg": 5,
         "unit": "Bao",
         "isActive": true,
-        "createdAt": "2026-10-10T11:04:34.880Z",
-        "updatedAt": "2026-10-10T11:04:34.880Z",
+        "createdAt": "2026-10-10T14:24:01.684Z",
+        "updatedAt": "2026-10-10T14:24:01.684Z",
         "factoryId": "factory-mien-dong"
       },
       {
@@ -25,8 +25,8 @@
         "sizeKg": 10,
         "unit": "Bao",
         "isActive": true,
-        "createdAt": "2026-10-10T11:04:34.891Z",
-        "updatedAt": "2026-10-10T11:04:34.891Z",
+        "createdAt": "2026-10-10T14:24:01.697Z",
+        "updatedAt": "2026-10-10T14:24:01.697Z",
         "factoryId": "factory-mien-dong"
       }
     ]

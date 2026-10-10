@@ -6,6 +6,7 @@ import { Snowflake, Plus, Loader2, RefreshCw, Download, ClipboardCheck } from 'l
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
 import { exportToCSV } from '@/lib/export-excel';
+import { DatePicker } from '@/components/ui/date-picker';
 
 interface InventoryItem {
   productId: string;
@@ -52,22 +53,40 @@ export default function InventoryPage() {
   const [history, setHistory] = useState<StockCountEntry[]>([]);
   const [historyTotal, setHistoryTotal] = useState(0);
   const [historyLoading, setHistoryLoading] = useState(false);
+  // History filters: one product and/or a range of days
+  const [historyProductId, setHistoryProductId] = useState('');
+  const [historyFrom, setHistoryFrom] = useState('');
+  const [historyTo, setHistoryTo] = useState('');
+  const [historySummary, setHistorySummary] = useState({ counts: 0, totalLoss: 0, totalSurplus: 0 });
 
   const fetchHistory = useCallback(async (page: number) => {
+    const filters = new URLSearchParams();
+    if (historyProductId) filters.set('productId', historyProductId);
+    if (historyFrom) filters.set('from', historyFrom);
+    if (historyTo) filters.set('to', historyTo);
     try {
       setHistoryLoading(true);
-      const res = await fetch(`${API_ENDPOINTS.INVENTORY.COUNTS}?page=${page}&limit=${HISTORY_PAGE_SIZE}`);
+      const [res, summaryRes] = await Promise.all([
+        fetch(`${API_ENDPOINTS.INVENTORY.COUNTS}?${filters}&page=${page}&limit=${HISTORY_PAGE_SIZE}`),
+        fetch(`${API_ENDPOINTS.INVENTORY.COUNTS_SUMMARY}?${filters}`),
+      ]);
       const json = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(json?.error);
+      const summaryJson = await summaryRes.json().catch(() => null);
+      if (!res.ok || !summaryRes.ok) throw new Error(json?.error ?? summaryJson?.error);
       const entries = json.data as StockCountEntry[];
       setHistory((previous) => (page === 1 ? entries : [...previous, ...entries]));
       setHistoryTotal(json.meta?.total_item ?? entries.length);
-    } catch {
-      toast({ type: 'error', title: 'Lỗi nạp dữ liệu', message: 'Không thể tải lịch sử kiểm kho' });
+      setHistorySummary(summaryJson.data);
+    } catch (err) {
+      toast({
+        type: 'error',
+        title: 'Lỗi nạp dữ liệu',
+        message: err instanceof Error && err.message ? err.message : 'Không thể tải lịch sử kiểm kho',
+      });
     } finally {
       setHistoryLoading(false);
     }
-  }, []);
+  }, [historyProductId, historyFrom, historyTo]);
 
   useEffect(() => {
     fetchHistory(1);
@@ -311,9 +330,44 @@ export default function InventoryPage() {
         {/* Stock count history */}
         <div className="mt-8">
           <h2 className="text-sm font-bold uppercase tracking-wider text-on-surface-variant mb-2">Lịch sử kiểm kho</h2>
+
+          {/* Filters and totals for the filtered counts */}
+          <div className="flex flex-wrap items-center gap-2.5 mb-3">
+            <select
+              aria-label="Lọc theo sản phẩm"
+              value={historyProductId}
+              onChange={(e) => setHistoryProductId(e.target.value)}
+              className="h-[42px] px-3 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99]"
+            >
+              <option value="">Tất cả sản phẩm</option>
+              {data.items.map((item) => (
+                <option key={item.productId} value={item.productId}>
+                  {item.productName} ({item.sizeKg}kg)
+                </option>
+              ))}
+            </select>
+            <DatePicker value={historyFrom} onChange={setHistoryFrom} placeholder="Từ ngày" ariaLabel="Từ ngày" clearable />
+            <DatePicker value={historyTo} onChange={setHistoryTo} placeholder="Đến ngày" ariaLabel="Đến ngày" clearable />
+            <div className="flex flex-wrap items-center gap-2 text-xs font-bold sm:ml-auto">
+              <span className="px-2.5 py-1.5 rounded bg-container-high text-on-surface-variant">
+                {historySummary.counts.toLocaleString('vi-VN')} lần kiểm
+              </span>
+              <span className="px-2.5 py-1.5 rounded bg-error-container text-on-error-container">
+                Hao hụt: {historySummary.totalLoss.toLocaleString('vi-VN')}
+              </span>
+              <span className="px-2.5 py-1.5 rounded bg-[#a0f399]/20 text-secondary">
+                Thừa: {historySummary.totalSurplus.toLocaleString('vi-VN')}
+              </span>
+            </div>
+          </div>
+
           {history.length === 0 ? (
             <div className="rounded border border-outline-variant bg-card p-6 text-center text-xs text-faint shadow-sm">
-              {historyLoading ? 'Đang tải...' : 'Chưa có lần kiểm kho nào'}
+              {historyLoading
+                ? 'Đang tải...'
+                : historyProductId || historyFrom || historyTo
+                  ? 'Không có lần kiểm kho nào khớp bộ lọc'
+                  : 'Chưa có lần kiểm kho nào'}
             </div>
           ) : (
             <div className="overflow-x-auto rounded border border-outline-variant bg-card shadow-sm">

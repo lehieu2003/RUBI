@@ -44,6 +44,7 @@ export const API_ENDPOINTS = {
   INVENTORY: {
     BASE: '/api/inventory',
     COUNTS: '/api/inventory/counts',
+    COUNTS_SUMMARY: '/api/inventory/counts/summary',
   },
   ASSETS: {
     BASE: '/api/assets',

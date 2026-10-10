@@ -180,7 +180,7 @@ paths:
       description: |-
         Access: ADMIN.
 
-        Only the fields sent are changed. A password reset forces a change at next login. You cannot edit yourself (400) or a manager account (403).
+        Only the fields sent are changed. A password reset forces a change at next login. You cannot edit yourself (400) or a manager account (403). When a driver is locked or stops being a driver, their PENDING and SHIPPING orders are unassigned; `unassignedOrders` is how many.
       parameters:
         - name: id
           in: path
@@ -253,8 +253,11 @@ paths:
                           - isActive
                           - createdAt
                         additionalProperties: false
+                      unassignedOrders:
+                        type: integer
                     required:
                       - user
+                      - unassignedOrders
                     additionalProperties: false
                 required:
                   - success
@@ -275,7 +278,10 @@ paths:
       tags:
         - Accounts
       summary: Deactivate an account (soft delete)
-      description: "Access: ADMIN."
+      description: |-
+        Access: ADMIN.
+
+        A driver's PENDING and SHIPPING orders are unassigned; `unassignedOrders` is how many.
       parameters:
         - name: id
           in: path
@@ -300,8 +306,11 @@ paths:
                       success:
                         type: boolean
                         const: true
+                      unassignedOrders:
+                        type: integer
                     required:
                       - success
+                      - unassignedOrders
                     additionalProperties: false
                 required:
                   - success

@@ -54,3 +54,42 @@ describe('driver share link is gone', () => {
     }
   });
 });
+
+describe('a driver who can no longer deliver gives up their open orders', () => {
+  const route = readFileSync('src/app/api/staff/[id]/route.ts', 'utf8');
+
+  it('unassigns PENDING and SHIPPING orders only, inside the same transaction', () => {
+    assert.match(route, /status: \{ in: \['PENDING', 'SHIPPING'\] \}, driver: \{ userId \}/);
+    assert.match(route, /data: \{ driverId: null \}/);
+    assert.equal(route.match(/unassignOpenOrders\(tx, factoryId, /g)?.length, 2, 'on lock / role change and on delete');
+  });
+
+  it('looks the driver profile up with the factory filter the tenant guard requires', () => {
+    assert.doesNotMatch(route, /tx\.driver\.findUnique/);
+    assert.match(route, /tx\.driver\.findFirst\(\{\s*where: \{ userId: updatedUser\.id, factoryId \}/);
+  });
+
+  it('keeps the orders of a driver who is still active', () => {
+    assert.match(route, /const stillDelivers = updatedUser\.role === 'DRIVER' && updatedUser\.isActive/);
+    assert.match(route, /stillDelivers \? 0 : await unassignOpenOrders/);
+  });
+
+  it('tells the manager how many orders need a new driver', () => {
+    assert.match(route, /apiSuccess\(\{ user, unassignedOrders \}\)/);
+    assert.match(route, /apiSuccess\(\{ success: true, unassignedOrders \}\)/);
+    assert.match(readFileSync('src/app/settings/page.tsx', 'utf8'), /đơn chưa giao của tài xế này đã được gỡ gán/);
+  });
+});
+
+describe('customer price page', () => {
+  it('is reachable from the customer drawer, for the manager only', () => {
+    const list = readFileSync('src/app/customers/page.tsx', 'utf8');
+    assert.match(list, /user\?\.role === 'ADMIN' && \(\s*<Link\s*href=\{`\/customers\/\$\{selectedCustomer\.id\}`\}/);
+  });
+
+  it('has the app layout and sends anyone but the manager back to the list', () => {
+    const page = readFileSync('src/app/customers/[id]/page.tsx', 'utf8');
+    assert.match(page, /<DashboardLayout>/);
+    assert.match(page, /if \(session\.role !== 'ADMIN'\) \{\s*redirect\('\/customers'\)/);
+  });
+});
