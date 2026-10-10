@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
 import { z } from 'zod';
-import { startOfVietnamToday } from '@/lib/vietnam-time';
+import { changeStock } from '@/lib/inventory';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 const ReconcileSchema = z.object({
@@ -82,26 +82,12 @@ export async function PATCH(
         });
       }
 
-      // 5. Deduct inventory for each product (upsert daily record)
-      const today = startOfVietnamToday();
-
+      // 5. Deduct inventory for each product from the running balance
       for (const itemInput of parsed.data.items) {
         const orderItem = order.orderItems.find(oi => oi.id === itemInput.id);
         if (!orderItem || itemInput.actualQty === 0) continue;
 
-        await tx.inventory.upsert({
-          where: {
-            productId_date: { productId: orderItem.productId, date: today },
-          },
-          create: {
-            productId: orderItem.productId,
-            date: today,
-            quantityOnHand: -itemInput.actualQty, // Negative = deduction from stock
-          },
-          update: {
-            quantityOnHand: { decrement: itemInput.actualQty },
-          },
-        });
+        await changeStock(tx, orderItem.productId, { add: -itemInput.actualQty });
       }
       return null;
     });

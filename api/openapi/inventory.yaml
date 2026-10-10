@@ -10,8 +10,11 @@ paths:
       operationId: getInventory
       tags:
         - Inventory
-      summary: Today's stock per active product
-      description: "Access: ADMIN."
+      summary: Stock on hand per active product
+      description: |-
+        Access: ADMIN.
+
+        Stock is a running balance: the closing stock of one day is the opening stock of the next. A negative quantity means more was delivered than was ever recorded as produced.
       responses:
         "200":
           description: Success
@@ -77,11 +80,11 @@ paths:
       operationId: recordInventory
       tags:
         - Inventory
-      summary: Set or add to today's stock of a product
+      summary: Record a production batch or a stock count
       description: |-
         Access: ADMIN.
 
-        With `mode: "ADD"` the quantity is added to today's record; otherwise (`SET` or omitted) it replaces it.
+        With `mode: "ADD"` (a production batch) the quantity is added to the stock on hand. Otherwise (`SET` or omitted) it is a stock count: the counted quantity replaces the balance. The returned row is today's closing balance.
       requestBody:
         required: true
         content:
