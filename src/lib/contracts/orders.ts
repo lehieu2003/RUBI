@@ -48,7 +48,7 @@ export const orderContracts: ApiContract[] = [
     errors: [400, 401, 403, 404, 500],
     notes:
       '`cancellationReason` is required when the status is CANCELLED and is stored in `notes`. ' +
-      'COMPLETED is only reached through reconciliation. `total` comes back as a decimal string here.',
+      'COMPLETED is only reached through reconciliation.',
   },
   {
     id: 'bulkAssignOrders',
@@ -92,9 +92,9 @@ export const orderContracts: ApiContract[] = [
     params: orderId,
     body: z.object({ items: z.array(z.object({ id: Id, actualQty: z.number().int().min(0) })).min(1) }),
     response: envelope(Success.extend({ orderId: Id, status: z.literal('COMPLETED') })),
-    errors: [400, 401, 403, 500],
+    errors: [400, 401, 403, 404, 409, 500],
     notes:
-      'Only a DELIVERED order can be reconciled. A missing order or a wrong status is reported as 500 ' +
-      '("Đối soát thất bại"), not 404/409. Creates a DEBT ledger entry and deducts today\'s inventory.',
+      '404 when the order does not exist; 409 `ORDER_NOT_DELIVERED` unless it is DELIVERED; 400 when a line does not ' +
+      'belong to the order. Creates a DEBT ledger entry and deducts today\'s inventory.',
   },
 ];

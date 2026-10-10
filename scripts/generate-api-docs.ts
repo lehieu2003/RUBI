@@ -189,8 +189,8 @@ export function renderAll(): Record<string, string> {
       title: TITLE,
       version: VERSION,
       description:
-        'Describes the API as it behaves today. Most endpoints wrap their payload in `{ success: true, data }`; ' +
-        'the exceptions are noted per endpoint. Errors are `{ success: false, error, code? }` with a Vietnamese message.',
+        'Describes the API as it behaves today. Responses are `{ success: true, data }` (except the health probe); ' +
+        'errors are `{ success: false, error, code? }` with a Vietnamese message.',
     },
     servers: [{ url: '/' }],
     security: [{ cookieAuth: [] }, { bearerAuth: [] }],
@@ -241,11 +241,11 @@ function readme(): string {
     '## Conventions',
     '',
     '- **Authentication**: the httpOnly cookie `auth_token`, or `Authorization: Bearer <JWT>`. Both carry the same 7-day JWT.',
-    '- **Success**: `{ "success": true, "data": … }` unless an endpoint says it has no envelope.',
-    '- **Errors**: `{ "success": false, "error": "<Vietnamese message>", "code"?: "<CODE>" }`. The role guards and the middleware send `{ "error", "code"? }` without `success`.',
+    '- **Success**: `{ "success": true, "data": … }`. The only exception is the health probe `/api/health`.',
+    '- **Errors**: `{ "success": false, "error": "<Vietnamese message>", "code"?: "<CODE>" }`, from every endpoint, role guard and the middleware.',
     '- **Password change required**: an account flagged `mustChangePassword` gets `403` with `code: "PASSWORD_CHANGE_REQUIRED"` on every endpoint outside `/api/auth/*`.',
     '- **Dates**: timestamps are ISO 8601 strings; calendar dates are `YYYY-MM-DD`; months are `YYYY-MM`.',
-    '- **Money**: numbers, except where a schema says "decimal as string".',
+    '- **Money**: always numbers (VND).',
     '',
     '## Endpoints',
     '',

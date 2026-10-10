@@ -7,8 +7,6 @@
  * least once and validates each response body against its contract: missing
  * or mistyped fields fail, and so do fields the contract does not mention.
  *
- * Run it at most once per minute: it uses the whole login rate limit.
- *
  * With `--record` the real responses are saved as fixtures under
  * api/openapi/fixtures/responses/{success,empty,error}/.
  *
@@ -147,8 +145,7 @@ async function call(id: string, options: CallOptions = {}): Promise<Json> {
     } else if (!contract.errors.includes(response.status)) {
       failures.push(`${label}: status ${response.status} is not listed in the contract's errors`);
     }
-    // 503 from /api/health is the one error without an `error` field.
-    if (response.status !== 503 && !ErrorResponse.safeParse(json).success) {
+    if (!ErrorResponse.safeParse(json).success) {
       failures.push(`${label}: error body does not match the error contract: ${JSON.stringify(json).slice(0, 120)}`);
     }
     covered.add(id);
@@ -193,8 +190,7 @@ async function main() {
     if (!tokens[actor]) throw new Error(`Cannot sign in as ${actor} (${ACCOUNTS[actor]}). Is the database seeded?`);
   }
 
-  // Every call to the login route comes first: it allows 5 per minute, and in
-  // the built app that budget is shared with /api/auth/refresh.
+  // The login route allows 5 attempts per account per minute.
   const newEmail = `hopdong-${unique}@rubi.local`;
   const created = data(
     await call('createStaff', { body: { name: 'Nhân viên hợp đồng', email: newEmail, password: 'tamthoi2026', role: 'STAFF' } })
@@ -228,13 +224,17 @@ async function main() {
     await call('createCustomer', { body: { code: `CT-${unique}`, name: 'Khách kiểm tra hợp đồng', address: 'Đắk Nông', phone: '0900000000' } })
   );
   await call('createCustomer', { body: { name: 'Thiếu mã' }, expectError: 400 });
+  await call('createCustomer', { body: { code: `CT-${unique}`, name: 'Trùng mã' }, expectError: 409 });
   await call('exportCustomerDebt');
+  await call('exportCustomerDebt', { as: 'staff', expectError: 403 });
   const products = data(await call('listProducts', { as: 'staff' }));
   await call('setGlobalPrice', { body: { productId: products[0].id, price: 12000 } });
   await call('setCustomerPrice', { body: { customerId: customer.id, productId: products[0].id, price: 11000 } });
   await call('removeCustomerPrice', { query: { customerId: customer.id, productId: products[0].id } });
   await call('getInventory');
+  await call('getInventory', { as: 'staff', expectError: 403 });
   await call('recordInventory', { body: { productId: products[0].id, quantity: 1, mode: 'ADD' } });
+  await call('recordInventory', { body: { productId: products[0].id, quantity: -1 }, expectError: 400 });
   await call('updateShellDeposit', { body: { customerId: customers[0].id, shellsOut: 1 } });
   await call('listShellDeposits');
   await call('getDebtReport');
@@ -253,16 +253,19 @@ async function main() {
   await call('listDriverOrders', { as: 'driver' });
   await call('getDriverLink', { as: 'anon', params: { token: driver.token } });
   await call('getDriverLink', { as: 'anon', params: { token: 'khong-ton-tai' }, expectError: 404 });
+  const settle = { items: order.orderItems.map((item: Json) => ({ id: item.id, actualQty: item.quantity })) };
+  await call('reconcileOrder', { params: { id: 'khong-ton-tai' }, body: settle, expectError: 404 });
+  await call('reconcileOrder', { params: { id: order.id }, body: settle, expectError: 409 }); // still SHIPPING
   await call('confirmDelivery', { as: 'driver', params: { id: order.id }, body: {} });
-  await call('reconcileOrder', {
-    params: { id: order.id },
-    body: { items: order.orderItems.map((item: Json) => ({ id: item.id, actualQty: item.quantity })) },
-  });
+  await call('reconcileOrder', { params: { id: order.id }, body: { items: [{ id: 'dong-la', actualQty: 1 }] }, expectError: 400 });
+  await call('reconcileOrder', { params: { id: order.id }, body: settle });
 
   // ---- Accounts ----
   const users = data(await call('listStaff')).users;
   await call('createStaff', { body: { name: 'Trùng', email: newEmail, password: 'tamthoi2026', role: 'STAFF' }, expectError: 409 });
   await call('updateStaff', { params: { id: created.id }, body: { name: 'Nhân viên hợp đồng (đã sửa)' } });
+  await call('updateStaff', { params: { id: created.id }, body: { role: 'ADMIN' }, expectError: 400 });
+  await call('createStaff', { body: { name: 'Sai email', email: 'khong-phai-email', password: 'tamthoi2026', role: 'STAFF' }, expectError: 400 });
   const driverUser = users.find((user: Json) => user.role === 'DRIVER');
   await call('rotateDriverLink', { params: { id: driverUser.id } });
   await call('createDriver', { body: {}, expectError: 405 });

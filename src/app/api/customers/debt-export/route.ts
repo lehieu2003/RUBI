@@ -1,16 +1,13 @@
-import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth/helpers';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 // GET /api/customers/debt-export
 // Returns customer debt data and recent orders for Excel export
 export async function GET() {
   try {
-    const session = await getSession();
-    if (!session) {
-      return apiError('Chưa đăng nhập hoặc phiên đã hết hạn', 401);
-    }
+    // Debt figures are for the manager only.
+    const session = await requireRole(['ADMIN']);
 
     const factoryId = session.factoryId;
     if (!factoryId) {
@@ -45,8 +42,19 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json({ customers, orders });
+    return apiSuccess({
+      customers: customers.map((customer) => ({
+        ...customer,
+        debtLedger: customer.debtLedger.map((entry) => ({ ...entry, amount: entry.amount.toNumber() })),
+        shellDeposit: customer.shellDeposit && {
+          ...customer.shellDeposit,
+          depositPerShell: customer.shellDeposit.depositPerShell.toNumber(),
+        },
+      })),
+      orders: orders.map((order) => ({ ...order, total: order.total.toNumber() })),
+    });
   } catch (error) {
+    if (error instanceof Response) return error;
     console.error('[GET /api/customers/debt-export]', error);
     return apiError('Không thể tải dữ liệu xuất file', 500);
   }

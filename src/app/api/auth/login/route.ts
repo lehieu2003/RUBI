@@ -9,9 +9,11 @@ import { prismaAuth } from '@/lib/db';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 export async function POST(req: NextRequest) {
-  // RATEL-01: Login rate limit - 5 per IP per minute
+  // Coarse cap per client address. Without a proxy that sets x-real-ip every
+  // client shares the address "unknown", so this cap must leave room for the
+  // whole office; the strict limit below is per account.
   const ip = getIpFromRequest(req);
-  const limit = await rateLimit(ip, 5, 60 * 1000);
+  const limit = await rateLimit(`login-ip:${ip}`, 30, 60 * 1000);
   if (!limit.success) {
     return apiError('Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút', 429);
   }
@@ -26,6 +28,12 @@ export async function POST(req: NextRequest) {
     }
 
     const { email, password } = parseResult.data;
+
+    // Brute-force protection: 5 attempts per account per minute.
+    const accountLimit = await rateLimit(`login:${ip}:${email.toLowerCase()}`, 5, 60 * 1000);
+    if (!accountLimit.success) {
+      return apiError('Bạn đăng nhập sai quá nhiều lần, vui lòng thử lại sau ít phút', 429);
+    }
 
     const user = await prismaAuth.user.findUnique({ where: { email } });
     if (!user) {

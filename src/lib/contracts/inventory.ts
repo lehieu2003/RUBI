@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { type ApiContract, Id, IsoDateTime, envelope, session } from './common';
+import { type ApiContract, Id, IsoDateTime, envelope, roles } from './common';
 
 const InventoryRow = z.object({
   id: Id,
@@ -15,7 +15,7 @@ export const inventoryContracts: ApiContract[] = [
     path: '/api/inventory',
     tag: 'Inventory',
     summary: "Today's stock per active product",
-    auth: session,
+    auth: roles('ADMIN'),
     response: envelope(
       z.object({
         items: z.array(
@@ -32,8 +32,7 @@ export const inventoryContracts: ApiContract[] = [
         totalKg: z.number(),
       })
     ),
-    errors: [401, 500],
-    notes: 'Any signed-in role can call it; the route does not check the role.',
+    errors: [400, 401, 403, 500],
   },
   {
     id: 'recordInventory',
@@ -41,12 +40,10 @@ export const inventoryContracts: ApiContract[] = [
     path: '/api/inventory',
     tag: 'Inventory',
     summary: "Set or add to today's stock of a product",
-    auth: session,
-    body: z.object({ productId: Id, quantity: z.number().min(0), mode: z.enum(['ADD']).optional() }),
+    auth: roles('ADMIN'),
+    body: z.object({ productId: Id, quantity: z.number().int().min(0), mode: z.enum(['ADD', 'SET']).optional() }),
     response: envelope(InventoryRow),
-    errors: [400, 401, 404, 500],
-    notes:
-      'With `mode: "ADD"` the quantity is added to today\'s record; otherwise it replaces it. ' +
-      'Any signed-in role can call it; the route does not check the role.',
+    errors: [400, 401, 403, 404, 500],
+    notes: 'With `mode: "ADD"` the quantity is added to today\'s record; otherwise (`SET` or omitted) it replaces it.',
   },
 ];

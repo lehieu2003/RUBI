@@ -11,10 +11,7 @@ paths:
       tags:
         - Inventory
       summary: Today's stock per active product
-      description: |-
-        Access: Any signed-in user.
-
-        Any signed-in role can call it; the route does not check the role.
+      description: "Access: ADMIN."
       responses:
         "200":
           description: Success
@@ -74,8 +71,12 @@ paths:
                   - success
                   - data
                 additionalProperties: false
+        "400":
+          $ref: ./components/responses/errors.yaml#/BadRequest
         "401":
           $ref: ./components/responses/errors.yaml#/Unauthorized
+        "403":
+          $ref: ./components/responses/errors.yaml#/Forbidden
         "500":
           $ref: ./components/responses/errors.yaml#/ServerError
     post:
@@ -84,9 +85,9 @@ paths:
         - Inventory
       summary: Set or add to today's stock of a product
       description: |-
-        Access: Any signed-in user.
+        Access: ADMIN.
 
-        With `mode: "ADD"` the quantity is added to today's record; otherwise it replaces it. Any signed-in role can call it; the route does not check the role.
+        With `mode: "ADD"` the quantity is added to today's record; otherwise (`SET` or omitted) it replaces it.
       requestBody:
         required: true
         content:
@@ -98,12 +99,14 @@ paths:
                   type: string
                   minLength: 1
                 quantity:
-                  type: number
+                  type: integer
                   minimum: 0
+                  maximum: 9007199254740991
                 mode:
                   type: string
                   enum:
                     - ADD
+                    - SET
               required:
                 - productId
                 - quantity
@@ -149,6 +152,8 @@ paths:
           $ref: ./components/responses/errors.yaml#/BadRequest
         "401":
           $ref: ./components/responses/errors.yaml#/Unauthorized
+        "403":
+          $ref: ./components/responses/errors.yaml#/Forbidden
         "404":
           $ref: ./components/responses/errors.yaml#/NotFound
         "500":

@@ -53,7 +53,8 @@ export default function DriverViewPage({ params }: DriverViewPageProps) {
         }
         throw new Error('Không thể tải danh sách đơn hàng');
       }
-      const data = await response.json();
+      const json = await response.json();
+      const data = json?.data !== undefined ? json.data : json;
       setOrders(data.orders || []);
       setDriverName(data.driverName || 'Tài xế');
       setError(null);

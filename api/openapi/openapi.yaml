@@ -3,7 +3,7 @@ openapi: 3.1.0
 info:
   title: IceFlow API — Nhà máy đá tinh khiết Rubi
   version: 1.0.0
-  description: "Describes the API as it behaves today. Most endpoints wrap their payload in `{ success: true, data }`; the exceptions are noted per endpoint. Errors are `{ success: false, error, code? }` with a Vietnamese message."
+  description: "Describes the API as it behaves today. Responses are `{ success: true, data }` (except the health probe); errors are `{ success: false, error, code? }` with a Vietnamese message."
 servers:
   - url: /
 security:

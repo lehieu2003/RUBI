@@ -59,10 +59,41 @@ describe('API contracts', () => {
     }
   });
 
-  it('accepts both error shapes the app produces', () => {
+  it('has one error shape: { success: false, error, code? }', () => {
     assert.ok(ErrorResponse.safeParse({ success: false, error: 'Không tìm thấy đơn hàng' }).success);
-    assert.ok(ErrorResponse.safeParse({ error: 'Chưa đăng nhập hoặc phiên đã hết hạn', code: 'X' }).success);
+    assert.ok(ErrorResponse.safeParse({ success: false, error: 'Đã chốt', code: 'PAYROLL_LOCKED' }).success);
+    assert.equal(ErrorResponse.safeParse({ error: 'thiếu success' }).success, false);
     assert.equal(ErrorResponse.safeParse({ success: true, data: {} }).success, false);
+  });
+
+  it('guards and middleware answer with that same shape', () => {
+    const helpers = readFileSync('src/lib/auth/helpers.ts', 'utf8');
+    assert.doesNotMatch(helpers, /NextResponse\.json/);
+    assert.match(helpers, /throw apiError\(/);
+    const middleware = readFileSync('src/middleware.ts', 'utf8');
+    assert.equal(middleware.match(/\{ success: false, error:/g)?.length, 2);
+  });
+
+  it('no endpoint except the health probe answers outside the envelope', () => {
+    const offenders = execSync("grep -rlE 'NextResponse\\.json\\(|Response\\.json\\(' src/app/api || true", { encoding: 'utf8' })
+      .trim()
+      .split('\n')
+      .filter((file) => file && file !== 'src/app/api/health/route.ts');
+    assert.deepEqual(offenders, []);
+  });
+
+  it('login and refresh use separate rate-limit counters, with a per-account login limit', () => {
+    const login = readFileSync('src/app/api/auth/login/route.ts', 'utf8');
+    assert.match(login, /rateLimit\(`login-ip:\$\{ip\}`, 30/);
+    assert.match(login, /rateLimit\(`login:\$\{ip\}:\$\{email\.toLowerCase\(\)\}`, 5/);
+    assert.match(readFileSync('src/app/api/auth/refresh/route.ts', 'utf8'), /rateLimit\(`refresh:\$\{ip\}`, 30/);
+  });
+
+  it('reconcile reports a missing order as 404 and a wrong status as 409', () => {
+    const route = readFileSync('src/app/api/orders/[id]/reconcile/route.ts', 'utf8');
+    assert.match(route, /apiError\('Không tìm thấy đơn hàng', 404\)/);
+    assert.match(route, /409, 'ORDER_NOT_DELIVERED'/);
+    assert.match(route, /ownItemIds\.has\(item\.id\)/);
   });
 
   it('request schemas accept valid input and reject invalid input', () => {

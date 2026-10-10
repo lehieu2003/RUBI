@@ -2,20 +2,18 @@ import { z } from 'zod';
 import {
   type ApiContract,
   Customer,
-  DecimalString,
   Id,
   IsoDateTime,
   OrderRow,
   envelope,
   roles,
-  session,
 } from './common';
 
 const DebtLedgerEntry = z.object({
   id: Id,
   customerId: Id,
   type: z.enum(['DEBT', 'PAYMENT']),
-  amount: DecimalString,
+  amount: z.number(),
   notes: z.string().nullable(),
   createdAt: IsoDateTime,
 });
@@ -25,9 +23,18 @@ const ShellDepositRow = z.object({
   customerId: Id,
   shellsOut: z.number().int(),
   shellsIn: z.number().int(),
-  depositPerShell: DecimalString,
+  depositPerShell: z.number(),
   createdAt: IsoDateTime,
   updatedAt: IsoDateTime,
+});
+
+/** Body of POST /api/customers; the route validates with this schema. */
+export const CreateCustomerBody = z.object({
+  code: z.string().trim().min(1, 'Vui lòng nhập mã và tên').max(50),
+  name: z.string().trim().min(1, 'Vui lòng nhập mã và tên').max(200),
+  address: z.string().trim().max(300).optional(),
+  phone: z.string().trim().max(30).optional(),
+  isActive: z.boolean().optional(),
 });
 
 export const customerContracts: ApiContract[] = [
@@ -50,16 +57,10 @@ export const customerContracts: ApiContract[] = [
     tag: 'Customers',
     summary: 'Create a customer',
     auth: roles('ADMIN'),
-    body: z.object({
-      code: z.string().min(1),
-      name: z.string().min(1),
-      address: z.string().optional(),
-      phone: z.string().optional(),
-      isActive: z.boolean().optional(),
-    }),
+    body: CreateCustomerBody,
     response: envelope(Customer),
-    errors: [400, 401, 403, 500],
-    notes: 'The body is not schema-validated by the route: only `code` and `name` are checked for presence.',
+    errors: [400, 401, 403, 409, 500],
+    notes: '409 when the customer code already exists.',
   },
   {
     id: 'exportCustomerDebt',
@@ -67,16 +68,15 @@ export const customerContracts: ApiContract[] = [
     path: '/api/customers/debt-export',
     tag: 'Customers',
     summary: 'Customers with debt ledger and shell deposit, plus their orders of the last 6 months',
-    auth: session,
-    response: z.object({
-      customers: z.array(
-        Customer.extend({ debtLedger: z.array(DebtLedgerEntry), shellDeposit: ShellDepositRow.nullable() })
-      ),
-      orders: z.array(OrderRow.extend({ customer: z.object({ name: z.string() }) })),
-    }),
-    errors: [400, 401, 500],
-    notes:
-      'Returned WITHOUT the `{ success, data }` envelope, and money fields are decimal strings. ' +
-      'Any signed-in role can call it; the route does not check the role.',
+    auth: roles('ADMIN'),
+    response: envelope(
+      z.object({
+        customers: z.array(
+          Customer.extend({ debtLedger: z.array(DebtLedgerEntry), shellDeposit: ShellDepositRow.nullable() })
+        ),
+        orders: z.array(OrderRow.extend({ customer: z.object({ name: z.string() }) })),
+      })
+    ),
+    errors: [400, 401, 403, 500],
   },
 ];

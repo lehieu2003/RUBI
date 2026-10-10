@@ -11,6 +11,7 @@ export const systemContracts: ApiContract[] = [
     auth: publicAccess,
     response: z.object({ ok: z.literal(true), db: z.literal('up') }),
     errors: [503],
-    notes: 'Returned WITHOUT the envelope. 503 with `{ ok: false, db: "down" }` when the database is unreachable.',
+    notes:
+      'A plain health probe by design: no `{ success, data }` envelope. 503 with `{ ok: false, db: "down" }` when the database is unreachable.',
   },
 ];

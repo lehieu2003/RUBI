@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
+import { CreateCustomerBody } from '@/lib/contracts/customers';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 export async function GET(request: NextRequest) {
@@ -38,11 +39,18 @@ export async function POST(request: NextRequest) {
       return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
-    const body = await request.json();
-    const { code, name, address, phone, isActive = true } = body;
+    const parsed = CreateCustomerBody.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return apiError(parsed.error.issues[0]?.message ?? 'Dữ liệu không hợp lệ', 400);
+    }
+    const { code, name, address, phone, isActive = true } = parsed.data;
 
-    if (!code || !name) {
-      return apiError('Vui lòng nhập mã và tên', 400);
+    const duplicate = await prisma.customer.findFirst({
+      where: { code, factoryId: session.factoryId },
+      select: { id: true },
+    });
+    if (duplicate) {
+      return apiError(`Mã khách hàng "${code}" đã tồn tại`, 409);
     }
 
     const customer = await prisma.customer.create({

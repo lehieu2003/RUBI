@@ -1,13 +1,21 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { z } from 'zod';
+import { requireRole } from '@/lib/auth/helpers';
 import { apiSuccess, apiError } from '@/lib/api-response';
+
+const RecordSchema = z.object({
+  productId: z.string().min(1),
+  quantity: z.number().int().min(0),
+  mode: z.enum(['ADD', 'SET']).optional(),
+});
 
 export async function GET() {
   try {
-    const session = await getSession();
-    if (!session?.factoryId) {
-      return apiError('Chưa đăng nhập hoặc phiên đã hết hạn', 401);
+    // The cold-storage screen is manager-only, and so is its API.
+    const session = await requireRole(['ADMIN']);
+    if (!session.factoryId) {
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
     const factoryId = session.factoryId;
@@ -50,6 +58,7 @@ export async function GET() {
       totalKg: items.reduce((sum, i) => sum + i.totalKg, 0),
     });
   } catch (error) {
+    if (error instanceof Response) return error;
     console.error('[GET /api/inventory]', error);
     return apiError('Lỗi tải dữ liệu kho', 500);
   }
@@ -57,17 +66,17 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getSession();
-    if (!session?.factoryId) {
-      return apiError('Chưa đăng nhập hoặc phiên đã hết hạn', 401);
+    // The cold-storage screen is manager-only, and so is its API.
+    const session = await requireRole(['ADMIN']);
+    if (!session.factoryId) {
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
 
-    const body = await req.json();
-    const { productId, quantity, mode } = body;
-
-    if (!productId || typeof quantity !== 'number' || quantity < 0) {
+    const parsed = RecordSchema.safeParse(await req.json().catch(() => null));
+    if (!parsed.success) {
       return apiError('Thông tin sản lượng không hợp lệ', 400);
     }
+    const { productId, quantity, mode } = parsed.data;
 
     const product = await prisma.product.findFirst({
       where: { id: productId, factoryId: session.factoryId },
@@ -108,6 +117,7 @@ export async function POST(req: NextRequest) {
       return apiSuccess(created);
     }
   } catch (error) {
+    if (error instanceof Response) return error;
     console.error('[POST /api/inventory]', error);
     return apiError('Lỗi cập nhật kho', 500);
   }

@@ -187,7 +187,7 @@ paths:
       description: |-
         Access: The share-link token in the path; no session..
 
-        Returned WITHOUT the `{ success, data }` envelope; errors are `{ error }`. Rate limited to 30 per IP per minute.
+        Rate limited to 30 per IP per minute.
       parameters:
         - name: token
           in: path
@@ -202,80 +202,90 @@ paths:
               schema:
                 type: object
                 properties:
-                  driverName:
-                    type: string
-                  orders:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          minLength: 1
-                        status:
-                          type: string
-                          enum:
-                            - SHIPPING
-                            - DELIVERED
-                        total:
-                          type: number
-                        customer:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: object
+                    properties:
+                      driverName:
+                        type: string
+                      orders:
+                        type: array
+                        items:
                           type: object
                           properties:
                             id:
                               type: string
                               minLength: 1
-                            code:
+                            status:
                               type: string
-                            name:
-                              type: string
-                            address:
-                              type: string
-                            phone:
-                              type: string
-                          required:
-                            - id
-                            - code
-                            - name
-                            - address
-                            - phone
-                          additionalProperties: false
-                        orderItems:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              quantity:
-                                type: integer
-                                minimum: -9007199254740991
-                                maximum: 9007199254740991
-                              product:
+                              enum:
+                                - SHIPPING
+                                - DELIVERED
+                            total:
+                              type: number
+                            customer:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                  minLength: 1
+                                code:
+                                  type: string
+                                name:
+                                  type: string
+                                address:
+                                  type: string
+                                phone:
+                                  type: string
+                              required:
+                                - id
+                                - code
+                                - name
+                                - address
+                                - phone
+                              additionalProperties: false
+                            orderItems:
+                              type: array
+                              items:
                                 type: object
                                 properties:
-                                  name:
-                                    type: string
-                                  sizeKg:
+                                  quantity:
                                     type: integer
                                     minimum: -9007199254740991
                                     maximum: 9007199254740991
+                                  product:
+                                    type: object
+                                    properties:
+                                      name:
+                                        type: string
+                                      sizeKg:
+                                        type: integer
+                                        minimum: -9007199254740991
+                                        maximum: 9007199254740991
+                                    required:
+                                      - name
+                                      - sizeKg
+                                    additionalProperties: false
                                 required:
-                                  - name
-                                  - sizeKg
+                                  - quantity
+                                  - product
                                 additionalProperties: false
-                            required:
-                              - quantity
-                              - product
-                            additionalProperties: false
-                      required:
-                        - id
-                        - status
-                        - total
-                        - customer
-                        - orderItems
-                      additionalProperties: false
+                          required:
+                            - id
+                            - status
+                            - total
+                            - customer
+                            - orderItems
+                          additionalProperties: false
+                    required:
+                      - driverName
+                      - orders
+                    additionalProperties: false
                 required:
-                  - driverName
-                  - orders
+                  - success
+                  - data
                 additionalProperties: false
         "404":
           $ref: ./components/responses/errors.yaml#/NotFound
