@@ -196,6 +196,9 @@ export function Sidebar() {
                   <p className="truncate text-[10px] text-faint font-mono mt-0.5">
                     {user?.role === 'ADMIN' ? 'Quản lý' : user?.role === 'DRIVER' ? 'Tài xế' : 'Nhân viên'}
                   </p>
+                  <Link href="/change-password" className="text-[10px] text-primary-accent hover:underline">
+                    Đổi mật khẩu
+                  </Link>
                 </div>
               )}
             </div>

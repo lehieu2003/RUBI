@@ -12,6 +12,12 @@ export async function requireSession() {
   if (!session) {
     throw NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  if (session.mustChangePassword) {
+    throw NextResponse.json(
+      { error: 'Bạn cần đổi mật khẩu trước khi tiếp tục', code: 'PASSWORD_CHANGE_REQUIRED' },
+      { status: 403 }
+    );
+  }
   return session;
 }
 

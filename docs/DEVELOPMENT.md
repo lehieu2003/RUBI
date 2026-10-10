@@ -22,9 +22,10 @@
    npm run db:deploy
    ```
 
-4. **(Optional) Seed with sample data**
+4. **Create the manager account** (real database) or seed demo data (local database only)
    ```bash
-   npm run db:seed
+   npm run admin:create   # real database: asks for email, name, password
+   npm run db:seed        # local database only: demo data, password 12345678
    ```
 
 5. **Start the development server**
@@ -45,7 +46,17 @@ The application will be available at **http://localhost:3000**.
 | `npm run db:generate` | Generate Prisma client from schema |
 | `npm run db:migrate` | Create a migration from schema changes and apply it (development) |
 | `npm run db:deploy` | Apply pending migrations (shared/production database) |
-| `npm run db:seed` | Seed the database with initial sample data |
+| `npm run db:seed` | Seed a local database with demo data (refuses remote databases) |
+| `npm run admin:create` | Create the single manager account interactively |
+
+## Accounts and Passwords
+
+- There is exactly one manager (`ADMIN`) account. It is created once with `npm run admin:create`, which asks for the email, name and password in the terminal and refuses to run if a manager already exists. No credential is stored in the code.
+- The manager creates `STAFF` and `DRIVER` accounts in Settings. The app cannot create another manager, and nobody can register themselves.
+- Accounts created by the manager, or whose password the manager resets, must set their own password at the next login (`/change-password`). Until then every page redirects there and every API call returns `403 PASSWORD_CHANGE_REQUIRED`.
+- Anyone can change their own password at `/change-password` (the manager also under Settings > Bảo mật). The current password is required.
+- Password policy (`src/lib/password.ts`): at least 8 characters, letters and digits, not a well-known password.
+- `npm run db:seed` loads demo data with the default password `12345678`. It only runs against a local database (`localhost`, `127.0.0.1`, the compose `postgres` host) and never overwrites the password of an existing account. `SEED_ALLOW_REMOTE=true` overrides the check; do not use it on the real database.
 
 ## Database Schema Changes
 

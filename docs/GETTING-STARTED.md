@@ -42,7 +42,8 @@
 
 5. **(Optional) Seed the database with sample data**
    ```bash
-   npm run db:seed
+   npm run db:seed        # local database only (demo data, password 12345678)
+   npm run admin:create   # real database: create the manager account
    ```
 
 ## First Run

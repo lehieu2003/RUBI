@@ -41,6 +41,7 @@ model User {
   factoryId      String?  @map("factory_id")
   factory        Factory? @relation(fields: [factoryId], references: [id])
   isFactoryOwner Boolean  @default(false) @map("is_factory_owner")
+  mustChangePassword Boolean @default(false) @map("must_change_password")
   assignedOrders Order[]  @relation("OrderAssigner")
   driverProfile  Driver?  @relation("DriverUser")
   scheduleAssignments ScheduleAssignment[]

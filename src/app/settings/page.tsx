@@ -7,6 +7,8 @@ import { toast } from '@/components/dashboard/toast';
 import { useAuth } from '@/lib/auth-provider';
 import { useTheme } from '@/lib/theme';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { ChangePasswordForm } from '@/components/auth/change-password-form';
+import { PASSWORD_HINT } from '@/lib/password';
 
 type UserRole = 'ADMIN' | 'STAFF' | 'DRIVER';
 
@@ -282,27 +284,7 @@ export default function SettingsPage() {
             {activeTab === 'security' && (
               <div className="rounded border border-outline-variant bg-card p-6 shadow-sm">
                 <h2 className="text-base font-bold text-on-surface mb-4 border-b border-outline-soft pb-2">Bảo mật tài khoản</h2>
-                <div className="space-y-4 max-w-lg">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Mật khẩu hiện tại</label>
-                    <input
-                      type="password"
-                      placeholder="Mật khẩu hiện tại"
-                      className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Mật khẩu mới</label>
-                    <input
-                      type="password"
-                      placeholder="Ít nhất 8 ký tự"
-                      className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] outline-none"
-                    />
-                  </div>
-                  <button className="px-4 py-2.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-colors shadow-sm mt-2">
-                    CẬP NHẬT MẬT KHẨU
-                  </button>
-                </div>
+                <ChangePasswordForm />
               </div>
             )}
 
@@ -519,8 +501,9 @@ export default function SettingsPage() {
                         value={newPassword}
                         onChange={e => setNewPassword(e.target.value)}
                         className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] outline-none"
-                        placeholder="Ít nhất 8 ký tự"
+                        placeholder={PASSWORD_HINT}
                       />
+                      <p className="mt-1 text-[11px] text-faint">Người dùng sẽ phải tự đổi mật khẩu ở lần đăng nhập đầu tiên.</p>
                     </div>
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">Vai trò hệ thống</label>
@@ -531,7 +514,6 @@ export default function SettingsPage() {
                       >
                         <option value="STAFF">Nhân viên văn phòng</option>
                         <option value="DRIVER">Tài xế giao hàng</option>
-                        <option value="ADMIN">Quản lý (Admin)</option>
                       </select>
                     </div>
                     <button
@@ -599,7 +581,7 @@ export default function SettingsPage() {
                         value={passwordInput}
                         onChange={e => setPasswordInput(e.target.value)}
                         className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] outline-none"
-                        placeholder="Ít nhất 8 ký tự"
+                        placeholder={PASSWORD_HINT}
                       />
                     </div>
                     <button

@@ -10,6 +10,7 @@ interface User {
   name: string;
   role?: 'ADMIN' | 'STAFF' | 'DRIVER';
   factoryId?: string;
+  mustChangePassword?: boolean;
 }
 
 interface AuthContextType {
@@ -35,6 +36,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const json = await res.json();
       const payload = json?.data !== undefined ? json.data : json;
       setUser(payload?.user ?? null);
+      // A manager reset can flag a session that is already open: the token
+      // still passes the middleware, so send the user on from here.
+      if (payload?.user?.mustChangePassword && window.location.pathname !== '/change-password') {
+        window.location.href = '/change-password';
+      }
     } catch {
       setUser(null);
     } finally {

@@ -14,7 +14,7 @@ export async function GET() {
 
   const user = await prismaAuth.user.findUnique({
     where: { id: session.userId },
-    select: { id: true, email: true, name: true, role: true, factoryId: true, isActive: true },
+    select: { id: true, email: true, name: true, role: true, factoryId: true, isActive: true, mustChangePassword: true },
   });
 
   if (!user) {
@@ -33,6 +33,7 @@ export async function GET() {
       name: user.name,
       role: user.role,
       factoryId,
+      mustChangePassword: user.mustChangePassword,
     });
     await setSessionCookie(token);
   }
@@ -44,6 +45,7 @@ export async function GET() {
         name: user.name,
         role: user.role,
         factoryId,
+        mustChangePassword: user.mustChangePassword,
       },
     });
 }

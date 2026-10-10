@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
       name: session.name,
       role: session.role,
       factoryId: session.factoryId,
+      mustChangePassword: session.mustChangePassword,
     });
 
     return apiSuccess({ token });

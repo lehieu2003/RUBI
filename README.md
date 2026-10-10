@@ -15,7 +15,8 @@ cp .env.example .env
 
 # Initialize database (applies prisma/migrations)
 npm run db:deploy
-npm run db:seed
+npm run admin:create   # create the manager account (asks for email and password)
+# npm run db:seed      # demo data instead, local databases only
 
 # Start development server
 npm run dev
@@ -113,7 +114,8 @@ Configure your `.env` file with the following Supabase credentials:
 | `npm run db:generate` | Generate Prisma client |
 | `npm run db:migrate` | Create a migration from schema changes and apply it (development) |
 | `npm run db:deploy` | Apply pending migrations (shared/production database) |
-| `npm run db:seed` | Seed database with initial data |
+| `npm run db:seed` | Seed a local database with demo data (refuses remote databases) |
+| `npm run admin:create` | Create the single manager account interactively |
 
 ## User Roles
 
@@ -121,7 +123,7 @@ Configure your `.env` file with the following Supabase credentials:
 - **Nhân viên** (`STAFF`): Dashboard, order entry, customers, print delivery slips
 - **Tài xế** (`DRIVER`): Daily delivery list and delivery confirmation (web `/driver` or the Flutter app in `mobile/`)
 
-There is no public registration and no super admin: the app serves a single factory, and only the Quản lý creates accounts (Settings); nobody can create their own.
+There is no public registration and no super admin: the app serves a single factory, and only the Quản lý creates accounts (Settings); nobody can create their own. The Quản lý account itself is created once with `npm run admin:create`. Accounts handed out by the Quản lý must set their own password at first login.
 
 ## Deployment
 

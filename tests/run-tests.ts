@@ -23,4 +23,5 @@ import './pricing/scope.test';
 import './auth/bearer-session.test';
 import './auth/login-body-token.test';
 import './api/auth-refresh.test';
+import './auth/account-security.test';
 import './api/factory-profile.test';
