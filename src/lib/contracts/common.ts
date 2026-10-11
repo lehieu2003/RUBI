@@ -119,6 +119,7 @@ export const Product = z.object({
   name: z.string(),
   sizeKg: z.number().int(),
   unit: z.string(),
+  minStock: z.number().int().nullable(),
   isActive: z.boolean(),
   createdAt: IsoDateTime,
   updatedAt: IsoDateTime,

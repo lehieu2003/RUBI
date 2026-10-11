@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { canAccessPath, isTenantAppPath } from '@/lib/rbac/permissions';
 
 interface User {
   id: string;
@@ -40,6 +41,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // still passes the middleware, so send the user on from here.
       if (payload?.user?.mustChangePassword && window.location.pathname !== '/change-password') {
         window.location.href = '/change-password';
+      }
+      // The manager changed this person's role while they were signed in: the
+      // page they are on belongs to the old role. "/" sends them to the home
+      // of the new one (the cookie was just replaced by /api/auth/me).
+      const path = window.location.pathname;
+      if (payload?.user && isTenantAppPath(path) && !canAccessPath(payload.user.role, path)) {
+        window.location.href = '/';
       }
     } catch {
       setUser(null);

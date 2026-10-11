@@ -47,6 +47,9 @@ export const inventoryContracts: ApiContract[] = [
             unit: z.string(),
             quantityOnHand: z.number().int(),
             totalKg: z.number(),
+            sellable: z.number().int(),
+            minStock: z.number().int().nullable(),
+            lowStock: z.boolean(),
           })
         ),
         totalBags: z.number().int(),
@@ -56,7 +59,9 @@ export const inventoryContracts: ApiContract[] = [
     errors: [400, 401, 403, 500],
     notes:
       'Stock is a running balance: the closing stock of one day is the opening stock of the next. ' +
-      'A negative quantity means more was delivered than was ever recorded as produced.',
+      'A negative quantity means more was delivered than was ever recorded as produced. `sellable` is the stock on ' +
+      'hand minus what orders that are not settled yet already took; `lowStock` is true when the product has an alert ' +
+      'level (`minStock`) and `sellable` is at or below it.',
   },
   {
     id: 'recordInventory',

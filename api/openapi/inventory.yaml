@@ -14,7 +14,7 @@ paths:
       description: |-
         Access: ADMIN.
 
-        Stock is a running balance: the closing stock of one day is the opening stock of the next. A negative quantity means more was delivered than was ever recorded as produced.
+        Stock is a running balance: the closing stock of one day is the opening stock of the next. A negative quantity means more was delivered than was ever recorded as produced. `sellable` is the stock on hand minus what orders that are not settled yet already took; `lowStock` is true when the product has an alert level (`minStock`) and `sellable` is at or below it.
       responses:
         "200":
           description: Success
@@ -47,6 +47,14 @@ paths:
                               type: integer
                             totalKg:
                               type: number
+                            sellable:
+                              type: integer
+                            minStock:
+                              anyOf:
+                                - type: integer
+                                - type: "null"
+                            lowStock:
+                              type: boolean
                           required:
                             - productId
                             - productName
@@ -54,6 +62,9 @@ paths:
                             - unit
                             - quantityOnHand
                             - totalKg
+                            - sellable
+                            - minStock
+                            - lowStock
                           additionalProperties: false
                       totalBags:
                         type: integer

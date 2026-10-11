@@ -23,6 +23,7 @@ import {
 import { OrderEntryDrawer } from '@/components/order/order-entry-drawer';
 import { Drawer } from '@/components/ui/drawer';
 import { PrintSlip } from '@/components/order/print-slip';
+import { loadSlipFactory } from '@/lib/actions/orders';
 import type { Customer, Product } from '@prisma/client';
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
@@ -188,6 +189,12 @@ export default function OrdersPage() {
     },
   });
 
+  const { data: slipFactory } = useQuery({
+    queryKey: ['factory', 'slip'],
+    queryFn: () => loadSlipFactory(),
+    staleTime: Infinity,
+  });
+
   const { data: drivers = [] } = useQuery<DriverFromAPI[]>({
     queryKey: ['drivers'],
     queryFn: async () => {
@@ -272,6 +279,7 @@ export default function OrdersPage() {
           typeof selectedOrder.total === 'number'
             ? selectedOrder.total
             : Number(selectedOrder.total) || 0,
+        notes: selectedOrder.notes,
         createdAt: selectedOrder.createdAt,
       }
     : null;
@@ -874,9 +882,9 @@ export default function OrdersPage() {
         </div>
       )}
 
-      {/* Print content - always in DOM for react-to-print */}
-      <div ref={printRef} className='print-slip'>
-        {slipOrder && <PrintSlip order={slipOrder} />}
+      {/* Print content - always in DOM for react-to-print, shown on paper only */}
+      <div ref={printRef} className='print-slip hidden'>
+        {slipOrder && <PrintSlip order={slipOrder} factory={slipFactory} />}
       </div>
     </DashboardLayout>
   );

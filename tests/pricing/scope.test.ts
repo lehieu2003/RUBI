@@ -18,7 +18,9 @@ describe('pricing factory scope source checks', () => {
   it('prices an order on the server and limits order entry to the office', () => {
     const source = read('src/lib/actions/orders.ts');
     assert.match(source, /session\.role !== 'ADMIN' && session\.role !== 'STAFF'/);
-    assert.equal(source.match(/await requireOfficeFactoryId\(\)/g)?.length, 3, 'prices, sellable stock and saving an order');
+    assert.equal(source.match(/await requireOfficeFactoryId\(\)/g)?.length, 3, 'prices, the slip header and sellable stock');
+    // saving an order runs the same check and keeps who did it, for the audit log
+    assert.match(source, /const actor = await requireOfficeActor\(\);/);
     assert.match(source, /unitPrice: prices\.get\(item\.productId\)!/);
     // a product with no price stops the order instead of being sold for 0
     assert.match(source, /productIds\.some\(\(productId\) => !prices\.has\(productId\)\)/);

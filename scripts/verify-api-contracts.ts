@@ -311,6 +311,11 @@ async function main() {
   await call('createProduct', { as: 'staff', body: { name: 'Không được phép', sizeKg: 7, price: 9000 }, expectError: 403 });
   await call('updateProduct', { params: { id: newProduct.id }, body: { unit: 'Túi', sizeKg: 8, isActive: false } });
   await call('updateProduct', { params: { id: 'khong-ton-tai' }, body: { unit: 'Túi' }, expectError: 404 });
+  // Low-stock alert level: set, refused when negative, cleared with null
+  const withLevel = data(await call('updateProduct', { params: { id: newProduct.id }, body: { minStock: 25 } }));
+  if (withLevel.minStock !== 25) failures.push('updateProduct: minStock was not stored');
+  await call('updateProduct', { params: { id: newProduct.id }, body: { minStock: -1 }, expectError: 400 });
+  await call('updateProduct', { params: { id: newProduct.id }, body: { minStock: null } });
   // The seeded Đá Bi 5kg already has orders: its size is fixed.
   await call('updateProduct', { params: { id: 'prod-bi-5' }, body: { sizeKg: 6 }, expectError: 409 });
   await call('setCustomerPrice', { body: { customerId: customer.id, productId: products[0].id, price: 11000 } });
@@ -402,6 +407,22 @@ async function main() {
   await call('confirmDelivery', { as: 'driver', params: { id: order.id } });
   await call('reconcileOrder', { params: { id: order.id }, body: { items: [{ id: 'dong-la', actualQty: 1 }] }, expectError: 400 });
   await call('reconcileOrder', { params: { id: order.id }, body: settle });
+
+  // ---- Audit log: the steps above left their entries, oldest last ----
+  await call('listAuditLogs', { query: { orderId: 'khong-ton-tai' }, empty: true });
+  const trail = data(await call('listAuditLogs', { query: { orderId: order.id } })).map((entry: Json) => entry.action);
+  for (const action of ['ORDER_SETTLED', 'ORDER_DELIVERED', 'ORDER_STATUS_CHANGED', 'ORDER_ASSIGNED']) {
+    if (!trail.includes(action)) failures.push(`listAuditLogs: no ${action} entry for the order just settled (got ${trail.join(', ')})`);
+  }
+  if (trail[0] !== 'ORDER_SETTLED') failures.push(`listAuditLogs: newest entry is ${trail[0]}, expected ORDER_SETTLED`);
+  const debtTrail = data(await call('listAuditLogs', { query: { type: 'DEBT', limit: '5' } }));
+  if (debtTrail.some((entry: Json) => !['ORDER_SETTLED', 'DEBT_PAYMENT'].includes(entry.action))) {
+    failures.push('listAuditLogs: type=DEBT returned an entry that does not change a debt');
+  }
+  await call('listAuditLogs', { query: { type: 'KHAC' }, expectError: 400 });
+  await call('listAuditLogs', { query: { limit: '0' }, expectError: 400 });
+  await call('listAuditLogs', { as: 'staff', expectError: 403 });
+  await call('listAuditLogs', { as: 'anon', expectError: 401 });
   // The settled order is found by the day it was settled, whatever day it was taken.
   const vietnamToday = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const settledToday = data(await call('listOrders', { query: { status: 'COMPLETED', completedDate: vietnamToday, limit: '200' } }));

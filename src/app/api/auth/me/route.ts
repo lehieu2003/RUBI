@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { getSession, setSessionCookie, signJWT } from '@/lib/auth';
+import { cookies } from 'next/headers';
+import { getSession, setSessionCookie, signJWT, verifyJWT } from '@/lib/auth';
 
 // Use prismaAuth for global user lookups (no tenant filtering)
 import { prismaAuth } from '@/lib/db';
@@ -26,7 +26,14 @@ export async function GET() {
     return apiError('Tài khoản chưa được gán nhà máy', 403);
   }
 
-  if (!session.factoryId && factoryId) {
+  // The middleware routes by the role inside the cookie. After the manager
+  // changes someone's role, replace the cookie so the next page load goes to
+  // the screens of the new role.
+  const cookieToken = (await cookies()).get('auth_token')?.value;
+  const cookieClaims = cookieToken ? await verifyJWT(cookieToken) : null;
+  const roleChanged = cookieClaims !== null && cookieClaims.role !== user.role;
+
+  if ((!session.factoryId && factoryId) || roleChanged) {
     const token = await signJWT({
       userId: user.id,
       email: user.email,

@@ -21,7 +21,7 @@ describe('tenant session auth guards', () => {
 
   it('refreshes legacy JWT sessions after a factoryId backfill', () => {
     const source = read('src/app/api/auth/me/route.ts');
-    assert.match(source, /if \(!session\.factoryId && factoryId\)/);
+    assert.match(source, /if \(\(!session\.factoryId && factoryId\) \|\| roleChanged\)/);
     assert.match(source, /await setSessionCookie\(token\)/);
   });
 });

@@ -24,6 +24,14 @@ describe('product request schemas', () => {
     assert.deepEqual(UpdateProductBody.parse({ name: 'Đá Cây', price: 1 }), { name: 'Đá Cây' });
     assert.equal(UpdateProductBody.safeParse({ sizeKg: -1 }).success, false);
   });
+
+  it('the low-stock alert level is a whole number from 0, or null to switch it off', () => {
+    assert.deepEqual(UpdateProductBody.parse({ minStock: 20 }), { minStock: 20 });
+    assert.deepEqual(UpdateProductBody.parse({ minStock: null }), { minStock: null });
+    assert.equal(UpdateProductBody.safeParse({ minStock: -1 }).success, false);
+    assert.equal(UpdateProductBody.safeParse({ minStock: 2.5 }).success, false);
+    assert.ok(CreateProductBody.safeParse({ name: 'Đá Bi', sizeKg: 10, price: 22000, minStock: 0 }).success);
+  });
 });
 
 describe('product API source checks', () => {

@@ -1,6 +1,8 @@
 'use client';
 
 interface PrintSlipProps {
+  /** The factory printed at the top; its lines stay empty until it is loaded. */
+  factory?: { name: string; phone: string | null; address: string | null } | null;
   order: {
     id: string;
     code?: string;
@@ -12,11 +14,12 @@ interface PrintSlipProps {
       lineTotal: number;
     }>;
     total: number;
+    notes?: string | null;
     createdAt: string | Date;
   };
 }
 
-export function PrintSlip({ order }: PrintSlipProps) {
+export function PrintSlip({ order, factory }: PrintSlipProps) {
   const formatCurrency = (amount: number) =>
     amount.toLocaleString('vi-VN');
 
@@ -34,11 +37,11 @@ export function PrintSlip({ order }: PrintSlipProps) {
   return (
     <div className="print-slip">
       {/* Company header */}
-      <div className="text-center font-bold text-base mb-2">
-        CÔNG TY TNHH ĐÁ LẠNH ICEFLOW
+      <div className="text-center font-bold text-base mb-2 uppercase">
+        {factory?.name}
       </div>
       <div className="text-center text-xs text-faint mb-4">
-        123 Đường ABC, Quận XYZ, TP.HCM | Tel: 0909 123 456
+        {[factory?.address, factory?.phone && `Tel: ${factory.phone}`].filter(Boolean).join(' | ')}
       </div>
 
       {/* Slip title */}
@@ -86,6 +89,13 @@ export function PrintSlip({ order }: PrintSlipProps) {
         <span>TỔNG CỘNG:</span>
         <span>{formatCurrency(order.total)}đ</span>
       </div>
+
+      {/* Delivery notes */}
+      {order.notes && (
+        <div className="text-xs mb-4">
+          <strong>Ghi chú:</strong> {order.notes}
+        </div>
+      )}
 
       {/* Signature lines - D-04 */}
       <div className="flex justify-between text-xs mt-6">

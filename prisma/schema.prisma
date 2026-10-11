@@ -28,6 +28,7 @@ model Factory {
   assets             Asset[]
   maintenanceRecords MaintenanceRecord[]
   payrollLocks       PayrollLock[]
+  auditLogs          AuditLog[]
 
   @@map("factories")
 }
@@ -73,6 +74,8 @@ model Product {
   name                   String
   sizeKg                 Int
   unit                   String                  @default("bag")
+  // Low-stock alert: warn when what can still be sold is at or below this; null = no alert
+  minStock               Int?                    @map("min_stock")
   isActive               Boolean                 @default(true)
   createdAt              DateTime                @default(now()) @map("created_at")
   updatedAt              DateTime                @updatedAt @map("updated_at")
@@ -358,4 +361,35 @@ model MaintenanceRecord {
   @@index([factoryId, dueAt])
   @@index([assetId])
   @@map("maintenance_records")
+}
+
+// Who did what to an order or to a customer's debt. Written together with the
+// change and never edited. No foreign keys to users, orders or customers: the
+// history must outlive them, and the person's name is copied in.
+model AuditLog {
+  id         String      @id @default(cuid())
+  factoryId  String      @map("factory_id")
+  action     AuditAction
+  userId     String?     @map("user_id")
+  userName   String      @map("user_name")
+  orderId    String?     @map("order_id")
+  customerId String?     @map("customer_id")
+  summary    String
+  createdAt  DateTime    @default(now()) @map("created_at")
+  factory    Factory     @relation(fields: [factoryId], references: [id])
+
+  @@index([factoryId, createdAt])
+  @@index([orderId])
+  @@index([customerId])
+  @@map("audit_logs")
+}
+
+enum AuditAction {
+  ORDER_CREATED
+  ORDER_ASSIGNED
+  ORDER_STATUS_CHANGED
+  ORDER_CANCELLED
+  ORDER_DELIVERED
+  ORDER_SETTLED
+  DEBT_PAYMENT
 }

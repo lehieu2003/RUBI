@@ -34,7 +34,7 @@ interface DashboardClientProps {
   orders: DashboardOrder[];
   /** Every order created today (Vietnam time), light fields only */
   todayOrders: { createdAt: Date | string; total: number; status: string }[];
-  inventoryStats?: { totalBags: number; details: string };
+  inventoryStats?: { totalBags: number; details: string; lowStock?: string[] };
   totalBagsOut?: number;
   yesterdayRevenue?: number;
   dueAssets: DueAsset[];
@@ -100,7 +100,10 @@ export function DashboardClient({
     },
     inventory: {
       value: `${inventoryStats.totalBags.toLocaleString('vi-VN')} bao`,
-      subValue: inventoryStats.details,
+      subValue: inventoryStats.lowStock?.length
+        ? `Sắp hết: ${inventoryStats.lowStock.join(', ')}`
+        : inventoryStats.details,
+      warning: Boolean(inventoryStats.lowStock?.length),
     },
     bags: {
       value: `${totalBagsOut.toLocaleString('vi-VN')} vỏ`,
@@ -156,6 +159,7 @@ export function DashboardClient({
             title="Tồn kho lạnh"
             value={stats.inventory.value}
             subValue={stats.inventory.subValue}
+            warning={stats.inventory.warning}
             icon={Snowflake}
             iconColor="text-primary-accent"
             iconBg="bg-container-high"

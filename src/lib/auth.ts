@@ -63,7 +63,7 @@ export async function getSession(): Promise<JWTPayload | null> {
     // of riding out the token lifetime.
     const userState = await prismaAuth.user.findUnique({
       where: { id: session.userId },
-      select: { isActive: true, mustChangePassword: true },
+      select: { isActive: true, mustChangePassword: true, role: true },
     });
     if (!userState || !userState.isActive) {
       return null;
@@ -71,6 +71,9 @@ export async function getSession(): Promise<JWTPayload | null> {
     // The database is the source of truth: a manager reset takes effect on
     // the next request, even for a token issued before the reset.
     session.mustChangePassword = userState.mustChangePassword;
+    // Likewise for the role: when the manager changes it, a token signed
+    // with the old role must not keep the old rights.
+    session.role = userState.role;
     // Propagate tenant context so Prisma $extends hooks work in API route handlers
     setTenantContext(session.factoryId ?? null, session.role as 'ADMIN' | 'STAFF' | 'DRIVER' | null);
   }

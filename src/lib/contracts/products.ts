@@ -4,6 +4,13 @@ import { type ApiContract, Id, Product, envelope, roles, session } from './commo
 const ProductName = z.string().trim().min(1, 'Tên sản phẩm không được để trống').max(100);
 const SizeKg = z.number().int('Cỡ bao phải là số nguyên').positive('Cỡ bao phải lớn hơn 0').max(1000);
 const Unit = z.string().trim().min(1, 'Đơn vị không được để trống').max(20);
+// Low-stock alert level; null switches the alert off.
+const MinStock = z
+  .number()
+  .int('Mức cảnh báo phải là số nguyên')
+  .min(0, 'Mức cảnh báo không được âm')
+  .max(1_000_000)
+  .nullable();
 
 /** Body of POST /api/products; the route validates with this schema. */
 export const CreateProductBody = z.object({
@@ -11,6 +18,7 @@ export const CreateProductBody = z.object({
   sizeKg: SizeKg,
   unit: Unit.optional(),
   price: z.number().positive('Giá bán phải lớn hơn 0').max(99_999_999),
+  minStock: MinStock.optional(),
 });
 
 /** Body of PATCH /api/products/{id}; the route validates with this schema. */
@@ -18,6 +26,7 @@ export const UpdateProductBody = z.object({
   name: ProductName.optional(),
   sizeKg: SizeKg.optional(),
   unit: Unit.optional(),
+  minStock: MinStock.optional(),
   isActive: z.boolean().optional(),
 });
 
@@ -55,7 +64,7 @@ export const productContracts: ApiContract[] = [
     method: 'PATCH',
     path: '/api/products/{id}',
     tag: 'Products',
-    summary: 'Rename a product, change its unit or size, or stop / resume selling it',
+    summary: 'Rename a product, change its unit, size or low-stock alert level, or stop / resume selling it',
     auth: roles('ADMIN'),
     params: productId,
     body: UpdateProductBody,
@@ -64,6 +73,7 @@ export const productContracts: ApiContract[] = [
     notes:
       'Only the fields sent are changed. Products are never deleted: `isActive: false` takes one off order entry while ' +
       'past orders keep it. 409 `PRODUCT_HAS_ORDERS` when changing `sizeKg` of a product that already has orders; ' +
-      '409 `PRODUCT_EXISTS` when the new name and size collide with another product.',
+      '409 `PRODUCT_EXISTS` when the new name and size collide with another product. `minStock: null` switches the ' +
+      'low-stock alert off.',
   },
 ];
