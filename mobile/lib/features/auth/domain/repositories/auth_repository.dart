@@ -19,4 +19,14 @@ abstract class AuthRepository {
   /// Đăng xuất. Bỏ qua mọi kết quả server; token local bị xoá. Lỗi
   /// secure-storage cục bộ (hiếm) là trường hợp duy nhất trả `Err`.
   Future<Result<void>> logout();
+
+  /// Đổi mật khẩu của chính người đang đăng nhập.
+  ///
+  /// Thành công: token mới server cấp đã thay token cũ trong [AuthStorage].
+  /// Mật khẩu hiện tại sai / mật khẩu mới không đạt yêu cầu → `Err` với
+  /// message tiếng Việt từ server (400).
+  Future<Result<void>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
 }

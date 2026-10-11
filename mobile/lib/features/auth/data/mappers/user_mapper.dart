@@ -27,7 +27,18 @@ abstract final class UserMapper {
       return Err(UnexpectedFailure('Unknown role: ${dto.role}'));
     }
 
-    return Ok(User(id: id, email: email, name: name, role: role, factoryId: dto.factoryId));
+    return Ok(
+      User(
+        id: id,
+        email: email,
+        name: name,
+        role: role,
+        factoryId: dto.factoryId,
+        // Thiếu cờ → false: nếu server thật sự đòi đổi mật khẩu thì các API
+        // khác vẫn trả 403 kèm message, không có gì bị mở khoá nhầm.
+        mustChangePassword: dto.mustChangePassword ?? false,
+      ),
+    );
   }
 
   static String? _nonEmpty(String? value) =>

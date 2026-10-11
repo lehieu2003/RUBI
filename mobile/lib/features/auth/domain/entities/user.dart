@@ -28,6 +28,7 @@ class User extends Equatable {
     required this.name,
     required this.role,
     this.factoryId,
+    this.mustChangePassword = false,
   });
 
   final String id;
@@ -36,6 +37,10 @@ class User extends Equatable {
   final UserRole role;
   final String? factoryId;
 
+  /// `true` khi Quản lý vừa tạo tài khoản / đặt lại mật khẩu: server trả 403
+  /// cho mọi API khác tới khi [AuthRepository.changePassword] thành công.
+  final bool mustChangePassword;
+
   @override
-  List<Object?> get props => [id, email, name, role, factoryId];
+  List<Object?> get props => [id, email, name, role, factoryId, mustChangePassword];
 }

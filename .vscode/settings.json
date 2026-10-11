@@ -1,0 +1,5 @@
+{
+  // SDK Flutter do FVM ghim cho mobile/ (xem mobile/.fvmrc). Link này có sau
+  // khi chạy `fvm use` trong mobile/.
+  "dart.flutterSdkPath": "mobile/.fvm/flutter_sdk"
+}

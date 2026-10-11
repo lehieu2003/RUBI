@@ -84,7 +84,7 @@ abstract final class OrderMapper {
   }
 
   static Result<OrderItem> fromItemDto(OrderItemDto dto) {
-    final productName = _nonEmpty(dto.productName);
+    final productName = _nonEmpty(dto.product?.name);
     if (productName == null) {
       return const Err(
         UnexpectedFailure('Order item payload missing `product.name`'),

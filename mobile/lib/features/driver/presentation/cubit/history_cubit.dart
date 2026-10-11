@@ -5,6 +5,7 @@ import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
 import 'package:iceflow_mobile/features/driver/domain/usecases/get_orders_for_date.dart';
+import 'package:injectable/injectable.dart';
 
 /// Trạng thái tab "Lịch sử" của driver.
 enum HistoryStatus { loading, loaded, error }
@@ -37,6 +38,7 @@ class HistoryState extends Equatable {
 ///
 /// Constructor KHÔNG tự load — HistoryTab gọi `selectDate(initial)` hoặc
 /// `load()` trong initState để có dữ liệu lần đầu.
+@injectable
 class HistoryCubit extends Cubit<HistoryState> {
   HistoryCubit({required this._getOrders})
       : super(HistoryState(

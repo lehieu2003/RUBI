@@ -8,8 +8,10 @@ import 'package:iceflow_mobile/features/auth/data/dto/auth_dtos.dart';
 import 'package:iceflow_mobile/features/auth/data/mappers/user_mapper.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository.dart';
+import 'package:injectable/injectable.dart';
 
 /// Impl của [AuthRepository] trên Dio + [AuthStorage].
+@LazySingleton(as: AuthRepository)
 class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl({required Dio dio, required AuthStorage authStorage})
       : _api = AuthApi(dio),
@@ -115,6 +117,40 @@ class AuthRepositoryImpl implements AuthRepository {
       return Err(UnexpectedFailure('Unexpected logout failure: $e'));
     }
     return const Ok<void>(null);
+  }
+
+  @override
+  Future<Result<void>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final body = await _api.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+      final data = _dataOf(body);
+      if (data == null) {
+        return const Err(
+          UnexpectedFailure('Change password response missing `data`'),
+        );
+      }
+
+      // Token cũ còn mang cờ mustChangePassword → phải thay bằng token mới.
+      final token = ChangePasswordDataDto.fromJson(data).token;
+      if (token == null || token.isEmpty) {
+        return const Err(
+          UnexpectedFailure('Change password response missing `data.token`'),
+        );
+      }
+      await _storage.saveToken(token);
+      return const Ok<void>(null);
+    } on DioException catch (err) {
+      // Message từ server (VD: "Mật khẩu hiện tại không đúng") giữ nguyên.
+      return Err(mapDioError(err));
+    } catch (e) {
+      return Err(UnexpectedFailure('Unexpected changePassword failure: $e'));
+    }
   }
 
   /// Lấy object `data` từ envelope; `null` nếu payload không có `data` map.

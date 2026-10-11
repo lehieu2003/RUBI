@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
 import 'package:iceflow_mobile/features/driver/presentation/cubit/today_orders_cubit.dart';
@@ -25,7 +26,7 @@ Future<void> showConfirmSheet(
   );
 }
 
-class _ConfirmSheet extends StatefulWidget {
+class _ConfirmSheet extends HookWidget {
   const _ConfirmSheet({
     required this.order,
     required this.cubit,
@@ -37,46 +38,37 @@ class _ConfirmSheet extends StatefulWidget {
   final VoidCallback onConfirmed;
 
   @override
-  State<_ConfirmSheet> createState() => _ConfirmSheetState();
-}
-
-class _ConfirmSheetState extends State<_ConfirmSheet> {
-  bool _confirming = false;
-  String? _error;
-
-  Future<void> _confirm() async {
-    if (_confirming) return;
-    setState(() {
-      _confirming = true;
-      _error = null;
-    });
-    // Capture trước await — sau khi pop context của sheet hết giá trị.
-    final messenger = ScaffoldMessenger.of(context);
-    await widget.cubit.confirm(widget.order.id);
-    if (!mounted) return;
-
-    // Thành công = đơn trong state MỚI đã `delivered` (cubit chỉ đổi status
-    // khi use case Ok; thất bại thì danh sách giữ nguyên).
-    DeliveryOrder? fresh;
-    for (final o in widget.cubit.state.orders) {
-      if (o.id == widget.order.id) fresh = o;
-    }
-    if (fresh != null && fresh.status == OrderStatus.delivered) {
-      Navigator.of(context).pop();
-      widget.onConfirmed();
-      messenger.showSnackBar(
-        SnackBar(content: const Text(AppStrings.confirmedSnack)),
-      );
-    } else {
-      setState(() {
-        _confirming = false;
-        _error = widget.cubit.state.errorMessage ?? AppStrings.confirmGenericError;
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final confirming = useState(false);
+    final error = useState<String?>(null);
+
+    Future<void> confirm() async {
+      if (confirming.value) return;
+      confirming.value = true;
+      error.value = null;
+      // Capture trước await — sau khi pop context của sheet hết giá trị.
+      final messenger = ScaffoldMessenger.of(context);
+      await cubit.confirm(order.id);
+      if (!context.mounted) return;
+
+      // Thành công = đơn trong state MỚI đã `delivered` (cubit chỉ đổi status
+      // khi use case Ok; thất bại thì danh sách giữ nguyên).
+      DeliveryOrder? fresh;
+      for (final o in cubit.state.orders) {
+        if (o.id == order.id) fresh = o;
+      }
+      if (fresh != null && fresh.status == OrderStatus.delivered) {
+        Navigator.of(context).pop();
+        onConfirmed();
+        messenger.showSnackBar(
+          SnackBar(content: const Text(AppStrings.confirmedSnack)),
+        );
+      } else {
+        confirming.value = false;
+        error.value = cubit.state.errorMessage ?? AppStrings.confirmGenericError;
+      }
+    }
+
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       // Không bị che khi bàn phím mở.
@@ -93,13 +85,13 @@ class _ConfirmSheetState extends State<_ConfirmSheet> {
             ),
             const SizedBox(height: 8),
             Text(
-              AppStrings.confirmSheetBody(widget.order.customerName),
+              AppStrings.confirmSheetBody(order.customerName),
               style: Theme.of(context).textTheme.bodyLarge,
             ),
-            if (_error != null) ...[
+            if (error.value != null) ...[
               const SizedBox(height: 12),
               Text(
-                _error!,
+                error.value!,
                 style: TextStyle(
                   color: colorScheme.error,
                   fontWeight: FontWeight.w500,
@@ -111,7 +103,7 @@ class _ConfirmSheetState extends State<_ConfirmSheet> {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: _confirming
+                    onPressed: confirming.value
                         ? null
                         : () => Navigator.of(context).pop(),
                     style: OutlinedButton.styleFrom(
@@ -123,11 +115,11 @@ class _ConfirmSheetState extends State<_ConfirmSheet> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: FilledButton(
-                    onPressed: _confirming ? null : _confirm,
+                    onPressed: confirming.value ? null : confirm,
                     style: FilledButton.styleFrom(
                       minimumSize: const Size(0, 48),
                     ),
-                    child: _confirming
+                    child: confirming.value
                         ? const SizedBox(
                             width: 20,
                             height: 20,

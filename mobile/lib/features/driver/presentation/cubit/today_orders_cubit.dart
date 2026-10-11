@@ -5,6 +5,7 @@ import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
 import 'package:iceflow_mobile/features/driver/domain/usecases/confirm_delivery.dart';
 import 'package:iceflow_mobile/features/driver/domain/usecases/get_orders_for_date.dart';
+import 'package:injectable/injectable.dart';
 
 /// Trạng thái tab "Đơn hôm nay" của driver.
 enum TodayStatus { loading, loaded, error }
@@ -47,6 +48,7 @@ class TodayOrdersState extends Equatable {
 /// State management tab "Đơn hôm nay": tải đơn theo ngày hiện tại, pull-to-
 /// refresh, và luồng xác nhận đã giao (gọi use case → cập nhật
 /// danh sách local).
+@injectable
 class TodayOrdersCubit extends Cubit<TodayOrdersState> {
   TodayOrdersCubit({
     required this._getOrders,

@@ -1,10 +1,13 @@
 import 'dart:async';
 
+import 'package:injectable/injectable.dart';
+
 /// Broadcast channel for auth lifecycle events.
 ///
 /// The network layer emits on [onLogout] when a session is forcibly ended
 /// (token refresh failed, or a retried request was still unauthorized);
 /// the session Bloc listens to route the user back to login.
+@singleton
 class AuthEvents {
   final StreamController<void> _controller =
       StreamController<void>.broadcast();

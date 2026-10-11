@@ -1,31 +1,30 @@
 // DTOs cho response `GET /api/driver/orders` (envelope `{ success, data|error }`).
 //
-// Parse dạng nullable, không validate: field SAI KIỂU ném TypeError ngay tại
-// đây (cố tình để rẻ), và repository biến mọi exception — kể cả TypeError —
-// thành `Err(UnexpectedFailure)` nên callers chỉ bao giờ thấy `Result`,
-// không có exception nào xuyên lớp. Field lạ (driverName, note...) bị bỏ qua.
+// `fromJson` do json_serializable sinh (`driver_dtos.g.dart`; sửa file này
+// xong chạy `dart run build_runner build`). Mọi field nullable, không
+// validate: field SAI KIỂU ném TypeError ngay tại đây (cố tình để rẻ), và
+// repository biến mọi exception — kể cả TypeError — thành
+// `Err(UnexpectedFailure)` nên callers chỉ bao giờ thấy `Result`, không có
+// exception nào xuyên lớp. Field lạ (driverName, note...) bị bỏ qua.
+import 'package:json_annotation/json_annotation.dart';
+
+part 'driver_dtos.g.dart';
 
 /// `data` của `GET /api/driver/orders` — mapper chỉ đọc `orders`, bỏ qua
 /// `driver` (không cần cho luồng giao hàng).
+@JsonSerializable(createToJson: false)
 class DriverOrdersDataDto {
   const DriverOrdersDataDto({this.orders});
 
-  factory DriverOrdersDataDto.fromJson(Map<String, dynamic> json) {
-    final rawOrders = json['orders'];
-    return DriverOrdersDataDto(
-      orders: rawOrders is List
-          ? rawOrders
-              .map((e) => OrderDto.fromJson(e as Map<String, dynamic>))
-              .toList()
-          : null,
-    );
-  }
+  factory DriverOrdersDataDto.fromJson(Map<String, dynamic> json) =>
+      _$DriverOrdersDataDtoFromJson(json);
 
-  /// `null` khi payload không có `orders` list — repository coi là payload hỏng.
+  /// `null` khi payload không có `orders` — repository coi là payload hỏng.
   final List<OrderDto>? orders;
 }
 
 /// Một phần tử của `data.orders`.
+@JsonSerializable(createToJson: false)
 class OrderDto {
   const OrderDto({
     this.id,
@@ -37,25 +36,8 @@ class OrderDto {
     this.orderItems,
   });
 
-  factory OrderDto.fromJson(Map<String, dynamic> json) {
-    final customerJson = json['customer'];
-    final rawItems = json['orderItems'];
-    return OrderDto(
-      id: json['id'] as String?,
-      total: json['total'] as num?,
-      status: json['status'] as String?,
-      createdAt: json['createdAt'] as String?,
-      deliveredAt: json['deliveredAt'] as String?,
-      customer: customerJson is Map<String, dynamic>
-          ? CustomerDto.fromJson(customerJson)
-          : null,
-      orderItems: rawItems is List
-          ? rawItems
-              .map((e) => OrderItemDto.fromJson(e as Map<String, dynamic>))
-              .toList()
-          : null,
-    );
-  }
+  factory OrderDto.fromJson(Map<String, dynamic> json) =>
+      _$OrderDtoFromJson(json);
 
   final String? id;
 
@@ -71,39 +53,40 @@ class OrderDto {
 }
 
 /// Object `customer` của một order — mapper đọc name/address/phone.
+@JsonSerializable(createToJson: false)
 class CustomerDto {
   const CustomerDto({this.name, this.address, this.phone});
 
-  factory CustomerDto.fromJson(Map<String, dynamic> json) => CustomerDto(
-        name: json['name'] as String?,
-        address: json['address'] as String?,
-        phone: json['phone'] as String?,
-      );
+  factory CustomerDto.fromJson(Map<String, dynamic> json) =>
+      _$CustomerDtoFromJson(json);
 
   final String? name;
   final String? address;
   final String? phone;
 }
 
-/// Một phần tử của `orderItems` — chỉ đọc `product.name` (hiển thị cho
-/// driver), bỏ qua id/sizeKg/unit.
+/// Một phần tử của `orderItems`.
+@JsonSerializable(createToJson: false)
 class OrderItemDto {
-  const OrderItemDto({this.productName, this.quantity, this.unitPrice, this.lineTotal});
+  const OrderItemDto({this.product, this.quantity, this.unitPrice, this.lineTotal});
 
-  factory OrderItemDto.fromJson(Map<String, dynamic> json) {
-    final productJson = json['product'];
-    return OrderItemDto(
-      productName: productJson is Map<String, dynamic>
-          ? productJson['name'] as String?
-          : null,
-      quantity: json['quantity'] as num?,
-      unitPrice: json['unitPrice'] as num?,
-      lineTotal: json['lineTotal'] as num?,
-    );
-  }
+  factory OrderItemDto.fromJson(Map<String, dynamic> json) =>
+      _$OrderItemDtoFromJson(json);
 
-  final String? productName;
+  final ProductDto? product;
   final num? quantity;
   final num? unitPrice;
   final num? lineTotal;
+}
+
+/// Object `product` của một order item — chỉ đọc `name` (hiển thị cho
+/// driver), bỏ qua id/sizeKg/unit.
+@JsonSerializable(createToJson: false)
+class ProductDto {
+  const ProductDto({this.name});
+
+  factory ProductDto.fromJson(Map<String, dynamic> json) =>
+      _$ProductDtoFromJson(json);
+
+  final String? name;
 }
