@@ -1,0 +1,66 @@
+name: Mobile CI
+
+# The Flutter app in mobile/. It runs only when something under mobile/ (or
+# this file) changes; the web app has its own gate in ci.yml.
+on:
+  pull_request:
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/mobile.yml'
+  push:
+    branches:
+      - master
+      - dev
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/mobile.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Mobile Quality Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # A PR that only touches mobile/ does not run ci.yml, so the branch and
+      # commit rules are checked here too.
+      - name: Validate branch name and commit messages
+        if: github.event_name == 'pull_request'
+        working-directory: .
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          # The release PR (dev -> master) is the one PR whose head is a protected branch.
+          if [ "$HEAD_REF" != "dev" ] || [ "$BASE_REF" != "master" ]; then
+            bash scripts/validate.sh branch "$HEAD_REF"
+          fi
+          bash scripts/validate.sh range "origin/$BASE_REF" HEAD
+
+      # Keep in step with the Flutter version the app is developed on.
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.5
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
