@@ -44,7 +44,7 @@ describe('RBAC route permissions', () => {
 
   it('has no ACCOUNTANT role: operational routes are ADMIN-only', () => {
     assert.equal(canAccessPath('ACCOUNTANT' as TenantRole, '/dashboard'), false);
-    for (const path of ['/settle', '/inventory', '/vehicles', '/assets', '/schedule', '/reports/debt', '/reports/shifts', '/deposits/shells', '/settings', '/config/prices']) {
+    for (const path of ['/settle', '/inventory', '/vehicles', '/assets', '/schedule', '/reports/debt', '/reports/shifts', '/audit-log', '/deposits/shells', '/settings', '/config/prices']) {
       assert.deepEqual(getAllowedRolesForPath(path), ['ADMIN'], `${path} should be ADMIN-only`);
     }
   });
