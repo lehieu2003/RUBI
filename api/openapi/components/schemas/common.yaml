@@ -114,6 +114,10 @@ Product:
       type: integer
     unit:
       type: string
+    minStock:
+      anyOf:
+        - type: integer
+        - type: "null"
     isActive:
       type: boolean
     createdAt:
@@ -130,6 +134,7 @@ Product:
     - name
     - sizeKg
     - unit
+    - minStock
     - isActive
     - createdAt
     - updatedAt

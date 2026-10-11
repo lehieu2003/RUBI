@@ -60,6 +60,7 @@ export default async function ProductsAndPricesPage() {
               name: product.name,
               sizeKg: product.sizeKg,
               unit: product.unit,
+              minStock: product.minStock,
               isActive: product.isActive,
               price: priceMap.get(product.id) ?? null,
               hasOrders: product._count.orderItems > 0,

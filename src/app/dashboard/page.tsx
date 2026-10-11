@@ -3,7 +3,7 @@ import { getSession } from '@/lib/auth';
 import { DashboardClient } from '@/components/dashboard/dashboard-client';
 import { redirect } from 'next/navigation';
 import { startOfVietnamToday } from '@/lib/vietnam-time';
-import { stockOnHand } from '@/lib/inventory';
+import { isLowStock, reservedByOpenOrders, stockOnHand } from '@/lib/inventory';
 
 async function getCustomers(factoryId: string) {
   return prisma.customer.findMany({
@@ -50,13 +50,22 @@ async function getInventoryStats(factoryId: string) {
     where: { isActive: true, factoryId },
     orderBy: [{ name: 'asc' }, { sizeKg: 'asc' }],
   });
-  const stock = await stockOnHand(prisma, products.map((product) => product.id));
+  const productIds = products.map((product) => product.id);
+  const [stock, reserved] = await Promise.all([
+    stockOnHand(prisma, productIds),
+    reservedByOpenOrders(prisma, factoryId, productIds),
+  ]);
+  // Products at or below their alert level, with what can still be sold.
+  const lowStock = products
+    .map((product) => ({ product, sellable: (stock.get(product.id) ?? 0) - (reserved.get(product.id) ?? 0) }))
+    .filter(({ product, sellable }) => isLowStock(sellable, product.minStock))
+    .map(({ product, sellable }) => `${product.name} ${product.sizeKg}kg (còn ${sellable.toLocaleString('vi-VN')})`);
   const records = products.filter((product) => stock.has(product.id));
   const totalBags = records.reduce((sum, product) => sum + stock.get(product.id)!, 0);
   const details = records.length > 0
     ? records.map((product) => `${product.name} ${product.sizeKg}kg: ${stock.get(product.id)}`).join(' | ')
     : 'Chưa có mẻ nhập kho';
-  return { totalBags, details };
+  return { totalBags, details, lowStock };
 }
 
 async function getShellDepositStats(factoryId: string) {

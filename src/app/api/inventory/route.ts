@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { requireRole } from '@/lib/auth/helpers';
-import { changeStock, stockOnHand } from '@/lib/inventory';
+import { changeStock, isLowStock, reservedByOpenOrders, stockOnHand } from '@/lib/inventory';
 import { apiSuccess, apiError } from '@/lib/api-response';
 
 const RecordSchema = z.object({
@@ -29,16 +29,28 @@ export async function GET() {
     });
 
     // Running balance: yesterday's closing stock carries over to today.
-    const inventoryMap = await stockOnHand(prisma, products.map((product) => product.id));
+    const productIds = products.map((product) => product.id);
+    const [inventoryMap, reserved] = await Promise.all([
+      stockOnHand(prisma, productIds),
+      reservedByOpenOrders(prisma, factoryId, productIds),
+    ]);
 
-    const items = products.map(product => ({
-      productId: product.id,
-      productName: product.name,
-      sizeKg: product.sizeKg,
-      unit: product.unit,
-      quantityOnHand: inventoryMap.get(product.id) ?? 0,
-      totalKg: (inventoryMap.get(product.id) ?? 0) * product.sizeKg,
-    }));
+    const items = products.map(product => {
+      const quantityOnHand = inventoryMap.get(product.id) ?? 0;
+      // What can still be promised: open orders are on the books until settled.
+      const sellable = quantityOnHand - (reserved.get(product.id) ?? 0);
+      return {
+        productId: product.id,
+        productName: product.name,
+        sizeKg: product.sizeKg,
+        unit: product.unit,
+        quantityOnHand,
+        totalKg: quantityOnHand * product.sizeKg,
+        sellable,
+        minStock: product.minStock,
+        lowStock: isLowStock(sellable, product.minStock),
+      };
+    });
 
     return apiSuccess({
       items,

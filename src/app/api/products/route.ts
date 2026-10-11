@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return apiError(parsed.error.issues[0]?.message ?? 'Dữ liệu không hợp lệ', 400);
     }
-    const { name, sizeKg, unit, price } = parsed.data;
+    const { name, sizeKg, unit, price, minStock } = parsed.data;
 
     // Discontinued products count too: reactivating one keeps its history.
     const duplicate = await prisma.product.findFirst({
@@ -62,6 +62,7 @@ export async function POST(request: NextRequest) {
         name,
         sizeKg,
         unit: unit ?? 'Bao',
+        minStock: minStock ?? null,
         factoryId: session.factoryId,
         globalPrices: { create: { pricePerUnit: new Prisma.Decimal(price.toFixed(2)) } },
       },

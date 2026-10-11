@@ -69,6 +69,12 @@ paths:
                   type: number
                   exclusiveMinimum: 0
                   maximum: 99999999
+                minStock:
+                  anyOf:
+                    - type: integer
+                      minimum: 0
+                      maximum: 1000000
+                    - type: "null"
               required:
                 - name
                 - sizeKg
@@ -106,11 +112,11 @@ paths:
       operationId: updateProduct
       tags:
         - Products
-      summary: Rename a product, change its unit or size, or stop / resume selling it
+      summary: Rename a product, change its unit, size or low-stock alert level, or stop / resume selling it
       description: |-
         Access: ADMIN.
 
-        Only the fields sent are changed. Products are never deleted: `isActive: false` takes one off order entry while past orders keep it. 409 `PRODUCT_HAS_ORDERS` when changing `sizeKg` of a product that already has orders; 409 `PRODUCT_EXISTS` when the new name and size collide with another product.
+        Only the fields sent are changed. Products are never deleted: `isActive: false` takes one off order entry while past orders keep it. 409 `PRODUCT_HAS_ORDERS` when changing `sizeKg` of a product that already has orders; 409 `PRODUCT_EXISTS` when the new name and size collide with another product. `minStock: null` switches the low-stock alert off.
       parameters:
         - name: id
           in: path
@@ -137,6 +143,12 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 20
+                minStock:
+                  anyOf:
+                    - type: integer
+                      minimum: 0
+                      maximum: 1000000
+                    - type: "null"
                 isActive:
                   type: boolean
               additionalProperties: false
