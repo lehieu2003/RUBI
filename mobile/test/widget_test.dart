@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:iceflow_mobile/app.dart';
 import 'package:iceflow_mobile/core/network/auth_events.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/core/storage/app_preferences.dart';
 import 'package:iceflow_mobile/core/storage/auth_storage.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository.dart';
@@ -15,6 +16,8 @@ class _MockAuthRepository extends Mock implements AuthRepository {}
 
 class _MockAuthStorage extends Mock implements AuthStorage {}
 
+class _MockAppPreferences extends Mock implements AppPreferences {}
+
 void main() {
   testWidgets('boot không có phiên → màn đăng nhập', (tester) async {
     final repo = _MockAuthRepository();
@@ -24,9 +27,13 @@ void main() {
     final authEvents = AuthEvents();
     addTearDown(authEvents.dispose);
 
+    final preferences = _MockAppPreferences();
+    when(() => preferences.readLastEmail()).thenAnswer((_) async => null);
+
     final cubit = AuthCubit(
       repo: repo,
       storage: _MockAuthStorage(),
+      preferences: preferences,
       authEvents: authEvents,
     );
     addTearDown(cubit.close);

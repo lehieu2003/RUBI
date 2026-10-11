@@ -30,6 +30,17 @@ class LoginScreen extends HookWidget {
     final passwordController = useTextEditingController();
     final obscurePassword = useState(true);
 
+    useEffect(() {
+      // Điền sẵn email của lần đăng nhập trước; không ghi đè nếu người dùng
+      // đã kịp gõ.
+      context.read<AuthCubit>().lastEmail().then((email) {
+        if (email != null && context.mounted && emailController.text.isEmpty) {
+          emailController.text = email;
+        }
+      });
+      return null;
+    }, const []);
+
     // Đang chờ kết quả đăng nhập — tắt trong `finally` của `submit` khi
     // Future `login` kết thúc. KHÔNG dựa vào việc cubit phát state mới:
     // `AuthState` là Equatable nên bloc bỏ qua emit trùng state (fail lặp lại

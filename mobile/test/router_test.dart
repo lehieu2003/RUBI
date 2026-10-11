@@ -4,6 +4,7 @@ import 'package:iceflow_mobile/app.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/core/network/auth_events.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/core/storage/app_preferences.dart';
 import 'package:iceflow_mobile/core/storage/auth_storage.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository.dart';
@@ -17,6 +18,8 @@ class _MockAuthRepository extends Mock implements AuthRepository {}
 
 class _MockAuthStorage extends Mock implements AuthStorage {}
 
+class _MockAppPreferences extends Mock implements AppPreferences {}
+
 class _MockTodayOrdersCubit extends Mock implements TodayOrdersCubit {}
 
 void main() {
@@ -29,11 +32,15 @@ void main() {
 
   late _MockAuthRepository repo;
   late _MockAuthStorage storage;
+  late _MockAppPreferences preferences;
   late AuthEvents authEvents;
 
   setUp(() {
     repo = _MockAuthRepository();
     storage = _MockAuthStorage();
+    preferences = _MockAppPreferences();
+    when(() => preferences.readLastEmail()).thenAnswer((_) async => null);
+    when(() => preferences.saveLastEmail(any())).thenAnswer((_) async {});
     authEvents = AuthEvents();
   });
 
@@ -42,7 +49,12 @@ void main() {
   });
 
   AuthCubit buildCubit() =>
-      AuthCubit(repo: repo, storage: storage, authEvents: authEvents);
+      AuthCubit(
+        repo: repo,
+        storage: storage,
+        preferences: preferences,
+        authEvents: authEvents,
+      );
 
   group('authRedirect (quy tắc thuần)', () {
     test('AuthUnknown → không điều hướng (đang chờ khôi phục phiên)', () {

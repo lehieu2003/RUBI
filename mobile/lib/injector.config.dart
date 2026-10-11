@@ -14,6 +14,7 @@ import 'package:dio/dio.dart' as _i361;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:iceflow_mobile/core/network/auth_events.dart' as _i1021;
 import 'package:iceflow_mobile/core/network/network_module.dart' as _i274;
+import 'package:iceflow_mobile/core/storage/app_preferences.dart' as _i681;
 import 'package:iceflow_mobile/core/storage/auth_storage.dart' as _i807;
 import 'package:iceflow_mobile/features/auth/data/auth_repository_impl.dart'
     as _i1004;
@@ -38,6 +39,7 @@ import 'package:iceflow_mobile/features/schedule/data/schedule_repository_impl.d
 import 'package:iceflow_mobile/features/schedule/domain/repositories/schedule_repository.dart'
     as _i285;
 import 'package:injectable/injectable.dart' as _i526;
+import 'package:shared_preferences/shared_preferences.dart' as _i460;
 
 extension GetItInjectableX on _i174.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt
@@ -46,11 +48,18 @@ extension GetItInjectableX on _i174.GetIt {
     _i526.EnvironmentFilter? environmentFilter,
   }) {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
+    final storageModule = _$StorageModule();
     final networkModule = _$NetworkModule();
     gh.singleton<_i1021.AuthEvents>(() => _i1021.AuthEvents());
+    gh.lazySingleton<_i460.SharedPreferencesAsync>(
+      () => storageModule.sharedPreferences,
+    );
     gh.lazySingleton<_i807.AuthStorage>(() => _i807.AuthStorage());
     gh.lazySingleton<_i361.Dio>(
       () => networkModule.dio(gh<_i807.AuthStorage>(), gh<_i1021.AuthEvents>()),
+    );
+    gh.lazySingleton<_i681.AppPreferences>(
+      () => _i681.AppPreferences(gh<_i460.SharedPreferencesAsync>()),
     );
     gh.lazySingleton<_i452.AuthRepository>(
       () => _i1004.AuthRepositoryImpl(
@@ -68,6 +77,7 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i251.AuthCubit(
         repo: gh<_i452.AuthRepository>(),
         storage: gh<_i807.AuthStorage>(),
+        preferences: gh<_i681.AppPreferences>(),
         authEvents: gh<_i1021.AuthEvents>(),
       ),
     );
@@ -89,5 +99,7 @@ extension GetItInjectableX on _i174.GetIt {
     return this;
   }
 }
+
+class _$StorageModule extends _i681.StorageModule {}
 
 class _$NetworkModule extends _i274.NetworkModule {}

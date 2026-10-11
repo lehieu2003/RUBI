@@ -7,11 +7,15 @@ import 'package:iceflow_mobile/features/driver/presentation/cubit/history_cubit.
 import 'package:iceflow_mobile/features/driver/presentation/cubit/today_orders_cubit.dart';
 import 'package:iceflow_mobile/features/schedule/domain/repositories/schedule_repository.dart';
 import 'package:iceflow_mobile/injector.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
 void main() {
   tearDown(sl.reset);
 
   test('configureDependencies → dựng được mọi dependency app dùng', () async {
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.empty();
     configureDependencies();
 
     expect(sl<AuthRepository>(), isNotNull);

@@ -6,6 +6,7 @@ import 'package:iceflow_mobile/core/error/failure.dart';
 import 'package:iceflow_mobile/core/error/failure_messages.dart';
 import 'package:iceflow_mobile/core/network/auth_events.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/core/storage/app_preferences.dart';
 import 'package:iceflow_mobile/core/storage/auth_storage.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository.dart';
@@ -15,6 +16,8 @@ import 'package:mocktail/mocktail.dart';
 class _MockAuthRepository extends Mock implements AuthRepository {}
 
 class _MockAuthStorage extends Mock implements AuthStorage {}
+
+class _MockAppPreferences extends Mock implements AppPreferences {}
 
 void main() {
   const driver = User(
@@ -32,11 +35,15 @@ void main() {
 
   late _MockAuthRepository repo;
   late _MockAuthStorage storage;
+  late _MockAppPreferences preferences;
   late AuthEvents authEvents;
 
   setUp(() {
     repo = _MockAuthRepository();
     storage = _MockAuthStorage();
+    preferences = _MockAppPreferences();
+    when(() => preferences.readLastEmail()).thenAnswer((_) async => null);
+    when(() => preferences.saveLastEmail(any())).thenAnswer((_) async {});
     authEvents = AuthEvents();
   });
 
@@ -45,7 +52,12 @@ void main() {
   });
 
   AuthCubit buildCubit() =>
-      AuthCubit(repo: repo, storage: storage, authEvents: authEvents);
+      AuthCubit(
+        repo: repo,
+        storage: storage,
+        preferences: preferences,
+        authEvents: authEvents,
+      );
 
   group('AuthCubit', () {
     group('restore', () {
@@ -103,6 +115,36 @@ void main() {
       );
 
       blocTest<AuthCubit, AuthState>(
+        'DRIVER → nhớ email vừa đăng nhập',
+        build: buildCubit,
+        setUp: () {
+          when(() => repo.login(
+                email: any(named: 'email'),
+                password: any(named: 'password'),
+              )).thenAnswer((_) async => const Ok<User>(driver));
+        },
+        act: (cubit) => cubit.login('tai@iceflow.vn', 'secret'),
+        verify: (_) {
+          verify(() => preferences.saveLastEmail('tai@iceflow.vn')).called(1);
+        },
+      );
+
+      blocTest<AuthCubit, AuthState>(
+        'lưu email lỗi → vẫn Authenticated',
+        build: buildCubit,
+        setUp: () {
+          when(() => repo.login(
+                email: any(named: 'email'),
+                password: any(named: 'password'),
+              )).thenAnswer((_) async => const Ok<User>(driver));
+          when(() => preferences.saveLastEmail(any()))
+              .thenThrow(StateError('preferences unavailable'));
+        },
+        act: (cubit) => cubit.login('tai@iceflow.vn', 'secret'),
+        expect: () => [const Authenticated(driver)],
+      );
+
+      blocTest<AuthCubit, AuthState>(
         'Err (sai thông tin) → Unauthenticated với message từ failureMessage',
         build: buildCubit,
         setUp: () {
@@ -141,6 +183,42 @@ void main() {
           verify(() => storage.clear()).called(1);
         },
       );
+    });
+
+    blocTest<AuthCubit, AuthState>(
+      'login thất bại hoặc bị chặn vai trò → không nhớ email',
+      build: buildCubit,
+      setUp: () {
+        when(() => storage.clear()).thenAnswer((_) async {});
+        when(() => repo.login(
+              email: any(named: 'email'),
+              password: any(named: 'password'),
+            )).thenAnswer((_) async => const Ok<User>(staff));
+      },
+      act: (cubit) => cubit.login('van@iceflow.vn', 'secret'),
+      verify: (_) {
+        verifyNever(() => preferences.saveLastEmail(any()));
+      },
+    );
+
+    group('lastEmail', () {
+      test('trả email đã lưu', () async {
+        when(() => preferences.readLastEmail())
+            .thenAnswer((_) async => 'tai@iceflow.vn');
+        final cubit = buildCubit();
+        addTearDown(cubit.close);
+
+        expect(await cubit.lastEmail(), 'tai@iceflow.vn');
+      });
+
+      test('đọc lỗi → null, không ném', () async {
+        when(() => preferences.readLastEmail())
+            .thenThrow(StateError('preferences unavailable'));
+        final cubit = buildCubit();
+        addTearDown(cubit.close);
+
+        expect(await cubit.lastEmail(), isNull);
+      });
     });
 
     group('logout', () {
