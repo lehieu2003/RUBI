@@ -92,6 +92,8 @@ class HistoryCubit extends Cubit<HistoryState> {
 
   Future<void> _fetch() async {
     final res = await _getOrders(state.selectedDate);
+    // Màn hình đã đóng trong lúc chờ mạng: không còn ai nghe state này.
+    if (isClosed) return;
     switch (res) {
       case Ok<List<DeliveryOrder>>(:final value):
         emit(HistoryState(
