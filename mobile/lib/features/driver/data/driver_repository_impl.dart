@@ -6,10 +6,12 @@ import 'package:iceflow_mobile/features/driver/data/dto/driver_dtos.dart';
 import 'package:iceflow_mobile/features/driver/data/mappers/order_mapper.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
 import 'package:iceflow_mobile/features/driver/domain/repositories/driver_repository.dart';
+import 'package:injectable/injectable.dart';
 import 'package:intl/intl.dart';
 
 /// Impl của [DriverRepository] trên Dio (token do [AuthInterceptor] gắn,
 /// 401/refresh/logout cũng do interceptor xử lý trước khi tới đây).
+@LazySingleton(as: DriverRepository)
 class DriverRepositoryImpl implements DriverRepository {
   // `this._dio` (private initializing formal): call-site vẫn là `dio: ...`.
   DriverRepositoryImpl({required this._dio});

@@ -402,5 +402,174 @@ void main() {
         expect(await storage.readToken(), 'jwt-123');
       });
     });
+
+    group('changePassword', () {
+      const body = {'currentPassword': 'old-pass-1', 'newPassword': 'new-pass-2'};
+
+      test('200 → Ok(null), thay token đang lưu bằng token mới, gửi đúng body',
+          () async {
+        await storage.saveToken('jwt-old');
+        Object? capturedBody;
+        // data: bắt buộc khi route có body — matcher so sánh cả request body.
+        adapter.onPost(
+          '/api/auth/password',
+          (server) {
+            server.replyCallback(200, (options) {
+              capturedBody = decodedBody(options.data);
+              return {
+                'success': true,
+                'data': {'token': 'jwt-new'},
+              };
+            });
+          },
+          data: body,
+        );
+
+        final res = await repo.changePassword(
+          currentPassword: 'old-pass-1',
+          newPassword: 'new-pass-2',
+        );
+
+        expect(res, const Ok<void>(null));
+        expect(await storage.readToken(), 'jwt-new');
+        expect(capturedBody, body);
+      });
+
+      test('400 mật khẩu hiện tại sai → Err(ServerFailure) message từ server, giữ token cũ',
+          () async {
+        await storage.saveToken('jwt-old');
+        adapter.onPost(
+          '/api/auth/password',
+          (server) {
+            server.reply(400, {
+              'success': false,
+              'error': 'Mật khẩu hiện tại không đúng',
+            });
+          },
+          data: body,
+        );
+
+        final res = await repo.changePassword(
+          currentPassword: 'old-pass-1',
+          newPassword: 'new-pass-2',
+        );
+
+        expect(
+          res,
+          const Err<void>(
+            ServerFailure('Mật khẩu hiện tại không đúng', statusCode: 400),
+          ),
+        );
+        expect(await storage.readToken(), 'jwt-old');
+      });
+
+      test('429 thao tác quá nhanh → Err(ServerFailure 429)', () async {
+        adapter.onPost(
+          '/api/auth/password',
+          (server) {
+            server.reply(429, {
+              'success': false,
+              'error': 'Bạn thao tác quá nhanh, vui lòng thử lại sau ít phút',
+            });
+          },
+          data: body,
+        );
+
+        final res = await repo.changePassword(
+          currentPassword: 'old-pass-1',
+          newPassword: 'new-pass-2',
+        );
+
+        final failure = (res as Err<void>).failure;
+        expect(failure, isA<ServerFailure>());
+        expect((failure as ServerFailure).statusCode, 429);
+      });
+
+      test('401 phiên hết hạn → Err(AuthFailure)', () async {
+        adapter.onPost(
+          '/api/auth/password',
+          (server) {
+            server.reply(401, {
+              'success': false,
+              'error': 'Chưa đăng nhập hoặc phiên đã hết hạn',
+            });
+          },
+          data: body,
+        );
+
+        final res = await repo.changePassword(
+          currentPassword: 'old-pass-1',
+          newPassword: 'new-pass-2',
+        );
+
+        expect((res as Err<void>).failure, isA<AuthFailure>());
+      });
+
+      test('200 nhưng thiếu token → Err(UnexpectedFailure), giữ token cũ',
+          () async {
+        await storage.saveToken('jwt-old');
+        adapter.onPost(
+          '/api/auth/password',
+          (server) {
+            server.reply(200, {'success': true, 'data': <String, dynamic>{}});
+          },
+          data: body,
+        );
+
+        final res = await repo.changePassword(
+          currentPassword: 'old-pass-1',
+          newPassword: 'new-pass-2',
+        );
+
+        expect((res as Err<void>).failure, isA<UnexpectedFailure>());
+        expect(await storage.readToken(), 'jwt-old');
+      });
+
+      test('lỗi kết nối → Err(NetworkFailure)', () async {
+        adapter.onPost(
+          '/api/auth/password',
+          (server) {
+            server.throws(
+              0,
+              DioException(
+                requestOptions: RequestOptions(path: '/api/auth/password'),
+                type: DioExceptionType.connectionError,
+                error: 'connection refused',
+              ),
+            );
+          },
+          data: body,
+        );
+
+        final res = await repo.changePassword(
+          currentPassword: 'old-pass-1',
+          newPassword: 'new-pass-2',
+        );
+
+        expect(res, const Err<void>(NetworkFailure()));
+      });
+
+      test('secure-storage lỗi khi lưu token mới → Err(UnexpectedFailure), không ném',
+          () async {
+        storage.failOnSave = true;
+        adapter.onPost(
+          '/api/auth/password',
+          (server) {
+            server.reply(200, {
+              'success': true,
+              'data': {'token': 'jwt-new'},
+            });
+          },
+          data: body,
+        );
+
+        final res = await repo.changePassword(
+          currentPassword: 'old-pass-1',
+          newPassword: 'new-pass-2',
+        );
+
+        expect((res as Err<void>).failure, isA<UnexpectedFailure>());
+      });
+    });
   });
 }

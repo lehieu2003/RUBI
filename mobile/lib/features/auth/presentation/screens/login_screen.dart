@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 
@@ -8,48 +9,8 @@ import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart'
 /// - Validate khi submit: email có '@', mật khẩu tối thiểu 6 ký tự.
 /// - Lỗi nghiệp vụ (`Unauthenticated.message`) hiển thị inline dưới form.
 /// - Đăng nhập thành công KHÔNG tự điều hướng — router redirect lo việc đó.
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends HookWidget {
   const LoginScreen({super.key});
-
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
-
-  /// Đang chờ kết quả đăng nhập — tắt trong `finally` của [_submit] khi
-  /// Future `login` kết thúc. KHÔNG dựa vào việc cubit phát state mới:
-  /// `AuthState` là Equatable nên bloc bỏ qua emit trùng state (fail lặp lại
-  /// cùng message), spinner sẽ kẹt vĩnh viễn nếu reset theo emission.
-  bool _submitting = false;
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    if (_submitting) return;
-    final form = _formKey.currentState;
-    if (form == null || !form.validate()) return;
-    setState(() => _submitting = true);
-    try {
-      await context.read<AuthCubit>().login(
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
-    } finally {
-      // Future `login` hoàn thành đúng một lần mỗi lần gọi — dedupe của bloc
-      // không ảnh hưởng. Màn hình có thể đã unmount (redirect) → mounted guard.
-      if (mounted) setState(() => _submitting = false);
-    }
-  }
 
   String? _validateEmail(String? value) {
     final email = value?.trim() ?? '';
@@ -64,6 +25,46 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final formKey = useMemoized(GlobalKey<FormState>.new);
+    final emailController = useTextEditingController();
+    final passwordController = useTextEditingController();
+    final obscurePassword = useState(true);
+
+    useEffect(() {
+      // Điền sẵn email của lần đăng nhập trước; không ghi đè nếu người dùng
+      // đã kịp gõ.
+      context.read<AuthCubit>().lastEmail().then((email) {
+        if (email != null && context.mounted && emailController.text.isEmpty) {
+          emailController.text = email;
+        }
+      });
+      return null;
+    }, const []);
+
+    // Đang chờ kết quả đăng nhập — tắt trong `finally` của `submit` khi
+    // Future `login` kết thúc. KHÔNG dựa vào việc cubit phát state mới:
+    // `AuthState` là Equatable nên bloc bỏ qua emit trùng state (fail lặp lại
+    // cùng message), spinner sẽ kẹt vĩnh viễn nếu reset theo emission.
+    final submitting = useState(false);
+
+    Future<void> submit() async {
+      if (submitting.value) return;
+      final form = formKey.currentState;
+      if (form == null || !form.validate()) return;
+      submitting.value = true;
+      try {
+        await context.read<AuthCubit>().login(
+          emailController.text.trim(),
+          passwordController.text,
+        );
+      } finally {
+        // Future `login` hoàn thành đúng một lần mỗi lần gọi — dedupe của
+        // bloc không ảnh hưởng. Màn hình có thể đã unmount (redirect) →
+        // mounted guard.
+        if (context.mounted) submitting.value = false;
+      }
+    }
+
     return Scaffold(
       body: SafeArea(
         // Cuộn được khi bàn phím che form trên màn hình thấp.
@@ -73,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 360),
               child: Form(
-                key: _formKey,
+                key: formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -93,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 48),
                     TextFormField(
                       key: const Key('login_email'),
-                      controller: _emailController,
+                      controller: emailController,
                       decoration: const InputDecoration(
                         labelText: AppStrings.emailLabel,
                       ),
@@ -104,23 +105,22 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       key: const Key('login_password'),
-                      controller: _passwordController,
+                      controller: passwordController,
                       decoration: InputDecoration(
                         labelText: AppStrings.passwordLabel,
                         suffixIcon: IconButton(
-                          onPressed: () => setState(
-                            () => _obscurePassword = !_obscurePassword,
-                          ),
+                          onPressed: () =>
+                              obscurePassword.value = !obscurePassword.value,
                           icon: Icon(
-                            _obscurePassword
+                            obscurePassword.value
                                 ? Icons.visibility_outlined
                                 : Icons.visibility_off_outlined,
                           ),
                         ),
                       ),
-                      obscureText: _obscurePassword,
+                      obscureText: obscurePassword.value,
                       textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) => _submit(),
+                      onFieldSubmitted: (_) => submit(),
                       validator: _validatePassword,
                     ),
                     const SizedBox(height: 8),
@@ -145,11 +145,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     FilledButton(
                       key: const Key('login_submit'),
-                      onPressed: _submitting ? null : _submit,
+                      onPressed: submitting.value ? null : submit,
                       style: FilledButton.styleFrom(
                         minimumSize: const Size.fromHeight(52),
                       ),
-                      child: _submitting
+                      child: submitting.value
                           ? const SizedBox(
                               width: 24,
                               height: 24,

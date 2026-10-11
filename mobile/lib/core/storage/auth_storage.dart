@@ -1,6 +1,8 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:injectable/injectable.dart';
 
 /// Secure (Keychain / EncryptedSharedPreferences) storage for the auth token.
+@lazySingleton
 class AuthStorage {
   AuthStorage();
 

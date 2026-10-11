@@ -16,6 +16,7 @@ void main() {
 
   setUp(() {
     cubit = _MockAuthCubit();
+    when(() => cubit.lastEmail()).thenAnswer((_) async => null);
   });
 
   Future<void> pumpLoginScreen(WidgetTester tester) {
@@ -39,6 +40,24 @@ void main() {
   }
 
   group('LoginScreen', () {
+    testWidgets('có email của lần đăng nhập trước → điền sẵn ô email', (
+      tester,
+    ) async {
+      when(() => cubit.lastEmail()).thenAnswer((_) async => 'tai@iceflow.vn');
+      whenListen(
+        cubit,
+        const Stream<AuthState>.empty(),
+        initialState: const Unauthenticated(),
+      );
+      await pumpLoginScreen(tester);
+      await tester.pump();
+
+      final field = tester.widget<TextFormField>(
+        find.byKey(const Key('login_email')),
+      );
+      expect(field.controller!.text, 'tai@iceflow.vn');
+    });
+
     testWidgets('submit khi email/password rỗng → hiện lỗi validate, '
         'KHÔNG gọi cubit', (tester) async {
       whenListen(

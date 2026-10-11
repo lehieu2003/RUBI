@@ -35,6 +35,20 @@ class AuthApi {
     return _dio.post<dynamic>('/api/auth/logout');
   }
 
+  /// `POST /api/auth/password`
+  /// → 200 `{ success: true, data: { token } }`
+  /// → 400 `{ success: false, error: "Mật khẩu hiện tại không đúng" }`.
+  Future<Map<String, dynamic>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final res = await _dio.post<dynamic>(
+      '/api/auth/password',
+      data: {'currentPassword': currentPassword, 'newPassword': newPassword},
+    );
+    return _bodyOf(res.data);
+  }
+
   Map<String, dynamic> _bodyOf(Object? data) =>
       data is Map<String, dynamic> ? data : const {};
 }

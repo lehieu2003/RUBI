@@ -109,6 +109,7 @@ v3.0 decisions:
 | 261011-adl | Audit log: every change to an order or a customer's debt records who did it; manager screen to read it | 2026-10-11 | feat/audit-log | [261011-adl-audit-log](./quick/261011-adl-audit-log/) |
 | 261011-mci | Mobile app gets its own CI gate (flutter analyze + test) on changes under mobile/; the web gate skips mobile-only changes | 2026-10-11 | chore/mobile-ci | [261011-mci-mobile-ci](./quick/261011-mci-mobile-ci/) |
 | 261011-mce | Mobile: cubits no longer emit after they are closed (StateError when leaving a tab mid-request) | 2026-10-11 | fix/mobile-cubit-emit-after-close | [261011-mce-mobile-cubit-emit-after-close](./quick/261011-mce-mobile-cubit-emit-after-close/) |
+| 261011-mdl | Mobile data layer: change password and shift registration (repositories, DTOs, mappers, tests; no UI yet) | 2026-10-11 | feat/mobile-password-schedule-data | [261011-mdl-mobile-data-layer](./quick/261011-mdl-mobile-data-layer/) |
 
 ## Session Continuity
 

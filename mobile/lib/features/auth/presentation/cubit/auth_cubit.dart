@@ -5,9 +5,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iceflow_mobile/core/error/failure_messages.dart';
 import 'package:iceflow_mobile/core/network/auth_events.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/core/storage/app_preferences.dart';
 import 'package:iceflow_mobile/core/storage/auth_storage.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository.dart';
+import 'package:injectable/injectable.dart';
 
 /// Thông báo khi user không phải DRIVER bị chặn khỏi app (giới hạn Phase 1).
 const _roleBlockedMessage = 'Tài khoản này chưa dùng được trên app';
@@ -48,10 +50,12 @@ class Unauthenticated extends AuthState {
 
 /// Quản lý phiên đăng nhập: khôi phục khi mở app, đăng nhập, đăng xuất, và
 /// nghe sự kiện bị buộc đăng xuất từ tầng network (`authEvents.onLogout`).
+@injectable
 class AuthCubit extends Cubit<AuthState> {
   AuthCubit({
     required this._repo,
     required this._storage,
+    required this._preferences,
     required AuthEvents authEvents,
   }) : super(const AuthUnknown()) {
     _authEventsSub = authEvents.onLogout.listen((_) {
@@ -63,6 +67,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   final AuthRepository _repo;
   final AuthStorage _storage;
+  final AppPreferences _preferences;
   StreamSubscription<void>? _authEventsSub;
 
   /// Khôi phục phiên từ token đã lưu. Gọi một lần khi app mở.
@@ -88,6 +93,14 @@ class AuthCubit extends Cubit<AuthState> {
     switch (res) {
       case Ok<User>(:final value):
         if (value.role == UserRole.driver) {
+          // Nhớ email cho lần đăng nhập sau. Best-effort: lỗi lưu tuỳ chọn
+          // không được làm hỏng lần đăng nhập đã thành công.
+          try {
+            await _preferences.saveLastEmail(email);
+          } on Object catch (_) {
+            // ignored
+          }
+          if (isClosed) return;
           emit(Authenticated(value));
         } else {
           // Repo đã lưu token cho user này trước khi trả Ok — phải xoá để
@@ -103,6 +116,16 @@ class AuthCubit extends Cubit<AuthState> {
         }
       case Err<User>(:final failure):
         emit(Unauthenticated(message: failureMessage(failure)));
+    }
+  }
+
+  /// Email của lần đăng nhập thành công gần nhất (điền sẵn màn đăng nhập);
+  /// `null` nếu chưa có hoặc không đọc được.
+  Future<String?> lastEmail() async {
+    try {
+      return await _preferences.readLastEmail();
+    } on Object catch (_) {
+      return null;
     }
   }
 
