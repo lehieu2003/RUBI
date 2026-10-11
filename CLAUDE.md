@@ -99,7 +99,7 @@ Applies to every code change, including those made through a GSD command:
 2. **Never commit or push directly to `dev` or `master`.** `dev` is the integration branch; `master` is the released line.
 3. **Every change lands through a Pull Request into `dev`**, with a description that says why, what changed, how it was verified and how to roll back. Rollback = revert the PR's merge commit.
 4. **Commits follow Conventional Commits:** `type(scope): summary` — types `feat`, `fix`, `refactor`, `docs`, `test`, `chore`; scope optional (`mobile`, `api`, `ci`, ...); imperative summary; one logical change per commit.
-5. **Merge only when the CI "Quality Gate" is green** (lint, typecheck, test, build). Fix a red CI on the branch; do not merge around it. The mobile app has its own gate, "Mobile Quality Gate" (`flutter analyze`, `flutter test`): a change under `mobile/` runs that one, a change anywhere else runs the web gate, and a change to both runs both.
+5. **Merge only when the CI "Quality Gate" is green** (lint, typecheck, test, build). Fix a red CI on the branch; do not merge around it. The mobile app has its own gate, "Mobile Quality Gate" (`flutter analyze`, `flutter test`): a change under `mobile/` runs that one, a change anywhere else runs the web gate, and a change to both runs both. The planning notes in `.planning/` count for neither.
 6. Schema changes go through Prisma Migrate only (`npm run db:migrate` creates the migration file, `npm run db:deploy` applies it); never `prisma db push`. Call them out in the PR, because reverting the code does not restore dropped data.
 
 

@@ -9,7 +9,7 @@ status: complete
 ## Shipped
 
 1. **`Mobile CI` / "Mobile Quality Gate"** (`.github/workflows/mobile.yml`): chạy khi PR hoặc push vào `dev`/`master` đụng tới `mobile/**`. Các bước: kiểm tra tên nhánh và commit, Flutter 3.47.5, `flutter pub get`, `flutter analyze`, `flutter test`.
-2. **Cổng web bỏ qua thay đổi chỉ nằm trong `mobile/`** (`paths-ignore`).
+2. **Cổng web bỏ qua thay đổi chỉ nằm trong `mobile/` và `.planning/`** (`paths-ignore`). Mọi task đều ghi vào `.planning/`; nếu không bỏ qua thì PR mobile nào cũng vẫn chạy cổng web.
 3. **Quy tắc merge** trong `CLAUDE.md` và `AGENTS.md` nêu cả hai cổng.
 
 | Thay đổi | Cổng web | Cổng mobile |

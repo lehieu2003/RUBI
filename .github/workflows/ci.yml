@@ -1,11 +1,14 @@
 name: CI
 
 # The web app. Changes that only touch the mobile app run mobile.yml instead.
+# The planning notes in .planning/ are written with every task and hold no
+# code, so they do not count as a change to the web app.
 on:
   pull_request:
     paths-ignore:
       - 'mobile/**'
       - '.github/workflows/mobile.yml'
+      - '.planning/**'
   push:
     branches:
       - master
@@ -13,6 +16,7 @@ on:
     paths-ignore:
       - 'mobile/**'
       - '.github/workflows/mobile.yml'
+      - '.planning/**'
 
 permissions:
   contents: read
