@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iceflow_mobile/core/error/failure.dart';
@@ -174,5 +176,20 @@ void main() {
         verify(() => getOrders(yesterday)).called(1);
       },
     );
+
+    group('đóng khi đang tải', () {
+      test('rời tab trước khi API trả về → không emit, không lỗi', () async {
+        final pending = Completer<Result<List<DeliveryOrder>>>();
+        when(() => getOrders(any())).thenAnswer((_) => pending.future);
+        final cubit = buildCubit();
+
+        final loading = cubit.load();
+        await cubit.close();
+        pending.complete(Ok([order('o-1')]));
+
+        await expectLater(loading, completes);
+        expect(cubit.state.status, HistoryStatus.loading);
+      });
+    });
   });
 }
