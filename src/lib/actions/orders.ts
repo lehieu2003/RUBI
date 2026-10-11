@@ -70,6 +70,15 @@ export async function loadCustomerPrices(customerId: string): Promise<Record<str
 // books minus what open orders already took. Stock only leaves the books at
 // settlement, so PENDING, SHIPPING and DELIVERED orders are subtracted here.
 // Products that never had a stock record are left out: nothing is known.
+/** The factory's name, address and phone, printed at the top of a delivery slip. */
+export async function loadSlipFactory(): Promise<{ name: string; phone: string | null; address: string | null } | null> {
+  const factoryId = await requireOfficeFactoryId();
+  return prisma.factory.findUnique({
+    where: { id: factoryId },
+    select: { name: true, phone: true, address: true },
+  });
+}
+
 export async function loadSellableStock(): Promise<Record<string, number>> {
   const factoryId = await requireOfficeFactoryId();
 

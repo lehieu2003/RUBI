@@ -57,6 +57,11 @@ export default async function OrderDetailPage({
     notFound();
   }
 
+  const factory = await prisma.factory.findUnique({
+    where: { id: session.factoryId },
+    select: { name: true, phone: true, address: true },
+  });
+
   const serializedOrder = {
     ...order,
     total: Number(order.total),
@@ -68,5 +73,5 @@ export default async function OrderDetailPage({
     })),
   };
 
-  return <OrderDetailClient order={serializedOrder} />;
+  return <OrderDetailClient order={serializedOrder} factory={factory} />;
 }

@@ -34,9 +34,10 @@ export interface SerializedOrderDetail {
 
 interface OrderDetailClientProps {
   order: SerializedOrderDetail;
+  factory: { name: string; phone: string | null; address: string | null } | null;
 }
 
-export function OrderDetailClient({ order }: OrderDetailClientProps) {
+export function OrderDetailClient({ order, factory }: OrderDetailClientProps) {
   const [showPrintSlip, setShowPrintSlip] = useState(false);
 
   const handlePrint = () => {
@@ -57,6 +58,7 @@ export function OrderDetailClient({ order }: OrderDetailClientProps) {
       lineTotal: item.lineTotal,
     })),
     total: order.total,
+    notes: order.notes,
     createdAt: order.createdAt,
   };
 
@@ -106,7 +108,7 @@ export function OrderDetailClient({ order }: OrderDetailClientProps) {
             className="flex items-center gap-2 bg-[#004a99] text-white px-5 py-2.5 rounded font-bold text-xs hover:bg-[#00346f] transition-all shadow-sm"
           >
             <Printer className="h-4 w-4" />
-            IN PHIẾU GIAO HÀNG (K80 / A5)
+            IN PHIẾU GIAO HÀNG (K80)
           </button>
         </div>
 
@@ -193,7 +195,7 @@ export function OrderDetailClient({ order }: OrderDetailClientProps) {
       {/* Print-only content */}
       {showPrintSlip && (
         <div className="hidden print:block">
-          <PrintSlip order={slipOrder} />
+          <PrintSlip order={slipOrder} factory={factory} />
         </div>
       )}
     </div>
