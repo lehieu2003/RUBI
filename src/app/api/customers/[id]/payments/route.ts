@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
 import { RecordPaymentBody } from '@/lib/contracts/customers';
+import { dong, recordAudit } from '@/lib/audit';
 import { apiSuccess, apiError } from '@/lib/api-response';
 
 // POST /api/customers/[id]/payments — the manager records money received
@@ -13,6 +14,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!session.factoryId) {
       return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
+    const factoryId = session.factoryId;
     const { id } = await params;
 
     const parsed = RecordPaymentBody.safeParse(await request.json().catch(() => null));
@@ -49,6 +51,15 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         const payment = await tx.customerDebtLedger.create({
           data: { customerId: id, type: 'PAYMENT', amount, notes: notes || null },
         });
+        await recordAudit(
+          tx,
+          { factoryId, userId: session.userId, userName: session.name },
+          {
+            action: 'DEBT_PAYMENT',
+            customerId: id,
+            summary: `Thu tiền ${dong(amount)}${notes ? ` (${notes})` : ''}. Còn nợ ${dong(owed - amount)}`,
+          }
+        );
         return { ok: true as const, payment, remaining: owed - amount };
       },
       { isolationLevel: 'Serializable' }
