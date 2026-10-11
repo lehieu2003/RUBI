@@ -20,6 +20,7 @@ import {
   Calendar,
   Sun,
   Wrench,
+  History,
   X,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-provider';
@@ -43,6 +44,7 @@ const menuMetadata = {
   '/schedule': { icon: Calendar, label: 'Lịch trình' },
   '/my-schedule': { icon: Calendar, label: 'Ca làm của tôi' },
   '/reports/shifts': { icon: BarChart3, label: 'Bảng công' },
+  '/audit-log': { icon: History, label: 'Nhật ký' },
   '/settings': { icon: Settings, label: 'Cài đặt' },
   '/config/prices': { icon: Package, label: 'Sản phẩm & giá' },
 };

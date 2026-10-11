@@ -1,0 +1,45 @@
+{
+  "operationId": "listAuditLogs",
+  "request": {
+    "method": "GET",
+    "path": "/api/audit-logs",
+    "as": "admin",
+    "query": {
+      "orderId": "cmv37qect002ci96g6f9lw7yq"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": [
+      {
+        "id": "cmv37qgfl000ni96j7gcdcyna",
+        "action": "ORDER_SETTLED",
+        "summary": "Chốt đơn: giao đủ. Ghi nợ 260.000đ",
+        "userName": "Nguyễn Văn Chủ Xưởng",
+        "orderId": "cmv37qect002ci96g6f9lw7yq",
+        "orderCode": "DH-9LW7YQ",
+        "customerId": "cmv37qebu001ji96ge17kcn8m",
+        "customerName": "Đại Lý Nước Ngọt Minh Tâm",
+        "createdAt": "2026-10-11T02:37:32.721Z"
+      },
+      {
+        "id": "cmv37qgeq000ki96js76p2reb",
+        "action": "ORDER_DELIVERED",
+        "summary": "Tài xế xác nhận đã giao xong",
+        "userName": "Phạm Văn Tài",
+        "orderId": "cmv37qect002ci96g6f9lw7yq",
+        "orderCode": "DH-9LW7YQ",
+        "customerId": "cmv37qebu001ji96ge17kcn8m",
+        "customerName": "Đại Lý Nước Ngọt Minh Tâm",
+        "createdAt": "2026-10-11T02:37:32.690Z"
+      }
+    ],
+    "meta": {
+      "page": 1,
+      "limit": 20,
+      "total_item": 5,
+      "total_page": 1
+    }
+  }
+}

@@ -34,6 +34,8 @@ tags:
     description: "Shift scheduling: manager assignment, self-registration, approval"
   - name: Reports
     description: Debt report, monthly shift report and payroll lock
+  - name: Audit
+    description: Log of changes to orders and customer debt
   - name: Assets
     description: Machines, vehicles and their maintenance
   - name: System
@@ -107,6 +109,8 @@ paths:
     $ref: ./report.yaml#/paths/~1api~1reports~1shifts
   /api/reports/shifts/lock:
     $ref: ./report.yaml#/paths/~1api~1reports~1shifts~1lock
+  /api/audit-logs:
+    $ref: ./audit.yaml#/paths/~1api~1audit-logs
   /api/assets:
     $ref: ./asset.yaml#/paths/~1api~1assets
   /api/assets/{id}:

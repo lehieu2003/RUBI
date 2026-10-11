@@ -13,6 +13,9 @@ export const API_ENDPOINTS = {
     PASSWORD: '/api/auth/password',
   },
 
+  // Audit log
+  AUDIT_LOGS: '/api/audit-logs',
+
   // Factory
   FACTORY: {
     PROFILE: '/api/factory',
