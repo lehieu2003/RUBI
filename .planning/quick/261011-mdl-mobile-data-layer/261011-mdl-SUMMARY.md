@@ -14,10 +14,11 @@ status: complete
 4. **json_serializable** cho toàn bộ DTO của app (`auth`, `driver`, `schedule`): `fromJson` được sinh ra, file `*.g.dart` được commit; sửa DTO xong chạy `dart run build_runner build`.
 5. **injectable** thay cho đăng ký get_it viết tay: annotation trên từng class, `lib/injector.config.dart` được sinh và commit; `ScheduleRepository` đã được đăng ký.
 6. **flutter_hooks**: `IceFlowApp`, `LoginScreen`, `HomeShell`, sheet xác nhận giao chuyển từ `StatefulWidget` sang `HookWidget`.
+7. **shared_preferences**: `AppPreferences` nhớ email của lần đăng nhập thành công gần nhất và màn đăng nhập điền sẵn. Token vẫn ở secure storage.
 
 ## Verification
 
-- `flutter analyze`: không lỗi. `flutter test`: 202/202 (thêm `test/injector_test.dart`).
+- `flutter analyze`: không lỗi. `flutter test`: 210/210 (thêm `test/injector_test.dart`, `test/core/storage/app_preferences_test.dart`).
 - Fixture test lấy theo `api/openapi/schedule.yaml`, `auth.yaml` và `api/openapi/fixtures/responses`.
 - Chưa chạy với server thật.
 
