@@ -1,0 +1,42 @@
+{
+  // Chạy app Flutter trong mobile/ (chỉ có nền tảng Android). Chọn thiết bị ở
+  // góc dưới phải của VS Code trước khi bấm F5.
+  // API local là web app: `npm run dev` chạy ở cổng 3000. 10.0.2.2 là địa chỉ
+  // máy tính nhìn từ Android emulator.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Mobile (Android emulator, API local)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "mobile",
+      "program": "lib/main.dart",
+      "toolArgs": ["--dart-define=API_BASE_URL=http://10.0.2.2:3000"]
+    },
+    {
+      "name": "Mobile (máy thật, API_BASE_URL tự nhập)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "mobile",
+      "program": "lib/main.dart",
+      "toolArgs": ["--dart-define=API_BASE_URL=${input:apiBaseUrl}"]
+    },
+    {
+      "name": "Mobile (profile)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "mobile",
+      "program": "lib/main.dart",
+      "flutterMode": "profile",
+      "toolArgs": ["--dart-define=API_BASE_URL=${input:apiBaseUrl}"]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "apiBaseUrl",
+      "type": "promptString",
+      "description": "Địa chỉ API mà điện thoại gọi tới (VD http://192.168.1.10:3000)",
+      "default": "http://192.168.1.10:3000"
+    }
+  ]
+}
