@@ -8,8 +8,10 @@ import 'package:iceflow_mobile/features/auth/data/dto/auth_dtos.dart';
 import 'package:iceflow_mobile/features/auth/data/mappers/user_mapper.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository.dart';
+import 'package:injectable/injectable.dart';
 
 /// Impl của [AuthRepository] trên Dio + [AuthStorage].
+@LazySingleton(as: AuthRepository)
 class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl({required Dio dio, required AuthStorage authStorage})
       : _api = AuthApi(dio),

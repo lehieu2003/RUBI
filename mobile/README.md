@@ -9,7 +9,7 @@ flutter test
 flutter run
 ```
 
-The DTOs in `lib/features/*/data/dto` get their `fromJson` from json_serializable. The generated `*.g.dart` files are committed; after editing a DTO, regenerate them:
+Two things are generated and committed: the `fromJson` of the DTOs in `lib/features/*/data/dto` (json_serializable, `*.g.dart`) and the dependency registrations in `lib/injector.config.dart` (injectable, from the `@injectable` / `@lazySingleton` / `@module` annotations). After editing a DTO or an annotation, regenerate them:
 
 ```bash
 dart run build_runner build

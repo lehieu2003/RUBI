@@ -1,0 +1,33 @@
+import 'package:dio/dio.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository.dart';
+import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:iceflow_mobile/features/driver/domain/repositories/driver_repository.dart';
+import 'package:iceflow_mobile/features/driver/presentation/cubit/history_cubit.dart';
+import 'package:iceflow_mobile/features/driver/presentation/cubit/today_orders_cubit.dart';
+import 'package:iceflow_mobile/features/schedule/domain/repositories/schedule_repository.dart';
+import 'package:iceflow_mobile/injector.dart';
+
+void main() {
+  tearDown(sl.reset);
+
+  test('configureDependencies → dựng được mọi dependency app dùng', () async {
+    configureDependencies();
+
+    expect(sl<AuthRepository>(), isNotNull);
+    expect(sl<DriverRepository>(), isNotNull);
+    expect(sl<ScheduleRepository>(), isNotNull);
+
+    // Repository và Dio là singleton; cubit là factory (mỗi màn một cubit).
+    expect(sl<Dio>(), same(sl<Dio>()));
+    expect(sl<DriverRepository>(), same(sl<DriverRepository>()));
+    final authCubit = sl<AuthCubit>();
+    final todayCubit = sl<TodayOrdersCubit>();
+    final historyCubit = sl<HistoryCubit>();
+    expect(sl<TodayOrdersCubit>(), isNot(same(todayCubit)));
+
+    await authCubit.close();
+    await todayCubit.close();
+    await historyCubit.close();
+  });
+}

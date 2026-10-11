@@ -6,10 +6,12 @@ import 'package:iceflow_mobile/features/schedule/data/dto/schedule_dtos.dart';
 import 'package:iceflow_mobile/features/schedule/data/mappers/schedule_mapper.dart';
 import 'package:iceflow_mobile/features/schedule/domain/entities/week_schedule.dart';
 import 'package:iceflow_mobile/features/schedule/domain/repositories/schedule_repository.dart';
+import 'package:injectable/injectable.dart';
 import 'package:intl/intl.dart';
 
 /// Impl của [ScheduleRepository] trên Dio (token do [AuthInterceptor] gắn,
 /// 401/refresh/logout cũng do interceptor xử lý trước khi tới đây).
+@LazySingleton(as: ScheduleRepository)
 class ScheduleRepositoryImpl implements ScheduleRepository {
   ScheduleRepositoryImpl({required this._dio});
 

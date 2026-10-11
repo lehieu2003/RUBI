@@ -8,6 +8,7 @@ import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/core/storage/auth_storage.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository.dart';
+import 'package:injectable/injectable.dart';
 
 /// Thông báo khi user không phải DRIVER bị chặn khỏi app (giới hạn Phase 1).
 const _roleBlockedMessage = 'Tài khoản này chưa dùng được trên app';
@@ -48,6 +49,7 @@ class Unauthenticated extends AuthState {
 
 /// Quản lý phiên đăng nhập: khôi phục khi mở app, đăng nhập, đăng xuất, và
 /// nghe sự kiện bị buộc đăng xuất từ tầng network (`authEvents.onLogout`).
+@injectable
 class AuthCubit extends Cubit<AuthState> {
   AuthCubit({
     required this._repo,
