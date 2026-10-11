@@ -106,6 +106,7 @@ v3.0 decisions:
 | 261011-psf | Delivery slip prints the factory's own name, address and phone, and the order notes; order page no longer prints blank | 2026-10-11 | fix/print-slip-factory-info | [261011-psf-print-slip-factory-info](./quick/261011-psf-print-slip-factory-info/) |
 | 261011-src | Manager changes an account between staff and driver in Settings; an open session follows the new role | 2026-10-11 | feat/staff-role-change | [261011-src-staff-role-change](./quick/261011-src-staff-role-change/) |
 | 261011-lsa | Low-stock alert: per-product level, warning on cold storage and dashboard from what can still be sold | 2026-10-11 | feat/low-stock-alert | [261011-lsa-low-stock-alert](./quick/261011-lsa-low-stock-alert/) |
+| 261011-adl | Audit log: every change to an order or a customer's debt records who did it; manager screen to read it | 2026-10-11 | feat/audit-log | [261011-adl-audit-log](./quick/261011-adl-audit-log/) |
 
 ## Session Continuity
 
