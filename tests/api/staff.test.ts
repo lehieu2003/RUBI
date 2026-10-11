@@ -120,7 +120,9 @@ describe('account phone numbers', () => {
 
   it('the settings screen shows and edits the phone, and reads a new account out of the envelope', () => {
     const page = readFileSync('src/app/settings/page.tsx', 'utf8');
-    assert.match(page, /body: JSON\.stringify\(\{ name: editName\.trim\(\), phone: editPhone\.trim\(\) \}\)/);
+    assert.match(page, /name: editName\.trim\(\),\s+phone: editPhone\.trim\(\),/);
+    // the role is sent only when the manager changed it
+    assert.match(page, /\.\.\.\(editRole !== editStaff\.role \? \{ role: editRole \} : \{\}\)/);
     assert.match(page, /data\?\.data\?\.user \?\? data\?\.user/);
     assert.doesNotMatch(page, /if \(data\.user\)/);
   });
