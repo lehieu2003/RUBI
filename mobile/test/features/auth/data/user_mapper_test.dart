@@ -62,6 +62,24 @@ void main() {
       );
     });
 
+    test('mustChangePassword true từ server → User.mustChangePassword true', () {
+      final res = UserMapper.fromDto(
+        UserDto.fromJson({...driverFixture, 'mustChangePassword': true}),
+      );
+
+      expect((res as Ok<User>).value.mustChangePassword, isTrue);
+    });
+
+    test('mustChangePassword false / thiếu → false', () {
+      final explicit = UserMapper.fromDto(
+        UserDto.fromJson({...driverFixture, 'mustChangePassword': false}),
+      );
+      final absent = UserMapper.fromDto(UserDto.fromJson(driverFixture));
+
+      expect((explicit as Ok<User>).value.mustChangePassword, isFalse);
+      expect((absent as Ok<User>).value.mustChangePassword, isFalse);
+    });
+
     test('role lạ → Err(UnexpectedFailure "Unknown role")', () {
       final res = UserMapper.fromDto(
         UserDto.fromJson({...driverFixture, 'role': 'OWNER'}),

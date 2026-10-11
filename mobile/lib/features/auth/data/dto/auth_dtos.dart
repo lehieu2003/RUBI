@@ -7,7 +7,14 @@
 
 /// Object `user` trong login/me response.
 class UserDto {
-  const UserDto({this.id, this.email, this.name, this.role, this.factoryId});
+  const UserDto({
+    this.id,
+    this.email,
+    this.name,
+    this.role,
+    this.factoryId,
+    this.mustChangePassword,
+  });
 
   factory UserDto.fromJson(Map<String, dynamic> json) => UserDto(
         id: json['id'] as String?,
@@ -15,6 +22,7 @@ class UserDto {
         name: json['name'] as String?,
         role: json['role'] as String?,
         factoryId: json['factoryId'] as String?,
+        mustChangePassword: json['mustChangePassword'] as bool?,
       );
 
   final String? id;
@@ -24,6 +32,7 @@ class UserDto {
   /// Giá trị server gửi: `ADMIN | STAFF | DRIVER`.
   final String? role;
   final String? factoryId;
+  final bool? mustChangePassword;
 }
 
 /// `data` của `POST /api/auth/login`.
@@ -56,4 +65,15 @@ class MeDataDto {
   }
 
   final UserDto? user;
+}
+
+/// `data` của `POST /api/auth/password`.
+class ChangePasswordDataDto {
+  const ChangePasswordDataDto({this.token});
+
+  factory ChangePasswordDataDto.fromJson(Map<String, dynamic> json) =>
+      ChangePasswordDataDto(token: json['token'] as String?);
+
+  /// JWT mới (đã bỏ cờ `mustChangePassword`), thay cho token đang lưu.
+  final String? token;
 }
