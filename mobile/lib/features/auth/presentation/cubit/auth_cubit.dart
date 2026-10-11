@@ -71,6 +71,8 @@ class AuthCubit extends Cubit<AuthState> {
   /// lỗi khác (mạng...) → Unauthenticated kèm message.
   Future<void> restore() async {
     final res = await _repo.restoreSession();
+    // Cubit đã đóng trong lúc chờ: không emit nữa.
+    if (isClosed) return;
     switch (res) {
       case Ok<User?>(:final value):
         emit(value != null ? Authenticated(value) : const Unauthenticated());
@@ -82,6 +84,7 @@ class AuthCubit extends Cubit<AuthState> {
   /// Đăng nhập. Chỉ vai trò DRIVER được vào app (giới hạn Phase 1).
   Future<void> login(String email, String password) async {
     final res = await _repo.login(email: email, password: password);
+    if (isClosed) return;
     switch (res) {
       case Ok<User>(:final value):
         if (value.role == UserRole.driver) {
@@ -95,6 +98,7 @@ class AuthCubit extends Cubit<AuthState> {
           } on Object catch (_) {
             // ignored — chặn vai trò luôn đứng trước.
           }
+          if (isClosed) return;
           emit(const Unauthenticated(message: _roleBlockedMessage));
         }
       case Err<User>(:final failure):
@@ -106,6 +110,7 @@ class AuthCubit extends Cubit<AuthState> {
   /// như đã đăng xuất phía app — surface nothing.
   Future<void> logout() async {
     await _repo.logout();
+    if (isClosed) return;
     emit(const Unauthenticated());
   }
 

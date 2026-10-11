@@ -61,6 +61,8 @@ class TodayOrdersCubit extends Cubit<TodayOrdersState> {
   Future<void> load() async {
     emit(const TodayOrdersState(status: TodayStatus.loading));
     final res = await _getOrders(DateTime.now());
+    // Màn hình đã đóng trong lúc chờ mạng: không còn ai nghe state này.
+    if (isClosed) return;
     switch (res) {
       case Ok<List<DeliveryOrder>>(:final value):
         emit(TodayOrdersState(
@@ -79,6 +81,8 @@ class TodayOrdersCubit extends Cubit<TodayOrdersState> {
   /// hiển thị trong lúc tải lại. Lỗi → state error nhưng vẫn giữ đơn cũ.
   Future<void> refresh() async {
     final res = await _getOrders(DateTime.now());
+    // Màn hình đã đóng trong lúc chờ mạng: không còn ai nghe state này.
+    if (isClosed) return;
     switch (res) {
       case Ok<List<DeliveryOrder>>(:final value):
         emit(TodayOrdersState(
@@ -108,6 +112,8 @@ class TodayOrdersCubit extends Cubit<TodayOrdersState> {
       confirmingOrderId: orderId,
     ));
     final res = await _confirmDelivery(orderId: orderId);
+    // Màn hình đã đóng trong lúc chờ mạng: không còn ai nghe state này.
+    if (isClosed) return;
     switch (res) {
       case Ok<void>():
         // deliveredAt server tự set; DateTime.now() ở đây chỉ là xấp xỉ để
