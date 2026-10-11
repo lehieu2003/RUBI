@@ -65,10 +65,11 @@ export default function SettingsPage() {
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<UserRole>('STAFF');
   const [newPhone, setNewPhone] = useState('');
-  // Editing the name and phone of one account
+  // Editing the name, phone and role of one account
   const [editStaff, setEditStaff] = useState<StaffUser | null>(null);
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
+  const [editRole, setEditRole] = useState<UserRole>('STAFF');
   const [savingStaff, setSavingStaff] = useState(false);
 
   const handleSaveStaff = async () => {
@@ -82,14 +83,26 @@ export default function SettingsPage() {
       const res = await fetch(API_ENDPOINTS.STAFF.DETAIL(editStaff.id), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: editName.trim(), phone: editPhone.trim() }),
+        body: JSON.stringify({
+          name: editName.trim(),
+          phone: editPhone.trim(),
+          ...(editRole !== editStaff.role ? { role: editRole } : {}),
+        }),
       });
       const json = await res.json().catch(() => null);
       if (!res.ok) throw new Error(json?.error ?? 'Không thể cập nhật nhân sự');
       const updated: StaffUser = json.data.user;
+      const unassigned: number = json.data.unassignedOrders ?? 0;
       setStaffUsers((prev) => prev.map((s) => (s.id === updated.id ? { ...s, ...updated } : s)));
       setEditStaff(null);
-      toast({ type: 'success', title: 'Đã cập nhật nhân sự' });
+      toast({
+        type: 'success',
+        title: 'Đã cập nhật nhân sự',
+        // Open orders of someone who stops being a driver are back in "chưa gán"
+        message: unassigned > 0
+          ? `${unassigned} đơn chưa giao của tài xế này đã được gỡ gán. Vào Đơn hàng để giao cho tài xế khác.`
+          : undefined,
+      });
     } catch (err) {
       toast({
         type: 'error',
@@ -428,9 +441,10 @@ export default function SettingsPage() {
                                   setEditStaff(staff);
                                   setEditName(staff.name);
                                   setEditPhone(staff.phone ?? '');
+                                  setEditRole(staff.role);
                                 }}
                                 className="p-1.5 text-on-surface-variant hover:text-primary-accent hover:bg-container-high rounded transition-colors"
-                                title="Sửa họ tên và số điện thoại"
+                                title="Sửa họ tên, số điện thoại và vai trò"
                                 aria-label={`Sửa ${staff.name}`}
                               >
                                 <Pencil className="h-4 w-4" />
@@ -644,6 +658,23 @@ export default function SettingsPage() {
                         className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] outline-none"
                         placeholder="Để trống nếu chưa có"
                       />
+                    </div>
+                    <div>
+                      <label htmlFor="edit-staff-role" className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">Vai trò</label>
+                      <select
+                        id="edit-staff-role"
+                        value={editRole}
+                        onChange={e => setEditRole(e.target.value as UserRole)}
+                        className="w-full px-3 py-2 bg-card border border-outline-variant rounded text-sm text-on-surface focus:border-[#004a99] outline-none"
+                      >
+                        <option value="STAFF">Nhân viên</option>
+                        <option value="DRIVER">Tài xế</option>
+                      </select>
+                      {editStaff.role === 'DRIVER' && editRole === 'STAFF' && (
+                        <p className="mt-1.5 text-xs text-on-surface-variant">
+                          Các đơn chưa giao của tài xế này sẽ được gỡ gán.
+                        </p>
+                      )}
                     </div>
                     <div className="flex gap-2.5 pt-2">
                       <button

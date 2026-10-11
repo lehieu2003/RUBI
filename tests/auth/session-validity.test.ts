@@ -16,6 +16,25 @@ describe('session validity checks', () => {
   });
 });
 
+describe('role changes reach an open session', () => {
+  it('getSession takes the role from the database, not from the token', () => {
+    assert.match(auth, /select: \{ isActive: true, mustChangePassword: true, role: true \}/);
+    assert.match(auth, /session\.role = userState\.role/);
+  });
+
+  it('/api/auth/me replaces a cookie that carries the old role', () => {
+    const me = readFileSync(join(process.cwd(), 'src/app/api/auth/me/route.ts'), 'utf8');
+    assert.match(me, /cookieClaims\.role !== user\.role/);
+    assert.match(me, /\|\| roleChanged\) \{[\s\S]*?setSessionCookie/);
+  });
+
+  it('the settings dialog offers staff and driver only', () => {
+    const settings = readFileSync(join(process.cwd(), 'src/app/settings/page.tsx'), 'utf8');
+    const select = settings.slice(settings.indexOf('id="edit-staff-role"'));
+    assert.deepEqual(select.slice(0, select.indexOf('</select>')).match(/value="[A-Z]+"/g), ['value="STAFF"', 'value="DRIVER"']);
+  });
+});
+
 describe('security headers', () => {
   it('blocks iframe embedding (clickjacking)', () => {
     assert.match(nextConfig, /X-Frame-Options/);
