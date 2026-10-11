@@ -260,5 +260,42 @@ void main() {
         },
       );
     });
+
+    group('đóng khi đang chờ mạng', () {
+      test('load / refresh: rời tab trước khi API trả về → không lỗi',
+          () async {
+        for (final call in [
+          (TodayOrdersCubit cubit) => cubit.load(),
+          (TodayOrdersCubit cubit) => cubit.refresh(),
+        ]) {
+          final pending = Completer<Result<List<DeliveryOrder>>>();
+          when(() => getOrders(any())).thenAnswer((_) => pending.future);
+          final cubit = buildCubit();
+
+          final running = call(cubit);
+          await cubit.close();
+          pending.complete(Ok(mixedFromServer));
+
+          await expectLater(running, completes);
+          expect(cubit.state.orders, isEmpty);
+        }
+      });
+
+      test('confirm: rời tab trước khi server xác nhận → không lỗi', () async {
+        stubGetOrders(Ok(mixedFromServer));
+        final pending = Completer<Result<void>>();
+        when(() => confirmDelivery(orderId: any(named: 'orderId')))
+            .thenAnswer((_) => pending.future);
+        final cubit = buildCubit();
+        await cubit.load();
+
+        final confirming = cubit.confirm('o-shipping-1');
+        await cubit.close();
+        pending.complete(const Ok<void>(null));
+
+        await expectLater(confirming, completes);
+        expect(cubit.state.confirmingOrderId, 'o-shipping-1');
+      });
+    });
   });
 }

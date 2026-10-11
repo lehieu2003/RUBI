@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iceflow_mobile/core/error/failure.dart';
@@ -174,6 +176,35 @@ void main() {
         act: (cubit) => authEvents.emitLogout(),
         expect: () => [const Unauthenticated()],
       );
+    });
+
+    group('đóng khi đang chờ', () {
+      test('restore / login / logout trả về sau khi cubit đóng → không lỗi',
+          () async {
+        final restoring = Completer<Result<User?>>();
+        final signingIn = Completer<Result<User>>();
+        final signingOut = Completer<Result<void>>();
+        when(() => repo.restoreSession()).thenAnswer((_) => restoring.future);
+        when(() => repo.login(
+              email: any(named: 'email'),
+              password: any(named: 'password'),
+            )).thenAnswer((_) => signingIn.future);
+        when(() => repo.logout()).thenAnswer((_) => signingOut.future);
+        final cubit = buildCubit();
+
+        final running = [
+          cubit.restore(),
+          cubit.login('tai@iceflow.vn', 'x'),
+          cubit.logout(),
+        ];
+        await cubit.close();
+        restoring.complete(const Ok<User?>(driver));
+        signingIn.complete(const Ok<User>(driver));
+        signingOut.complete(const Ok<void>(null));
+
+        await expectLater(Future.wait(running), completes);
+        expect(cubit.state, const AuthUnknown());
+      });
     });
   });
 }
