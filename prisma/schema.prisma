@@ -73,6 +73,8 @@ model Product {
   name                   String
   sizeKg                 Int
   unit                   String                  @default("bag")
+  // Low-stock alert: warn when what can still be sold is at or below this; null = no alert
+  minStock               Int?                    @map("min_stock")
   isActive               Boolean                 @default(true)
   createdAt              DateTime                @default(now()) @map("created_at")
   updatedAt              DateTime                @updatedAt @map("updated_at")
