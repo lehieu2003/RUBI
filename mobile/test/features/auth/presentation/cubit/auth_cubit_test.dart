@@ -283,6 +283,25 @@ void main() {
         await expectLater(Future.wait(running), completes);
         expect(cubit.state, const AuthUnknown());
       });
+
+      test('login: cubit đóng khi đang lưu email → không lỗi', () async {
+        final saving = Completer<void>();
+        when(() => repo.login(
+              email: any(named: 'email'),
+              password: any(named: 'password'),
+            )).thenAnswer((_) async => const Ok<User>(driver));
+        when(() => preferences.saveLastEmail(any()))
+            .thenAnswer((_) => saving.future);
+        final cubit = buildCubit();
+
+        final signingIn = cubit.login('tai@iceflow.vn', 'x');
+        await untilCalled(() => preferences.saveLastEmail(any()));
+        await cubit.close();
+        saving.complete();
+
+        await expectLater(signingIn, completes);
+        expect(cubit.state, const AuthUnknown());
+      });
     });
   });
 }

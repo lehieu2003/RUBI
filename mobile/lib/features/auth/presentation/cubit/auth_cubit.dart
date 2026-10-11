@@ -100,6 +100,7 @@ class AuthCubit extends Cubit<AuthState> {
           } on Object catch (_) {
             // ignored
           }
+          if (isClosed) return;
           emit(Authenticated(value));
         } else {
           // Repo đã lưu token cho user này trước khi trả Ok — phải xoá để
