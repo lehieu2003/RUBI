@@ -188,7 +188,7 @@ void main() {
     test('thiếu customer.name / address / phone → Err(UnexpectedFailure)', () {
       final missingName = {
         ...orderShippingFixture,
-        'customer': {...(orderShippingFixture['customer'] as Map), 'name': null},
+        'customer': {...(orderShippingFixture['customer'] as Map<String, dynamic>), 'name': null},
       };
       expect(
         OrderMapper.fromDto(OrderDto.fromJson(missingName)),
@@ -197,7 +197,7 @@ void main() {
 
       final missingAddress = {
         ...orderShippingFixture,
-        'customer': {...(orderShippingFixture['customer'] as Map), 'address': null},
+        'customer': {...(orderShippingFixture['customer'] as Map<String, dynamic>), 'address': null},
       };
       expect(
         OrderMapper.fromDto(OrderDto.fromJson(missingAddress)),
@@ -206,7 +206,7 @@ void main() {
 
       final missingPhone = {
         ...orderShippingFixture,
-        'customer': {...(orderShippingFixture['customer'] as Map), 'phone': null},
+        'customer': {...(orderShippingFixture['customer'] as Map<String, dynamic>), 'phone': null},
       };
       expect(
         OrderMapper.fromDto(OrderDto.fromJson(missingPhone)),

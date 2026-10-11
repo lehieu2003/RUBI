@@ -8,3 +8,9 @@ flutter analyze
 flutter test
 flutter run
 ```
+
+The DTOs in `lib/features/*/data/dto` get their `fromJson` from json_serializable. The generated `*.g.dart` files are committed; after editing a DTO, regenerate them:
+
+```bash
+dart run build_runner build
+```

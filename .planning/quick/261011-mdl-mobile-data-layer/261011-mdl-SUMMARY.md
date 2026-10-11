@@ -11,6 +11,7 @@ status: complete
 1. **Đổi mật khẩu** (feature `auth`): `AuthRepository.changePassword` → `POST /api/auth/password`, thay token đang lưu bằng token mới server trả về. Lỗi 400/429 giữ nguyên message tiếng Việt của server; token cũ không bị đụng khi thất bại.
 2. **`User.mustChangePassword`** đọc từ login/me (thiếu → `false`).
 3. **Đăng ký ca** (feature mới `schedule`): entity `WeekSchedule`, `SchedulePerson`, `Shift`, enum `ShiftSlot` (8 khung 3 tiếng), `ShiftStatus`; `ScheduleRepository.getWeek / requestShift / withdrawShift` trên `GET/POST/DELETE /api/schedule/my`; DTO + mapper. Khung giờ, trạng thái, vai trò lạ là lỗi, không suy mặc định.
+4. **json_serializable** cho toàn bộ DTO của app (`auth`, `driver`, `schedule`): `fromJson` được sinh ra, file `*.g.dart` được commit; sửa DTO xong chạy `dart run build_runner build`.
 
 ## Verification
 
