@@ -21,6 +21,7 @@
       "name": "Đá Thử mv2itgnv",
       "sizeKg": 8,
       "unit": "Túi",
+      "minStock": null,
       "isActive": false,
       "createdAt": "2026-10-10T15:00:03.417Z",
       "updatedAt": "2026-10-10T15:00:03.439Z",

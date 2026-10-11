@@ -91,7 +91,7 @@ Product catalogue.
 |---|---|---|---|
 | GET | `/api/products` | Any signed-in user | Active products, ordered by name then size |
 | POST | `/api/products` | ADMIN | Add a product together with its default price |
-| PATCH | `/api/products/{id}` | ADMIN | Rename a product, change its unit or size, or stop / resume selling it |
+| PATCH | `/api/products/{id}` | ADMIN | Rename a product, change its unit, size or low-stock alert level, or stop / resume selling it |
 
 ### [price.yaml](price.yaml)
 

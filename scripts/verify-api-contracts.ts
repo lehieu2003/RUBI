@@ -311,6 +311,11 @@ async function main() {
   await call('createProduct', { as: 'staff', body: { name: 'Không được phép', sizeKg: 7, price: 9000 }, expectError: 403 });
   await call('updateProduct', { params: { id: newProduct.id }, body: { unit: 'Túi', sizeKg: 8, isActive: false } });
   await call('updateProduct', { params: { id: 'khong-ton-tai' }, body: { unit: 'Túi' }, expectError: 404 });
+  // Low-stock alert level: set, refused when negative, cleared with null
+  const withLevel = data(await call('updateProduct', { params: { id: newProduct.id }, body: { minStock: 25 } }));
+  if (withLevel.minStock !== 25) failures.push('updateProduct: minStock was not stored');
+  await call('updateProduct', { params: { id: newProduct.id }, body: { minStock: -1 }, expectError: 400 });
+  await call('updateProduct', { params: { id: newProduct.id }, body: { minStock: null } });
   // The seeded Đá Bi 5kg already has orders: its size is fixed.
   await call('updateProduct', { params: { id: 'prod-bi-5' }, body: { sizeKg: 6 }, expectError: 409 });
   await call('setCustomerPrice', { body: { customerId: customer.id, productId: products[0].id, price: 11000 } });

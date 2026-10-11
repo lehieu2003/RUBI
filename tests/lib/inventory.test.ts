@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
-import { changeStock, stockOnHand } from '../../src/lib/inventory';
+import { changeStock, isLowStock, stockOnHand } from '../../src/lib/inventory';
 import { startOfVietnamToday } from '../../src/lib/vietnam-time';
 import { stockCountWhere } from '../../src/lib/stock-count-filters';
 
@@ -183,5 +183,23 @@ describe('stock count history filters', () => {
     assert.match(summary, /stockCountWhere\(session\.factoryId,/);
     assert.match(summary, /requireRole\(\['ADMIN'\]\)/);
     assert.match(summary, /if \(difference < 0\) totalLoss -= difference;\s*else totalSurplus \+= difference;/);
+  });
+});
+
+describe('low-stock alert', () => {
+  it('warns at or below the level, and never without a level', () => {
+    assert.equal(isLowStock(21, 20), false);
+    assert.equal(isLowStock(20, 20), true);
+    assert.equal(isLowStock(-3, 20), true);
+    assert.equal(isLowStock(0, 0), true);
+    assert.equal(isLowStock(0, null), false);
+  });
+
+  it('the cold-storage API and the dashboard compare what can still be sold, not the books', () => {
+    for (const file of ['src/app/api/inventory/route.ts', 'src/app/dashboard/page.tsx']) {
+      const source = readFileSync(file, 'utf8');
+      assert.match(source, /reservedByOpenOrders\(prisma, factoryId, productIds\)/, file);
+      assert.match(source, /isLowStock\(sellable, product\.minStock\)/, file);
+    }
   });
 });

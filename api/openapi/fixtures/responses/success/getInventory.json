@@ -16,7 +16,10 @@
           "sizeKg": 5,
           "unit": "Bao",
           "quantityOnHand": 200,
-          "totalKg": 1000
+          "totalKg": 1000,
+          "sellable": 200,
+          "minStock": null,
+          "lowStock": false
         },
         {
           "productId": "prod-bi-10",
@@ -24,7 +27,10 @@
           "sizeKg": 10,
           "unit": "Bao",
           "quantityOnHand": 200,
-          "totalKg": 2000
+          "totalKg": 2000,
+          "sellable": 200,
+          "minStock": null,
+          "lowStock": false
         }
       ],
       "totalBags": 1600,

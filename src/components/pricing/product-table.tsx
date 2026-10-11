@@ -11,6 +11,8 @@ export interface ProductRow {
   name: string;
   sizeKg: number;
   unit: string;
+  /** Low-stock alert level; null when the product has no alert */
+  minStock: number | null;
   isActive: boolean;
   /** Default price; null when none has been set yet */
   price: number | null;
@@ -27,9 +29,11 @@ interface ProductForm {
   sizeKg: string;
   unit: string;
   price: string;
+  /** Empty = no low-stock alert */
+  minStock: string;
 }
 
-const EMPTY_FORM: ProductForm = { name: '', sizeKg: '', unit: 'Bao', price: '' };
+const EMPTY_FORM: ProductForm = { name: '', sizeKg: '', unit: 'Bao', price: '', minStock: '' };
 
 const inputClass =
   'border border-outline-variant rounded px-2.5 py-1.5 text-sm text-on-surface bg-card outline-none focus:border-[#004a99] disabled:bg-container-high disabled:text-faint';
@@ -47,7 +51,9 @@ async function send(url: string, method: 'POST' | 'PATCH', body: unknown): Promi
 }
 
 /** Reads the form; returns a message when a field is not usable. */
-function readForm(form: ProductForm): { name: string; sizeKg: number; unit: string; price: number } | string {
+function readForm(
+  form: ProductForm
+): { name: string; sizeKg: number; unit: string; price: number; minStock: number | null } | string {
   const name = form.name.trim();
   const unit = form.unit.trim();
   const sizeKg = Number(form.sizeKg);
@@ -56,7 +62,9 @@ function readForm(form: ProductForm): { name: string; sizeKg: number; unit: stri
   if (!Number.isInteger(sizeKg) || sizeKg <= 0) return 'Cỡ bao phải là số nguyên lớn hơn 0';
   if (!unit) return 'Nhập đơn vị';
   if (!Number.isFinite(price) || price <= 0) return 'Giá bán phải lớn hơn 0';
-  return { name, sizeKg, unit, price };
+  const minStock = form.minStock.trim() === '' ? null : Number(form.minStock);
+  if (minStock !== null && (!Number.isInteger(minStock) || minStock < 0)) return 'Mức cảnh báo tồn phải là số nguyên từ 0';
+  return { name, sizeKg, unit, price, minStock };
 }
 
 export function ProductTable({ products }: { products: ProductRow[] }) {
@@ -91,6 +99,7 @@ export function ProductTable({ products }: { products: ProductRow[] }) {
       sizeKg: String(product.sizeKg),
       unit: product.unit,
       price: product.price === null ? '' : String(product.price),
+      minStock: product.minStock === null ? '' : String(product.minStock),
     });
   };
 
@@ -104,6 +113,7 @@ export function ProductTable({ products }: { products: ProductRow[] }) {
     if (values.name !== product.name) changes.name = values.name;
     if (values.sizeKg !== product.sizeKg) changes.sizeKg = values.sizeKg;
     if (values.unit !== product.unit) changes.unit = values.unit;
+    if (values.minStock !== product.minStock) changes.minStock = values.minStock;
 
     let error: string | null = null;
     if (Object.keys(changes).length > 0) {
@@ -150,7 +160,7 @@ export function ProductTable({ products }: { products: ProductRow[] }) {
       {adding ? (
         <div className="rounded border border-[#004a99]/40 bg-container-high/40 p-4">
           <h3 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-3">Thêm sản phẩm</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <label className="text-xs font-bold text-on-surface-variant">
               Tên sản phẩm
               <input
@@ -189,6 +199,18 @@ export function ProductTable({ products }: { products: ProductRow[] }) {
                 onChange={(e) => setAddForm({ ...addForm, price: e.target.value })}
                 onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
                 placeholder="22000"
+                className={`${inputClass} mt-1 w-full font-normal`}
+              />
+            </label>
+            <label className="text-xs font-bold text-on-surface-variant">
+              Cảnh báo khi tồn còn
+              <input
+                type="number"
+                min="0"
+                value={addForm.minStock}
+                onChange={(e) => setAddForm({ ...addForm, minStock: e.target.value })}
+                onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+                placeholder="Không cảnh báo"
                 className={`${inputClass} mt-1 w-full font-normal`}
               />
             </label>
@@ -235,6 +257,7 @@ export function ProductTable({ products }: { products: ProductRow[] }) {
                 <tr className="border-b border-outline-variant bg-surface text-[12px] font-bold uppercase tracking-wider text-on-surface-variant">
                   <th className="py-2.5 px-4">Quy cách</th>
                   <th className="py-2.5 px-4 text-right">Giá cơ bản</th>
+                  <th className="py-2.5 px-4 text-right">Cảnh báo tồn</th>
                   <th className="py-2.5 px-4 text-right w-56">Thao tác</th>
                 </tr>
               </thead>
@@ -285,6 +308,18 @@ export function ProductTable({ products }: { products: ProductRow[] }) {
                               className={`${inputClass} w-32 text-right font-bold`}
                             />
                           </td>
+                          <td className="py-2.5 px-4 text-right">
+                            <input
+                              aria-label="Cảnh báo khi tồn còn"
+                              type="number"
+                              min="0"
+                              value={editForm.minStock}
+                              onChange={(e) => setEditForm({ ...editForm, minStock: e.target.value })}
+                              onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit(product)}
+                              placeholder="Không"
+                              className={`${inputClass} w-24 text-right`}
+                            />
+                          </td>
                           <td className="py-2.5 px-4">
                             <div className="flex gap-1.5 justify-end">
                               <button
@@ -326,6 +361,11 @@ export function ProductTable({ products }: { products: ProductRow[] }) {
                           ) : (
                             <>{product.price.toLocaleString('vi-VN')} đ</>
                           )}
+                        </td>
+                        <td className="py-2.5 px-4 text-right text-on-surface-variant">
+                          {product.minStock === null
+                            ? '—'
+                            : `≤ ${product.minStock.toLocaleString('vi-VN')} ${product.unit}`}
                         </td>
                         <td className="py-2.5 px-4">
                           <div className="flex gap-1.5 justify-end">

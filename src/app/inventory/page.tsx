@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
-import { Snowflake, Plus, Loader2, RefreshCw, Download, ClipboardCheck } from 'lucide-react';
+import { Snowflake, Plus, Loader2, RefreshCw, Download, ClipboardCheck, AlertTriangle } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
 import { exportToCSV } from '@/lib/export-excel';
@@ -15,6 +15,10 @@ interface InventoryItem {
   unit: string;
   quantityOnHand: number;
   totalKg: number;
+  /** Stock on hand minus what unsettled orders already took */
+  sellable: number;
+  minStock: number | null;
+  lowStock: boolean;
 }
 
 interface StockCountEntry {
@@ -265,6 +269,22 @@ export default function InventoryPage() {
           </div>
         </div>
 
+        {/* Low-stock alert */}
+        {data.items.some((item) => item.lowStock) && (
+          <div role="alert" className="mb-6 flex items-start gap-3 rounded border border-error bg-error-container p-4 text-on-error-container">
+            <AlertTriangle className="h-5 w-5 shrink-0 text-error" />
+            <div className="text-sm">
+              <p className="font-bold">Sắp hết hàng</p>
+              <p className="mt-0.5">
+                {data.items
+                  .filter((item) => item.lowStock)
+                  .map((item) => `${item.productName} ${item.sizeKg}kg: còn bán được ${item.sellable.toLocaleString('vi-VN')} ${item.unit || 'bao'} (mức cảnh báo ${item.minStock?.toLocaleString('vi-VN')})`)
+                  .join(' · ')}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Product Inventory Table */}
         {loading && data.items.length === 0 ? (
           <div className="flex items-center justify-center py-16">
@@ -286,6 +306,7 @@ export default function InventoryPage() {
                   <th className="py-3 px-4">Tên sản phẩm</th>
                   <th className="py-3 px-4">Quy cách (Kg/Bao)</th>
                   <th className="py-3 px-4 text-right">Tồn kho hiện tại (Bao)</th>
+                  <th className="py-3 px-4 text-right">Còn bán được</th>
                   <th className="py-3 px-4 text-right">Tổng khối lượng (Kg)</th>
                   <th className="py-3 px-4 text-right w-32">Thao tác</th>
                 </tr>
@@ -293,7 +314,14 @@ export default function InventoryPage() {
               <tbody className="divide-y divide-outline-soft text-sm">
                 {data.items.map((item) => (
                   <tr key={item.productId} className="h-12 hover:bg-container-low transition-colors">
-                    <td className="py-3 px-4 font-bold text-on-surface">{item.productName}</td>
+                    <td className="py-3 px-4 font-bold text-on-surface">
+                      {item.productName}
+                      {item.lowStock && (
+                        <span className="ml-2 px-2 py-0.5 rounded-full text-[11px] font-bold bg-error-container text-error">
+                          Sắp hết
+                        </span>
+                      )}
+                    </td>
                     <td className="py-3 px-4 text-xs font-mono text-primary-accent">{item.sizeKg} kg</td>
                     <td
                       className={
@@ -303,6 +331,12 @@ export default function InventoryPage() {
                       title={item.quantityOnHand < 0 ? 'Xuất nhiều hơn số đã nhập. Nhập sản lượng còn thiếu hoặc kiểm kho.' : undefined}
                     >
                       {item.quantityOnHand.toLocaleString('vi-VN')} {item.unit || 'bao'}
+                    </td>
+                    <td
+                      className={'py-3 px-4 text-right font-bold font-mono ' + (item.lowStock ? 'text-error' : 'text-on-surface')}
+                      title="Tồn trên sổ trừ các đơn chưa đối soát"
+                    >
+                      {item.sellable.toLocaleString('vi-VN')}
                     </td>
                     <td className="py-3 px-4 text-right font-bold text-on-surface font-mono">
                       {item.totalKg.toLocaleString('vi-VN')} kg
