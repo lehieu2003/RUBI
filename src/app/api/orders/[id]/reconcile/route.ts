@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
 import { z } from 'zod';
 import { changeStock } from '@/lib/inventory';
+import { describeSettlement, dong, recordAudit } from '@/lib/audit';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 const ReconcileSchema = z.object({
@@ -35,7 +36,7 @@ export async function PATCH(
       // 0. Fetch order within transaction scope for atomicity
       const order = await tx.order.findFirst({
         where: { id, factoryId: session.factoryId },
-        include: { orderItems: true, customer: true },
+        include: { orderItems: { include: { product: { select: { name: true, sizeKg: true } } } }, customer: true },
       });
       if (!order) {
         return apiError('Không tìm thấy đơn hàng', 404);
@@ -89,6 +90,24 @@ export async function PATCH(
 
         await changeStock(tx, orderItem.productId, { add: -itemInput.actualQty });
       }
+
+      // 6. Log what was settled: the lines that differ from the order, and the debt
+      const settledLines = parsed.data.items.flatMap((itemInput) => {
+        const orderItem = order.orderItems.find((oi) => oi.id === itemInput.id);
+        return orderItem
+          ? [{ ...orderItem.product, ordered: orderItem.quantity, delivered: itemInput.actualQty }]
+          : [];
+      });
+      await recordAudit(
+        tx,
+        { factoryId: order.factoryId, userId: session.userId, userName: session.name },
+        {
+          action: 'ORDER_SETTLED',
+          orderId: order.id,
+          customerId: order.customerId,
+          summary: `Chốt đơn: ${describeSettlement(settledLines)}. Ghi nợ ${dong(deliveredTotal)}`,
+        }
+      );
       return null;
     });
     if (rejection) return rejection;

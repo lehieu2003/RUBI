@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { requireRole } from '@/lib/auth/helpers';
+import { ORDER_STATUS_LABELS, recordAudit } from '@/lib/audit';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 // PATCH /api/orders/[id]/status - Update order status (D-05)
@@ -61,20 +62,36 @@ export async function PATCH(
       );
     }
 
-    const order = await prisma.order.update({
-      where: { id, factoryId: session.factoryId },
-      data: {
-        status: parsed.data.status,
-        // The driver list buckets delivered orders by deliveredAt, so the
-        // office marking an order delivered must stamp it too, and reopening
-        // an order must clear the old stamp.
-        deliveredAt:
-          parsed.data.status !== 'DELIVERED' ? null : existing.status === 'DELIVERED' ? undefined : new Date(),
-        notes: parsed.data.cancellationReason
-          ? `[HỦY: ${parsed.data.cancellationReason}]`
-          : undefined,
-      },
-    });
+    const cancelled = parsed.data.status === 'CANCELLED';
+    // The change and its log entry are written together.
+    const [order] = await prisma.$transaction([
+      prisma.order.update({
+        where: { id, factoryId: session.factoryId },
+        data: {
+          status: parsed.data.status,
+          // The driver list buckets delivered orders by deliveredAt, so the
+          // office marking an order delivered must stamp it too, and reopening
+          // an order must clear the old stamp.
+          deliveredAt:
+            parsed.data.status !== 'DELIVERED' ? null : existing.status === 'DELIVERED' ? undefined : new Date(),
+          notes: parsed.data.cancellationReason
+            ? `[HỦY: ${parsed.data.cancellationReason}]`
+            : undefined,
+        },
+      }),
+      recordAudit(
+        prisma,
+        { factoryId: session.factoryId, userId: session.userId, userName: session.name },
+        {
+          action: cancelled ? 'ORDER_CANCELLED' : 'ORDER_STATUS_CHANGED',
+          orderId: id,
+          customerId: existing.customerId,
+          summary: cancelled
+            ? `Hủy đơn (đang ${ORDER_STATUS_LABELS[existing.status]}). Lý do: ${parsed.data.cancellationReason}`
+            : `${ORDER_STATUS_LABELS[existing.status]} → ${ORDER_STATUS_LABELS[parsed.data.status]}`,
+        }
+      ),
+    ]);
 
     return apiSuccess({ ...order, total: order.total.toNumber() });
   } catch (error) {

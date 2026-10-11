@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { requireRole } from '@/lib/auth/helpers';
+import type { Prisma } from '@prisma/client';
+import { recordAudit } from '@/lib/audit';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 // PATCH /api/orders/bulk-assign
@@ -47,15 +49,28 @@ export async function PATCH(request: NextRequest) {
     // The office workflow selects PENDING (Chờ giao) orders right after
     // taking them, or SHIPPING orders to reassign. Terminal states
     // (DELIVERED/COMPLETED/CANCELLED) must never be reassigned.
-    const result = await prisma.order.updateMany({
-      where: {
-        factoryId: session.factoryId,
-        id: { in: orderIds },
-        status: { in: ['PENDING', 'SHIPPING'] },
-      },
-      data: {
-        driverId: driverId,
-      },
+    const factoryId = session.factoryId;
+    const result = await prisma.$transaction(async (tx) => {
+      const where: Prisma.OrderWhereInput = { factoryId, id: { in: orderIds }, status: { in: ['PENDING', 'SHIPPING'] } };
+      // Which orders are about to change hands, for the log.
+      const assignable = await tx.order.findMany({ where, select: { id: true, customerId: true } });
+      const updated = await tx.order.updateMany({
+        where,
+        data: {
+          driverId: driverId,
+        },
+      });
+      await recordAudit(
+        tx,
+        { factoryId, userId: session.userId, userName: session.name },
+        assignable.map((order) => ({
+          action: 'ORDER_ASSIGNED' as const,
+          orderId: order.id,
+          customerId: order.customerId,
+          summary: `Giao cho tài xế ${driver.name}`,
+        }))
+      );
+      return updated;
     });
 
     return apiSuccess({

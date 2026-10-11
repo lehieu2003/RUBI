@@ -407,6 +407,22 @@ async function main() {
   await call('confirmDelivery', { as: 'driver', params: { id: order.id } });
   await call('reconcileOrder', { params: { id: order.id }, body: { items: [{ id: 'dong-la', actualQty: 1 }] }, expectError: 400 });
   await call('reconcileOrder', { params: { id: order.id }, body: settle });
+
+  // ---- Audit log: the steps above left their entries, oldest last ----
+  await call('listAuditLogs', { query: { orderId: 'khong-ton-tai' }, empty: true });
+  const trail = data(await call('listAuditLogs', { query: { orderId: order.id } })).map((entry: Json) => entry.action);
+  for (const action of ['ORDER_SETTLED', 'ORDER_DELIVERED', 'ORDER_STATUS_CHANGED', 'ORDER_ASSIGNED']) {
+    if (!trail.includes(action)) failures.push(`listAuditLogs: no ${action} entry for the order just settled (got ${trail.join(', ')})`);
+  }
+  if (trail[0] !== 'ORDER_SETTLED') failures.push(`listAuditLogs: newest entry is ${trail[0]}, expected ORDER_SETTLED`);
+  const debtTrail = data(await call('listAuditLogs', { query: { type: 'DEBT', limit: '5' } }));
+  if (debtTrail.some((entry: Json) => !['ORDER_SETTLED', 'DEBT_PAYMENT'].includes(entry.action))) {
+    failures.push('listAuditLogs: type=DEBT returned an entry that does not change a debt');
+  }
+  await call('listAuditLogs', { query: { type: 'KHAC' }, expectError: 400 });
+  await call('listAuditLogs', { query: { limit: '0' }, expectError: 400 });
+  await call('listAuditLogs', { as: 'staff', expectError: 403 });
+  await call('listAuditLogs', { as: 'anon', expectError: 401 });
   // The settled order is found by the day it was settled, whatever day it was taken.
   const vietnamToday = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const settledToday = data(await call('listOrders', { query: { status: 'COMPLETED', completedDate: vietnamToday, limit: '200' } }));

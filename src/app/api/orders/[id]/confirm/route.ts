@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma, prismaAuth } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
+import { recordAudit } from '@/lib/audit';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 // PATCH /api/orders/[id]/confirm
@@ -45,12 +46,22 @@ export async function PATCH(
     // --- Update order to DELIVERED ---
     // The status is checked again in the write itself, so an order settled or
     // cancelled in the meantime is left alone.
-    const updated = await prisma.order.updateMany({
-      where: { id, factoryId: driver.factoryId, driverId: driver.id, status: 'SHIPPING' },
-      data: {
-        status: 'DELIVERED',
-        deliveredAt: new Date(),
-      },
+    const updated = await prisma.$transaction(async (tx) => {
+      const result = await tx.order.updateMany({
+        where: { id, factoryId: driver.factoryId, driverId: driver.id, status: 'SHIPPING' },
+        data: {
+          status: 'DELIVERED',
+          deliveredAt: new Date(),
+        },
+      });
+      if (result.count > 0) {
+        await recordAudit(
+          tx,
+          { factoryId: driver.factoryId, userId: driver.userId, userName: driver.name },
+          { action: 'ORDER_DELIVERED', orderId: id, customerId: order.customerId, summary: 'Tài xế xác nhận đã giao xong' }
+        );
+      }
+      return result;
     });
     if (updated.count === 0) {
       return apiError('Chỉ xác nhận được đơn đang giao', 409, 'ORDER_NOT_SHIPPING');

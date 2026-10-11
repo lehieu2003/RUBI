@@ -5,11 +5,17 @@ import { prisma } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth';
 import { stockOnHand } from '@/lib/inventory';
+import { type AuditActor, describeLines, dong, recordAudit } from '@/lib/audit';
 
 // Order entry belongs to the office (manager and staff). Server actions are
 // reachable by anyone holding a session, drivers included, so the role is
 // checked here and not only by the page.
 async function requireOfficeFactoryId(): Promise<string> {
+  return (await requireOfficeActor()).factoryId;
+}
+
+// The same check, for an action that also records who did it.
+async function requireOfficeActor(): Promise<AuditActor> {
   const session = await getSession();
   if (!session?.factoryId) {
     throw new Error('Tài khoản chưa được gán nhà máy');
@@ -18,7 +24,7 @@ async function requireOfficeFactoryId(): Promise<string> {
     throw new Error('Bạn không có quyền thực hiện thao tác này');
   }
   const factoryId = session.factoryId;
-  return factoryId;
+  return { factoryId, userId: session.userId, userName: session.name };
 }
 
 // The customer's price for every product: its own override, else the global price.
@@ -145,7 +151,8 @@ async function saveOrderInternal(
   customerId: string,
   lineItems: { productId: string; quantity: number }[]
 ) {
-  const factoryId = await requireOfficeFactoryId();
+  const actor = await requireOfficeActor();
+  const factoryId = actor.factoryId;
 
   const orderedItems = lineItems.filter((item) => item.quantity > 0);
   const productIds = [...new Set(orderedItems.map((item) => item.productId))];
@@ -154,8 +161,9 @@ async function saveOrderInternal(
   // prices of the products actually ordered.
   const [customer, sellable, globalPrices, overrides] = await Promise.all([
     prisma.customer.findFirst({ where: { id: customerId, factoryId }, select: { id: true } }),
-    prisma.product.count({
+    prisma.product.findMany({
       where: { id: { in: productIds }, factoryId, isActive: true },
+      select: { id: true, name: true, sizeKg: true },
     }),
     prisma.globalPrice.findMany({
       where: { productId: { in: productIds }, product: { factoryId } },
@@ -169,7 +177,7 @@ async function saveOrderInternal(
   if (!customer) {
     throw new Error('Không tìm thấy khách hàng');
   }
-  if (sellable !== productIds.length) {
+  if (sellable.length !== productIds.length) {
     throw new Error('Có sản phẩm không tồn tại hoặc đã ngừng bán');
   }
 
@@ -212,6 +220,14 @@ async function saveOrderInternal(
       include: {
         customer: { select: { name: true } },
       },
+    });
+
+    const products = new Map(sellable.map((product) => [product.id, product]));
+    await recordAudit(tx, actor, {
+      action: 'ORDER_CREATED',
+      orderId: order.id,
+      customerId,
+      summary: `Lên đơn: ${describeLines(validItems.map((item) => ({ ...products.get(item.productId)!, quantity: item.quantity })))}. Tổng ${dong(total)}`,
     });
 
     // Return a plain serializable object: Prisma Decimals cannot cross the

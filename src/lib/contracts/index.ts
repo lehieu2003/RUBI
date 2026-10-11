@@ -5,6 +5,7 @@
 
 import { accountContracts } from './accounts';
 import { assetContracts } from './assets';
+import { auditContracts } from './audit';
 import { authContracts } from './auth';
 import type { ApiContract } from './common';
 import { customerContracts } from './customers';
@@ -42,6 +43,7 @@ export const domains: ContractDomain[] = [
   { file: 'driver', description: "The signed-in driver's order list", contracts: driverContracts },
   { file: 'schedule', description: 'Shift scheduling: manager assignment, self-registration, approval', contracts: scheduleContracts },
   { file: 'report', description: 'Debt report, monthly shift report and payroll lock', contracts: reportContracts },
+  { file: 'audit', description: 'Log of changes to orders and customer debt', contracts: auditContracts },
   { file: 'asset', description: 'Machines, vehicles and their maintenance', contracts: assetContracts },
   { file: 'system', description: 'Health check', contracts: systemContracts },
 ];
