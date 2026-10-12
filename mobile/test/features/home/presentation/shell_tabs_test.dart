@@ -24,8 +24,12 @@ void main() {
       ]);
     });
 
-    test('Quản lý: không tự đăng ký ca (server từ chối), chỉ cài đặt', () {
-      expect(labels(UserRole.admin), [AppStrings.navSettings]);
+    test('Quản lý: duyệt ca, cài đặt — không tự đăng ký ca (server từ chối)',
+        () {
+      expect(labels(UserRole.admin), [
+        AppStrings.navShiftReview,
+        AppStrings.navSettings,
+      ]);
     });
 
     test('vai trò nào cũng có Cài đặt ở cuối, để đăng xuất được', () {
