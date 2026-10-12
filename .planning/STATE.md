@@ -113,6 +113,7 @@ v3.0 decisions:
 | 261012-mcs | Mobile: lib/core laid out as bootstrap, constants, di, extensions, network, storage, view_state with a core.dart barrel | 2026-10-12 | refactor/mobile-core-structure | [261012-mcs-mobile-core-structure](./quick/261012-mcs-mobile-core-structure/) |
 | 261012-mrt | Mobile: core/router (app_router, route_names, app_router_refresh), core/theme and shared/widgets | 2026-10-12 | refactor/mobile-router-theme-shared | [261012-mrt-mobile-router-theme-shared](./quick/261012-mrt-mobile-router-theme-shared/) |
 | 261012-mlm | Mobile: a wrong password at sign-in shows the server's message instead of "session expired" | 2026-10-12 | fix/mobile-login-wrong-password-message | [261012-mlm-mobile-login-wrong-password-message](./quick/261012-mlm-mobile-login-wrong-password-message/) |
+| 261012-mcp | Mobile: change-password screen; an account that must change its password is held there until it does | 2026-10-12 | feat/mobile-change-password | [261012-mcp-mobile-change-password](./quick/261012-mcp-mobile-change-password/) |
 
 ## Session Continuity
 
