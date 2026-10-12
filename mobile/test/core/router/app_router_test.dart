@@ -6,24 +6,24 @@ import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/core/network/auth_events.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/core/storage/app_preferences.dart';
-import 'package:iceflow_mobile/core/storage/auth_storage.dart';
 import 'package:iceflow_mobile/core/theme/theme_cubit.dart';
 import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository.dart';
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:iceflow_mobile/features/driver/presentation/cubit/today_orders_cubit.dart';
+import 'package:iceflow_mobile/features/schedule/presentation/cubit/schedule_cubit.dart';
 import 'package:iceflow_mobile/core/di/injection_container.dart';
 import 'package:iceflow_mobile/core/router/app_router.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockAuthRepository extends Mock implements AuthRepository {}
 
-class _MockAuthStorage extends Mock implements AuthStorage {}
-
 class _MockAppPreferences extends Mock implements AppPreferences {}
 
 class _MockTodayOrdersCubit extends Mock implements TodayOrdersCubit {}
+
+class _MockScheduleCubit extends Mock implements ScheduleCubit {}
 
 void main() {
   const driver = User(
@@ -42,13 +42,11 @@ void main() {
   );
 
   late _MockAuthRepository repo;
-  late _MockAuthStorage storage;
   late _MockAppPreferences preferences;
   late AuthEvents authEvents;
 
   setUp(() {
     repo = _MockAuthRepository();
-    storage = _MockAuthStorage();
     preferences = _MockAppPreferences();
     when(() => preferences.readLastEmail()).thenAnswer((_) async => null);
     when(() => preferences.saveLastEmail(any())).thenAnswer((_) async {});
@@ -62,7 +60,6 @@ void main() {
   AuthCubit buildCubit() =>
       AuthCubit(
         repo: repo,
-        storage: storage,
         preferences: preferences,
         authEvents: authEvents,
       );
@@ -141,7 +138,7 @@ void main() {
       expect(find.text('Đăng nhập'), findsOneWidget);
       expect(find.text(AppStrings.navToday), findsNothing);
 
-      // Authenticated → /home = HomeShell (bottom-nav 3 tab), không còn
+      // Authenticated → /home = HomeShell (các tab của tài xế), không còn
       // placeholder 'Home'.
       cubit.emit(const Authenticated(driver));
       await tester.pumpAndSettle();
@@ -210,6 +207,67 @@ void main() {
       expect(find.text(AppStrings.changePasswordForcedNotice), findsOneWidget);
       expect(find.byKey(const Key('change_password_logout')), findsOneWidget);
       expect(find.text(AppStrings.navToday), findsNothing);
+    });
+
+    testWidgets('Nhân viên và Quản lý vào được app, mỗi vai trò thấy tab của '
+        'mình', (tester) async {
+      when(() => repo.restoreSession())
+          .thenAnswer((_) async => const Ok<User?>(null));
+      when(() => preferences.readThemeMode()).thenAnswer((_) async => null);
+      final cubit = buildCubit();
+      addTearDown(cubit.close);
+      final themeCubit = ThemeCubit(preferences: preferences);
+      addTearDown(themeCubit.close);
+
+      // Tab đầu của Nhân viên là "Ca làm" → cubit của nó lấy từ DI.
+      final scheduleCubit = _MockScheduleCubit();
+      whenListen(
+        scheduleCubit,
+        const Stream<ScheduleState>.empty(),
+        initialState: ScheduleState(
+          status: ViewStatus.error,
+          weekStart: DateTime(2026, 10, 12),
+          selectedDate: DateTime(2026, 10, 12),
+          errorMessage: 'chưa tải',
+        ),
+      );
+      when(() => scheduleCubit.load()).thenAnswer((_) async {});
+      when(() => scheduleCubit.close()).thenAnswer((_) async {});
+      sl.registerFactory<ScheduleCubit>(() => scheduleCubit);
+      addTearDown(() => sl.unregister<ScheduleCubit>());
+
+      await tester.pumpWidget(
+        IceFlowApp(authCubit: cubit, themeCubit: themeCubit),
+      );
+      await tester.pumpAndSettle();
+
+      const staff = User(
+        id: 'u-staff-1',
+        email: 'van@iceflow.vn',
+        name: 'Nguyễn Thị Vân',
+        role: UserRole.staff,
+      );
+      cubit.emit(const Authenticated(staff));
+      await tester.pumpAndSettle();
+      expect(find.byType(NavigationDestination), findsNWidgets(2));
+      expect(find.text(AppStrings.navToday), findsNothing);
+      expect(find.text(AppStrings.navHistory), findsNothing);
+      await tester.tap(find.text(AppStrings.navSettings));
+      await tester.pumpAndSettle();
+      expect(find.text('van@iceflow.vn'), findsOneWidget);
+
+      // Quản lý: chưa có màn hình riêng → vào thẳng Cài đặt, không thanh dưới.
+      const admin = User(
+        id: 'u-admin-1',
+        email: 'chu@iceflow.vn',
+        name: 'Nguyễn Văn Chủ',
+        role: UserRole.admin,
+      );
+      cubit.emit(const Authenticated(admin));
+      await tester.pumpAndSettle();
+      expect(find.byType(NavigationBar), findsNothing);
+      expect(find.text('chu@iceflow.vn'), findsOneWidget);
+      expect(find.text(AppStrings.logoutButton), findsOneWidget);
     });
   });
 }

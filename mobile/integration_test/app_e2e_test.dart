@@ -22,6 +22,11 @@ const _newPassword = String.fromEnvironment('E2E_NEW_PASSWORD');
 /// The customer of the one order out for delivery with that driver.
 const _customer = String.fromEnvironment('E2E_CUSTOMER');
 
+/// Seeded accounts of the other two roles (src/db/seed.ts).
+const _staffEmail = 'nhanvien@miendong.vn';
+const _managerEmail = 'quanly@rubi.local';
+const _seedPassword = '12345678';
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -47,7 +52,8 @@ void main() {
   }
 
   testWidgets('a new driver: wrong password, forced password change, a '
-      'delivery, a shift, sign out and back in', (tester) async {
+      'delivery, a shift, sign out and back in; then staff and the manager '
+      'sign in', (tester) async {
     expect(_email, isNotEmpty, reason: 'run through scripts/mobile-e2e-local.sh');
 
     // Start as main() does, but without a session left by an earlier run.
@@ -137,5 +143,33 @@ void main() {
     // The delivery confirmed above is still there, as delivered.
     await waitFor(tester, find.text(_customer));
     expect(find.text(AppStrings.badgeDelivered), findsWidgets);
+
+    // --- The app is for every role: staff and the manager get in too, each
+    // with their own tabs (accounts of the seed).
+    Future<void> signOut() async {
+      if (find.text(AppStrings.navSettings).evaluate().isNotEmpty) {
+        await tester.tap(find.text(AppStrings.navSettings).last);
+      }
+      await waitFor(tester, find.text(AppStrings.logoutButton));
+      await tester.tap(find.text(AppStrings.logoutButton));
+      await waitFor(tester, find.text(AppStrings.logoutDialogTitle));
+      await tester.tap(find.text(AppStrings.logoutButton).last);
+    }
+
+    await signOut();
+    await signIn(tester, _staffEmail, _seedPassword);
+    // Staff land on "Ca làm", loaded from the server for their own role.
+    await waitFor(tester, find.text(AppStrings.scheduleHint));
+    expect(find.byType(NavigationDestination), findsNWidgets(2));
+    expect(find.text(AppStrings.navToday), findsNothing);
+    await tester.tap(find.text(AppStrings.navSettings));
+    await waitFor(tester, find.text(_staffEmail));
+
+    await signOut();
+    await signIn(tester, _managerEmail, _seedPassword);
+    // The manager has no screen of their own yet: Settings, no bottom bar.
+    await waitFor(tester, find.text(_managerEmail));
+    expect(find.byType(NavigationBar), findsNothing);
+    expect(find.text(AppStrings.logoutButton), findsOneWidget);
   });
 }
