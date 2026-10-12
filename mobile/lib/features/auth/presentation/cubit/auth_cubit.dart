@@ -136,6 +136,43 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  /// Đổi mật khẩu của người đang đăng nhập. Trả `null` khi thành công, hoặc
+  /// câu báo lỗi để màn hình hiện (mật khẩu hiện tại sai, mất mạng...).
+  ///
+  /// Thành công thì cờ bắt buộc đổi mật khẩu tắt: router cho vào app.
+  Future<String?> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final res = await _repo.changePassword(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    );
+    switch (res) {
+      case Ok<void>():
+        final current = state;
+        if (!isClosed &&
+            current is Authenticated &&
+            current.user.mustChangePassword) {
+          final user = current.user;
+          emit(
+            Authenticated(
+              User(
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+                factoryId: user.factoryId,
+              ),
+            ),
+          );
+        }
+        return null;
+      case Err<void>(:final failure):
+        return failureMessage(failure);
+    }
+  }
+
   /// Đăng xuất. Mọi `Err` từ repo (lỗi secure-storage cục bộ, hiếm) vẫn coi
   /// như đã đăng xuất phía app — surface nothing.
   Future<void> logout() async {
