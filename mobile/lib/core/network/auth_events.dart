@@ -18,6 +18,19 @@ class AuthEvents {
   /// Signals that the user must be logged out.
   void emitLogout() => _controller.add(null);
 
-  /// Closes the underlying controller (app shutdown / tests only).
-  Future<void> dispose() => _controller.close();
+  final StreamController<void> _passwordChangeController =
+      StreamController<void>.broadcast();
+
+  /// Emits when the server refuses a call because the signed-in account must
+  /// change its password first (the manager reset it while the app was open).
+  Stream<void> get onPasswordChangeRequired => _passwordChangeController.stream;
+
+  /// Signals that the account must change its password before anything else.
+  void emitPasswordChangeRequired() => _passwordChangeController.add(null);
+
+  /// Closes the underlying controllers (app shutdown / tests only).
+  Future<void> dispose() async {
+    await _controller.close();
+    await _passwordChangeController.close();
+  }
 }

@@ -64,12 +64,21 @@ class AuthCubit extends Cubit<AuthState> {
       // Trùng state hiện tại thì bloc tự bỏ qua (emit dedupe).
       emit(const Unauthenticated());
     });
+    _passwordChangeSub = authEvents.onPasswordChangeRequired.listen((_) {
+      // Quản lý vừa đặt lại mật khẩu khi app đang mở: bật cờ để router đưa
+      // người dùng sang màn đổi mật khẩu thay vì để các màn báo lỗi 403.
+      final current = state;
+      if (current is Authenticated && !current.user.mustChangePassword) {
+        emit(Authenticated(current.user.copyWith(mustChangePassword: true)));
+      }
+    });
   }
 
   final AuthRepository _repo;
   final AuthStorage _storage;
   final AppPreferences _preferences;
   StreamSubscription<void>? _authEventsSub;
+  StreamSubscription<void>? _passwordChangeSub;
 
   /// Khôi phục phiên từ token đã lưu. Gọi một lần khi app mở.
   ///
@@ -154,16 +163,9 @@ class AuthCubit extends Cubit<AuthState> {
         if (!isClosed &&
             current is Authenticated &&
             current.user.mustChangePassword) {
-          final user = current.user;
           emit(
             Authenticated(
-              User(
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                role: user.role,
-                factoryId: user.factoryId,
-              ),
+              current.user.copyWith(mustChangePassword: false),
             ),
           );
         }
@@ -184,6 +186,7 @@ class AuthCubit extends Cubit<AuthState> {
   @override
   Future<void> close() {
     _authEventsSub?.cancel();
+    _passwordChangeSub?.cancel();
     return super.close();
   }
 }

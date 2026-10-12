@@ -41,6 +41,15 @@ class User extends Equatable {
   /// cho mọi API khác tới khi [AuthRepository.changePassword] thành công.
   final bool mustChangePassword;
 
+  User copyWith({bool? mustChangePassword}) => User(
+        id: id,
+        email: email,
+        name: name,
+        role: role,
+        factoryId: factoryId,
+        mustChangePassword: mustChangePassword ?? this.mustChangePassword,
+      );
+
   @override
   List<Object?> get props => [id, email, name, role, factoryId, mustChangePassword];
 }
