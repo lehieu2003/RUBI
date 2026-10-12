@@ -84,6 +84,41 @@ class DeliveryCard extends StatelessWidget {
                 _StatusBadge(isDelivered: isDelivered),
               ],
             ),
+            if (order.notes != null) ...[
+              const SizedBox(height: 8),
+              // Dặn dò của khách: nổi bật để tài xế thấy trước khi giao.
+              Container(
+                key: const Key('delivery_notes'),
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: colorScheme.tertiaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.sticky_note_2_outlined,
+                      size: 18,
+                      color: colorScheme.onTertiaryContainer,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        order.notes!,
+                        maxLines: 4,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onTertiaryContainer,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 8),
             Text(
               _itemsSummary,
