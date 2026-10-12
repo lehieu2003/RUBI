@@ -38,6 +38,8 @@ import 'package:iceflow_mobile/features/schedule/data/schedule_repository_impl.d
     as _i110;
 import 'package:iceflow_mobile/features/schedule/domain/repositories/schedule_repository.dart'
     as _i285;
+import 'package:iceflow_mobile/features/schedule/presentation/cubit/schedule_cubit.dart'
+    as _i755;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
 
@@ -72,6 +74,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i103.DriverRepository>(
       () => _i340.DriverRepositoryImpl(dio: gh<_i361.Dio>()),
+    );
+    gh.factory<_i755.ScheduleCubit>(
+      () => _i755.ScheduleCubit(repo: gh<_i285.ScheduleRepository>()),
     );
     gh.factory<_i251.AuthCubit>(
       () => _i251.AuthCubit(
