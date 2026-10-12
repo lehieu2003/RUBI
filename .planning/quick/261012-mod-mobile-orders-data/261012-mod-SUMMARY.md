@@ -19,7 +19,7 @@ status: complete
 
 ## Verification
 
-- `flutter analyze`: không có vấn đề. `flutter test`: 410/410 (395 test cũ, 15 test mới).
+- `flutter analyze`: không có vấn đề. `flutter test`: 409/409 (395 test cũ, 14 test mới).
 - Test của repository **đọc thẳng response thật của server** đã ghi trong `api/openapi/fixtures/responses/success` (`listOrders`, `getOrderCounts`, `listDrivers`, `bulkAssignOrders`, `updateOrderStatus`), nên DTO và mapper được kiểm với đúng dạng dữ liệu server trả, không phải dữ liệu tự dựng.
 
 ## Ghi chú
