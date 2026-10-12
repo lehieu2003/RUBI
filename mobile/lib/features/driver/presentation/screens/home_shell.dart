@@ -10,7 +10,7 @@ import 'package:iceflow_mobile/features/driver/presentation/screens/today_tab.da
 ///
 /// Tab rời đi bị unmount — quay lại tab "Hôm nay" tạo cubit mới (factory
 /// trong DI) và tự tải lại đơn. BlocProvider của [AuthCubit] được cấp bởi
-/// router (xem `/home` trong router.dart) cho [SettingsTab] dùng.
+/// router (xem `RouteNames.home` trong app_router.dart) cho [SettingsTab] dùng.
 class HomeShell extends HookWidget {
   const HomeShell({super.key});
 

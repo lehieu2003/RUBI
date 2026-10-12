@@ -34,8 +34,14 @@ What the features share.
 | `pagination/` | `PageParams`, `ListQueryParams` (`?page=&limit=&q=`), `PaginationDto` (the server's `meta`), `Paginated<T>`, `SearchDebouncer`. Not used by a screen yet |
 | `patch/` | empty for now |
 | `result/` | `Result<T>`: a value or a failure |
+| `router/` | `app_router.dart` (routes and the redirect by sign-in state), `route_names.dart` (paths), `app_router_refresh.dart` (re-runs the redirect when the session changes) |
 | `services/` | `app_logger.dart`: logging through `dart:developer`. Not called yet |
 | `storage/` | secure token storage and preferences |
+| `theme/` | `app_theme.dart`: the app's `ThemeData` |
 | `view_state/` | `view_status.dart`: the loading / loaded / error status every screen uses |
 
 `core.dart` exports all of it.
+
+## `lib/shared/widgets`
+
+Widgets more than one feature uses. Today: `error_views.dart` (`ErrorView` for a first load that failed, `ErrorBanner` above a list that is kept on screen). A widget only one feature uses stays in that feature's `presentation/widgets`.

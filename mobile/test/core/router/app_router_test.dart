@@ -12,7 +12,7 @@ import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:iceflow_mobile/features/driver/presentation/cubit/today_orders_cubit.dart';
 import 'package:iceflow_mobile/core/di/injection_container.dart';
-import 'package:iceflow_mobile/router.dart';
+import 'package:iceflow_mobile/core/router/app_router.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockAuthRepository extends Mock implements AuthRepository {}

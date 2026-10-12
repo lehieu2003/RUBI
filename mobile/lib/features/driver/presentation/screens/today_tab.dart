@@ -6,8 +6,8 @@ import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/driver/presentation/cubit/today_orders_cubit.dart';
 import 'package:iceflow_mobile/features/driver/presentation/widgets/confirm_sheet.dart';
 import 'package:iceflow_mobile/features/driver/presentation/widgets/delivery_card.dart';
-import 'package:iceflow_mobile/features/driver/presentation/widgets/error_views.dart';
 import 'package:iceflow_mobile/core/di/injection_container.dart';
+import 'package:iceflow_mobile/shared/widgets/error_views.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Tab "Đơn hôm nay": AppBar "Đơn hôm nay" + danh sách [DeliveryCard] có

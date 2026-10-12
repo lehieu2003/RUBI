@@ -6,8 +6,8 @@ import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/driver/presentation/cubit/history_cubit.dart';
 import 'package:iceflow_mobile/features/driver/presentation/widgets/delivery_card.dart';
-import 'package:iceflow_mobile/features/driver/presentation/widgets/error_views.dart';
 import 'package:iceflow_mobile/core/di/injection_container.dart';
+import 'package:iceflow_mobile/shared/widgets/error_views.dart';
 
 /// Label ngày trên header: 'Thứ Ba, 06/10/2026' — thứ tiếng Việt (EEEE) +
 /// ngày dd/MM/yyyy, gộp MỘT dòng [titleMedium]. Cần [initializeDateFormatting]
