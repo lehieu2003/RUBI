@@ -53,7 +53,8 @@ void main() {
 
   testWidgets('a new driver: wrong password, forced password change, a '
       'delivery, a shift, sign out and back in; then staff sign in and the '
-      'manager approves the shift and records a production batch', (tester) async {
+      'manager approves the shift, records a production batch and a payment',
+      (tester) async {
     expect(_email, isNotEmpty, reason: 'run through scripts/mobile-e2e-local.sh');
 
     // Start as main() does, but without a session left by an earlier run.
@@ -197,6 +198,22 @@ void main() {
     await tester.enterText(find.byKey(const Key('stock_sheet_quantity')), '5');
     await tester.tap(find.byKey(const Key('stock_sheet_submit')));
     await waitFor(tester, find.textContaining('Đã nhập 5'));
+
+
+    // "Công nợ": the report from the server, a customer's ledger, a payment.
+    await tester.tap(find.text(AppStrings.navDebt));
+    await waitFor(tester, find.byKey(const Key('debt_total')));
+    await tester.tap(find.byIcon(Icons.chevron_right).first);
+    await waitFor(tester, find.byKey(const Key('ledger_pay')));
+    await tester.tap(find.byKey(const Key('ledger_pay')));
+    await waitFor(tester, find.byKey(const Key('payment_amount')));
+    await tester.enterText(find.byKey(const Key('payment_amount')), '1000');
+    await tester.enterText(find.byKey(const Key('payment_notes')), 'Thu thử từ app');
+    await tester.tap(find.byKey(const Key('payment_submit')));
+    await waitFor(tester, find.textContaining('Đã thu 1.000đ'));
+    await waitFor(tester, find.text('−1.000đ'));
+    await tester.tap(find.byType(BackButton));
+    await waitFor(tester, find.byKey(const Key('debt_total')));
 
     await tester.tap(find.text(AppStrings.navSettings));
     await waitFor(tester, find.text(_managerEmail));
