@@ -110,6 +110,7 @@ v3.0 decisions:
 | 261011-mci | Mobile app gets its own CI gate (flutter analyze + test) on changes under mobile/; the web gate skips mobile-only changes | 2026-10-11 | chore/mobile-ci | [261011-mci-mobile-ci](./quick/261011-mci-mobile-ci/) |
 | 261011-mce | Mobile: cubits no longer emit after they are closed (StateError when leaving a tab mid-request) | 2026-10-11 | fix/mobile-cubit-emit-after-close | [261011-mce-mobile-cubit-emit-after-close](./quick/261011-mce-mobile-cubit-emit-after-close/) |
 | 261011-mdl | Mobile data layer: change password and shift registration (repositories, DTOs, mappers, tests; no UI yet) | 2026-10-11 | feat/mobile-password-schedule-data | [261011-mdl-mobile-data-layer](./quick/261011-mdl-mobile-data-layer/) |
+| 261012-mcs | Mobile: lib/core laid out as bootstrap, constants, di, extensions, network, storage, view_state with a core.dart barrel | 2026-10-12 | refactor/mobile-core-structure | [261012-mcs-mobile-core-structure](./quick/261012-mcs-mobile-core-structure/) |
 
 ## Session Continuity
 
