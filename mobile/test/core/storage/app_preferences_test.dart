@@ -24,4 +24,15 @@ void main() {
     await preferences.saveLastEmail('nam@iceflow.vn');
     expect(await preferences.readLastEmail(), 'nam@iceflow.vn');
   });
+
+  test('giao diện: chưa chọn → null; chọn rồi thì đọc lại đúng, không lẫn với '
+      'email', () async {
+    expect(await preferences.readThemeMode(), isNull);
+
+    await preferences.saveLastEmail('tai@iceflow.vn');
+    await preferences.saveThemeMode('dark');
+
+    expect(await preferences.readThemeMode(), 'dark');
+    expect(await preferences.readLastEmail(), 'tai@iceflow.vn');
+  });
 }
