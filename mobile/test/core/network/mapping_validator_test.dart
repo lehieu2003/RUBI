@@ -4,9 +4,10 @@ import 'package:iceflow_mobile/core/network/mapping_validator.dart';
 
 void main() {
   group('MappingValidator', () {
-    test('nonEmpty: trim, thiếu hoặc rỗng → null', () {
-      expect(MappingValidator.nonEmpty('  Đá Bi '), 'Đá Bi');
-      expect(MappingValidator.nonEmpty('   '), isNull);
+    test('nonEmpty: giữ nguyên chuỗi; thiếu hoặc rỗng → null', () {
+      expect(MappingValidator.nonEmpty('Đá Bi'), 'Đá Bi');
+      expect(MappingValidator.nonEmpty(' Đá Bi '), ' Đá Bi ');
+      expect(MappingValidator.nonEmpty(''), isNull);
       expect(MappingValidator.nonEmpty(null), isNull);
     });
 
