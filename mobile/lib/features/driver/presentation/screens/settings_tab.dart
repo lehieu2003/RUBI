@@ -9,8 +9,20 @@ import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart'
 
 /// Tab "Cài đặt": thông tin user từ [AuthCubit] (provider cấp shell) +
 /// đăng xuất (có dialog xác nhận) + phiên bản app.
+///
+/// Vai trò có nhiều màn hơn số tab (Quản lý) dùng chính tab này làm tab
+/// "Thêm": đặt [title] và đưa các lối vào màn khác qua [menu].
 class SettingsTab extends StatelessWidget {
-  const SettingsTab({super.key});
+  const SettingsTab({
+    super.key,
+    this.title = AppStrings.navSettings,
+    this.menu = const [],
+  });
+
+  final String title;
+
+  /// Các mục hiện ngay dưới thẻ tài khoản, trước phần cài đặt.
+  final List<Widget> menu;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +32,7 @@ class SettingsTab extends StatelessWidget {
     final user = authState is Authenticated ? authState.user : null;
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.navSettings)),
+      appBar: AppBar(title: Text(title)),
       body: ListView(
         children: [
           Card(
@@ -46,6 +58,8 @@ class SettingsTab extends StatelessWidget {
               ),
             ),
           ),
+          ...menu,
+          if (menu.isNotEmpty) const Divider(height: 16),
           const _ThemeModeTile(),
           ListTile(
             leading: const Icon(Icons.lock_outline),

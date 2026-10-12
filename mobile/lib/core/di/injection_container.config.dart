@@ -17,6 +17,12 @@ import 'package:iceflow_mobile/core/network/auth_events.dart' as _i1021;
 import 'package:iceflow_mobile/core/storage/app_preferences.dart' as _i681;
 import 'package:iceflow_mobile/core/storage/auth_storage.dart' as _i807;
 import 'package:iceflow_mobile/core/theme/theme_cubit.dart' as _i521;
+import 'package:iceflow_mobile/features/audit/data/audit_repository_impl.dart'
+    as _i156;
+import 'package:iceflow_mobile/features/audit/domain/repositories/audit_repository.dart'
+    as _i971;
+import 'package:iceflow_mobile/features/audit/presentation/cubit/audit_log_cubit.dart'
+    as _i945;
 import 'package:iceflow_mobile/features/auth/data/auth_repository_impl.dart'
     as _i1004;
 import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository.dart'
@@ -89,8 +95,14 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i360.DebtRepository>(
       () => _i61.DebtRepositoryImpl(dio: gh<_i361.Dio>()),
     );
+    gh.lazySingleton<_i971.AuditRepository>(
+      () => _i156.AuditRepositoryImpl(dio: gh<_i361.Dio>()),
+    );
     gh.lazySingleton<_i521.ThemeCubit>(
       () => _i521.ThemeCubit(preferences: gh<_i681.AppPreferences>()),
+    );
+    gh.factory<_i945.AuditLogCubit>(
+      () => _i945.AuditLogCubit(repo: gh<_i971.AuditRepository>()),
     );
     gh.lazySingleton<_i452.AuthRepository>(
       () => _i1004.AuthRepositoryImpl(

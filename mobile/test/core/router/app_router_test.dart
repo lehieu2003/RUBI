@@ -291,9 +291,12 @@ void main() {
       expect(find.byType(NavigationDestination), findsNWidgets(4));
       expect(find.text(AppStrings.shiftReviewNonePending), findsOneWidget);
       expect(find.text(AppStrings.navSchedule), findsNothing);
-      await tester.tap(find.text(AppStrings.navSettings));
+      // "Thêm": lối vào Nhật ký, rồi tới tài khoản, cài đặt và đăng xuất.
+      await tester.tap(find.text(AppStrings.navMore));
       await tester.pumpAndSettle();
+      expect(find.byKey(const Key('more_audit_log')), findsOneWidget);
       expect(find.text('chu@iceflow.vn'), findsOneWidget);
+      expect(find.text(AppStrings.themeTitle), findsOneWidget);
       expect(find.text(AppStrings.logoutButton), findsOneWidget);
     });
   });
