@@ -39,6 +39,7 @@ abstract final class AppStrings {
   static const navDebt = 'Công nợ';
   static const navSettings = 'Cài đặt';
   static const navMore = 'Thêm';
+  static const navOrders = 'Đơn hàng';
 
   // ---- Driver: tab "Đơn hôm nay" ----
   static const todayTitle = 'Đơn hôm nay';
@@ -175,6 +176,45 @@ abstract final class AppStrings {
   static const auditFilterOrder = 'Đơn hàng';
   static const auditFilterDebt = 'Công nợ';
   static const auditLogEmpty = 'Chưa có dòng nhật ký nào';
+
+  // ---- Màn "Đơn hàng" (Quản lý, Nhân viên) ----
+  static const ordersSubtitle = 'Xem, gán tài xế, đổi trạng thái';
+  static const ordersSearchHint = 'Tìm mã đơn, tên hoặc mã khách';
+  static const ordersTabAll = 'Tất cả';
+  static const ordersEmpty = 'Không có đơn nào';
+
+  /// Tên trạng thái đơn theo mã của server.
+  static String orderStatusLabel(String status) => switch (status) {
+        'PENDING' => 'Chờ giao',
+        'SHIPPING' => 'Đang giao',
+        'DELIVERED' => 'Đã giao',
+        'COMPLETED' => 'Hoàn thành',
+        'CANCELLED' => 'Đã hủy',
+        _ => status,
+      };
+  static const orderUnassigned = 'Chưa gán tài xế';
+  static String orderDriver(String name) => 'Tài xế: $name';
+  static const orderNotesLabel = 'Ghi chú';
+  static const orderAssignButton = 'Gán tài xế';
+  static const orderReassignButton = 'Đổi tài xế';
+  static const orderAssignTitle = 'Chọn tài xế';
+  static const orderNoDrivers = 'Chưa có tài xế nào đang hoạt động';
+  static const orderDriversFailed = 'Không tải được danh sách tài xế. Thử lại sau.';
+  static String orderAssigned(String driver) => 'Đã giao đơn cho $driver';
+  static const orderAssignSkipped =
+      'Đơn không còn ở trạng thái gán được. Danh sách đã được tải lại.';
+  static const orderSendOutButton = 'Cho đi giao';
+  static const orderMarkDeliveredButton = 'Đánh dấu đã giao';
+  static const orderBackToPendingButton = 'Về chờ giao';
+  static const orderCancelButton = 'Hủy đơn';
+  static const orderCancelTitle = 'Lý do hủy đơn';
+  static const orderCancelHint = 'VD: Khách dời ngày, xe sự cố';
+  static const orderCancelReasonRequired = 'Nhập lý do hủy đơn';
+  static const orderCancelConfirm = 'Xác nhận hủy';
+  static String orderStatusChanged(String code, String status) =>
+      'Đơn $code: $status';
+  static const orderSettleHint =
+      'Đơn đã giao chờ Quản lý đối soát để ghi nợ và trừ kho.';
 
   // ---- Tab cài đặt: giao diện ----
   static const themeTitle = 'Giao diện';

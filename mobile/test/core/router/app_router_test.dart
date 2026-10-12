@@ -12,6 +12,7 @@ import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository.dart';
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:iceflow_mobile/features/driver/presentation/cubit/today_orders_cubit.dart';
+import 'package:iceflow_mobile/features/orders/presentation/cubit/orders_cubit.dart';
 import 'package:iceflow_mobile/features/schedule/presentation/cubit/schedule_cubit.dart';
 import 'package:iceflow_mobile/features/schedule/presentation/cubit/team_schedule_cubit.dart';
 import 'package:iceflow_mobile/core/di/injection_container.dart';
@@ -25,6 +26,8 @@ class _MockAppPreferences extends Mock implements AppPreferences {}
 class _MockTodayOrdersCubit extends Mock implements TodayOrdersCubit {}
 
 class _MockScheduleCubit extends Mock implements ScheduleCubit {}
+
+class _MockOrdersCubit extends Mock implements OrdersCubit {}
 
 class _MockTeamScheduleCubit extends Mock implements TeamScheduleCubit {}
 
@@ -222,7 +225,19 @@ void main() {
       final themeCubit = ThemeCubit(preferences: preferences);
       addTearDown(themeCubit.close);
 
-      // Tab đầu của Nhân viên là "Ca làm" → cubit của nó lấy từ DI.
+      // Tab đầu của Nhân viên là "Đơn hàng" → cubit của nó lấy từ DI.
+      final ordersCubit = _MockOrdersCubit();
+      whenListen(
+        ordersCubit,
+        const Stream<OrdersState>.empty(),
+        initialState: const OrdersState(status: ViewStatus.loaded),
+      );
+      when(() => ordersCubit.load()).thenAnswer((_) async {});
+      when(() => ordersCubit.close()).thenAnswer((_) async {});
+      sl.registerFactory<OrdersCubit>(() => ordersCubit);
+      addTearDown(() => sl.unregister<OrdersCubit>());
+
+      // Tab "Ca làm" của Nhân viên cũng lấy cubit từ DI.
       final scheduleCubit = _MockScheduleCubit();
       whenListen(
         scheduleCubit,
@@ -252,7 +267,8 @@ void main() {
       );
       cubit.emit(const Authenticated(staff));
       await tester.pumpAndSettle();
-      expect(find.byType(NavigationDestination), findsNWidgets(2));
+      expect(find.byType(NavigationDestination), findsNWidgets(3));
+      expect(find.text(AppStrings.ordersEmpty), findsOneWidget);
       expect(find.text(AppStrings.navToday), findsNothing);
       expect(find.text(AppStrings.navHistory), findsNothing);
       await tester.tap(find.text(AppStrings.navSettings));
@@ -291,9 +307,10 @@ void main() {
       expect(find.byType(NavigationDestination), findsNWidgets(4));
       expect(find.text(AppStrings.shiftReviewNonePending), findsOneWidget);
       expect(find.text(AppStrings.navSchedule), findsNothing);
-      // "Thêm": lối vào Nhật ký, rồi tới tài khoản, cài đặt và đăng xuất.
+      // "Thêm": lối vào Đơn hàng và Nhật ký, rồi tới tài khoản, cài đặt và đăng xuất.
       await tester.tap(find.text(AppStrings.navMore));
       await tester.pumpAndSettle();
+      expect(find.byKey(const Key('more_orders')), findsOneWidget);
       expect(find.byKey(const Key('more_audit_log')), findsOneWidget);
       expect(find.text('chu@iceflow.vn'), findsOneWidget);
       expect(find.text(AppStrings.themeTitle), findsOneWidget);

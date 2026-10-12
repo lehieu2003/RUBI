@@ -17,8 +17,9 @@ void main() {
       ]);
     });
 
-    test('Nhân viên: ca làm, cài đặt — không có màn giao hàng', () {
+    test('Nhân viên: đơn hàng, ca làm, cài đặt — không có màn giao hàng', () {
       expect(labels(UserRole.staff), [
+        AppStrings.navOrders,
         AppStrings.navSchedule,
         AppStrings.navSettings,
       ]);

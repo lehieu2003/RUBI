@@ -52,7 +52,7 @@ void main() {
   }
 
   testWidgets('a new driver: wrong password, forced password change, a '
-      'delivery, a shift, sign out and back in; then staff sign in and the '
+      'delivery, a shift, sign out and back in; then staff work the orders and the '
       'manager approves the shift, records a production batch and a payment, '
       'and reads the audit log',
       (tester) async {
@@ -160,10 +160,49 @@ void main() {
 
     await signOut();
     await signIn(tester, _staffEmail, _seedPassword);
-    // Staff land on "Ca làm", loaded from the server for their own role.
-    await waitFor(tester, find.text(AppStrings.scheduleHint));
-    expect(find.byType(NavigationDestination), findsNWidgets(2));
+    // Staff land on "Đơn hàng", loaded from the server for their own role.
+    final orderCards = find.byWidgetPredicate((widget) {
+      final key = widget.key;
+      return widget is Card &&
+          key is ValueKey<String> &&
+          key.value.startsWith('order_');
+    });
+    await waitFor(tester, orderCards);
+    expect(find.byType(NavigationDestination), findsNWidgets(3));
     expect(find.text(AppStrings.navToday), findsNothing);
+    // They hand a waiting order to a driver, then cancel it with a reason.
+    await tester.tap(find.byKey(const Key('orders_tab_PENDING')));
+    await tester.pump(const Duration(milliseconds: 300));
+    await waitFor(tester, orderCards);
+    await tester.tap(orderCards.first);
+    await waitFor(tester, find.byKey(const Key('order_assign')));
+    await tester.tap(find.byKey(const Key('order_assign')));
+    final drivers = find.descendant(
+      of: find.byType(AlertDialog),
+      matching: find.byType(ListTile),
+    );
+    await waitFor(tester, drivers);
+    await tester.tap(drivers.first);
+    await waitFor(tester, find.textContaining('Đã giao đơn cho'));
+    // Let the sheet finish closing before tapping the list again.
+    await tester.pump(const Duration(milliseconds: 600));
+    await waitFor(tester, orderCards);
+    await tester.tap(orderCards.first);
+    await waitFor(tester, find.byKey(const Key('order_cancel')));
+    await tester.ensureVisible(find.byKey(const Key('order_cancel')));
+    await tester.tap(find.byKey(const Key('order_cancel')));
+    await waitFor(tester, find.byKey(const Key('order_cancel_reason')));
+    await tester.enterText(
+      find.byKey(const Key('order_cancel_reason')),
+      'Hủy thử từ app',
+    );
+    await tester.tap(find.byKey(const Key('order_cancel_confirm')));
+    await waitFor(
+      tester,
+      find.textContaining(': ${AppStrings.orderStatusLabel('CANCELLED')}'),
+    );
+    await tester.tap(find.text(AppStrings.navSchedule));
+    await waitFor(tester, find.text(AppStrings.scheduleHint));
     await tester.tap(find.text(AppStrings.navSettings));
     await waitFor(tester, find.text(_staffEmail));
 
@@ -221,9 +260,17 @@ void main() {
     await waitFor(tester, find.text(_managerEmail));
     await tester.tap(find.byKey(const Key('more_audit_log')));
     await waitFor(tester, find.textContaining('Thu thử từ app'));
-    await tester.tap(find.text(AppStrings.auditFilterOrder));
+    // ".last": the "Đơn hàng" entry of "Thêm" is still in the tree below.
+    await tester.tap(find.text(AppStrings.auditFilterOrder).last);
     await waitFor(tester, find.textContaining('Tài xế xác nhận đã giao xong'));
     expect(find.textContaining('Thu thử từ app'), findsNothing);
+    await tester.tap(find.byType(BackButton));
+    await waitFor(tester, find.text(_managerEmail));
+    // "Thêm" → "Đơn hàng": the same screen the staff use.
+    // Let the audit log finish closing: "Thêm" was in the tree all along.
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.tap(find.byKey(const Key('more_orders')));
+    await waitFor(tester, orderCards);
     await tester.tap(find.byType(BackButton));
     await waitFor(tester, find.text(_managerEmail));
   });
