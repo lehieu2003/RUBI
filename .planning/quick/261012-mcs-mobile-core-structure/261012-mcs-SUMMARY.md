@@ -26,12 +26,13 @@ Giữ nguyên: `localization/`, `result/`, `storage/`. Test chuyển theo: `test
 
 ## Verification
 
-- `flutter analyze`: không có vấn đề. `flutter test`: 215/215, cùng số test như trước.
+- `flutter analyze`: không có vấn đề. `flutter test`: 227/227 (215 test cũ, 12 test cho phần dùng chung mới).
 - Không đổi hành vi: chỉ chuyển chỗ, đổi tên và gom phần trùng.
 
 ## Ghi chú
 
-- Không tạo `pagination/`, `patch/`, `services/`, `auth/`, `mapping_validator`, `legacy_auth_cleanup`, `package_composition`: app chưa có code nào để đặt vào.
+- Theo yêu cầu của user, các thư mục còn lại của cấu trúc mẫu được tạo sẵn để dùng sau, với code chạy được và có test: `pagination/` (theo đúng `?page=&limit=&q=` và `meta` của API), `services/app_logger.dart`, `network/mapping_validator.dart`, `constants/app_constants.dart` (tên app, `app.dart` đã dùng). Chưa màn hình nào gọi `pagination/`, `AppLogger`, `MappingValidator`.
+- `auth/` và `patch/` chỉ có `.gitkeep`. Không viết `auth_composition`, `package_composition`, `legacy_auth_cleanup`: không biết nội dung của chúng trong dự án mẫu, và app không có dữ liệu cũ nào để dọn.
 - Không chạy `dart format` trên toàn bộ: repo không theo kiểu format mặc định hiện tại, chạy sẽ đổi hơn 1.300 dòng không liên quan.
 - Các file vẫn import theo từng file, chưa chuyển sang `core.dart`.
 - Chưa chạy app trên máy/giả lập.

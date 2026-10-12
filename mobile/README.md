@@ -20,17 +20,21 @@ fvm dart run build_runner build
 
 ## Layout of `lib/core`
 
-What the features share. A folder is added when there is code to put in it.
+What the features share.
 
 | Folder | Holds |
 |---|---|
 | `bootstrap/` | `app_startup.dart`: everything that must be done before the first frame |
-| `constants/` | `api_constants.dart`: base URL and timeout of the API |
+| `auth/` | empty for now: reserved for auth wiring shared across features |
+| `constants/` | `api_constants.dart`: base URL and timeout of the API; `app_constants.dart`: the app's name |
 | `di/` | `injection_container.dart` (+ generated `.config.dart`) and `injection_modules.dart` for classes that cannot carry an annotation |
 | `extensions/` | `build_context_extensions.dart`: `context.colorScheme`, `context.textTheme` |
 | `localization/` | Vietnamese strings |
-| `network/` | Dio client, auth interceptor, `api_failure.dart`, `api_error_decoder.dart` (Dio error → failure), failure messages |
+| `network/` | Dio client, auth interceptor, `api_failure.dart`, `api_error_decoder.dart` (Dio error → failure), failure messages, `mapping_validator.dart` (field checks for DTO → entity) |
+| `pagination/` | `PageParams`, `ListQueryParams` (`?page=&limit=&q=`), `PaginationDto` (the server's `meta`), `Paginated<T>`, `SearchDebouncer`. Not used by a screen yet |
+| `patch/` | empty for now |
 | `result/` | `Result<T>`: a value or a failure |
+| `services/` | `app_logger.dart`: logging through `dart:developer`. Not called yet |
 | `storage/` | secure token storage and preferences |
 | `view_state/` | `view_status.dart`: the loading / loaded / error status every screen uses |
 

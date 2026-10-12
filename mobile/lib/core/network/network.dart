@@ -7,3 +7,4 @@ export 'api_failure.dart';
 export 'api_failure_messages.dart';
 export 'auth_events.dart';
 export 'auth_interceptor.dart';
+export 'mapping_validator.dart';

@@ -16,9 +16,9 @@
 - `extensions/build_context_extensions.dart` cho `Theme.of(context)`.
 - `core.dart`.
 
-## Không tạo
+## Task 3 — Thư mục tạo sẵn để dùng sau (user yêu cầu)
 
-Thư mục chưa có code để chứa: `pagination/`, `patch/`, `services/`, `auth/`.
+`pagination/`, `services/`, `network/mapping_validator.dart`, `constants/app_constants.dart` với code chạy được và test; `auth/`, `patch/` để trống.
 
 ## Verify
 
