@@ -12,8 +12,8 @@
 
 import 'package:dio/dio.dart' as _i361;
 import 'package:get_it/get_it.dart' as _i174;
+import 'package:iceflow_mobile/core/di/injection_modules.dart' as _i648;
 import 'package:iceflow_mobile/core/network/auth_events.dart' as _i1021;
-import 'package:iceflow_mobile/core/network/network_module.dart' as _i274;
 import 'package:iceflow_mobile/core/storage/app_preferences.dart' as _i681;
 import 'package:iceflow_mobile/core/storage/auth_storage.dart' as _i807;
 import 'package:iceflow_mobile/features/auth/data/auth_repository_impl.dart'
@@ -100,6 +100,6 @@ extension GetItInjectableX on _i174.GetIt {
   }
 }
 
-class _$StorageModule extends _i681.StorageModule {}
+class _$StorageModule extends _i648.StorageModule {}
 
-class _$NetworkModule extends _i274.NetworkModule {}
+class _$NetworkModule extends _i648.NetworkModule {}

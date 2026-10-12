@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:iceflow_mobile/core/extensions/build_context_extensions.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
+import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/driver/presentation/cubit/today_orders_cubit.dart';
 import 'package:iceflow_mobile/features/driver/presentation/widgets/confirm_sheet.dart';
 import 'package:iceflow_mobile/features/driver/presentation/widgets/delivery_card.dart';
 import 'package:iceflow_mobile/features/driver/presentation/widgets/error_views.dart';
-import 'package:iceflow_mobile/injector.dart';
+import 'package:iceflow_mobile/core/di/injection_container.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Tab "Đơn hôm nay": AppBar "Đơn hôm nay" + danh sách [DeliveryCard] có
@@ -27,11 +29,11 @@ class TodayTab extends StatelessWidget {
             final cubit = context.read<TodayOrdersCubit>();
 
             // Lần tải đầu chưa có gì → spinner.
-            if (state.status == TodayStatus.loading && state.orders.isEmpty) {
+            if (state.status == ViewStatus.loading && state.orders.isEmpty) {
               return const Center(child: CircularProgressIndicator());
             }
             // Tải lỗi mà không có đơn cũ để giữ → màn lỗi + Thử lại.
-            if (state.orders.isEmpty && state.status == TodayStatus.error) {
+            if (state.orders.isEmpty && state.status == ViewStatus.error) {
               return ErrorView(
                 message: state.errorMessage,
                 onRetry: cubit.load,
@@ -61,8 +63,7 @@ class TodayTab extends StatelessWidget {
                                 child: Center(
                                   child: Text(
                                     AppStrings.todayEmpty,
-                                    style: Theme.of(context)
-                                        .textTheme
+                                    style: context.textTheme
                                         .titleMedium,
                                   ),
                                 ),

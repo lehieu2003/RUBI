@@ -12,8 +12,26 @@ fvm flutter test
 fvm flutter run
 ```
 
-Two things are generated and committed: the `fromJson` of the DTOs in `lib/features/*/data/dto` (json_serializable, `*.g.dart`) and the dependency registrations in `lib/injector.config.dart` (injectable, from the `@injectable` / `@lazySingleton` / `@module` annotations). After editing a DTO or an annotation, regenerate them:
+Two things are generated and committed: the `fromJson` of the DTOs in `lib/features/*/data/dto` (json_serializable, `*.g.dart`) and the dependency registrations in `lib/core/di/injection_container.config.dart` (injectable, from the `@injectable` / `@lazySingleton` / `@module` annotations). After editing a DTO or an annotation, regenerate them:
 
 ```bash
 fvm dart run build_runner build
 ```
+
+## Layout of `lib/core`
+
+What the features share. A folder is added when there is code to put in it.
+
+| Folder | Holds |
+|---|---|
+| `bootstrap/` | `app_startup.dart`: everything that must be done before the first frame |
+| `constants/` | `api_constants.dart`: base URL and timeout of the API |
+| `di/` | `injection_container.dart` (+ generated `.config.dart`) and `injection_modules.dart` for classes that cannot carry an annotation |
+| `extensions/` | `build_context_extensions.dart`: `context.colorScheme`, `context.textTheme` |
+| `localization/` | Vietnamese strings |
+| `network/` | Dio client, auth interceptor, `api_failure.dart`, `api_error_decoder.dart` (Dio error → failure), failure messages |
+| `result/` | `Result<T>`: a value or a failure |
+| `storage/` | secure token storage and preferences |
+| `view_state/` | `view_status.dart`: the loading / loaded / error status every screen uses |
+
+`core.dart` exports all of it.

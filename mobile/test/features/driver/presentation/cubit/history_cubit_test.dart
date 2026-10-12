@@ -2,10 +2,11 @@ import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iceflow_mobile/core/error/failure.dart';
-import 'package:iceflow_mobile/core/error/failure_messages.dart';
+import 'package:iceflow_mobile/core/network/api_failure.dart';
+import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
 import 'package:iceflow_mobile/features/driver/domain/usecases/get_orders_for_date.dart';
 import 'package:iceflow_mobile/features/driver/presentation/cubit/history_cubit.dart';
@@ -51,7 +52,7 @@ void main() {
       addTearDown(cubit.close);
       expect(
         cubit.state,
-        HistoryState(status: HistoryStatus.loading, selectedDate: yesterday),
+        HistoryState(status: ViewStatus.loading, selectedDate: yesterday),
       );
       expect(cubit.state.orders, isEmpty);
     });
@@ -66,9 +67,9 @@ void main() {
       },
       act: (cubit) => cubit.selectDate(yesterday),
       expect: () => [
-        HistoryState(status: HistoryStatus.loading, selectedDate: yesterday),
+        HistoryState(status: ViewStatus.loading, selectedDate: yesterday),
         HistoryState(
-          status: HistoryStatus.loaded,
+          status: ViewStatus.loaded,
           selectedDate: yesterday,
           orders: [order('o-1'), order('o-2')],
         ),
@@ -87,7 +88,7 @@ void main() {
       act: (cubit) => cubit.selectDate(today.add(const Duration(days: 1))),
       expect: () => [
         HistoryState(
-          status: HistoryStatus.loading,
+          status: ViewStatus.loading,
           selectedDate: yesterday,
           errorMessage: AppStrings.historyFutureDate,
         ),
@@ -105,7 +106,7 @@ void main() {
           cubit.selectDate(today.subtract(const Duration(days: 40))),
       expect: () => [
         HistoryState(
-          status: HistoryStatus.loading,
+          status: ViewStatus.loading,
           selectedDate: yesterday,
           errorMessage: AppStrings.historyRangeLimit,
         ),
@@ -124,11 +125,11 @@ void main() {
       act: (cubit) => cubit.selectDate(today.subtract(const Duration(days: 30))),
       expect: () => [
         HistoryState(
-          status: HistoryStatus.loading,
+          status: ViewStatus.loading,
           selectedDate: today.subtract(const Duration(days: 30)),
         ),
         HistoryState(
-          status: HistoryStatus.loaded,
+          status: ViewStatus.loaded,
           selectedDate: today.subtract(const Duration(days: 30)),
         ),
       ],
@@ -143,9 +144,9 @@ void main() {
       },
       act: (cubit) => cubit.selectDate(yesterday),
       expect: () => [
-        HistoryState(status: HistoryStatus.loading, selectedDate: yesterday),
+        HistoryState(status: ViewStatus.loading, selectedDate: yesterday),
         HistoryState(
-          status: HistoryStatus.error,
+          status: ViewStatus.error,
           selectedDate: yesterday,
           errorMessage: FailureMessages.network,
         ),
@@ -156,7 +157,7 @@ void main() {
       'load() → load lại selectedDate hiện tại (HistoryTab initState gọi)',
       build: buildCubit,
       seed: () => HistoryState(
-        status: HistoryStatus.loaded,
+        status: ViewStatus.loaded,
         selectedDate: yesterday,
         orders: [order('o-old')],
       ),
@@ -165,9 +166,9 @@ void main() {
       },
       act: (cubit) => cubit.load(),
       expect: () => [
-        HistoryState(status: HistoryStatus.loading, selectedDate: yesterday),
+        HistoryState(status: ViewStatus.loading, selectedDate: yesterday),
         HistoryState(
-          status: HistoryStatus.loaded,
+          status: ViewStatus.loaded,
           selectedDate: yesterday,
           orders: [order('o-new')],
         ),
@@ -188,7 +189,7 @@ void main() {
         pending.complete(Ok([order('o-1')]));
 
         await expectLater(loading, completes);
-        expect(cubit.state.status, HistoryStatus.loading);
+        expect(cubit.state.status, ViewStatus.loading);
       });
     });
   });

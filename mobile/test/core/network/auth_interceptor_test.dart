@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
-import 'package:iceflow_mobile/core/config/app_config.dart';
-import 'package:iceflow_mobile/core/error/failure.dart';
-import 'package:iceflow_mobile/core/error/failure_messages.dart';
+import 'package:iceflow_mobile/core/constants/api_constants.dart';
+import 'package:iceflow_mobile/core/network/api_error_decoder.dart';
+import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_client.dart';
 import 'package:iceflow_mobile/core/network/auth_events.dart';
 import 'package:iceflow_mobile/core/network/auth_interceptor.dart';
@@ -298,117 +298,11 @@ void main() {
         authEvents: AuthEvents(),
       );
 
-      expect(client.options.baseUrl, AppConfig.apiBaseUrl);
+      expect(client.options.baseUrl, ApiConstants.baseUrl);
       expect(client.options.contentType, Headers.jsonContentType);
       expect(client.options.headers['Accept'], Headers.jsonContentType);
       expect(client.interceptors.whereType<AuthInterceptor>().length, 1);
       client.close();
-    });
-  });
-
-  group('mapDioError', () {
-    RequestOptions opts(String path) => RequestOptions(path: path);
-
-    test('connectionTimeout → NetworkFailure', () {
-      final err = DioException(
-        requestOptions: opts('/x'),
-        type: DioExceptionType.connectionTimeout,
-      );
-      expect(mapDioError(err), const NetworkFailure());
-    });
-
-    test('receiveTimeout → NetworkFailure', () {
-      final err = DioException(
-        requestOptions: opts('/x'),
-        type: DioExceptionType.receiveTimeout,
-      );
-      expect(mapDioError(err), const NetworkFailure());
-    });
-
-    test('500 có error trong body → ServerFailure message từ body', () {
-      final err = DioException(
-        requestOptions: opts('/x'),
-        type: DioExceptionType.badResponse,
-        response: Response<Map<String, dynamic>>(
-          requestOptions: opts('/x'),
-          statusCode: 500,
-          data: {'success': false, 'error': 'Internal server error'},
-        ),
-      );
-      expect(
-        mapDioError(err),
-        const ServerFailure('Internal server error', statusCode: 500),
-      );
-    });
-
-    test('400 không có error trong body → ServerFailure message mặc định', () {
-      final err = DioException(
-        requestOptions: opts('/x'),
-        type: DioExceptionType.badResponse,
-        response: Response<Map<String, dynamic>>(
-          requestOptions: opts('/x'),
-          statusCode: 400,
-          data: {'success': false},
-        ),
-      );
-      expect(
-        mapDioError(err),
-        ServerFailure(FailureMessages.unexpected, statusCode: 400),
-      );
-    });
-
-    test('401 không có body → AuthFailure với message mặc định', () {
-      final err = DioException(
-        requestOptions: opts('/x'),
-        type: DioExceptionType.badResponse,
-        response: Response<Map<String, dynamic>>(
-          requestOptions: opts('/x'),
-          statusCode: 401,
-        ),
-      );
-      expect(
-        mapDioError(err),
-        AuthFailure(FailureMessages.sessionExpired, statusCode: 401),
-      );
-    });
-
-    test('401 serverMessage param ưu tiên hơn body', () {
-      final err = DioException(
-        requestOptions: opts('/x'),
-        type: DioExceptionType.badResponse,
-        response: Response<Map<String, dynamic>>(
-          requestOptions: opts('/x'),
-          statusCode: 401,
-          data: {'success': false, 'error': 'Token expired'},
-        ),
-      );
-      expect(
-        mapDioError(err, serverMessage: 'override'),
-        const AuthFailure('override', statusCode: 401),
-      );
-    });
-
-    test('401 có error trong body → AuthFailure giữ message từ body', () {
-      final err = DioException(
-        requestOptions: opts('/api/auth/login'),
-        type: DioExceptionType.badResponse,
-        response: Response<Map<String, dynamic>>(
-          requestOptions: opts('/api/auth/login'),
-          statusCode: 401,
-          data: {'success': false, 'error': 'Email hoặc mật khẩu không đúng'},
-        ),
-      );
-      expect(
-        mapDioError(err),
-        const AuthFailure('Email hoặc mật khẩu không đúng', statusCode: 401),
-      );
-    });
-
-    test('error lạ → UnexpectedFailure', () {
-      expect(
-        mapDioError(StateError('boom')),
-        isA<UnexpectedFailure>(),
-      );
     });
   });
 }

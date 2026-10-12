@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iceflow_mobile/core/error/failure.dart';
+import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 import 'package:iceflow_mobile/features/schedule/data/dto/schedule_dtos.dart';

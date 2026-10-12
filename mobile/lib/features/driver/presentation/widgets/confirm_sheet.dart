@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:iceflow_mobile/core/extensions/build_context_extensions.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
 import 'package:iceflow_mobile/features/driver/presentation/cubit/today_orders_cubit.dart';
@@ -69,7 +70,7 @@ class _ConfirmSheet extends HookWidget {
       }
     }
 
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = context.colorScheme;
     return Padding(
       // Không bị che khi bàn phím mở.
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -81,12 +82,12 @@ class _ConfirmSheet extends HookWidget {
           children: [
             Text(
               AppStrings.confirmSheetTitle,
-              style: Theme.of(context).textTheme.titleLarge,
+              style: context.textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
             Text(
               AppStrings.confirmSheetBody(order.customerName),
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: context.textTheme.bodyLarge,
             ),
             if (error.value != null) ...[
               const SizedBox(height: 12),

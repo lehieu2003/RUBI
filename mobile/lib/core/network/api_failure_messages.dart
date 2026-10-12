@@ -1,4 +1,4 @@
-import 'package:iceflow_mobile/core/error/failure.dart';
+import 'package:iceflow_mobile/core/network/api_failure.dart';
 
 /// User-facing (Vietnamese) failure copy — single source of truth.
 abstract final class FailureMessages {

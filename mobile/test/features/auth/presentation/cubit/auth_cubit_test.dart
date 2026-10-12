@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iceflow_mobile/core/error/failure.dart';
-import 'package:iceflow_mobile/core/error/failure_messages.dart';
+import 'package:iceflow_mobile/core/network/api_failure.dart';
+import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 import 'package:iceflow_mobile/core/network/auth_events.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/core/storage/app_preferences.dart';

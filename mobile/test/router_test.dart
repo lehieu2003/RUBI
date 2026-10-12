@@ -6,11 +6,12 @@ import 'package:iceflow_mobile/core/network/auth_events.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/core/storage/app_preferences.dart';
 import 'package:iceflow_mobile/core/storage/auth_storage.dart';
+import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository.dart';
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:iceflow_mobile/features/driver/presentation/cubit/today_orders_cubit.dart';
-import 'package:iceflow_mobile/injector.dart';
+import 'package:iceflow_mobile/core/di/injection_container.dart';
 import 'package:iceflow_mobile/router.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -96,7 +97,7 @@ void main() {
         const Stream<TodayOrdersState>.empty(),
         // loaded-rỗng (không phải loading) để tránh spinner vô hạn làm
         // pumpAndSettle treo.
-        initialState: const TodayOrdersState(status: TodayStatus.loaded),
+        initialState: const TodayOrdersState(status: ViewStatus.loaded),
       );
       when(() => todayCubit.load()).thenAnswer((_) async {});
       // HomeShell unmount khi đăng xuất → BlocProvider đóng cubit.

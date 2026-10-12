@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:iceflow_mobile/core/error/failure_messages.dart';
+import 'package:iceflow_mobile/core/extensions/build_context_extensions.dart';
+import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
 
 /// Màn lỗi khi tải lần đầu không có dữ liệu cũ để giữ:
@@ -12,7 +13,7 @@ class ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = context.colorScheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -29,7 +30,7 @@ class ErrorView extends StatelessWidget {
               // Cubit luôn bắn message khi load lỗi — đây chỉ là phòng hờ.
               message ?? FailureMessages.unexpected,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              style: context.textTheme.bodyLarge?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
@@ -58,7 +59,7 @@ class ErrorBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = context.colorScheme;
     return Material(
       color: colorScheme.errorContainer,
       child: Padding(
@@ -68,7 +69,7 @@ class ErrorBanner extends StatelessWidget {
             Expanded(
               child: Text(
                 message,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                style: context.textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onErrorContainer,
                 ),
               ),
