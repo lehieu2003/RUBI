@@ -16,7 +16,7 @@ status: complete
 
 ## Verification
 
-- `flutter analyze`: không có vấn đề. `flutter test`: 331/331 (294 test cũ, 37 test mới) — fixture lấy theo `api/openapi/fixtures/responses`.
+- `flutter analyze`: không có vấn đề. `flutter test`: 323/323 (294 test cũ, 29 test mới) — fixture lấy theo `api/openapi/fixtures/responses`.
 - **Chạy với server thật** (web app build từ cùng cây mã, Postgres tạm trong Docker), qua HTTP thật, không qua giả lập: tài xế xin ca → Quản lý thấy ca có id và duyệt → trạng thái thành đã duyệt; tài xế gọi API của Quản lý bị 403; đọc tồn kho, nhập mẻ +3, kiểm kho về 77; đọc báo cáo nợ, sổ nợ, thu 1.000đ (số còn nợ giảm đúng 1.000), thu vượt số nợ bị 409 với câu của server. Bài test tạm này không commit.
 
 ## Ghi chú
