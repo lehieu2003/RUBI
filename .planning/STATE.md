@@ -117,6 +117,7 @@ v3.0 decisions:
 | 261012-msr | Mobile: "Ca làm" tab — the week's shifts, request, withdraw and request again, with the web's blocking rules | 2026-10-12 | feat/mobile-shift-registration | [261012-msr-mobile-shift-registration](./quick/261012-msr-mobile-shift-registration/) |
 | 261012-mlp | Mobile: a password reset by the manager while the app is open sends the driver to the change-password screen | 2026-10-12 | feat/mobile-live-password-reset | [261012-mlp-mobile-live-password-reset](./quick/261012-mlp-mobile-live-password-reset/) |
 | 261012-mch | Mobile: mappers share MappingValidator; unexpected and swallowed errors are logged through AppLogger | 2026-10-12 | refactor/mobile-use-core-helpers | [261012-mch-mobile-use-core-helpers](./quick/261012-mch-mobile-use-core-helpers/) |
+| 261012-mee | Mobile: end-to-end test of the app on an Android emulator against a real server, with a one-command script | 2026-10-12 | test/mobile-emulator-e2e | [261012-mee-mobile-emulator-e2e](./quick/261012-mee-mobile-emulator-e2e/) |
 
 ## Session Continuity
 
