@@ -36,6 +36,7 @@ abstract final class AppStrings {
   static const navSchedule = 'Ca làm';
   static const navShiftReview = 'Duyệt ca';
   static const navInventory = 'Kho lạnh';
+  static const navDebt = 'Công nợ';
   static const navSettings = 'Cài đặt';
 
   // ---- Driver: tab "Đơn hôm nay" ----
@@ -143,6 +144,28 @@ abstract final class AppStrings {
       'Đã nhập $quantity $unit. Tồn mới: $onHand';
   static String stockCountSaved(int onHand, String unit) =>
       'Đã lưu kiểm kho. Tồn mới: $onHand $unit';
+
+  // ---- Tab "Công nợ" (Quản lý) ----
+  static String debtTotalLabel(int count) => 'Tổng nợ của $count khách';
+  static const debtNone = 'Không có khách nào đang nợ';
+  static const debtNeverPaid = 'Chưa từng trả';
+  static String debtLastPaid(String date) => 'Trả gần nhất: $date';
+  static const ledgerOutstandingLabel = 'Còn nợ';
+  static const ledgerEmpty = 'Chưa có dòng nào trong sổ nợ';
+  static const ledgerDebt = 'Ghi nợ (đơn đã đối soát)';
+  static const ledgerPayment = 'Thu tiền';
+  static const loadMoreButton = 'Xem thêm';
+  static const paymentButton = 'Thu tiền';
+  static const paymentTitle = 'Ghi nhận thu tiền';
+  static String paymentOutstanding(String amount) => 'Khách còn nợ $amount';
+  static const paymentAmountLabel = 'Số tiền thu';
+  static const paymentNotesLabel = 'Ghi chú (không bắt buộc)';
+  static const paymentSubmit = 'Xác nhận thu';
+  static const paymentInvalid = 'Nhập số tiền lớn hơn 0';
+  static String paymentAboveDebt(String amount) =>
+      'Số tiền thu không được vượt số đang nợ ($amount)';
+  static String paymentSaved(String amount, String remaining) =>
+      'Đã thu $amount. Còn nợ $remaining';
 
   // ---- Tab cài đặt: giao diện ----
   static const themeTitle = 'Giao diện';
