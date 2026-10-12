@@ -298,5 +298,29 @@ void main() {
         expect(cubit.state.confirmingOrderId, 'o-shipping-1');
       });
     });
+
+    test('xác nhận giao xong → đơn vẫn giữ ghi chú', () async {
+      final withNotes = DeliveryOrder(
+        id: 'o-n',
+        status: OrderStatus.shipping,
+        total: 25000,
+        customerName: 'KH',
+        customerAddress: 'Địa chỉ',
+        customerPhone: '0900000000',
+        items: const [],
+        createdAt: t9h,
+        notes: 'Gọi trước khi tới',
+      );
+      stubGetOrders(Ok([withNotes]));
+      stubConfirm(const Ok<void>(null));
+      final cubit = buildCubit();
+      addTearDown(cubit.close);
+      await cubit.load();
+
+      await cubit.confirm('o-n');
+
+      expect(cubit.state.orders.single.status, OrderStatus.delivered);
+      expect(cubit.state.orders.single.notes, 'Gọi trước khi tới');
+    });
   });
 }
