@@ -32,7 +32,7 @@ String? authRedirect(AuthState auth, String location) {
 
 /// Router chính của app, redirect theo state của [authCubit].
 ///
-/// `/home` là [HomeShell] — shell 3 tab của driver. [AuthCubit] được cấp
+/// `/home` là [HomeShell] — shell 4 tab của driver. [AuthCubit] được cấp
 /// xuống qua BlocProvider để SettingsTab (đăng xuất) dùng chung instance.
 GoRouter createRouter(AuthCubit authCubit) {
   return GoRouter(
