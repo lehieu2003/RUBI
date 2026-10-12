@@ -5,7 +5,7 @@ import 'package:iceflow_mobile/core/router/route_names.dart';
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:iceflow_mobile/features/auth/presentation/screens/change_password_screen.dart';
 import 'package:iceflow_mobile/features/auth/presentation/screens/login_screen.dart';
-import 'package:iceflow_mobile/features/driver/presentation/screens/home_shell.dart';
+import 'package:iceflow_mobile/features/home/presentation/screens/home_shell.dart';
 
 /// Quy tắc điều hướng theo [AuthState] — hàm thuần để unit test.
 ///
@@ -32,7 +32,7 @@ String? authRedirect(AuthState auth, String location) {
 
 /// Router chính của app, redirect theo state của [authCubit].
 ///
-/// `/home` là [HomeShell] — shell 4 tab của driver. [AuthCubit] được cấp
+/// `/home` là [HomeShell] — shell với các tab của vai trò đang đăng nhập. [AuthCubit] được cấp
 /// xuống qua BlocProvider để SettingsTab (đăng xuất) dùng chung instance.
 GoRouter createRouter(AuthCubit authCubit) {
   return GoRouter(

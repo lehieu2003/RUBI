@@ -100,16 +100,15 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i793.InventoryRepository>(
       () => _i123.InventoryRepositoryImpl(dio: gh<_i361.Dio>()),
     );
-    gh.factory<_i755.ScheduleCubit>(
-      () => _i755.ScheduleCubit(repo: gh<_i285.ScheduleRepository>()),
-    );
     gh.factory<_i251.AuthCubit>(
       () => _i251.AuthCubit(
         repo: gh<_i452.AuthRepository>(),
-        storage: gh<_i807.AuthStorage>(),
         preferences: gh<_i681.AppPreferences>(),
         authEvents: gh<_i1021.AuthEvents>(),
       ),
+    );
+    gh.factory<_i755.ScheduleCubit>(
+      () => _i755.ScheduleCubit(repo: gh<_i285.ScheduleRepository>()),
     );
     gh.lazySingleton<_i504.ConfirmDeliveryUseCase>(
       () => _i504.ConfirmDeliveryUseCase(gh<_i103.DriverRepository>()),
