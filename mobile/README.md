@@ -48,7 +48,7 @@ Widgets more than one feature uses. Today: `error_views.dart` (`ErrorView` for a
 
 ## End-to-end test on an emulator
 
-`integration_test/app_e2e_test.dart` drives the real app on an Android emulator against a real server: a wrong password, the forced password change of a new account, confirming a delivery, requesting and withdrawing a shift, signing out and back in, then a staff account signing in to its own tabs, and the manager approving the driver's shift.
+`integration_test/app_e2e_test.dart` drives the real app on an Android emulator against a real server: a wrong password, the forced password change of a new account, confirming a delivery, requesting and withdrawing a shift, signing out and back in, then a staff account signing in to its own tabs, and the manager approving the driver's shift and recording a production batch.
 
 ```bash
 flutter emulators --launch <id>     # any Android emulator

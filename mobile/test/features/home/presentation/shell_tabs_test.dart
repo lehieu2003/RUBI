@@ -24,10 +24,11 @@ void main() {
       ]);
     });
 
-    test('Quản lý: duyệt ca, cài đặt — không tự đăng ký ca (server từ chối)',
-        () {
+    test('Quản lý: duyệt ca, kho lạnh, cài đặt — không tự đăng ký ca (server '
+        'từ chối)', () {
       expect(labels(UserRole.admin), [
         AppStrings.navShiftReview,
+        AppStrings.navInventory,
         AppStrings.navSettings,
       ]);
     });
