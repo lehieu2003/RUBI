@@ -1,4 +1,5 @@
 import 'package:iceflow_mobile/core/network/api_failure.dart';
+import 'package:iceflow_mobile/core/network/mapping_validator.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/driver/data/dto/driver_dtos.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
@@ -11,30 +12,28 @@ import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.da
 /// safe-default có chủ ý của [OrderStatus.fromName].
 abstract final class OrderMapper {
   static Result<DeliveryOrder> fromDto(OrderDto dto) {
-    final id = _nonEmpty(dto.id);
+    final id = MappingValidator.nonEmpty(dto.id);
     if (id == null) {
-      return const Err(UnexpectedFailure('Order payload missing `id`'));
+      return Err(MappingValidator.missing('Order', 'id'));
     }
 
     final total = dto.total?.toDouble();
     if (total == null) {
-      return const Err(UnexpectedFailure('Order payload missing `total`'));
+      return Err(MappingValidator.missing('Order', 'total'));
     }
 
     final customer = dto.customer;
-    final customerName = _nonEmpty(customer?.name);
+    final customerName = MappingValidator.nonEmpty(customer?.name);
     if (customerName == null) {
-      return const Err(UnexpectedFailure('Order payload missing `customer.name`'));
+      return Err(MappingValidator.missing('Order', 'customer.name'));
     }
-    final customerAddress = _nonEmpty(customer?.address);
+    final customerAddress = MappingValidator.nonEmpty(customer?.address);
     if (customerAddress == null) {
-      return const Err(
-        UnexpectedFailure('Order payload missing `customer.address`'),
-      );
+      return Err(MappingValidator.missing('Order', 'customer.address'));
     }
-    final customerPhone = _nonEmpty(customer?.phone);
+    final customerPhone = MappingValidator.nonEmpty(customer?.phone);
     if (customerPhone == null) {
-      return const Err(UnexpectedFailure('Order payload missing `customer.phone`'));
+      return Err(MappingValidator.missing('Order', 'customer.phone'));
     }
 
     final createdAt = DateTime.tryParse(dto.createdAt ?? '');
@@ -56,7 +55,7 @@ abstract final class OrderMapper {
 
     final rawItems = dto.orderItems;
     if (rawItems == null) {
-      return const Err(UnexpectedFailure('Order payload missing `orderItems`'));
+      return Err(MappingValidator.missing('Order', 'orderItems'));
     }
     final items = <OrderItem>[];
     for (final itemDto in rawItems) {
@@ -84,23 +83,21 @@ abstract final class OrderMapper {
   }
 
   static Result<OrderItem> fromItemDto(OrderItemDto dto) {
-    final productName = _nonEmpty(dto.product?.name);
+    final productName = MappingValidator.nonEmpty(dto.product?.name);
     if (productName == null) {
-      return const Err(
-        UnexpectedFailure('Order item payload missing `product.name`'),
-      );
+      return Err(MappingValidator.missing('Order item', 'product.name'));
     }
     final quantity = dto.quantity?.toDouble();
     if (quantity == null) {
-      return const Err(UnexpectedFailure('Order item payload missing `quantity`'));
+      return Err(MappingValidator.missing('Order item', 'quantity'));
     }
     final unitPrice = dto.unitPrice?.toDouble();
     if (unitPrice == null) {
-      return const Err(UnexpectedFailure('Order item payload missing `unitPrice`'));
+      return Err(MappingValidator.missing('Order item', 'unitPrice'));
     }
     final lineTotal = dto.lineTotal?.toDouble();
     if (lineTotal == null) {
-      return const Err(UnexpectedFailure('Order item payload missing `lineTotal`'));
+      return Err(MappingValidator.missing('Order item', 'lineTotal'));
     }
     return Ok(
       OrderItem(
@@ -111,7 +108,4 @@ abstract final class OrderMapper {
       ),
     );
   }
-
-  static String? _nonEmpty(String? value) =>
-      (value == null || value.isEmpty) ? null : value;
 }

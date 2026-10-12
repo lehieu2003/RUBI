@@ -1,4 +1,5 @@
 import 'package:iceflow_mobile/core/network/api_failure.dart';
+import 'package:iceflow_mobile/core/network/mapping_validator.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 import 'package:iceflow_mobile/features/schedule/data/dto/schedule_dtos.dart';
@@ -15,9 +16,9 @@ abstract final class ScheduleMapper {
   static final _month = RegExp(r'^\d{4}-(0[1-9]|1[0-2])$');
 
   static Result<WeekSchedule> fromDto(WeekScheduleDto dto) {
-    final userId = _nonEmpty(dto.userId);
+    final userId = MappingValidator.nonEmpty(dto.userId);
     if (userId == null) {
-      return const Err(UnexpectedFailure('Schedule payload missing `userId`'));
+      return Err(MappingValidator.missing('Schedule', 'userId'));
     }
 
     final today = parseDateOnly(dto.today);
@@ -36,14 +37,12 @@ abstract final class ScheduleMapper {
 
     final limits = dto.limits;
     if (limits == null) {
-      return const Err(UnexpectedFailure('Schedule payload missing `limits`'));
+      return Err(MappingValidator.missing('Schedule', 'limits'));
     }
 
     final lockedMonths = dto.lockedMonths;
     if (lockedMonths == null) {
-      return const Err(
-        UnexpectedFailure('Schedule payload missing `lockedMonths`'),
-      );
+      return Err(MappingValidator.missing('Schedule', 'lockedMonths'));
     }
     if (lockedMonths.any((month) => !_month.hasMatch(month))) {
       return const Err(
@@ -53,7 +52,7 @@ abstract final class ScheduleMapper {
 
     final rawPeople = dto.people;
     if (rawPeople == null) {
-      return const Err(UnexpectedFailure('Schedule payload missing `people`'));
+      return Err(MappingValidator.missing('Schedule', 'people'));
     }
     final people = <SchedulePerson>[];
     for (final personDto in rawPeople) {
@@ -79,15 +78,13 @@ abstract final class ScheduleMapper {
   }
 
   static Result<SchedulePerson> fromPersonDto(SchedulePersonDto dto) {
-    final id = _nonEmpty(dto.id);
+    final id = MappingValidator.nonEmpty(dto.id);
     if (id == null) {
-      return const Err(UnexpectedFailure('Schedule person payload missing `id`'));
+      return Err(MappingValidator.missing('Schedule person', 'id'));
     }
-    final name = _nonEmpty(dto.name);
+    final name = MappingValidator.nonEmpty(dto.name);
     if (name == null) {
-      return const Err(
-        UnexpectedFailure('Schedule person payload missing `name`'),
-      );
+      return Err(MappingValidator.missing('Schedule person', 'name'));
     }
 
     final role = UserRole.fromName(dto.role);
@@ -97,9 +94,7 @@ abstract final class ScheduleMapper {
 
     final rawShifts = dto.shifts;
     if (rawShifts == null) {
-      return const Err(
-        UnexpectedFailure('Schedule person payload missing `shifts`'),
-      );
+      return Err(MappingValidator.missing('Schedule person', 'shifts'));
     }
     final shifts = <Shift>[];
     for (final shiftDto in rawShifts) {
@@ -144,7 +139,4 @@ abstract final class ScheduleMapper {
     if (date.month != month || date.day != day) return null;
     return date;
   }
-
-  static String? _nonEmpty(String? value) =>
-      (value == null || value.isEmpty) ? null : value;
 }

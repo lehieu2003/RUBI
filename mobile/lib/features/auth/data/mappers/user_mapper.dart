@@ -1,4 +1,5 @@
 import 'package:iceflow_mobile/core/network/api_failure.dart';
+import 'package:iceflow_mobile/core/network/mapping_validator.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/auth/data/dto/auth_dtos.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
@@ -9,17 +10,17 @@ import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 /// KHÔNG BAO GIỜ được suy mặc định (VD: thành DRIVER) — dữ liệu phải thật.
 abstract final class UserMapper {
   static Result<User> fromDto(UserDto dto) {
-    final id = _nonEmpty(dto.id);
+    final id = MappingValidator.nonEmpty(dto.id);
     if (id == null) {
-      return const Err(UnexpectedFailure('User payload missing `id`'));
+      return Err(MappingValidator.missing('User', 'id'));
     }
-    final email = _nonEmpty(dto.email);
+    final email = MappingValidator.nonEmpty(dto.email);
     if (email == null) {
-      return const Err(UnexpectedFailure('User payload missing `email`'));
+      return Err(MappingValidator.missing('User', 'email'));
     }
-    final name = _nonEmpty(dto.name);
+    final name = MappingValidator.nonEmpty(dto.name);
     if (name == null) {
-      return const Err(UnexpectedFailure('User payload missing `name`'));
+      return Err(MappingValidator.missing('User', 'name'));
     }
 
     final role = UserRole.fromName(dto.role);
@@ -40,7 +41,4 @@ abstract final class UserMapper {
       ),
     );
   }
-
-  static String? _nonEmpty(String? value) =>
-      (value == null || value.isEmpty) ? null : value;
 }

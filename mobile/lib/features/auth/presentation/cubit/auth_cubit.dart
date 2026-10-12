@@ -6,6 +6,7 @@ import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 import 'package:iceflow_mobile/core/network/auth_events.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/core/services/app_logger.dart';
 import 'package:iceflow_mobile/core/storage/app_preferences.dart';
 import 'package:iceflow_mobile/core/storage/auth_storage.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
@@ -107,8 +108,11 @@ class AuthCubit extends Cubit<AuthState> {
           // không được làm hỏng lần đăng nhập đã thành công.
           try {
             await _preferences.saveLastEmail(email);
-          } on Object catch (_) {
-            // ignored
+          } on Object catch (e) {
+            AppLogger.warning(
+              'Could not remember the last email: $e',
+              tag: 'auth',
+            );
           }
           if (isClosed) return;
           emit(Authenticated(value));
@@ -118,8 +122,12 @@ class AuthCubit extends Cubit<AuthState> {
           // kể cả khi xoá lỗi, user vẫn bị chặn ở màn đăng nhập.
           try {
             await _storage.clear();
-          } on Object catch (_) {
-            // ignored — chặn vai trò luôn đứng trước.
+          } on Object catch (e) {
+            // Không surface — chặn vai trò luôn đứng trước.
+            AppLogger.warning(
+              'Could not clear the token of a blocked role: $e',
+              tag: 'auth',
+            );
           }
           if (isClosed) return;
           emit(const Unauthenticated(message: _roleBlockedMessage));
