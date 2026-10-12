@@ -52,7 +52,16 @@ enum ShiftStatus {
 
 /// Một ca đã đăng ký của một người.
 class Shift extends Equatable {
-  const Shift({required this.date, required this.slot, required this.status});
+  const Shift({
+    required this.date,
+    required this.slot,
+    required this.status,
+    this.id,
+  });
+
+  /// Id của ca, để Quản lý duyệt / từ chối. Chỉ có trong lịch Quản lý xem
+  /// ([TeamScheduleRepository]); lịch tự đăng ký không gửi id → `null`.
+  final String? id;
 
   /// Ngày của ca (chỉ năm/tháng/ngày, 00:00 local) — server gửi `yyyy-MM-dd`
   /// theo ngày Việt Nam, không kèm múi giờ.
@@ -61,7 +70,7 @@ class Shift extends Equatable {
   final ShiftStatus status;
 
   @override
-  List<Object?> get props => [date, slot, status];
+  List<Object?> get props => [date, slot, status, id];
 }
 
 /// Một người (nhân viên / tài xế) và các ca của họ trong tuần.
