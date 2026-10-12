@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:iceflow_mobile/core/constants/app_constants.dart';
+import 'package:iceflow_mobile/core/router/app_router.dart';
+import 'package:iceflow_mobile/core/theme/app_theme.dart';
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
-import 'package:iceflow_mobile/router.dart';
 
 /// Root của app: Material light + go_router, locale Việt Nam.
 class IceFlowApp extends HookWidget {
@@ -26,9 +27,7 @@ class IceFlowApp extends HookWidget {
     return MaterialApp.router(
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-      ),
+      theme: AppTheme.light,
       locale: const Locale('vi'),
       supportedLocales: const [Locale('vi')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,

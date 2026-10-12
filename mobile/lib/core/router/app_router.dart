@@ -1,8 +1,7 @@
-import 'dart:async';
-
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iceflow_mobile/core/router/app_router_refresh.dart';
+import 'package:iceflow_mobile/core/router/route_names.dart';
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:iceflow_mobile/features/auth/presentation/screens/login_screen.dart';
 import 'package:iceflow_mobile/features/driver/presentation/screens/home_shell.dart';
@@ -16,8 +15,9 @@ import 'package:iceflow_mobile/features/driver/presentation/screens/home_shell.d
 String? authRedirect(AuthState auth, String location) {
   return switch (auth) {
     AuthUnknown() => null,
-    Unauthenticated() => location == '/login' ? null : '/login',
-    Authenticated() => location == '/home' ? null : '/home',
+    Unauthenticated() =>
+      location == RouteNames.login ? null : RouteNames.login,
+    Authenticated() => location == RouteNames.home ? null : RouteNames.home,
   };
 }
 
@@ -27,20 +27,20 @@ String? authRedirect(AuthState auth, String location) {
 /// xuống qua BlocProvider để SettingsTab (đăng xuất) dùng chung instance.
 GoRouter createRouter(AuthCubit authCubit) {
   return GoRouter(
-    initialLocation: '/login',
-    refreshListenable: _AuthListenable(authCubit),
+    initialLocation: RouteNames.login,
+    refreshListenable: AppRouterRefresh(authCubit.stream),
     redirect: (context, state) =>
         authRedirect(authCubit.state, state.matchedLocation),
     routes: [
       GoRoute(
-        path: '/login',
+        path: RouteNames.login,
         builder: (context, state) => BlocProvider<AuthCubit>.value(
           value: authCubit,
           child: const LoginScreen(),
         ),
       ),
       GoRoute(
-        path: '/home',
+        path: RouteNames.home,
         builder: (context, state) => BlocProvider<AuthCubit>.value(
           value: authCubit,
           child: const HomeShell(),
@@ -48,20 +48,4 @@ GoRouter createRouter(AuthCubit authCubit) {
       ),
     ],
   );
-}
-
-/// Cầu `AuthCubit.stream` → [Listenable] cho `refreshListenable` của
-/// GoRouter (go_router 18 không còn export `GoRouterRefreshStream`).
-class _AuthListenable extends ChangeNotifier {
-  _AuthListenable(AuthCubit cubit) {
-    _sub = cubit.stream.listen((_) => notifyListeners());
-  }
-
-  StreamSubscription<AuthState>? _sub;
-
-  @override
-  void dispose() {
-    _sub?.cancel();
-    super.dispose();
-  }
 }
