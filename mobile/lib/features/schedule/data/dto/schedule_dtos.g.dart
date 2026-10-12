@@ -39,6 +39,7 @@ SchedulePersonDto _$SchedulePersonDtoFromJson(Map<String, dynamic> json) =>
     );
 
 ShiftDto _$ShiftDtoFromJson(Map<String, dynamic> json) => ShiftDto(
+  id: json['id'] as String?,
   shiftDate: json['shiftDate'] as String?,
   shift: json['shift'] as String?,
   status: json['status'] as String?,
