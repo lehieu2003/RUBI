@@ -11,6 +11,21 @@ abstract final class AppStrings {
   static const emailInvalid = 'Email không hợp lệ';
   static const passwordTooShort = 'Mật khẩu tối thiểu 6 ký tự';
 
+  // ---- Màn đổi mật khẩu ----
+  static const changePasswordTitle = 'Đổi mật khẩu';
+  static const changePasswordForcedNotice =
+      'Mật khẩu của bạn do Quản lý cấp. Hãy đặt mật khẩu riêng trước khi '
+      'dùng app.';
+  static const currentPasswordLabel = 'Mật khẩu hiện tại';
+  static const newPasswordLabel = 'Mật khẩu mới';
+  static const confirmPasswordLabel = 'Nhập lại mật khẩu mới';
+  static const currentPasswordRequired = 'Vui lòng nhập mật khẩu hiện tại';
+  static const newPasswordSameAsCurrent =
+      'Mật khẩu mới phải khác mật khẩu hiện tại';
+  static const confirmPasswordMismatch = 'Hai lần nhập mật khẩu mới không khớp';
+  static const changePasswordButton = 'Đổi mật khẩu';
+  static const passwordChangedSnack = 'Đã đổi mật khẩu ✅';
+
   // ---- Driver: lịch sử giao hàng ----
   static const historyRangeLimit = 'Chỉ xem được trong 30 ngày gần nhất';
   static const historyFutureDate = 'Không thể xem ngày trong tương lai';
