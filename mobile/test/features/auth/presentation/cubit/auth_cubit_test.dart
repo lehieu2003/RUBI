@@ -145,15 +145,18 @@ void main() {
       );
 
       blocTest<AuthCubit, AuthState>(
-        'Err (sai thông tin) → Unauthenticated với message từ failureMessage',
+        'sai email/mật khẩu (401 của server) → đúng câu của server, KHÔNG '
+        'phải "phiên đăng nhập hết hạn"',
         build: buildCubit,
         setUp: () {
+          // Đúng failure mà repository trả cho 401 của /api/auth/login.
           when(() => repo.login(
                 email: any(named: 'email'),
                 password: any(named: 'password'),
               )).thenAnswer(
-            (_) async =>
-                const Err<User>(AuthFailure('Email hoặc mật khẩu không đúng')),
+            (_) async => const Err<User>(
+              AuthFailure('Email hoặc mật khẩu không đúng', statusCode: 401),
+            ),
           );
         },
         act: (cubit) => cubit.login('tai@iceflow.vn', 'wrong'),

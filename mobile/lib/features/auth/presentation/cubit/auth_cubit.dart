@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 import 'package:iceflow_mobile/core/network/auth_events.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
@@ -115,7 +116,13 @@ class AuthCubit extends Cubit<AuthState> {
           emit(const Unauthenticated(message: _roleBlockedMessage));
         }
       case Err<User>(:final failure):
-        emit(Unauthenticated(message: failureMessage(failure)));
+        // Ở màn đăng nhập, 401 là sai email/mật khẩu: giữ câu của server.
+        // `failureMessage` coi mọi 401 là "phiên đăng nhập hết hạn", đúng
+        // cho các API khác nhưng sai ở đây — chưa hề có phiên nào.
+        final message = failure is AuthFailure && failure.statusCode == 401
+            ? failure.message
+            : failureMessage(failure);
+        emit(Unauthenticated(message: message));
     }
   }
 
