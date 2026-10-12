@@ -34,6 +34,7 @@ abstract final class AppStrings {
   static const navToday = 'Hôm nay';
   static const navHistory = 'Lịch sử';
   static const navSchedule = 'Ca làm';
+  static const navShiftReview = 'Duyệt ca';
   static const navSettings = 'Cài đặt';
 
   // ---- Driver: tab "Đơn hôm nay" ----
@@ -95,6 +96,22 @@ abstract final class AppStrings {
 
   /// "Đã có: An, Bình".
   static String shiftOthers(String names) => 'Đã có: $names';
+
+  // ---- Tab "Duyệt ca" (Quản lý) ----
+  static const roleStaff = 'Nhân viên';
+  static const roleDriver = 'Tài xế';
+  static const approveButton = 'Duyệt';
+  static const rejectButton = 'Từ chối';
+  static const approveAllButton = 'Duyệt tất cả';
+  static const approveAllTitle = 'Duyệt tất cả?';
+  static String approveAllBody(int count) =>
+      'Duyệt $count yêu cầu đang chờ trong tuần này?';
+  static const shiftReviewNonePending = 'Không có yêu cầu chờ duyệt trong tuần';
+  static String shiftReviewPendingCount(int count) =>
+      '$count yêu cầu chờ duyệt trong tuần';
+  static const shiftReviewEmptyDay = 'Không có ca nào trong ngày này';
+  static String shiftsApproved(int count) => 'Đã duyệt $count ca';
+  static String shiftsRejected(int count) => 'Đã từ chối $count ca';
 
   // ---- Tab cài đặt: giao diện ----
   static const themeTitle = 'Giao diện';

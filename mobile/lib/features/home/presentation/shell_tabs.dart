@@ -5,6 +5,7 @@ import 'package:iceflow_mobile/features/driver/presentation/screens/history_tab.
 import 'package:iceflow_mobile/features/driver/presentation/screens/settings_tab.dart';
 import 'package:iceflow_mobile/features/driver/presentation/screens/today_tab.dart';
 import 'package:iceflow_mobile/features/schedule/presentation/screens/schedule_tab.dart';
+import 'package:iceflow_mobile/features/schedule/presentation/screens/shift_review_tab.dart';
 
 /// Một tab của shell sau đăng nhập.
 class ShellTab {
@@ -38,6 +39,12 @@ const _schedule = ShellTab(
   selectedIcon: Icons.event_available,
   builder: _buildSchedule,
 );
+const _shiftReview = ShellTab(
+  label: AppStrings.navShiftReview,
+  icon: Icons.fact_check_outlined,
+  selectedIcon: Icons.fact_check,
+  builder: _buildShiftReview,
+);
 const _settings = ShellTab(
   label: AppStrings.navSettings,
   icon: Icons.settings_outlined,
@@ -48,6 +55,7 @@ const _settings = ShellTab(
 Widget _buildToday(BuildContext context) => const TodayTab();
 Widget _buildHistory(BuildContext context) => const HistoryTab();
 Widget _buildSchedule(BuildContext context) => const ScheduleTab();
+Widget _buildShiftReview(BuildContext context) => const ShiftReviewTab();
 Widget _buildSettings(BuildContext context) => const SettingsTab();
 
 /// Các tab mỗi vai trò thấy, theo thứ tự trên thanh dưới. Chỉ gồm màn hình
@@ -55,12 +63,11 @@ Widget _buildSettings(BuildContext context) => const SettingsTab();
 ///
 /// - Tài xế: giao hàng (hôm nay, lịch sử) và đăng ký ca.
 /// - Nhân viên: đăng ký ca.
-/// - Quản lý: không tự đăng ký ca (server từ chối), nên chỉ có Cài đặt cho
-///   tới khi có màn hình của Quản lý.
+/// - Quản lý: duyệt ca. Không tự đăng ký ca (server từ chối).
 List<ShellTab> shellTabsFor(UserRole role) {
   return switch (role) {
     UserRole.driver => const [_today, _history, _schedule, _settings],
     UserRole.staff => const [_schedule, _settings],
-    UserRole.admin => const [_settings],
+    UserRole.admin => const [_shiftReview, _settings],
   };
 }
