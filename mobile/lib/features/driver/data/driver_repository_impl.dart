@@ -3,6 +3,7 @@ import 'package:iceflow_mobile/core/network/api_error_decoder.dart';
 import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/auth_interceptor.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/core/services/app_logger.dart';
 import 'package:iceflow_mobile/features/driver/data/dto/driver_dtos.dart';
 import 'package:iceflow_mobile/features/driver/data/mappers/order_mapper.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
@@ -52,9 +53,15 @@ class DriverRepositoryImpl implements DriverRepository {
     } on DioException catch (err) {
       // Message từ server (VD: "Order not found") giữ nguyên qua mapDioError.
       return Err(mapDioError(err));
-    } catch (e) {
+    } catch (e, stackTrace) {
       // Guarantee Result: TypeError parse (field sai kiểu)... không được phép
       // xuyên qua biên Result.
+      AppLogger.error(
+        'Unexpected getOrders failure',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'driver',
+      );
       return Err(UnexpectedFailure('Unexpected getOrders failure: $e'));
     }
   }
@@ -71,7 +78,13 @@ class DriverRepositoryImpl implements DriverRepository {
       return const Ok<void>(null);
     } on DioException catch (err) {
       return Err(mapDioError(err));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Unexpected confirmDelivery failure',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'driver',
+      );
       return Err(UnexpectedFailure('Unexpected confirmDelivery failure: $e'));
     }
   }

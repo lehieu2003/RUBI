@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:iceflow_mobile/core/constants/api_constants.dart';
 import 'package:iceflow_mobile/core/network/auth_events.dart';
+import 'package:iceflow_mobile/core/services/app_logger.dart';
 import 'package:iceflow_mobile/core/storage/auth_storage.dart';
 
 /// Refreshes an expired token once per request and forces a logout when
@@ -77,8 +78,12 @@ class AuthInterceptor extends Interceptor {
     final String newToken;
     try {
       newToken = await _refreshToken();
-    } on Object {
+    } on Object catch (e) {
       // Refresh failed — the session is unrecoverable: log out.
+      AppLogger.warning(
+        'Token refresh failed, signing out: $e',
+        tag: 'network',
+      );
       await _forceLogout();
       return handler.next(err);
     }
