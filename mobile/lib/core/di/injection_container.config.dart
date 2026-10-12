@@ -17,6 +17,12 @@ import 'package:iceflow_mobile/core/network/auth_events.dart' as _i1021;
 import 'package:iceflow_mobile/core/storage/app_preferences.dart' as _i681;
 import 'package:iceflow_mobile/core/storage/auth_storage.dart' as _i807;
 import 'package:iceflow_mobile/core/theme/theme_cubit.dart' as _i521;
+import 'package:iceflow_mobile/features/audit/data/audit_repository_impl.dart'
+    as _i156;
+import 'package:iceflow_mobile/features/audit/domain/repositories/audit_repository.dart'
+    as _i971;
+import 'package:iceflow_mobile/features/audit/presentation/cubit/audit_log_cubit.dart'
+    as _i945;
 import 'package:iceflow_mobile/features/auth/data/auth_repository_impl.dart'
     as _i1004;
 import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository.dart'
@@ -51,6 +57,12 @@ import 'package:iceflow_mobile/features/inventory/domain/repositories/inventory_
     as _i793;
 import 'package:iceflow_mobile/features/inventory/presentation/cubit/inventory_cubit.dart'
     as _i14;
+import 'package:iceflow_mobile/features/orders/data/orders_repository_impl.dart'
+    as _i755;
+import 'package:iceflow_mobile/features/orders/domain/repositories/orders_repository.dart'
+    as _i420;
+import 'package:iceflow_mobile/features/orders/presentation/cubit/orders_cubit.dart'
+    as _i345;
 import 'package:iceflow_mobile/features/schedule/data/schedule_repository_impl.dart'
     as _i110;
 import 'package:iceflow_mobile/features/schedule/data/team_schedule_repository_impl.dart'
@@ -60,7 +72,7 @@ import 'package:iceflow_mobile/features/schedule/domain/repositories/schedule_re
 import 'package:iceflow_mobile/features/schedule/domain/repositories/team_schedule_repository.dart'
     as _i987;
 import 'package:iceflow_mobile/features/schedule/presentation/cubit/schedule_cubit.dart'
-    as _i755;
+    as _i756;
 import 'package:iceflow_mobile/features/schedule/presentation/cubit/team_schedule_cubit.dart'
     as _i1;
 import 'package:injectable/injectable.dart' as _i526;
@@ -89,8 +101,20 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i360.DebtRepository>(
       () => _i61.DebtRepositoryImpl(dio: gh<_i361.Dio>()),
     );
+    gh.lazySingleton<_i971.AuditRepository>(
+      () => _i156.AuditRepositoryImpl(dio: gh<_i361.Dio>()),
+    );
+    gh.lazySingleton<_i420.OrdersRepository>(
+      () => _i755.OrdersRepositoryImpl(dio: gh<_i361.Dio>()),
+    );
     gh.lazySingleton<_i521.ThemeCubit>(
       () => _i521.ThemeCubit(preferences: gh<_i681.AppPreferences>()),
+    );
+    gh.factory<_i945.AuditLogCubit>(
+      () => _i945.AuditLogCubit(repo: gh<_i971.AuditRepository>()),
+    );
+    gh.factory<_i345.OrdersCubit>(
+      () => _i345.OrdersCubit(repo: gh<_i420.OrdersRepository>()),
     );
     gh.lazySingleton<_i452.AuthRepository>(
       () => _i1004.AuthRepositoryImpl(
@@ -127,8 +151,8 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i1.TeamScheduleCubit>(
       () => _i1.TeamScheduleCubit(repo: gh<_i987.TeamScheduleRepository>()),
     );
-    gh.factory<_i755.ScheduleCubit>(
-      () => _i755.ScheduleCubit(repo: gh<_i285.ScheduleRepository>()),
+    gh.factory<_i756.ScheduleCubit>(
+      () => _i756.ScheduleCubit(repo: gh<_i285.ScheduleRepository>()),
     );
     gh.factory<_i14.InventoryCubit>(
       () => _i14.InventoryCubit(repo: gh<_i793.InventoryRepository>()),

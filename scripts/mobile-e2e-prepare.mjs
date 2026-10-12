@@ -45,6 +45,11 @@ async function prepare() {
   const order = (await call('GET', '/api/orders?status=PENDING&limit=1', { token })).data[0];
   if (!order) throw new Error('The seed has no PENDING order');
   await call('PATCH', '/api/orders/bulk-assign', { token, body: { orderIds: [order.id], driverId: driver.id } });
+  // That was the seed's only waiting order: put another one back in the queue
+  // for the staff account to work on in the app.
+  const other = (await call('GET', '/api/orders?status=SHIPPING&limit=1', { token })).data[0];
+  if (!other) throw new Error('The seed has no SHIPPING order');
+  await call('PATCH', `/api/orders/${other.id}/status`, { token, body: { status: 'PENDING' } });
   await call('PATCH', `/api/orders/${order.id}/status`, { token, body: { status: 'SHIPPING' } });
 
   for (const [key, value] of Object.entries({
@@ -91,11 +96,19 @@ async function verify(userId, orderId, userName) {
     problems.push('no DEBT_PAYMENT entry for the payment recorded in the app');
   }
 
+  // The order the staff account assigned and then cancelled in the app.
+  const orderTrail = (await call('GET', '/api/audit-logs?type=ORDER&limit=50', { token })).data;
+  const cancelled = orderTrail.find((entry) => entry.summary.includes('Hủy thử từ app'));
+  if (!cancelled) problems.push('no audit entry for the order cancelled in the app');
+  else if (!orderTrail.some((entry) => entry.action === 'ORDER_ASSIGNED' && entry.orderId === cancelled.orderId)) {
+    problems.push('the order cancelled in the app has no ORDER_ASSIGNED entry');
+  }
+
   if (problems.length > 0) {
     console.error('✖ ' + problems.join('\n✖ '));
     process.exit(1);
   }
-  console.log('✓ server state matches what the app did: order DELIVERED and logged for the driver, shift requested and approved, payment recorded');
+  console.log('✓ server state matches what the app did: order DELIVERED and logged for the driver, shift requested and approved, payment recorded, an order assigned and cancelled');
 }
 
 const [command, ...args] = process.argv.slice(2);
