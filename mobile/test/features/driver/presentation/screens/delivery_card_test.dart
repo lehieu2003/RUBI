@@ -8,6 +8,7 @@ import 'package:iceflow_mobile/features/driver/presentation/widgets/delivery_car
 DeliveryOrder buildOrder({
   OrderStatus status = OrderStatus.shipping,
   List<OrderItem>? items,
+  String? notes,
 }) {
   return DeliveryOrder(
     id: 'o-1',
@@ -33,6 +34,7 @@ DeliveryOrder buildOrder({
           ),
         ],
     createdAt: DateTime(2026, 10, 7, 8),
+    notes: notes,
   );
 }
 
@@ -173,6 +175,44 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await pumpCard(tester, buildOrder());
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('có ghi chú → hiện trong khung riêng; không có → không có khung',
+      (tester) async {
+    await pumpCard(tester, buildOrder(notes: 'Giao cổng sau, gọi trước 10 phút'));
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('delivery_notes')),
+        matching: find.text('Giao cổng sau, gọi trước 10 phút'),
+      ),
+      findsOneWidget,
+    );
+
+    await pumpCard(tester, buildOrder());
+    expect(find.byKey(const Key('delivery_notes')), findsNothing);
+  });
+
+  testWidgets('đơn đã giao trong lịch sử vẫn hiện ghi chú', (tester) async {
+    await pumpCard(
+      tester,
+      buildOrder(status: OrderStatus.delivered, notes: 'Để ở quầy'),
+      readOnly: true,
+    );
+    expect(find.text('Để ở quầy'), findsOneWidget);
+  });
+
+  testWidgets('ghi chú rất dài trên màn hình 320dp → không overflow',
+      (tester) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await pumpCard(
+      tester,
+      buildOrder(notes: 'Giao cổng sau, gọi trước 10 phút, ' * 12),
+    );
     expect(tester.takeException(), isNull);
   });
 }

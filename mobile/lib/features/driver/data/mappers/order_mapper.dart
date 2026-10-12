@@ -78,6 +78,7 @@ abstract final class OrderMapper {
         items: items,
         createdAt: createdAt,
         deliveredAt: deliveredAt,
+        notes: MappingValidator.nonEmpty(dto.notes?.trim()),
       ),
     );
   }

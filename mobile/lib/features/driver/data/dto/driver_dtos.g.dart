@@ -19,6 +19,7 @@ OrderDto _$OrderDtoFromJson(Map<String, dynamic> json) => OrderDto(
   status: json['status'] as String?,
   createdAt: json['createdAt'] as String?,
   deliveredAt: json['deliveredAt'] as String?,
+  notes: json['notes'] as String?,
   customer: json['customer'] == null
       ? null
       : CustomerDto.fromJson(json['customer'] as Map<String, dynamic>),

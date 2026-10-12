@@ -32,6 +32,7 @@ class OrderDto {
     this.status,
     this.createdAt,
     this.deliveredAt,
+    this.notes,
     this.customer,
     this.orderItems,
   });
@@ -48,6 +49,9 @@ class OrderDto {
   final String? status;
   final String? createdAt;
   final String? deliveredAt;
+
+  /// Dặn dò khi giao do văn phòng ghi; `null` khi không có.
+  final String? notes;
   final CustomerDto? customer;
   final List<OrderItemDto>? orderItems;
 }

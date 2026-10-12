@@ -131,6 +131,7 @@ class TodayOrdersCubit extends Cubit<TodayOrdersState> {
             items: o.items,
             createdAt: o.createdAt,
             deliveredAt: markedDeliveredAt,
+            notes: o.notes,
           );
         }).toList();
         emit(TodayOrdersState(
