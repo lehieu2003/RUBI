@@ -53,7 +53,8 @@ void main() {
 
   testWidgets('a new driver: wrong password, forced password change, a '
       'delivery, a shift, sign out and back in; then staff sign in and the '
-      'manager approves the shift, records a production batch and a payment',
+      'manager approves the shift, records a production batch and a payment, '
+      'and reads the audit log',
       (tester) async {
     expect(_email, isNotEmpty, reason: 'run through scripts/mobile-e2e-local.sh');
 
@@ -215,7 +216,15 @@ void main() {
     await tester.tap(find.byType(BackButton));
     await waitFor(tester, find.byKey(const Key('debt_total')));
 
-    await tester.tap(find.text(AppStrings.navSettings));
+    // "Thêm": the account, and the audit log with the payment just recorded.
+    await tester.tap(find.text(AppStrings.navMore));
+    await waitFor(tester, find.text(_managerEmail));
+    await tester.tap(find.byKey(const Key('more_audit_log')));
+    await waitFor(tester, find.textContaining('Thu thử từ app'));
+    await tester.tap(find.text(AppStrings.auditFilterOrder));
+    await waitFor(tester, find.textContaining('Tài xế xác nhận đã giao xong'));
+    expect(find.textContaining('Thu thử từ app'), findsNothing);
+    await tester.tap(find.byType(BackButton));
     await waitFor(tester, find.text(_managerEmail));
   });
 }
