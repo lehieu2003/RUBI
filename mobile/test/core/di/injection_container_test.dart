@@ -8,6 +8,7 @@ import 'package:iceflow_mobile/features/driver/presentation/cubit/today_orders_c
 import 'package:iceflow_mobile/features/schedule/domain/repositories/schedule_repository.dart';
 import 'package:iceflow_mobile/features/schedule/presentation/cubit/schedule_cubit.dart';
 import 'package:iceflow_mobile/core/di/injection_container.dart';
+import 'package:iceflow_mobile/core/theme/theme_cubit.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
@@ -25,6 +26,8 @@ void main() {
 
     // Repository và Dio là singleton; cubit là factory (mỗi màn một cubit).
     expect(sl<Dio>(), same(sl<Dio>()));
+    // Một ThemeCubit cho cả app: Cài đặt đổi là gốc app đổi theo.
+    expect(sl<ThemeCubit>(), same(sl<ThemeCubit>()));
     expect(sl<DriverRepository>(), same(sl<DriverRepository>()));
     final authCubit = sl<AuthCubit>();
     final todayCubit = sl<TodayOrdersCubit>();

@@ -9,6 +9,7 @@ import 'package:iceflow_mobile/core/bootstrap/app_startup.dart';
 import 'package:iceflow_mobile/core/di/injection_container.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/core/storage/auth_storage.dart';
+import 'package:iceflow_mobile/core/theme/theme_cubit.dart';
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:iceflow_mobile/features/driver/presentation/widgets/delivery_card.dart';
 import 'package:integration_test/integration_test.dart';
@@ -52,7 +53,7 @@ void main() {
     // Start as main() does, but without a session left by an earlier run.
     appStartup();
     await sl<AuthStorage>().clear();
-    runApp(IceFlowApp(authCubit: sl<AuthCubit>()));
+    runApp(IceFlowApp(authCubit: sl<AuthCubit>(), themeCubit: sl<ThemeCubit>()));
 
     // --- A wrong password says so (not "session expired").
     await signIn(tester, _email, 'sai-mat-khau-1');

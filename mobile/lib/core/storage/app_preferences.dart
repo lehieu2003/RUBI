@@ -9,6 +9,7 @@ class AppPreferences {
   AppPreferences(this._prefs);
 
   static const _lastEmailKey = 'last_email';
+  static const _themeModeKey = 'theme_mode';
 
   final SharedPreferencesAsync _prefs;
 
@@ -17,4 +18,11 @@ class AppPreferences {
 
   Future<void> saveLastEmail(String email) =>
       _prefs.setString(_lastEmailKey, email);
+
+  /// Giao diện người dùng đã chọn (`system`, `light`, `dark`); `null` khi
+  /// chưa chọn.
+  Future<String?> readThemeMode() => _prefs.getString(_themeModeKey);
+
+  Future<void> saveThemeMode(String mode) =>
+      _prefs.setString(_themeModeKey, mode);
 }

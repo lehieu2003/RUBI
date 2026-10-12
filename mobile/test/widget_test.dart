@@ -7,6 +7,7 @@ import 'package:iceflow_mobile/core/network/auth_events.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/core/storage/app_preferences.dart';
 import 'package:iceflow_mobile/core/storage/auth_storage.dart';
+import 'package:iceflow_mobile/core/theme/theme_cubit.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository.dart';
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
@@ -38,7 +39,12 @@ void main() {
     );
     addTearDown(cubit.close);
 
-    await tester.pumpWidget(IceFlowApp(authCubit: cubit));
+    final themeCubit = ThemeCubit(preferences: preferences);
+    addTearDown(themeCubit.close);
+
+    await tester.pumpWidget(
+      IceFlowApp(authCubit: cubit, themeCubit: themeCubit),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Đăng nhập'), findsOneWidget);
