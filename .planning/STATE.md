@@ -112,6 +112,7 @@ v3.0 decisions:
 | 261011-mdl | Mobile data layer: change password and shift registration (repositories, DTOs, mappers, tests; no UI yet) | 2026-10-11 | feat/mobile-password-schedule-data | [261011-mdl-mobile-data-layer](./quick/261011-mdl-mobile-data-layer/) |
 | 261012-mcs | Mobile: lib/core laid out as bootstrap, constants, di, extensions, network, storage, view_state with a core.dart barrel | 2026-10-12 | refactor/mobile-core-structure | [261012-mcs-mobile-core-structure](./quick/261012-mcs-mobile-core-structure/) |
 | 261012-mrt | Mobile: core/router (app_router, route_names, app_router_refresh), core/theme and shared/widgets | 2026-10-12 | refactor/mobile-router-theme-shared | [261012-mrt-mobile-router-theme-shared](./quick/261012-mrt-mobile-router-theme-shared/) |
+| 261012-mlm | Mobile: a wrong password at sign-in shows the server's message instead of "session expired" | 2026-10-12 | fix/mobile-login-wrong-password-message | [261012-mlm-mobile-login-wrong-password-message](./quick/261012-mlm-mobile-login-wrong-password-message/) |
 
 ## Session Continuity
 
