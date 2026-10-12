@@ -75,21 +75,21 @@ async function verify(userId, orderId, userName) {
   const staff = (await call('GET', '/api/staff', { token })).data.users.find((item) => item.id === userId);
   if (!staff) problems.push('the account is gone');
 
-  // The shift the app left behind is waiting for the manager.
+  // The shift the driver requested in the app was approved by the manager in the app.
   const tomorrow = new Date(Date.now() + 7 * 3600e3 + 24 * 3600e3).toISOString().slice(0, 10);
   const monday = new Date(`${tomorrow}T00:00:00Z`);
   monday.setUTCDate(monday.getUTCDate() - ((monday.getUTCDay() + 6) % 7));
   const week = (await call('GET', `/api/schedule/assignments?week=${monday.toISOString().slice(0, 10)}`, { token })).data;
-  const text = JSON.stringify(week);
-  if (!text.includes(userId) || !text.includes('SLOT_21_24') || !text.includes('PENDING')) {
-    problems.push('no PENDING SLOT_21_24 shift for the driver in the manager schedule');
-  }
+  const person = week.find((item) => item.id === userId);
+  const requested = person?.shifts.find((shift) => shift.shift === 'SLOT_21_24' && shift.shiftDate === tomorrow);
+  if (!requested) problems.push('no SLOT_21_24 shift of tomorrow for the driver in the manager schedule');
+  else if (requested.status !== 'APPROVED') problems.push(`the driver's shift is ${requested.status}, expected APPROVED`);
 
   if (problems.length > 0) {
     console.error('✖ ' + problems.join('\n✖ '));
     process.exit(1);
   }
-  console.log('✓ server state matches what the app did: order DELIVERED and logged for the driver, shift pending');
+  console.log('✓ server state matches what the app did: order DELIVERED and logged for the driver, shift requested and approved');
 }
 
 const [command, ...args] = process.argv.slice(2);

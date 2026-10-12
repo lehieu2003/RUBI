@@ -53,6 +53,8 @@ import 'package:iceflow_mobile/features/schedule/domain/repositories/team_schedu
     as _i987;
 import 'package:iceflow_mobile/features/schedule/presentation/cubit/schedule_cubit.dart'
     as _i755;
+import 'package:iceflow_mobile/features/schedule/presentation/cubit/team_schedule_cubit.dart'
+    as _i1;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
 
@@ -106,6 +108,9 @@ extension GetItInjectableX on _i174.GetIt {
         preferences: gh<_i681.AppPreferences>(),
         authEvents: gh<_i1021.AuthEvents>(),
       ),
+    );
+    gh.factory<_i1.TeamScheduleCubit>(
+      () => _i1.TeamScheduleCubit(repo: gh<_i987.TeamScheduleRepository>()),
     );
     gh.factory<_i755.ScheduleCubit>(
       () => _i755.ScheduleCubit(repo: gh<_i285.ScheduleRepository>()),

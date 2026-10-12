@@ -7,18 +7,8 @@ import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/schedule/domain/entities/week_schedule.dart';
 import 'package:iceflow_mobile/features/schedule/domain/shift_rules.dart';
 import 'package:iceflow_mobile/features/schedule/presentation/cubit/schedule_cubit.dart';
+import 'package:iceflow_mobile/features/schedule/presentation/widgets/week_widgets.dart';
 import 'package:iceflow_mobile/shared/widgets/error_views.dart';
-
-const _weekdayLabels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-
-String _two(int value) => value.toString().padLeft(2, '0');
-
-/// "12/10".
-String scheduleDayLabel(DateTime date) => '${_two(date.day)}/${_two(date.month)}';
-
-/// "06:00 – 09:00".
-String shiftSlotLabel(ShiftSlot slot) =>
-    '${_two(slot.startHour)}:00 – ${_two(slot.endHour)}:00';
 
 /// Tab "Ca làm": lịch tuần của cả nhóm, đăng ký và huỷ ca của chính mình.
 ///
@@ -38,10 +28,25 @@ class ScheduleTab extends StatelessWidget {
           builder: (context, state) {
             final cubit = context.read<ScheduleCubit>();
             final week = state.week;
+            final myShifts = week?.people
+                    .where((person) => person.id == week.userId)
+                    .expand((person) => person.shifts)
+                    .toList() ??
+                const <Shift>[];
             return Column(
               children: [
-                _WeekNavBar(weekStart: state.weekStart),
-                _DayStrip(state: state),
+                WeekNavBar(
+                  weekStart: state.weekStart,
+                  onShowWeek: cubit.showWeek,
+                ),
+                WeekDayStrip(
+                  weekStart: state.weekStart,
+                  selectedDate: state.selectedDate,
+                  today: week?.today,
+                  // Chấm những ngày mình có ca.
+                  isMarked: (date) => myShifts.any((shift) => shift.date == date),
+                  onSelect: cubit.selectDay,
+                ),
                 if (week == null && state.status == ViewStatus.error)
                   Expanded(
                     child: ErrorView(
@@ -101,141 +106,6 @@ class ScheduleTab extends StatelessWidget {
           backgroundColor: result.ok ? null : errorColor,
         ),
       );
-  }
-}
-
-/// "◀ Tuần 12/10 – 18/10 ▶".
-class _WeekNavBar extends StatelessWidget {
-  const _WeekNavBar({required this.weekStart});
-
-  final DateTime weekStart;
-
-  @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<ScheduleCubit>();
-    final weekEnd =
-        DateTime(weekStart.year, weekStart.month, weekStart.day + 6);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () => cubit.showWeek(-1),
-            tooltip: AppStrings.prevWeekTooltip,
-            icon: const Icon(Icons.chevron_left),
-          ),
-          Expanded(
-            child: Text(
-              AppStrings.weekLabel(
-                scheduleDayLabel(weekStart),
-                scheduleDayLabel(weekEnd),
-              ),
-              textAlign: TextAlign.center,
-              style: context.textTheme.titleMedium,
-            ),
-          ),
-          IconButton(
-            onPressed: () => cubit.showWeek(1),
-            tooltip: AppStrings.nextWeekTooltip,
-            icon: const Icon(Icons.chevron_right),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Dải 7 ngày của tuần; ngày có ca của mình được chấm.
-class _DayStrip extends StatelessWidget {
-  const _DayStrip({required this.state});
-
-  final ScheduleState state;
-
-  @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<ScheduleCubit>();
-    final colorScheme = context.colorScheme;
-    final week = state.week;
-    final myShifts = week?.people
-            .where((person) => person.id == week.userId)
-            .expand((person) => person.shifts)
-            .toList() ??
-        const <Shift>[];
-    final start = state.weekStart;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Row(
-        children: [
-          for (var index = 0; index < 7; index++)
-            () {
-              final date = DateTime(start.year, start.month, start.day + index);
-              final selected = date == state.selectedDate;
-              final isToday = week != null && date == week.today;
-              final hasMine = myShifts.any((shift) => shift.date == date);
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: Material(
-                    color: selected
-                        ? colorScheme.primary
-                        : colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(12),
-                    child: InkWell(
-                      key: Key('schedule_day_$index'),
-                      onTap: () => cubit.selectDay(date),
-                      borderRadius: BorderRadius.circular(12),
-                      child: Semantics(
-                        selected: selected,
-                        label: isToday ? AppStrings.scheduleToday : null,
-                        child: SizedBox(
-                          height: 64,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                _weekdayLabels[index],
-                                style: context.textTheme.labelMedium?.copyWith(
-                                  color: selected
-                                      ? colorScheme.onPrimary
-                                      : colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              Text(
-                                '${date.day}',
-                                style: context.textTheme.titleMedium?.copyWith(
-                                  color: selected
-                                      ? colorScheme.onPrimary
-                                      : colorScheme.onSurface,
-                                  fontWeight: isToday
-                                      ? FontWeight.w800
-                                      : FontWeight.w500,
-                                ),
-                              ),
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: !hasMine
-                                      ? Colors.transparent
-                                      : selected
-                                          ? colorScheme.onPrimary
-                                          : colorScheme.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }(),
-        ],
-      ),
-    );
   }
 }
 

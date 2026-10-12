@@ -13,6 +13,7 @@ import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:iceflow_mobile/features/driver/presentation/cubit/today_orders_cubit.dart';
 import 'package:iceflow_mobile/features/schedule/presentation/cubit/schedule_cubit.dart';
+import 'package:iceflow_mobile/features/schedule/presentation/cubit/team_schedule_cubit.dart';
 import 'package:iceflow_mobile/core/di/injection_container.dart';
 import 'package:iceflow_mobile/core/router/app_router.dart';
 import 'package:mocktail/mocktail.dart';
@@ -24,6 +25,8 @@ class _MockAppPreferences extends Mock implements AppPreferences {}
 class _MockTodayOrdersCubit extends Mock implements TodayOrdersCubit {}
 
 class _MockScheduleCubit extends Mock implements ScheduleCubit {}
+
+class _MockTeamScheduleCubit extends Mock implements TeamScheduleCubit {}
 
 void main() {
   const driver = User(
@@ -256,16 +259,40 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('van@iceflow.vn'), findsOneWidget);
 
-      // Quản lý: chưa có màn hình riêng → vào thẳng Cài đặt, không thanh dưới.
+      // Quản lý: tab đầu là "Duyệt ca" (cubit lấy từ DI), rồi Cài đặt.
+      final teamCubit = _MockTeamScheduleCubit();
+      whenListen(
+        teamCubit,
+        const Stream<TeamScheduleState>.empty(),
+        initialState: TeamScheduleState(
+          status: ViewStatus.loaded,
+          weekStart: DateTime(2026, 10, 12),
+          selectedDate: DateTime(2026, 10, 12),
+          people: const [],
+        ),
+      );
+      when(() => teamCubit.load()).thenAnswer((_) async {});
+      when(() => teamCubit.close()).thenAnswer((_) async {});
+      sl.registerFactory<TeamScheduleCubit>(() => teamCubit);
+      addTearDown(() => sl.unregister<TeamScheduleCubit>());
+
       const admin = User(
         id: 'u-admin-1',
         email: 'chu@iceflow.vn',
         name: 'Nguyễn Văn Chủ',
         role: UserRole.admin,
       );
+      // Đổi người dùng luôn đi qua đăng xuất: shell cũ bị gỡ, shell mới mở
+      // ở tab đầu của vai trò mới.
+      cubit.emit(const Unauthenticated());
+      await tester.pumpAndSettle();
       cubit.emit(const Authenticated(admin));
       await tester.pumpAndSettle();
-      expect(find.byType(NavigationBar), findsNothing);
+      expect(find.byType(NavigationDestination), findsNWidgets(2));
+      expect(find.text(AppStrings.shiftReviewNonePending), findsOneWidget);
+      expect(find.text(AppStrings.navSchedule), findsNothing);
+      await tester.tap(find.text(AppStrings.navSettings));
+      await tester.pumpAndSettle();
       expect(find.text('chu@iceflow.vn'), findsOneWidget);
       expect(find.text(AppStrings.logoutButton), findsOneWidget);
     });

@@ -52,8 +52,8 @@ void main() {
   }
 
   testWidgets('a new driver: wrong password, forced password change, a '
-      'delivery, a shift, sign out and back in; then staff and the manager '
-      'sign in', (tester) async {
+      'delivery, a shift, sign out and back in; then staff sign in and the '
+      'manager approves the shift', (tester) async {
     expect(_email, isNotEmpty, reason: 'run through scripts/mobile-e2e-local.sh');
 
     // Start as main() does, but without a session left by an earlier run.
@@ -167,9 +167,28 @@ void main() {
 
     await signOut();
     await signIn(tester, _managerEmail, _seedPassword);
-    // The manager has no screen of their own yet: Settings, no bottom bar.
+    // The manager lands on "Duyệt ca" and approves the request the driver
+    // left for tomorrow.
+    await waitFor(tester, find.text(AppStrings.navShiftReview).first);
+    await waitFor(tester, find.byKey(const Key('shift_review_approve_all')));
+    if (weekday == DateTime.sunday) {
+      await tester.tap(find.byTooltip(AppStrings.nextWeekTooltip));
+      await waitFor(tester, find.byKey(const Key('shift_review_approve_all')));
+    } else {
+      await tester.tap(find.byKey(Key('schedule_day_$weekday')));
+    }
+    await tester.pump(const Duration(milliseconds: 300));
+    final requested = find.byKey(const Key('shift_review_slot_SLOT_21_24'));
+    await waitFor(tester, requested);
+    await tester.tap(
+      find.descendant(of: requested, matching: find.text(AppStrings.approveButton)),
+    );
+    await waitFor(tester, find.text(AppStrings.shiftsApproved(1)));
+    expect(
+      find.descendant(of: requested, matching: find.text(AppStrings.approveButton)),
+      findsNothing,
+    );
+    await tester.tap(find.text(AppStrings.navSettings));
     await waitFor(tester, find.text(_managerEmail));
-    expect(find.byType(NavigationBar), findsNothing);
-    expect(find.text(AppStrings.logoutButton), findsOneWidget);
   });
 }
