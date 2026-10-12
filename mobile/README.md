@@ -45,3 +45,15 @@ What the features share.
 ## `lib/shared/widgets`
 
 Widgets more than one feature uses. Today: `error_views.dart` (`ErrorView` for a first load that failed, `ErrorBanner` above a list that is kept on screen). A widget only one feature uses stays in that feature's `presentation/widgets`.
+
+## End-to-end test on an emulator
+
+`integration_test/app_e2e_test.dart` drives the real app on an Android emulator against a real server: a wrong password, the forced password change of a new account, confirming a delivery, requesting and withdrawing a shift, signing out and back in.
+
+```bash
+flutter emulators --launch <id>     # any Android emulator
+bash scripts/mobile-e2e-local.sh    # from the repository root
+```
+
+The script builds the web app from the same tree, serves it on port 3001 against a throwaway Postgres in Docker (never the database of `.env`), creates the driver account and the order the test needs, runs the test, and then checks on the server that the delivery and the shift are really there. It is not part of `flutter test` and does not run in CI: it needs an emulator.
+
