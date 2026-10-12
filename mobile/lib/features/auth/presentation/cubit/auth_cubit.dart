@@ -8,13 +8,9 @@ import 'package:iceflow_mobile/core/network/auth_events.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/core/services/app_logger.dart';
 import 'package:iceflow_mobile/core/storage/app_preferences.dart';
-import 'package:iceflow_mobile/core/storage/auth_storage.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository.dart';
 import 'package:injectable/injectable.dart';
-
-/// Thông báo khi user không phải DRIVER bị chặn khỏi app (giới hạn Phase 1).
-const _roleBlockedMessage = 'Tài khoản này chưa dùng được trên app';
 
 /// Trạng thái phiên đăng nhập.
 sealed class AuthState extends Equatable {
@@ -56,7 +52,6 @@ class Unauthenticated extends AuthState {
 class AuthCubit extends Cubit<AuthState> {
   AuthCubit({
     required this._repo,
-    required this._storage,
     required this._preferences,
     required AuthEvents authEvents,
   }) : super(const AuthUnknown()) {
@@ -76,7 +71,6 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   final AuthRepository _repo;
-  final AuthStorage _storage;
   final AppPreferences _preferences;
   StreamSubscription<void>? _authEventsSub;
   StreamSubscription<void>? _passwordChangeSub;
@@ -97,41 +91,25 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  /// Đăng nhập. Chỉ vai trò DRIVER được vào app (giới hạn Phase 1).
+  /// Đăng nhập. Cả ba vai trò đều vào được; mỗi vai trò thấy các tab của
+  /// mình (xem `shellTabsFor`).
   Future<void> login(String email, String password) async {
     final res = await _repo.login(email: email, password: password);
     if (isClosed) return;
     switch (res) {
       case Ok<User>(:final value):
-        if (value.role == UserRole.driver) {
-          // Nhớ email cho lần đăng nhập sau. Best-effort: lỗi lưu tuỳ chọn
-          // không được làm hỏng lần đăng nhập đã thành công.
-          try {
-            await _preferences.saveLastEmail(email);
-          } on Object catch (e) {
-            AppLogger.warning(
-              'Could not remember the last email: $e',
-              tag: 'auth',
-            );
-          }
-          if (isClosed) return;
-          emit(Authenticated(value));
-        } else {
-          // Repo đã lưu token cho user này trước khi trả Ok — phải xoá để
-          // phiên không "sống sót" qua lần restore kế tiếp. Best-effort:
-          // kể cả khi xoá lỗi, user vẫn bị chặn ở màn đăng nhập.
-          try {
-            await _storage.clear();
-          } on Object catch (e) {
-            // Không surface — chặn vai trò luôn đứng trước.
-            AppLogger.warning(
-              'Could not clear the token of a blocked role: $e',
-              tag: 'auth',
-            );
-          }
-          if (isClosed) return;
-          emit(const Unauthenticated(message: _roleBlockedMessage));
+        // Nhớ email cho lần đăng nhập sau. Best-effort: lỗi lưu tuỳ chọn
+        // không được làm hỏng lần đăng nhập đã thành công.
+        try {
+          await _preferences.saveLastEmail(email);
+        } on Object catch (e) {
+          AppLogger.warning(
+            'Could not remember the last email: $e',
+            tag: 'auth',
+          );
         }
+        if (isClosed) return;
+        emit(Authenticated(value));
       case Err<User>(:final failure):
         // Ở màn đăng nhập, 401 là sai email/mật khẩu: giữ câu của server.
         // `failureMessage` coi mọi 401 là "phiên đăng nhập hết hạn", đúng

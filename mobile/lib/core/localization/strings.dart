@@ -30,7 +30,7 @@ abstract final class AppStrings {
   static const historyRangeLimit = 'Chỉ xem được trong 30 ngày gần nhất';
   static const historyFutureDate = 'Không thể xem ngày trong tương lai';
 
-  // ---- Driver: bottom navigation (HomeShell) ----
+  // ---- Thanh dưới (HomeShell) ----
   static const navToday = 'Hôm nay';
   static const navHistory = 'Lịch sử';
   static const navSchedule = 'Ca làm';
