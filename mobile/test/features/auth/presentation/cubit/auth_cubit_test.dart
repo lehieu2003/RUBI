@@ -259,6 +259,30 @@ void main() {
       );
     });
 
+    group('authEvents.onPasswordChangeRequired', () {
+      blocTest<AuthCubit, AuthState>(
+        'đang đăng nhập → bật cờ phải đổi mật khẩu; báo lần hai không đổi gì',
+        build: buildCubit,
+        seed: () => const Authenticated(driver),
+        act: (cubit) async {
+          authEvents.emitPasswordChangeRequired();
+          await Future<void>.delayed(Duration.zero);
+          authEvents.emitPasswordChangeRequired();
+        },
+        expect: () => [
+          Authenticated(driver.copyWith(mustChangePassword: true)),
+        ],
+      );
+
+      blocTest<AuthCubit, AuthState>(
+        'chưa đăng nhập → bỏ qua',
+        build: buildCubit,
+        seed: () => const Unauthenticated(),
+        act: (cubit) => authEvents.emitPasswordChangeRequired(),
+        expect: () => const <AuthState>[],
+      );
+    });
+
     group('đóng khi đang chờ', () {
       test('restore / login / logout trả về sau khi cubit đóng → không lỗi',
           () async {

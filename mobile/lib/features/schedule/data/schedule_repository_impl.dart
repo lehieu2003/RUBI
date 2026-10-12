@@ -3,6 +3,7 @@ import 'package:iceflow_mobile/core/network/api_error_decoder.dart';
 import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/auth_interceptor.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/core/services/app_logger.dart';
 import 'package:iceflow_mobile/features/schedule/data/dto/schedule_dtos.dart';
 import 'package:iceflow_mobile/features/schedule/data/mappers/schedule_mapper.dart';
 import 'package:iceflow_mobile/features/schedule/domain/entities/week_schedule.dart';
@@ -35,9 +36,15 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       return ScheduleMapper.fromDto(WeekScheduleDto.fromJson(data));
     } on DioException catch (err) {
       return Err(mapDioError(err));
-    } catch (e) {
+    } catch (e, stackTrace) {
       // Guarantee Result: TypeError parse (field sai kiểu)... không được phép
       // xuyên qua biên Result.
+      AppLogger.error(
+        'Unexpected getWeek failure',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'schedule',
+      );
       return Err(UnexpectedFailure('Unexpected getWeek failure: $e'));
     }
   }
@@ -61,7 +68,13 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     } on DioException catch (err) {
       // Message từ server (VD: "Ca này đã đủ 2 người...") giữ nguyên.
       return Err(mapDioError(err));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Unexpected requestShift failure',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'schedule',
+      );
       return Err(UnexpectedFailure('Unexpected requestShift failure: $e'));
     }
   }
@@ -77,7 +90,13 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       return const Ok<void>(null);
     } on DioException catch (err) {
       return Err(mapDioError(err));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Unexpected withdrawShift failure',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'schedule',
+      );
       return Err(UnexpectedFailure('Unexpected withdrawShift failure: $e'));
     }
   }

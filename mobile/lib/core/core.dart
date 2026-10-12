@@ -20,4 +20,5 @@ export 'services/app_logger.dart';
 export 'storage/app_preferences.dart';
 export 'storage/auth_storage.dart';
 export 'theme/app_theme.dart';
+export 'theme/theme_cubit.dart';
 export 'view_state/view_status.dart';

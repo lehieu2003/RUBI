@@ -6,6 +6,7 @@ import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 import 'package:iceflow_mobile/core/network/auth_events.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/core/services/app_logger.dart';
 import 'package:iceflow_mobile/core/storage/app_preferences.dart';
 import 'package:iceflow_mobile/core/storage/auth_storage.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
@@ -64,12 +65,21 @@ class AuthCubit extends Cubit<AuthState> {
       // Trùng state hiện tại thì bloc tự bỏ qua (emit dedupe).
       emit(const Unauthenticated());
     });
+    _passwordChangeSub = authEvents.onPasswordChangeRequired.listen((_) {
+      // Quản lý vừa đặt lại mật khẩu khi app đang mở: bật cờ để router đưa
+      // người dùng sang màn đổi mật khẩu thay vì để các màn báo lỗi 403.
+      final current = state;
+      if (current is Authenticated && !current.user.mustChangePassword) {
+        emit(Authenticated(current.user.copyWith(mustChangePassword: true)));
+      }
+    });
   }
 
   final AuthRepository _repo;
   final AuthStorage _storage;
   final AppPreferences _preferences;
   StreamSubscription<void>? _authEventsSub;
+  StreamSubscription<void>? _passwordChangeSub;
 
   /// Khôi phục phiên từ token đã lưu. Gọi một lần khi app mở.
   ///
@@ -98,8 +108,11 @@ class AuthCubit extends Cubit<AuthState> {
           // không được làm hỏng lần đăng nhập đã thành công.
           try {
             await _preferences.saveLastEmail(email);
-          } on Object catch (_) {
-            // ignored
+          } on Object catch (e) {
+            AppLogger.warning(
+              'Could not remember the last email: $e',
+              tag: 'auth',
+            );
           }
           if (isClosed) return;
           emit(Authenticated(value));
@@ -109,8 +122,12 @@ class AuthCubit extends Cubit<AuthState> {
           // kể cả khi xoá lỗi, user vẫn bị chặn ở màn đăng nhập.
           try {
             await _storage.clear();
-          } on Object catch (_) {
-            // ignored — chặn vai trò luôn đứng trước.
+          } on Object catch (e) {
+            // Không surface — chặn vai trò luôn đứng trước.
+            AppLogger.warning(
+              'Could not clear the token of a blocked role: $e',
+              tag: 'auth',
+            );
           }
           if (isClosed) return;
           emit(const Unauthenticated(message: _roleBlockedMessage));
@@ -154,16 +171,9 @@ class AuthCubit extends Cubit<AuthState> {
         if (!isClosed &&
             current is Authenticated &&
             current.user.mustChangePassword) {
-          final user = current.user;
           emit(
             Authenticated(
-              User(
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                role: user.role,
-                factoryId: user.factoryId,
-              ),
+              current.user.copyWith(mustChangePassword: false),
             ),
           );
         }
@@ -184,6 +194,7 @@ class AuthCubit extends Cubit<AuthState> {
   @override
   Future<void> close() {
     _authEventsSub?.cancel();
+    _passwordChangeSub?.cancel();
     return super.close();
   }
 }

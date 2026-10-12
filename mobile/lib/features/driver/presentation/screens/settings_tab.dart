@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:iceflow_mobile/core/extensions/build_context_extensions.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/core/router/route_names.dart';
+import 'package:iceflow_mobile/core/theme/theme_cubit.dart';
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 
 /// Tab "Cài đặt": thông tin user từ [AuthCubit] (provider cấp shell) +
@@ -45,6 +46,7 @@ class SettingsTab extends StatelessWidget {
               ),
             ),
           ),
+          const _ThemeModeTile(),
           ListTile(
             leading: const Icon(Icons.lock_outline),
             title: const Text(AppStrings.changePasswordTitle),
@@ -100,5 +102,55 @@ class SettingsTab extends StatelessWidget {
     );
     if (confirmed ?? false) await cubit.logout();
     // Router redirect (authRedirect) tự đẩy về /login khi state đổi.
+  }
+}
+
+/// Chọn giao diện: theo máy, luôn sáng, hoặc luôn tối. Đổi là thấy ngay.
+class _ThemeModeTile extends StatelessWidget {
+  const _ThemeModeTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final mode = context.watch<ThemeCubit>().state;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.brightness_6_outlined),
+              const SizedBox(width: 16),
+              Text(AppStrings.themeTitle, style: context.textTheme.bodyLarge),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<ThemeMode>(
+              key: const Key('settings_theme_mode'),
+              showSelectedIcon: false,
+              segments: const [
+                ButtonSegment(
+                  value: ThemeMode.system,
+                  label: Text(AppStrings.themeSystem),
+                ),
+                ButtonSegment(
+                  value: ThemeMode.light,
+                  label: Text(AppStrings.themeLight),
+                ),
+                ButtonSegment(
+                  value: ThemeMode.dark,
+                  label: Text(AppStrings.themeDark),
+                ),
+              ],
+              selected: {mode},
+              onSelectionChanged: (selection) =>
+                  context.read<ThemeCubit>().select(selection.first),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

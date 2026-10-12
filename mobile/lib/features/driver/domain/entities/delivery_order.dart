@@ -50,6 +50,7 @@ class DeliveryOrder extends Equatable {
     required this.items,
     required this.createdAt,
     this.deliveredAt,
+    this.notes,
   });
 
   final String id;
@@ -62,6 +63,9 @@ class DeliveryOrder extends Equatable {
   final DateTime createdAt;
   final DateTime? deliveredAt;
 
+  /// Dặn dò khi giao ("giao cổng sau, gọi trước 10 phút"); `null` khi không có.
+  final String? notes;
+
   @override
   List<Object?> get props => [
         id,
@@ -73,5 +77,6 @@ class DeliveryOrder extends Equatable {
         items,
         createdAt,
         deliveredAt,
+        notes,
       ];
 }

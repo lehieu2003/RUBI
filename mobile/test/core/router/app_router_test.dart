@@ -7,6 +7,7 @@ import 'package:iceflow_mobile/core/network/auth_events.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/core/storage/app_preferences.dart';
 import 'package:iceflow_mobile/core/storage/auth_storage.dart';
+import 'package:iceflow_mobile/core/theme/theme_cubit.dart';
 import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository.dart';
@@ -125,7 +126,15 @@ void main() {
       sl.registerFactory<TodayOrdersCubit>(() => todayCubit);
       addTearDown(() => sl.unregister<TodayOrdersCubit>());
 
-      await tester.pumpWidget(IceFlowApp(authCubit: cubit));
+      // Giao diện: chưa lưu gì → theo máy; lưu được.
+      when(() => preferences.readThemeMode()).thenAnswer((_) async => null);
+      when(() => preferences.saveThemeMode(any())).thenAnswer((_) async {});
+      final themeCubit = ThemeCubit(preferences: preferences);
+      addTearDown(themeCubit.close);
+
+      await tester.pumpWidget(
+        IceFlowApp(authCubit: cubit, themeCubit: themeCubit),
+      );
       await tester.pumpAndSettle();
 
       // Unauthenticated → /login.
@@ -172,6 +181,19 @@ void main() {
       // Từ Cài đặt mở lại màn đổi mật khẩu, rồi quay lại được.
       await tester.tap(find.text(AppStrings.navSettings));
       await tester.pumpAndSettle();
+
+      // Cài đặt → Giao diện: chọn Tối thì cả app tối ngay và được nhớ.
+      Brightness brightness() =>
+          Theme.of(tester.element(find.text(AppStrings.themeTitle))).brightness;
+      expect(brightness(), Brightness.light);
+      await tester.tap(find.text(AppStrings.themeDark));
+      await tester.pumpAndSettle();
+      expect(brightness(), Brightness.dark);
+      verify(() => preferences.saveThemeMode('dark')).called(1);
+      await tester.tap(find.text(AppStrings.themeLight));
+      await tester.pumpAndSettle();
+      expect(brightness(), Brightness.light);
+
       await tester.tap(find.text(AppStrings.changePasswordTitle));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('change_password_submit')), findsOneWidget);
@@ -180,6 +202,14 @@ void main() {
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
       expect(find.text(AppStrings.logoutButton), findsOneWidget);
+
+      // Quản lý đặt lại mật khẩu khi app đang mở: lần gọi API kế tiếp bị
+      // server từ chối → app tự sang màn đổi mật khẩu.
+      authEvents.emitPasswordChangeRequired();
+      await tester.pumpAndSettle();
+      expect(find.text(AppStrings.changePasswordForcedNotice), findsOneWidget);
+      expect(find.byKey(const Key('change_password_logout')), findsOneWidget);
+      expect(find.text(AppStrings.navToday), findsNothing);
     });
   });
 }

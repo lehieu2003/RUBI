@@ -96,6 +96,12 @@ abstract final class AppStrings {
   /// "Đã có: An, Bình".
   static String shiftOthers(String names) => 'Đã có: $names';
 
+  // ---- Tab cài đặt: giao diện ----
+  static const themeTitle = 'Giao diện';
+  static const themeSystem = 'Theo máy';
+  static const themeLight = 'Sáng';
+  static const themeDark = 'Tối';
+
   // ---- Driver: tab cài đặt ----
   static const logoutButton = 'Đăng xuất';
   static const logoutDialogTitle = 'Đăng xuất?';

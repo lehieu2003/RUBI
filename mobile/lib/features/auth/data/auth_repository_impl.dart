@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:iceflow_mobile/core/network/api_error_decoder.dart';
 import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/core/services/app_logger.dart';
 import 'package:iceflow_mobile/core/storage/auth_storage.dart';
 import 'package:iceflow_mobile/features/auth/data/auth_api.dart';
 import 'package:iceflow_mobile/features/auth/data/dto/auth_dtos.dart';
@@ -53,9 +54,15 @@ class AuthRepositoryImpl implements AuthRepository {
     } on DioException catch (err) {
       // Message từ server (VD: "Email hoặc mật khẩu không đúng") giữ nguyên.
       return Err(mapDioError(err));
-    } catch (e) {
+    } catch (e, stackTrace) {
       // Guarantee Result: TypeError parse (field sai kiểu), lỗi
       // secure-storage... không được phép xuyên qua biên Result.
+      AppLogger.error(
+        'Unexpected login failure',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'auth',
+      );
       return Err(UnexpectedFailure('Unexpected login failure: $e'));
     }
   }
@@ -92,13 +99,23 @@ class AuthRepositoryImpl implements AuthRepository {
         // restore/401 kế tiếp chứ không phá vỡ contract im lặng.
         try {
           await _storage.clear();
-        } on Object catch (_) {
-          // ignored — phiên 401 luôn im lặng.
+        } on Object catch (e) {
+          // Không surface — phiên 401 luôn im lặng.
+          AppLogger.warning(
+            'Could not clear the expired token: $e',
+            tag: 'auth',
+          );
         }
         return const Ok<User?>(null);
       }
       return Err(mapDioError(err));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Unexpected restoreSession failure',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'auth',
+      );
       return Err(UnexpectedFailure('Unexpected restoreSession failure: $e'));
     }
   }
@@ -112,8 +129,14 @@ class AuthRepositoryImpl implements AuthRepository {
     }
     try {
       await _storage.clear();
-    } on Object catch (e) {
+    } on Object catch (e, stackTrace) {
       // Lỗi storage cục bộ: token chưa chắc đã bị xoá → phải surface.
+      AppLogger.error(
+        'Unexpected logout failure',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'auth',
+      );
       return Err(UnexpectedFailure('Unexpected logout failure: $e'));
     }
     return const Ok<void>(null);
@@ -148,7 +171,13 @@ class AuthRepositoryImpl implements AuthRepository {
     } on DioException catch (err) {
       // Message từ server (VD: "Mật khẩu hiện tại không đúng") giữ nguyên.
       return Err(mapDioError(err));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Unexpected changePassword failure',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'auth',
+      );
       return Err(UnexpectedFailure('Unexpected changePassword failure: $e'));
     }
   }

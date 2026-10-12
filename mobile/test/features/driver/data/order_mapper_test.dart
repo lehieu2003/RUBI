@@ -289,4 +289,33 @@ void main() {
       );
     });
   });
+
+  group('OrderMapper — ghi chú của đơn', () {
+    OrderDto dto(Object? notes) => OrderDto.fromJson({
+          'id': 'order-1',
+          'total': 100000,
+          'status': 'SHIPPING',
+          'createdAt': '2026-10-07T02:00:00.000Z',
+          'deliveredAt': null,
+          'notes': notes,
+          'customer': {'name': 'Quán Cô Ba', 'address': '12 Nguyễn Trãi', 'phone': '0903123456'},
+          'orderItems': const <Map<String, dynamic>>[],
+        });
+
+    DeliveryOrder mapped(Object? notes) =>
+        (OrderMapper.fromDto(dto(notes)) as Ok<DeliveryOrder>).value;
+
+    test('có ghi chú → giữ nguyên nội dung, bỏ khoảng trắng hai đầu', () {
+      expect(mapped('Giao cổng sau, gọi trước 10 phút').notes,
+          'Giao cổng sau, gọi trước 10 phút');
+      expect(mapped('  Gọi trước khi tới  ').notes, 'Gọi trước khi tới');
+    });
+
+    test('không có, rỗng, hoặc toàn khoảng trắng → null (không vẽ khung trống)',
+        () {
+      expect(mapped(null).notes, isNull);
+      expect(mapped('').notes, isNull);
+      expect(mapped('   ').notes, isNull);
+    });
+  });
 }

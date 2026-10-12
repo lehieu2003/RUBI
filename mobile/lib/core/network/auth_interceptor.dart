@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:iceflow_mobile/core/constants/api_constants.dart';
 import 'package:iceflow_mobile/core/network/auth_events.dart';
+import 'package:iceflow_mobile/core/services/app_logger.dart';
 import 'package:iceflow_mobile/core/storage/auth_storage.dart';
 
 /// Refreshes an expired token once per request and forces a logout when
@@ -13,6 +14,8 @@ import 'package:iceflow_mobile/core/storage/auth_storage.dart';
 ///   `POST /api/auth/refresh` once, save the new token, retry the original
 ///   request once; otherwise (refresh failed, or the retry was still 401)
 ///   clear the stored token, emit [AuthEvents.onLogout] and pass the error on.
+/// - On a **403** with code `PASSWORD_CHANGE_REQUIRED`: emit
+///   [AuthEvents.onPasswordChangeRequired] and pass the error on.
 class AuthInterceptor extends Interceptor {
   AuthInterceptor({
     required this._authStorage,
@@ -30,6 +33,7 @@ class AuthInterceptor extends Interceptor {
   static const _refreshPath = '/api/auth/refresh';
   static const _excludedPaths = ['/api/auth/login', _refreshPath];
   static const _retriedExtraKey = 'retried';
+  static const _passwordChangeRequiredCode = 'PASSWORD_CHANGE_REQUIRED';
 
   final AuthStorage _authStorage;
   final AuthEvents _authEvents;
@@ -57,6 +61,10 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
+    // The session is valid but the account must change its password first:
+    // tell the app, and let the caller have the server's message as usual.
+    if (_isPasswordChangeRequired(err)) _authEvents.emitPasswordChangeRequired();
+
     if (!_isRefreshable(err)) return handler.next(err);
 
     // Already retried once and still 401 — give up and log out.
@@ -70,8 +78,12 @@ class AuthInterceptor extends Interceptor {
     final String newToken;
     try {
       newToken = await _refreshToken();
-    } on Object {
+    } on Object catch (e) {
       // Refresh failed — the session is unrecoverable: log out.
+      AppLogger.warning(
+        'Token refresh failed, signing out: $e',
+        tag: 'network',
+      );
       await _forceLogout();
       return handler.next(err);
     }
@@ -93,6 +105,12 @@ class AuthInterceptor extends Interceptor {
       // Non-HTTP retry failure — no logout; surface the original 401.
       return handler.next(err);
     }
+  }
+
+  bool _isPasswordChangeRequired(DioException err) {
+    if (err.response?.statusCode != 403) return false;
+    final data = err.response?.data;
+    return data is Map && data['code'] == _passwordChangeRequiredCode;
   }
 
   bool _isRefreshable(DioException err) {

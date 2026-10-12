@@ -7,3 +7,4 @@ e2e/.auth/
 playwright-report/
 test-results/
 e2e-server.log
+mobile-e2e-server.log

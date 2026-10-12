@@ -141,6 +141,24 @@ void main() {
       verify(() => cubit.refresh()).called(1);
     });
 
+    testWidgets('mở lại app từ nền → tải lại danh sách; chuyển xuống nền thì '
+        'không', (tester) async {
+      whenListen(
+        cubit,
+        const Stream<TodayOrdersState>.empty(),
+        initialState: stateWith([shippingOrder('o-1')]),
+      );
+      await pumpTodayTab(tester);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump();
+      verifyNever(() => cubit.refresh());
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      verify(() => cubit.refresh()).called(1);
+    });
+
     testWidgets('refresh lỗi còn giữ đơn → banner lỗi + danh sách vẫn hiện', (
       tester,
     ) async {
