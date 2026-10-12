@@ -43,6 +43,8 @@ import 'package:iceflow_mobile/features/inventory/data/inventory_repository_impl
     as _i123;
 import 'package:iceflow_mobile/features/inventory/domain/repositories/inventory_repository.dart'
     as _i793;
+import 'package:iceflow_mobile/features/inventory/presentation/cubit/inventory_cubit.dart'
+    as _i14;
 import 'package:iceflow_mobile/features/schedule/data/schedule_repository_impl.dart'
     as _i110;
 import 'package:iceflow_mobile/features/schedule/data/team_schedule_repository_impl.dart'
@@ -114,6 +116,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i755.ScheduleCubit>(
       () => _i755.ScheduleCubit(repo: gh<_i285.ScheduleRepository>()),
+    );
+    gh.factory<_i14.InventoryCubit>(
+      () => _i14.InventoryCubit(repo: gh<_i793.InventoryRepository>()),
     );
     gh.lazySingleton<_i504.ConfirmDeliveryUseCase>(
       () => _i504.ConfirmDeliveryUseCase(gh<_i103.DriverRepository>()),

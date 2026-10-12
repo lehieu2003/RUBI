@@ -4,6 +4,7 @@ import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 import 'package:iceflow_mobile/features/driver/presentation/screens/history_tab.dart';
 import 'package:iceflow_mobile/features/driver/presentation/screens/settings_tab.dart';
 import 'package:iceflow_mobile/features/driver/presentation/screens/today_tab.dart';
+import 'package:iceflow_mobile/features/inventory/presentation/screens/inventory_tab.dart';
 import 'package:iceflow_mobile/features/schedule/presentation/screens/schedule_tab.dart';
 import 'package:iceflow_mobile/features/schedule/presentation/screens/shift_review_tab.dart';
 
@@ -45,6 +46,12 @@ const _shiftReview = ShellTab(
   selectedIcon: Icons.fact_check,
   builder: _buildShiftReview,
 );
+const _inventory = ShellTab(
+  label: AppStrings.navInventory,
+  icon: Icons.ac_unit_outlined,
+  selectedIcon: Icons.ac_unit,
+  builder: _buildInventory,
+);
 const _settings = ShellTab(
   label: AppStrings.navSettings,
   icon: Icons.settings_outlined,
@@ -56,6 +63,7 @@ Widget _buildToday(BuildContext context) => const TodayTab();
 Widget _buildHistory(BuildContext context) => const HistoryTab();
 Widget _buildSchedule(BuildContext context) => const ScheduleTab();
 Widget _buildShiftReview(BuildContext context) => const ShiftReviewTab();
+Widget _buildInventory(BuildContext context) => const InventoryTab();
 Widget _buildSettings(BuildContext context) => const SettingsTab();
 
 /// Các tab mỗi vai trò thấy, theo thứ tự trên thanh dưới. Chỉ gồm màn hình
@@ -63,11 +71,11 @@ Widget _buildSettings(BuildContext context) => const SettingsTab();
 ///
 /// - Tài xế: giao hàng (hôm nay, lịch sử) và đăng ký ca.
 /// - Nhân viên: đăng ký ca.
-/// - Quản lý: duyệt ca. Không tự đăng ký ca (server từ chối).
+/// - Quản lý: duyệt ca, kho lạnh. Không tự đăng ký ca (server từ chối).
 List<ShellTab> shellTabsFor(UserRole role) {
   return switch (role) {
     UserRole.driver => const [_today, _history, _schedule, _settings],
     UserRole.staff => const [_schedule, _settings],
-    UserRole.admin => const [_shiftReview, _settings],
+    UserRole.admin => const [_shiftReview, _inventory, _settings],
   };
 }

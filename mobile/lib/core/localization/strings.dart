@@ -35,6 +35,7 @@ abstract final class AppStrings {
   static const navHistory = 'Lịch sử';
   static const navSchedule = 'Ca làm';
   static const navShiftReview = 'Duyệt ca';
+  static const navInventory = 'Kho lạnh';
   static const navSettings = 'Cài đặt';
 
   // ---- Driver: tab "Đơn hôm nay" ----
@@ -112,6 +113,36 @@ abstract final class AppStrings {
   static const shiftReviewEmptyDay = 'Không có ca nào trong ngày này';
   static String shiftsApproved(int count) => 'Đã duyệt $count ca';
   static String shiftsRejected(int count) => 'Đã từ chối $count ca';
+
+  // ---- Tab "Kho lạnh" (Quản lý) ----
+  static const stockTotalBags = 'Tổng tồn';
+  static const stockTotalKg = 'Tổng khối lượng';
+  static const stockEmpty = 'Chưa có sản phẩm nào đang bán';
+  static const stockLowTitle = 'Sắp hết hàng';
+  static const stockLowBadge = 'Sắp hết';
+
+  /// "Đá Viên 5kg: còn bán được 18 Bao (mức cảnh báo 20)".
+  static String stockLowLine(String product, String sellable, String unit, String level) =>
+      '$product: còn bán được $sellable $unit (mức cảnh báo $level)';
+  static String stockOnHand(String quantity, String unit) => 'Tồn: $quantity $unit';
+  static String stockSellable(String quantity) => 'Còn bán được: $quantity';
+  static const stockNegativeHint =
+      'Xuất nhiều hơn số đã nhập. Nhập sản lượng còn thiếu hoặc kiểm kho.';
+  static const stockProductionButton = 'Nhập mẻ';
+  static const stockCountButton = 'Kiểm kho';
+  static const stockProductionTitle = 'Nhập sản lượng mới';
+  static const stockCountTitle = 'Kiểm kho';
+  static String stockProductionLabel(String unit) => 'Số lượng nhập ($unit)';
+  static String stockCountLabel(String unit) => 'Số đếm thực tế ($unit)';
+  static const stockNoteLabel = 'Ghi chú (không bắt buộc)';
+  static const stockProductionSubmit = 'Xác nhận nhập kho';
+  static const stockCountSubmit = 'Lưu số kiểm';
+  static const stockProductionInvalid = 'Nhập số lượng lớn hơn 0';
+  static const stockCountInvalid = 'Nhập số đếm từ 0 trở lên';
+  static String stockProductionSaved(int quantity, String unit, int onHand) =>
+      'Đã nhập $quantity $unit. Tồn mới: $onHand';
+  static String stockCountSaved(int onHand, String unit) =>
+      'Đã lưu kiểm kho. Tồn mới: $onHand $unit';
 
   // ---- Tab cài đặt: giao diện ----
   static const themeTitle = 'Giao diện';
