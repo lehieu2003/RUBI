@@ -1,4 +1,5 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iceflow_mobile/app.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
@@ -29,6 +30,14 @@ void main() {
     email: 'tai@iceflow.vn',
     name: 'Nguyễn Văn Tài',
     role: UserRole.driver,
+  );
+
+  const newDriver = User(
+    id: 'u-driver-2',
+    email: 'loc@iceflow.vn',
+    name: 'Hoàng Văn Lộc',
+    role: UserRole.driver,
+    mustChangePassword: true,
   );
 
   late _MockAuthRepository repo;
@@ -79,6 +88,17 @@ void main() {
       expect(authRedirect(const Authenticated(driver), '/anything'), '/home');
       expect(authRedirect(const Authenticated(driver), '/home'), isNull);
     });
+
+    test('Authenticated, phải đổi mật khẩu → bị giữ ở /change-password', () {
+      const auth = Authenticated(newDriver);
+      expect(authRedirect(auth, '/login'), '/change-password');
+      expect(authRedirect(auth, '/home'), '/change-password');
+      expect(authRedirect(auth, '/change-password'), isNull);
+    });
+
+    test('Authenticated bình thường → mở được /change-password từ Cài đặt', () {
+      expect(authRedirect(const Authenticated(driver), '/change-password'), isNull);
+    });
   });
 
   group('createRouter (tích hợp với AuthCubit)', () {
@@ -126,6 +146,40 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Đăng nhập'), findsOneWidget);
       expect(find.text(AppStrings.navToday), findsNothing);
+
+      // Tài khoản Quản lý vừa cấp → màn đổi mật khẩu, chưa vào được app.
+      cubit.emit(const Authenticated(newDriver));
+      await tester.pumpAndSettle();
+      expect(find.text(AppStrings.changePasswordForcedNotice), findsOneWidget);
+      expect(find.text(AppStrings.navToday), findsNothing);
+
+      // Đổi xong → vào app.
+      when(() => repo.changePassword(
+            currentPassword: any(named: 'currentPassword'),
+            newPassword: any(named: 'newPassword'),
+          )).thenAnswer((_) async => const Ok<void>(null));
+      await tester.enterText(
+          find.byKey(const Key('change_password_current')), 'Cu12345678');
+      await tester.enterText(
+          find.byKey(const Key('change_password_new')), 'Matkhau2026');
+      await tester.enterText(
+          find.byKey(const Key('change_password_confirm')), 'Matkhau2026');
+      await tester.tap(find.byKey(const Key('change_password_submit')));
+      await tester.pumpAndSettle();
+      expect(find.text(AppStrings.navToday), findsOneWidget);
+      expect(find.text(AppStrings.changePasswordForcedNotice), findsNothing);
+
+      // Từ Cài đặt mở lại màn đổi mật khẩu, rồi quay lại được.
+      await tester.tap(find.text(AppStrings.navSettings));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(AppStrings.changePasswordTitle));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('change_password_submit')), findsOneWidget);
+      expect(find.byKey(const Key('change_password_logout')), findsNothing);
+      // Không dùng tester.pageBack(): nó tìm tooltip 'Back', app là tiếng Việt.
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.text(AppStrings.logoutButton), findsOneWidget);
     });
   });
 }
