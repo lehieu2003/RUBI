@@ -38,6 +38,7 @@ abstract final class AppStrings {
   static const navInventory = 'Kho lạnh';
   static const navDebt = 'Công nợ';
   static const navSettings = 'Cài đặt';
+  static const navMore = 'Thêm';
 
   // ---- Driver: tab "Đơn hôm nay" ----
   static const todayTitle = 'Đơn hôm nay';
@@ -166,6 +167,14 @@ abstract final class AppStrings {
       'Số tiền thu không được vượt số đang nợ ($amount)';
   static String paymentSaved(String amount, String remaining) =>
       'Đã thu $amount. Còn nợ $remaining';
+
+  // ---- Màn "Nhật ký" (Quản lý) ----
+  static const auditLogTitle = 'Nhật ký';
+  static const auditLogSubtitle = 'Ai đã làm gì với đơn hàng và công nợ';
+  static const auditFilterAll = 'Tất cả';
+  static const auditFilterOrder = 'Đơn hàng';
+  static const auditFilterDebt = 'Công nợ';
+  static const auditLogEmpty = 'Chưa có dòng nhật ký nào';
 
   // ---- Tab cài đặt: giao diện ----
   static const themeTitle = 'Giao diện';

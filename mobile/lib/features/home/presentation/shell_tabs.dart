@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
+import 'package:iceflow_mobile/features/audit/presentation/screens/audit_log_screen.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 import 'package:iceflow_mobile/features/debt/presentation/screens/debt_tab.dart';
 import 'package:iceflow_mobile/features/driver/presentation/screens/history_tab.dart';
@@ -59,6 +60,11 @@ const _debt = ShellTab(
   selectedIcon: Icons.account_balance_wallet,
   builder: _buildDebt,
 );
+const _more = ShellTab(
+  label: AppStrings.navMore,
+  icon: Icons.more_horiz,
+  builder: _buildMore,
+);
 const _settings = ShellTab(
   label: AppStrings.navSettings,
   icon: Icons.settings_outlined,
@@ -74,17 +80,35 @@ Widget _buildInventory(BuildContext context) => const InventoryTab();
 Widget _buildDebt(BuildContext context) => const DebtTab();
 Widget _buildSettings(BuildContext context) => const SettingsTab();
 
+/// Tab "Thêm" của Quản lý: các màn ít dùng hơn, rồi tới phần cài đặt.
+Widget _buildMore(BuildContext context) => SettingsTab(
+      title: AppStrings.navMore,
+      menu: [
+        ListTile(
+          key: const Key('more_audit_log'),
+          leading: const Icon(Icons.history),
+          title: const Text(AppStrings.auditLogTitle),
+          subtitle: const Text(AppStrings.auditLogSubtitle),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => const AuditLogScreen()),
+          ),
+        ),
+      ],
+    );
+
 /// Các tab mỗi vai trò thấy, theo thứ tự trên thanh dưới. Chỉ gồm màn hình
 /// mà server cho vai trò đó dùng: thêm màn hình mới thì thêm vào đây.
 ///
 /// - Tài xế: giao hàng (hôm nay, lịch sử) và đăng ký ca.
 /// - Nhân viên: đăng ký ca.
-/// - Quản lý: duyệt ca, kho lạnh, công nợ. Không tự đăng ký ca (server từ
-///   chối).
+/// - Quản lý: duyệt ca, kho lạnh, công nợ, và "Thêm" (nhật ký + cài đặt).
+///   Không tự đăng ký ca (server từ chối). Thanh dưới chỉ đủ chỗ cho ba màn
+///   dùng hằng ngày: màn mới của Quản lý thêm vào "Thêm".
 List<ShellTab> shellTabsFor(UserRole role) {
   return switch (role) {
     UserRole.driver => const [_today, _history, _schedule, _settings],
     UserRole.staff => const [_schedule, _settings],
-    UserRole.admin => const [_shiftReview, _inventory, _debt, _settings],
+    UserRole.admin => const [_shiftReview, _inventory, _debt, _more],
   };
 }
