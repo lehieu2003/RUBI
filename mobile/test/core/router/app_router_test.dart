@@ -288,7 +288,7 @@ void main() {
       await tester.pumpAndSettle();
       cubit.emit(const Authenticated(admin));
       await tester.pumpAndSettle();
-      expect(find.byType(NavigationDestination), findsNWidgets(2));
+      expect(find.byType(NavigationDestination), findsNWidgets(3));
       expect(find.text(AppStrings.shiftReviewNonePending), findsOneWidget);
       expect(find.text(AppStrings.navSchedule), findsNothing);
       await tester.tap(find.text(AppStrings.navSettings));
