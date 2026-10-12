@@ -268,6 +268,53 @@ void main() {
       expect(await storage.readToken(), 'new-token');
     });
 
+    test('403 PASSWORD_CHANGE_REQUIRED → báo app phải đổi mật khẩu; giữ token, '
+        'không đăng xuất, lỗi vẫn tới nơi gọi', () async {
+      await storage.saveToken('token');
+      var passwordChangeCount = 0;
+      authEvents.onPasswordChangeRequired.listen((_) => passwordChangeCount++);
+      mainAdapter.onGet('/api/driver/orders', (server) {
+        server.reply(403, {
+          'success': false,
+          'error': 'Bạn cần đổi mật khẩu trước khi tiếp tục',
+          'code': 'PASSWORD_CHANGE_REQUIRED',
+        });
+      });
+
+      Object? caught;
+      try {
+        await dio.get<void>('/api/driver/orders');
+      } catch (e) {
+        caught = e;
+      }
+      await Future<void>.delayed(Duration.zero);
+
+      expect(passwordChangeCount, 1);
+      expect(logoutCount, 0);
+      expect(await storage.readToken(), 'token');
+      expect(
+        mapDioError(caught!),
+        const ServerFailure('Bạn cần đổi mật khẩu trước khi tiếp tục', statusCode: 403),
+      );
+    });
+
+    test('403 khác (không đủ quyền) → không báo đổi mật khẩu', () async {
+      var passwordChangeCount = 0;
+      authEvents.onPasswordChangeRequired.listen((_) => passwordChangeCount++);
+      mainAdapter.onGet('/api/orders', (server) {
+        server.reply(403, {
+          'success': false,
+          'error': 'Bạn không có quyền thực hiện thao tác này',
+        });
+      });
+
+      await expectLater(dio.get<void>('/api/orders'), throwsA(isA<DioException>()));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(passwordChangeCount, 0);
+      expect(logoutCount, 0);
+    });
+
     test('ConnectionError → mapDioError ra NetworkFailure', () async {
       mainAdapter.onGet('/api/deliveries', (server) {
         server.throws(

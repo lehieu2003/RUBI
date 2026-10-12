@@ -115,6 +115,7 @@ v3.0 decisions:
 | 261012-mlm | Mobile: a wrong password at sign-in shows the server's message instead of "session expired" | 2026-10-12 | fix/mobile-login-wrong-password-message | [261012-mlm-mobile-login-wrong-password-message](./quick/261012-mlm-mobile-login-wrong-password-message/) |
 | 261012-mcp | Mobile: change-password screen; an account that must change its password is held there until it does | 2026-10-12 | feat/mobile-change-password | [261012-mcp-mobile-change-password](./quick/261012-mcp-mobile-change-password/) |
 | 261012-msr | Mobile: "Ca làm" tab — the week's shifts, request, withdraw and request again, with the web's blocking rules | 2026-10-12 | feat/mobile-shift-registration | [261012-msr-mobile-shift-registration](./quick/261012-msr-mobile-shift-registration/) |
+| 261012-mlp | Mobile: a password reset by the manager while the app is open sends the driver to the change-password screen | 2026-10-12 | feat/mobile-live-password-reset | [261012-mlp-mobile-live-password-reset](./quick/261012-mlp-mobile-live-password-reset/) |
 
 ## Session Continuity
 

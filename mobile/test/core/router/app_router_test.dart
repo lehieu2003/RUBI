@@ -180,6 +180,14 @@ void main() {
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
       expect(find.text(AppStrings.logoutButton), findsOneWidget);
+
+      // Quản lý đặt lại mật khẩu khi app đang mở: lần gọi API kế tiếp bị
+      // server từ chối → app tự sang màn đổi mật khẩu.
+      authEvents.emitPasswordChangeRequired();
+      await tester.pumpAndSettle();
+      expect(find.text(AppStrings.changePasswordForcedNotice), findsOneWidget);
+      expect(find.byKey(const Key('change_password_logout')), findsOneWidget);
+      expect(find.text(AppStrings.navToday), findsNothing);
     });
   });
 }
