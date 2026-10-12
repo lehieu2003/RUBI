@@ -121,6 +121,7 @@ v3.0 decisions:
 | 261012-mdn | Mobile driver: order notes on the delivery card; the list reloads when the app comes back from the background | 2026-10-12 | feat/mobile-driver-notes-refresh | [261012-mdn-mobile-driver-notes-refresh](./quick/261012-mdn-mobile-driver-notes-refresh/) |
 | 261012-mtm | Mobile: light / dark / follow-the-phone appearance in Settings, remembered on the device | 2026-10-12 | feat/mobile-theme-mode | [261012-mtm-mobile-theme-mode](./quick/261012-mtm-mobile-theme-mode/) |
 | 261012-mmd | Mobile: manager data layer — team schedule and shift review, cold storage, customer debt | 2026-10-12 | feat/mobile-manager-data | [261012-mmd-mobile-manager-data](./quick/261012-mmd-mobile-manager-data/) |
+| 261012-mrs | Mobile: every role can sign in; the bottom bar shows the tabs of the signed-in role | 2026-10-12 | feat/mobile-role-shell | [261012-mrs-mobile-role-shell](./quick/261012-mrs-mobile-role-shell/) |
 
 ## Session Continuity
 
