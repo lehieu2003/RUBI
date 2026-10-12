@@ -11,6 +11,21 @@ abstract final class AppStrings {
   static const emailInvalid = 'Email không hợp lệ';
   static const passwordTooShort = 'Mật khẩu tối thiểu 6 ký tự';
 
+  // ---- Màn đổi mật khẩu ----
+  static const changePasswordTitle = 'Đổi mật khẩu';
+  static const changePasswordForcedNotice =
+      'Mật khẩu của bạn do Quản lý cấp. Hãy đặt mật khẩu riêng trước khi '
+      'dùng app.';
+  static const currentPasswordLabel = 'Mật khẩu hiện tại';
+  static const newPasswordLabel = 'Mật khẩu mới';
+  static const confirmPasswordLabel = 'Nhập lại mật khẩu mới';
+  static const currentPasswordRequired = 'Vui lòng nhập mật khẩu hiện tại';
+  static const newPasswordSameAsCurrent =
+      'Mật khẩu mới phải khác mật khẩu hiện tại';
+  static const confirmPasswordMismatch = 'Hai lần nhập mật khẩu mới không khớp';
+  static const changePasswordButton = 'Đổi mật khẩu';
+  static const passwordChangedSnack = 'Đã đổi mật khẩu ✅';
+
   // ---- Driver: lịch sử giao hàng ----
   static const historyRangeLimit = 'Chỉ xem được trong 30 ngày gần nhất';
   static const historyFutureDate = 'Không thể xem ngày trong tương lai';
@@ -18,6 +33,7 @@ abstract final class AppStrings {
   // ---- Driver: bottom navigation (HomeShell) ----
   static const navToday = 'Hôm nay';
   static const navHistory = 'Lịch sử';
+  static const navSchedule = 'Ca làm';
   static const navSettings = 'Cài đặt';
 
   // ---- Driver: tab "Đơn hôm nay" ----
@@ -51,6 +67,34 @@ abstract final class AppStrings {
 
   // ---- Driver: tab lịch sử (HistoryTab) ----
   static const historyNoOrders = 'Không có đơn trong ngày này';
+
+  // ---- Tab "Ca làm" (đăng ký ca) ----
+  static const scheduleHint =
+      'Ca chỉ được tính khi Quản lý duyệt. Ca đã duyệt muốn đổi thì báo Quản lý.';
+  static const shiftApproved = 'Đã duyệt';
+  static const shiftPending = 'Chờ duyệt';
+  static const shiftRejected = 'Bị từ chối';
+  static const shiftRegisterButton = 'Đăng ký';
+  static const shiftRegisterAgainButton = 'Đăng ký lại';
+  static const shiftWithdrawButton = 'Huỷ';
+  static const shiftBlockedPast = 'Đã qua';
+  static const shiftBlockedEnded = 'Đã qua giờ';
+  static const shiftBlockedLocked = 'Đã chốt công';
+  static const shiftBlockedFull = 'Đã đủ người';
+  static const shiftNobody = 'Chưa ai đăng ký';
+  static const shiftRequested = 'Đã gửi đăng ký, chờ Quản lý duyệt';
+  static const shiftWithdrawn = 'Đã huỷ đăng ký ca';
+  static const shiftApprovedLocked =
+      'Ca đã được duyệt. Liên hệ Quản lý nếu cần thay đổi.';
+  static const scheduleToday = 'Hôm nay';
+  static const prevWeekTooltip = 'Tuần trước';
+  static const nextWeekTooltip = 'Tuần sau';
+
+  /// "Tuần 12/10 – 18/10".
+  static String weekLabel(String from, String to) => 'Tuần $from – $to';
+
+  /// "Đã có: An, Bình".
+  static String shiftOthers(String names) => 'Đã có: $names';
 
   // ---- Driver: tab cài đặt ----
   static const logoutButton = 'Đăng xuất';

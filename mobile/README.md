@@ -12,8 +12,36 @@ fvm flutter test
 fvm flutter run
 ```
 
-Two things are generated and committed: the `fromJson` of the DTOs in `lib/features/*/data/dto` (json_serializable, `*.g.dart`) and the dependency registrations in `lib/injector.config.dart` (injectable, from the `@injectable` / `@lazySingleton` / `@module` annotations). After editing a DTO or an annotation, regenerate them:
+Two things are generated and committed: the `fromJson` of the DTOs in `lib/features/*/data/dto` (json_serializable, `*.g.dart`) and the dependency registrations in `lib/core/di/injection_container.config.dart` (injectable, from the `@injectable` / `@lazySingleton` / `@module` annotations). After editing a DTO or an annotation, regenerate them:
 
 ```bash
 fvm dart run build_runner build
 ```
+
+## Layout of `lib/core`
+
+What the features share.
+
+| Folder | Holds |
+|---|---|
+| `bootstrap/` | `app_startup.dart`: everything that must be done before the first frame |
+| `auth/` | empty for now: reserved for auth wiring shared across features |
+| `constants/` | `api_constants.dart`: base URL and timeout of the API; `app_constants.dart`: the app's name |
+| `di/` | `injection_container.dart` (+ generated `.config.dart`) and `injection_modules.dart` for classes that cannot carry an annotation |
+| `extensions/` | `build_context_extensions.dart`: `context.colorScheme`, `context.textTheme` |
+| `localization/` | Vietnamese strings |
+| `network/` | Dio client, auth interceptor, `api_failure.dart`, `api_error_decoder.dart` (Dio error → failure), failure messages, `mapping_validator.dart` (field checks for DTO → entity) |
+| `pagination/` | `PageParams`, `ListQueryParams` (`?page=&limit=&q=`), `PaginationDto` (the server's `meta`), `Paginated<T>`, `SearchDebouncer`. Not used by a screen yet |
+| `patch/` | empty for now |
+| `result/` | `Result<T>`: a value or a failure |
+| `router/` | `app_router.dart` (routes and the redirect by sign-in state), `route_names.dart` (paths), `app_router_refresh.dart` (re-runs the redirect when the session changes) |
+| `services/` | `app_logger.dart`: logging through `dart:developer`. Not called yet |
+| `storage/` | secure token storage and preferences |
+| `theme/` | `app_theme.dart`: the app's `ThemeData` |
+| `view_state/` | `view_status.dart`: the loading / loaded / error status every screen uses |
+
+`core.dart` exports all of it.
+
+## `lib/shared/widgets`
+
+Widgets more than one feature uses. Today: `error_views.dart` (`ErrorView` for a first load that failed, `ErrorBanner` above a list that is kept on screen). A widget only one feature uses stays in that feature's `presentation/widgets`.

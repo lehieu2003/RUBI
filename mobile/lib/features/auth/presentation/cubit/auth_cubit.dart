@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:iceflow_mobile/core/error/failure_messages.dart';
+import 'package:iceflow_mobile/core/network/api_failure.dart';
+import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 import 'package:iceflow_mobile/core/network/auth_events.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/core/storage/app_preferences.dart';
@@ -115,7 +116,13 @@ class AuthCubit extends Cubit<AuthState> {
           emit(const Unauthenticated(message: _roleBlockedMessage));
         }
       case Err<User>(:final failure):
-        emit(Unauthenticated(message: failureMessage(failure)));
+        // Ở màn đăng nhập, 401 là sai email/mật khẩu: giữ câu của server.
+        // `failureMessage` coi mọi 401 là "phiên đăng nhập hết hạn", đúng
+        // cho các API khác nhưng sai ở đây — chưa hề có phiên nào.
+        final message = failure is AuthFailure && failure.statusCode == 401
+            ? failure.message
+            : failureMessage(failure);
+        emit(Unauthenticated(message: message));
     }
   }
 
@@ -126,6 +133,43 @@ class AuthCubit extends Cubit<AuthState> {
       return await _preferences.readLastEmail();
     } on Object catch (_) {
       return null;
+    }
+  }
+
+  /// Đổi mật khẩu của người đang đăng nhập. Trả `null` khi thành công, hoặc
+  /// câu báo lỗi để màn hình hiện (mật khẩu hiện tại sai, mất mạng...).
+  ///
+  /// Thành công thì cờ bắt buộc đổi mật khẩu tắt: router cho vào app.
+  Future<String?> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final res = await _repo.changePassword(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    );
+    switch (res) {
+      case Ok<void>():
+        final current = state;
+        if (!isClosed &&
+            current is Authenticated &&
+            current.user.mustChangePassword) {
+          final user = current.user;
+          emit(
+            Authenticated(
+              User(
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+                factoryId: user.factoryId,
+              ),
+            ),
+          );
+        }
+        return null;
+      case Err<void>(:final failure):
+        return failureMessage(failure);
     }
   }
 

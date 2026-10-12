@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
+import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
 import 'package:iceflow_mobile/features/driver/presentation/cubit/history_cubit.dart';
 import 'package:iceflow_mobile/features/driver/presentation/screens/history_tab.dart';
 import 'package:iceflow_mobile/features/driver/presentation/widgets/delivery_card.dart';
-import 'package:iceflow_mobile/injector.dart';
+import 'package:iceflow_mobile/core/di/injection_container.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockHistoryCubit extends Mock implements HistoryCubit {}
@@ -24,7 +25,7 @@ final DateTime _yesterday = _today.subtract(const Duration(days: 1));
 
 HistoryState stateWith(
   List<DeliveryOrder> orders, {
-  HistoryStatus status = HistoryStatus.loaded,
+  ViewStatus status = ViewStatus.loaded,
   String? errorMessage,
   DateTime? selectedDate,
 }) {
@@ -115,7 +116,7 @@ void main() {
       whenListen(
         cubit,
         const Stream<HistoryState>.empty(),
-        initialState: stateWith(const [], status: HistoryStatus.loading),
+        initialState: stateWith(const [], status: ViewStatus.loading),
       );
       await pumpHistoryTab(tester);
 
@@ -188,7 +189,7 @@ void main() {
         const Stream<HistoryState>.empty(),
         initialState: stateWith(
           const [],
-          status: HistoryStatus.error,
+          status: ViewStatus.error,
           errorMessage: 'Không có kết nối. Vui lòng thử lại.',
         ),
       );
@@ -213,7 +214,7 @@ void main() {
           const Stream<HistoryState>.empty(),
           initialState: stateWith(
             const [],
-            status: HistoryStatus.loading,
+            status: ViewStatus.loading,
             errorMessage: AppStrings.historyFutureDate,
           ),
         );

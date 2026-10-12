@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:iceflow_mobile/core/extensions/build_context_extensions.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
 
@@ -41,9 +42,9 @@ class DeliveryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = context.colorScheme;
     final isDelivered = order.status == OrderStatus.delivered;
-    final textTheme = Theme.of(context).textTheme;
+    final textTheme = context.textTheme;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -175,7 +176,7 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = context.colorScheme;
     final background = isDelivered
         ? colorScheme.secondaryContainer
         : colorScheme.primaryContainer;
@@ -191,7 +192,7 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: Text(
         isDelivered ? AppStrings.badgeDelivered : AppStrings.badgeShipping,
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+        style: context.textTheme.labelMedium?.copyWith(
           color: foreground,
           fontWeight: FontWeight.w600,
         ),

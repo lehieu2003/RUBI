@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:iceflow_mobile/core/extensions/build_context_extensions.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
+import 'package:iceflow_mobile/core/router/route_names.dart';
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 
 /// Tab "Cài đặt": thông tin user từ [AuthCubit] (provider cấp shell) +
@@ -10,8 +13,8 @@ class SettingsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = context.colorScheme;
+    final textTheme = context.textTheme;
     final authState = context.watch<AuthCubit>().state;
     final user = authState is Authenticated ? authState.user : null;
 
@@ -41,6 +44,12 @@ class SettingsTab extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.lock_outline),
+            title: const Text(AppStrings.changePasswordTitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(RouteNames.changePassword),
           ),
           ListTile(
             leading: Icon(Icons.logout, color: colorScheme.error),

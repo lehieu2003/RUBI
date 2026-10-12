@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:iceflow_mobile/core/extensions/build_context_extensions.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
+import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/driver/presentation/cubit/history_cubit.dart';
 import 'package:iceflow_mobile/features/driver/presentation/widgets/delivery_card.dart';
-import 'package:iceflow_mobile/features/driver/presentation/widgets/error_views.dart';
-import 'package:iceflow_mobile/injector.dart';
+import 'package:iceflow_mobile/core/di/injection_container.dart';
+import 'package:iceflow_mobile/shared/widgets/error_views.dart';
 
 /// Label ngày trên header: 'Thứ Ba, 06/10/2026' — thứ tiếng Việt (EEEE) +
 /// ngày dd/MM/yyyy, gộp MỘT dòng [titleMedium]. Cần [initializeDateFormatting]
@@ -62,14 +64,14 @@ class HistoryTab extends StatelessWidget {
                       onRetry: cubit.load,
                     ),
                   )
-                else if (state.status == HistoryStatus.loading)
+                else if (state.status == ViewStatus.loading)
                   const Expanded(child: Center(child: CircularProgressIndicator()))
                 else if (state.orders.isEmpty)
                   Expanded(
                     child: Center(
                       child: Text(
                         AppStrings.historyNoOrders,
-                        style: Theme.of(context).textTheme.titleMedium,
+                        style: context.textTheme.titleMedium,
                       ),
                     ),
                   )
@@ -153,7 +155,7 @@ class _DateNavBar extends StatelessWidget {
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: context.textTheme.titleMedium,
                 ),
               ),
             ),

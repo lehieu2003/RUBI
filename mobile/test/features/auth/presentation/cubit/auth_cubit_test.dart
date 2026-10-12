@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iceflow_mobile/core/error/failure.dart';
-import 'package:iceflow_mobile/core/error/failure_messages.dart';
+import 'package:iceflow_mobile/core/network/api_failure.dart';
+import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 import 'package:iceflow_mobile/core/network/auth_events.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/core/storage/app_preferences.dart';
@@ -145,15 +145,18 @@ void main() {
       );
 
       blocTest<AuthCubit, AuthState>(
-        'Err (sai thông tin) → Unauthenticated với message từ failureMessage',
+        'sai email/mật khẩu (401 của server) → đúng câu của server, KHÔNG '
+        'phải "phiên đăng nhập hết hạn"',
         build: buildCubit,
         setUp: () {
+          // Đúng failure mà repository trả cho 401 của /api/auth/login.
           when(() => repo.login(
                 email: any(named: 'email'),
                 password: any(named: 'password'),
               )).thenAnswer(
-            (_) async =>
-                const Err<User>(AuthFailure('Email hoặc mật khẩu không đúng')),
+            (_) async => const Err<User>(
+              AuthFailure('Email hoặc mật khẩu không đúng', statusCode: 401),
+            ),
           );
         },
         act: (cubit) => cubit.login('tai@iceflow.vn', 'wrong'),
@@ -301,6 +304,109 @@ void main() {
 
         await expectLater(signingIn, completes);
         expect(cubit.state, const AuthUnknown());
+      });
+    });
+
+    group('changePassword', () {
+      const newDriver = User(
+        id: 'u-driver-2',
+        email: 'loc@iceflow.vn',
+        name: 'Hoàng Văn Lộc',
+        role: UserRole.driver,
+        factoryId: 'f-1',
+        mustChangePassword: true,
+      );
+
+      void stubChange(Result<void> result) {
+        when(() => repo.changePassword(
+              currentPassword: any(named: 'currentPassword'),
+              newPassword: any(named: 'newPassword'),
+            )).thenAnswer((_) async => result);
+      }
+
+      blocTest<AuthCubit, AuthState>(
+        'bắt buộc đổi, thành công → tắt cờ, giữ nguyên phần còn lại của user',
+        build: buildCubit,
+        seed: () => const Authenticated(newDriver),
+        setUp: () => stubChange(const Ok<void>(null)),
+        act: (cubit) async {
+          final error = await cubit.changePassword(
+            currentPassword: 'Cu12345678',
+            newPassword: 'Matkhau2026',
+          );
+          expect(error, isNull);
+        },
+        expect: () => [
+          const Authenticated(
+            User(
+              id: 'u-driver-2',
+              email: 'loc@iceflow.vn',
+              name: 'Hoàng Văn Lộc',
+              role: UserRole.driver,
+              factoryId: 'f-1',
+            ),
+          ),
+        ],
+        verify: (_) {
+          verify(() => repo.changePassword(
+                currentPassword: 'Cu12345678',
+                newPassword: 'Matkhau2026',
+              )).called(1);
+        },
+      );
+
+      blocTest<AuthCubit, AuthState>(
+        'tự đổi (không có cờ), thành công → không cần đổi state',
+        build: buildCubit,
+        seed: () => const Authenticated(driver),
+        setUp: () => stubChange(const Ok<void>(null)),
+        act: (cubit) => cubit.changePassword(
+          currentPassword: 'Cu12345678',
+          newPassword: 'Matkhau2026',
+        ),
+        expect: () => const <AuthState>[],
+      );
+
+      blocTest<AuthCubit, AuthState>(
+        'server từ chối → trả đúng câu của server, vẫn bị giữ ở màn đổi mật khẩu',
+        build: buildCubit,
+        seed: () => const Authenticated(newDriver),
+        setUp: () => stubChange(
+          const Err<void>(
+            ServerFailure('Mật khẩu hiện tại không đúng', statusCode: 400),
+          ),
+        ),
+        act: (cubit) async {
+          final error = await cubit.changePassword(
+            currentPassword: 'sai',
+            newPassword: 'Matkhau2026',
+          );
+          expect(error, 'Mật khẩu hiện tại không đúng');
+        },
+        expect: () => const <AuthState>[],
+      );
+
+      test('mất mạng → câu báo mất kết nối; cubit đóng giữa chừng → không lỗi',
+          () async {
+        stubChange(const Err<void>(NetworkFailure()));
+        final cubit = buildCubit();
+        expect(
+          await cubit.changePassword(currentPassword: 'a', newPassword: 'b'),
+          FailureMessages.network,
+        );
+
+        final pending = Completer<Result<void>>();
+        when(() => repo.changePassword(
+              currentPassword: any(named: 'currentPassword'),
+              newPassword: any(named: 'newPassword'),
+            )).thenAnswer((_) => pending.future);
+        cubit.emit(const Authenticated(newDriver));
+        final changing =
+            cubit.changePassword(currentPassword: 'a', newPassword: 'b');
+        await cubit.close();
+        pending.complete(const Ok<void>(null));
+        expect(await changing, isNull);
+        expect(cubit.state, const Authenticated(newDriver));
       });
     });
   });

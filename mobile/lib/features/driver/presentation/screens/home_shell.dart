@@ -4,13 +4,14 @@ import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/features/driver/presentation/screens/history_tab.dart';
 import 'package:iceflow_mobile/features/driver/presentation/screens/settings_tab.dart';
 import 'package:iceflow_mobile/features/driver/presentation/screens/today_tab.dart';
+import 'package:iceflow_mobile/features/schedule/presentation/screens/schedule_tab.dart';
 
-/// Shell chính sau đăng nhập: bottom-nav 3 tab
-/// (Hôm nay / Lịch sử / Cài đặt).
+/// Shell chính sau đăng nhập: bottom-nav 4 tab
+/// (Hôm nay / Lịch sử / Ca làm / Cài đặt).
 ///
 /// Tab rời đi bị unmount — quay lại tab "Hôm nay" tạo cubit mới (factory
 /// trong DI) và tự tải lại đơn. BlocProvider của [AuthCubit] được cấp bởi
-/// router (xem `/home` trong router.dart) cho [SettingsTab] dùng.
+/// router (xem `RouteNames.home` trong app_router.dart) cho [SettingsTab] dùng.
 class HomeShell extends HookWidget {
   const HomeShell({super.key});
 
@@ -22,6 +23,7 @@ class HomeShell extends HookWidget {
       body: switch (currentIndex.value) {
         0 => const TodayTab(),
         1 => const HistoryTab(),
+        2 => const ScheduleTab(),
         _ => const SettingsTab(),
       },
       bottomNavigationBar: NavigationBar(
@@ -36,6 +38,11 @@ class HomeShell extends HookWidget {
           NavigationDestination(
             icon: Icon(Icons.history),
             label: AppStrings.navHistory,
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.event_available_outlined),
+            selectedIcon: Icon(Icons.event_available),
+            label: AppStrings.navSchedule,
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),

@@ -1,14 +1,12 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:iceflow_mobile/core/error/failure_messages.dart';
+import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
 import 'package:iceflow_mobile/features/driver/domain/usecases/get_orders_for_date.dart';
 import 'package:injectable/injectable.dart';
-
-/// Trạng thái tab "Lịch sử" của driver.
-enum HistoryStatus { loading, loaded, error }
 
 /// State của [HistoryCubit]. [selectedDate] luôn là ngày (bỏ phần giờ).
 class HistoryState extends Equatable {
@@ -19,7 +17,7 @@ class HistoryState extends Equatable {
     this.errorMessage,
   });
 
-  final HistoryStatus status;
+  final ViewStatus status;
 
   /// Ngày đang xem (date-only). Chỉ xem được từ hôm qua lùi về tối đa
   /// 30 ngày.
@@ -42,7 +40,7 @@ class HistoryState extends Equatable {
 class HistoryCubit extends Cubit<HistoryState> {
   HistoryCubit({required this._getOrders})
       : super(HistoryState(
-          status: HistoryStatus.loading,
+          status: ViewStatus.loading,
           selectedDate: _dateOnly(DateTime.now()).subtract(_oneDay),
         ));
 
@@ -78,7 +76,7 @@ class HistoryCubit extends Cubit<HistoryState> {
       return;
     }
 
-    emit(HistoryState(status: HistoryStatus.loading, selectedDate: chosen));
+    emit(HistoryState(status: ViewStatus.loading, selectedDate: chosen));
     await _fetch();
   }
 
@@ -86,7 +84,7 @@ class HistoryCubit extends Cubit<HistoryState> {
   /// lần đầu; cũng dùng để thử lại sau lỗi).
   Future<void> load() async {
     emit(HistoryState(
-      status: HistoryStatus.loading,
+      status: ViewStatus.loading,
       selectedDate: state.selectedDate,
     ));
     await _fetch();
@@ -99,13 +97,13 @@ class HistoryCubit extends Cubit<HistoryState> {
     switch (res) {
       case Ok<List<DeliveryOrder>>(:final value):
         emit(HistoryState(
-          status: HistoryStatus.loaded,
+          status: ViewStatus.loaded,
           selectedDate: state.selectedDate,
           orders: value,
         ));
       case Err<List<DeliveryOrder>>(:final failure):
         emit(HistoryState(
-          status: HistoryStatus.error,
+          status: ViewStatus.error,
           selectedDate: state.selectedDate,
           errorMessage: failureMessage(failure),
         ));

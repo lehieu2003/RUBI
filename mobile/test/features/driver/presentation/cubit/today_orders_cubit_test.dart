@@ -2,9 +2,10 @@ import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iceflow_mobile/core/error/failure.dart';
-import 'package:iceflow_mobile/core/error/failure_messages.dart';
+import 'package:iceflow_mobile/core/network/api_failure.dart';
+import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
 import 'package:iceflow_mobile/features/driver/domain/usecases/confirm_delivery.dart';
 import 'package:iceflow_mobile/features/driver/domain/usecases/get_orders_for_date.dart';
@@ -86,8 +87,8 @@ void main() {
         setUp: () => stubGetOrders(Ok(mixedFromServer)),
         act: (cubit) => cubit.load(),
         expect: () => [
-          const TodayOrdersState(status: TodayStatus.loading),
-          TodayOrdersState(status: TodayStatus.loaded, orders: sortedShippingFirst),
+          const TodayOrdersState(status: ViewStatus.loading),
+          TodayOrdersState(status: ViewStatus.loaded, orders: sortedShippingFirst),
         ],
         verify: (_) {
           final captured =
@@ -107,9 +108,9 @@ void main() {
         setUp: () => stubGetOrders(const Err(NetworkFailure())),
         act: (cubit) => cubit.load(),
         expect: () => [
-          const TodayOrdersState(status: TodayStatus.loading),
+          const TodayOrdersState(status: ViewStatus.loading),
           TodayOrdersState(
-            status: TodayStatus.error,
+            status: ViewStatus.error,
             errorMessage: FailureMessages.network,
           ),
         ],
@@ -120,27 +121,27 @@ void main() {
       blocTest<TodayOrdersCubit, TodayOrdersState>(
         'Ok → KHÔNG emit loading (giữ đơn cũ hiển thị), emit loaded mới',
         build: buildCubit,
-        seed: () => TodayOrdersState(status: TodayStatus.loaded, orders: [
+        seed: () => TodayOrdersState(status: ViewStatus.loaded, orders: [
           order('o-old', OrderStatus.shipping, t8h),
         ]),
         setUp: () => stubGetOrders(Ok(mixedFromServer)),
         act: (cubit) => cubit.refresh(),
         expect: () => [
-          TodayOrdersState(status: TodayStatus.loaded, orders: sortedShippingFirst),
+          TodayOrdersState(status: ViewStatus.loaded, orders: sortedShippingFirst),
         ],
       );
 
       blocTest<TodayOrdersCubit, TodayOrdersState>(
         'Err → error state nhưng VẪN giữ danh sách đang hiển thị',
         build: buildCubit,
-        seed: () => TodayOrdersState(status: TodayStatus.loaded, orders: [
+        seed: () => TodayOrdersState(status: ViewStatus.loaded, orders: [
           order('o-old', OrderStatus.shipping, t8h),
         ]),
         setUp: () => stubGetOrders(const Err(NetworkFailure())),
         act: (cubit) => cubit.refresh(),
         expect: () => [
           TodayOrdersState(
-            status: TodayStatus.error,
+            status: ViewStatus.error,
             orders: [order('o-old', OrderStatus.shipping, t8h)],
             errorMessage: FailureMessages.network,
           ),
@@ -153,7 +154,7 @@ void main() {
         'Ok → order chuyển delivered + xuống CUỐI danh sách + clear '
         'confirmingOrderId (invariant sắp xếp)',
         build: buildCubit,
-        seed: () => TodayOrdersState(status: TodayStatus.loaded, orders: [
+        seed: () => TodayOrdersState(status: ViewStatus.loaded, orders: [
           order('o-b', OrderStatus.shipping, t9h),
           order('o-c', OrderStatus.shipping, t10h),
           order('o-delivered', OrderStatus.delivered, t8h),
@@ -164,7 +165,7 @@ void main() {
         act: (cubit) => cubit.confirm('o-b'),
         expect: () => [
           TodayOrdersState(
-            status: TodayStatus.loaded,
+            status: ViewStatus.loaded,
             orders: [
               order('o-b', OrderStatus.shipping, t9h),
               order('o-c', OrderStatus.shipping, t10h),
@@ -174,7 +175,7 @@ void main() {
           ),
           predicate<TodayOrdersState>((s) {
             final ids = s.orders.map((o) => o.id).toList();
-            return s.status == TodayStatus.loaded &&
+            return s.status == ViewStatus.loaded &&
                 s.errorMessage == null &&
                 s.confirmingOrderId == null &&
                 ids[0] == 'o-c' &&
@@ -193,7 +194,7 @@ void main() {
         'Err → danh sách GIỮ NGUYÊN từng phần tử, errorMessage từ '
         'failureMessage, clear confirmingOrderId',
         build: buildCubit,
-        seed: () => TodayOrdersState(status: TodayStatus.loaded, orders: [
+        seed: () => TodayOrdersState(status: ViewStatus.loaded, orders: [
           order('o-a', OrderStatus.shipping, t8h),
           order('o-b', OrderStatus.shipping, t9h),
         ]),
@@ -203,7 +204,7 @@ void main() {
         act: (cubit) => cubit.confirm('o-a'),
         expect: () => [
           TodayOrdersState(
-            status: TodayStatus.loaded,
+            status: ViewStatus.loaded,
             orders: [
               order('o-a', OrderStatus.shipping, t8h),
               order('o-b', OrderStatus.shipping, t9h),
@@ -211,7 +212,7 @@ void main() {
             confirmingOrderId: 'o-a',
           ),
           TodayOrdersState(
-            status: TodayStatus.loaded,
+            status: ViewStatus.loaded,
             orders: [
               order('o-a', OrderStatus.shipping, t8h),
               order('o-b', OrderStatus.shipping, t9h),
@@ -224,7 +225,7 @@ void main() {
       blocTest<TodayOrdersCubit, TodayOrdersState>(
         're-entrancy guard: đang confirm 1 đơn → lời confirm thứ hai bị bỏ qua',
         build: buildCubit,
-        seed: () => TodayOrdersState(status: TodayStatus.loaded, orders: [
+        seed: () => TodayOrdersState(status: ViewStatus.loaded, orders: [
           order('o-a', OrderStatus.shipping, t8h),
           order('o-b', OrderStatus.shipping, t9h),
         ]),
@@ -242,7 +243,7 @@ void main() {
         },
         expect: () => [
           TodayOrdersState(
-            status: TodayStatus.loaded,
+            status: ViewStatus.loaded,
             orders: [
               order('o-a', OrderStatus.shipping, t8h),
               order('o-b', OrderStatus.shipping, t9h),
