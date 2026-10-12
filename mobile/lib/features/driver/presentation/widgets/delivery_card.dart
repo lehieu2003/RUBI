@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:iceflow_mobile/core/extensions/build_context_extensions.dart';
+import 'package:iceflow_mobile/core/extensions/number_format.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
 
-/// Định dạng tiền VN: 350000 → '350.000đ'.
-String formatVnd(double amount) =>
-    '${NumberFormat.decimalPattern('vi_VN').format(amount)}đ';
-
-/// Định dạng số lượng: 2.0 → '2', 2.5 → '2,5' (chuẩn locale vi_VN).
-String formatQuantity(double quantity) =>
-    NumberFormat.decimalPattern('vi_VN').format(quantity);
+// `formatVnd` / `formatQuantity` nay ở core, dùng chung cho mọi feature.
+export 'package:iceflow_mobile/core/extensions/number_format.dart';
 
 /// Thẻ đơn giao trong danh sách của driver.
 ///

@@ -124,6 +124,7 @@ v3.0 decisions:
 | 261012-mrs | Mobile: every role can sign in; the bottom bar shows the tabs of the signed-in role | 2026-10-12 | feat/mobile-role-shell | [261012-mrs-mobile-role-shell](./quick/261012-mrs-mobile-role-shell/) |
 | 261012-msv | Mobile manager: "Duyệt ca" tab — the team's week, approve and reject shift requests | 2026-10-12 | feat/mobile-shift-review | [261012-msv-mobile-shift-review](./quick/261012-msv-mobile-shift-review/) |
 | 261012-mcl | Mobile manager: "Kho lạnh" tab — stock, low-stock alert, production batch and stock count | 2026-10-12 | feat/mobile-cold-storage | [261012-mcl-mobile-cold-storage](./quick/261012-mcl-mobile-cold-storage/) |
+| 261012-mdb | Mobile manager: "Công nợ" tab — who owes what, a customer's ledger, recording a payment | 2026-10-12 | feat/mobile-debt | [261012-mdb-mobile-debt](./quick/261012-mdb-mobile-debt/) |
 
 ## Session Continuity
 

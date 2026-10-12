@@ -25,8 +25,14 @@ import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart'
     as _i251;
 import 'package:iceflow_mobile/features/debt/data/debt_repository_impl.dart'
     as _i61;
+import 'package:iceflow_mobile/features/debt/domain/entities/customer_debt.dart'
+    as _i694;
 import 'package:iceflow_mobile/features/debt/domain/repositories/debt_repository.dart'
     as _i360;
+import 'package:iceflow_mobile/features/debt/presentation/cubit/debt_cubit.dart'
+    as _i559;
+import 'package:iceflow_mobile/features/debt/presentation/cubit/ledger_cubit.dart'
+    as _i759;
 import 'package:iceflow_mobile/features/driver/data/driver_repository_impl.dart'
     as _i340;
 import 'package:iceflow_mobile/features/driver/domain/repositories/driver_repository.dart'
@@ -92,6 +98,10 @@ extension GetItInjectableX on _i174.GetIt {
         authStorage: gh<_i807.AuthStorage>(),
       ),
     );
+    gh.factoryParam<_i759.LedgerCubit, _i694.CustomerDebt, dynamic>(
+      (debt, _) =>
+          _i759.LedgerCubit(repo: gh<_i360.DebtRepository>(), debt: debt),
+    );
     gh.lazySingleton<_i285.ScheduleRepository>(
       () => _i110.ScheduleRepositoryImpl(dio: gh<_i361.Dio>()),
     );
@@ -100,6 +110,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i103.DriverRepository>(
       () => _i340.DriverRepositoryImpl(dio: gh<_i361.Dio>()),
+    );
+    gh.factory<_i559.DebtCubit>(
+      () => _i559.DebtCubit(repo: gh<_i360.DebtRepository>()),
     );
     gh.lazySingleton<_i793.InventoryRepository>(
       () => _i123.InventoryRepositoryImpl(dio: gh<_i361.Dio>()),

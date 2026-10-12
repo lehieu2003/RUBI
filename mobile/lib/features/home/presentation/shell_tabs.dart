@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
+import 'package:iceflow_mobile/features/debt/presentation/screens/debt_tab.dart';
 import 'package:iceflow_mobile/features/driver/presentation/screens/history_tab.dart';
 import 'package:iceflow_mobile/features/driver/presentation/screens/settings_tab.dart';
 import 'package:iceflow_mobile/features/driver/presentation/screens/today_tab.dart';
@@ -52,6 +53,12 @@ const _inventory = ShellTab(
   selectedIcon: Icons.ac_unit,
   builder: _buildInventory,
 );
+const _debt = ShellTab(
+  label: AppStrings.navDebt,
+  icon: Icons.account_balance_wallet_outlined,
+  selectedIcon: Icons.account_balance_wallet,
+  builder: _buildDebt,
+);
 const _settings = ShellTab(
   label: AppStrings.navSettings,
   icon: Icons.settings_outlined,
@@ -64,6 +71,7 @@ Widget _buildHistory(BuildContext context) => const HistoryTab();
 Widget _buildSchedule(BuildContext context) => const ScheduleTab();
 Widget _buildShiftReview(BuildContext context) => const ShiftReviewTab();
 Widget _buildInventory(BuildContext context) => const InventoryTab();
+Widget _buildDebt(BuildContext context) => const DebtTab();
 Widget _buildSettings(BuildContext context) => const SettingsTab();
 
 /// Các tab mỗi vai trò thấy, theo thứ tự trên thanh dưới. Chỉ gồm màn hình
@@ -71,11 +79,12 @@ Widget _buildSettings(BuildContext context) => const SettingsTab();
 ///
 /// - Tài xế: giao hàng (hôm nay, lịch sử) và đăng ký ca.
 /// - Nhân viên: đăng ký ca.
-/// - Quản lý: duyệt ca, kho lạnh. Không tự đăng ký ca (server từ chối).
+/// - Quản lý: duyệt ca, kho lạnh, công nợ. Không tự đăng ký ca (server từ
+///   chối).
 List<ShellTab> shellTabsFor(UserRole role) {
   return switch (role) {
     UserRole.driver => const [_today, _history, _schedule, _settings],
     UserRole.staff => const [_schedule, _settings],
-    UserRole.admin => const [_shiftReview, _inventory, _settings],
+    UserRole.admin => const [_shiftReview, _inventory, _debt, _settings],
   };
 }

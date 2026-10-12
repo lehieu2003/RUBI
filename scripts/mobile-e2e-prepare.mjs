@@ -85,11 +85,17 @@ async function verify(userId, orderId, userName) {
   if (!requested) problems.push('no SLOT_21_24 shift of tomorrow for the driver in the manager schedule');
   else if (requested.status !== 'APPROVED') problems.push(`the driver's shift is ${requested.status}, expected APPROVED`);
 
+  // The payment the manager recorded in the app is in the audit log.
+  const debtTrail = (await call('GET', '/api/audit-logs?type=DEBT&limit=20', { token })).data;
+  if (!debtTrail.some((entry) => entry.action === 'DEBT_PAYMENT' && entry.summary.includes('Thu thử từ app'))) {
+    problems.push('no DEBT_PAYMENT entry for the payment recorded in the app');
+  }
+
   if (problems.length > 0) {
     console.error('✖ ' + problems.join('\n✖ '));
     process.exit(1);
   }
-  console.log('✓ server state matches what the app did: order DELIVERED and logged for the driver, shift requested and approved');
+  console.log('✓ server state matches what the app did: order DELIVERED and logged for the driver, shift requested and approved, payment recorded');
 }
 
 const [command, ...args] = process.argv.slice(2);

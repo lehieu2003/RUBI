@@ -6,6 +6,7 @@ export 'constants/api_constants.dart';
 export 'constants/app_constants.dart';
 export 'di/injection_container.dart';
 export 'extensions/build_context_extensions.dart';
+export 'extensions/number_format.dart';
 export 'localization/strings.dart';
 export 'network/network.dart';
 export 'pagination/list_query_params.dart';
