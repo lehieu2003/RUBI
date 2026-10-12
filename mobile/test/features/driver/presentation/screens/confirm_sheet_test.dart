@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
+import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
 import 'package:iceflow_mobile/features/driver/presentation/cubit/today_orders_cubit.dart';
 import 'package:iceflow_mobile/features/driver/presentation/widgets/confirm_sheet.dart';
@@ -82,7 +83,7 @@ void main() {
   testWidgets('bấm Xác nhận → gọi cubit.confirm(order.id)', (tester) async {
     when(() => cubit.confirm(any())).thenAnswer((_) async {});
     await pumpHost(tester, initialState: TodayOrdersState(
-      status: TodayStatus.loaded,
+      status: ViewStatus.loaded,
       orders: [order()],
     ));
     await openSheet(tester);
@@ -101,7 +102,7 @@ void main() {
     await pumpHost(
       tester,
       initialState: TodayOrdersState(
-        status: TodayStatus.loaded,
+        status: ViewStatus.loaded,
         orders: [order(status: OrderStatus.delivered)],
       ),
     );
@@ -128,7 +129,7 @@ void main() {
     await pumpHost(
       tester,
       initialState: const TodayOrdersState(
-        status: TodayStatus.loaded,
+        status: ViewStatus.loaded,
         errorMessage: 'Không có kết nối. Vui lòng thử lại.',
       ),
     );
@@ -159,7 +160,7 @@ void main() {
     await pumpHost(
       tester,
       initialState: TodayOrdersState(
-        status: TodayStatus.loaded,
+        status: ViewStatus.loaded,
         orders: [order(status: OrderStatus.delivered)],
       ),
     );

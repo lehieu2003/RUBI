@@ -18,10 +18,3 @@ class AppPreferences {
   Future<void> saveLastEmail(String email) =>
       _prefs.setString(_lastEmailKey, email);
 }
-
-/// Đăng ký [SharedPreferencesAsync] (class ngoài, không gắn annotation được).
-@module
-abstract class StorageModule {
-  @lazySingleton
-  SharedPreferencesAsync get sharedPreferences => SharedPreferencesAsync();
-}

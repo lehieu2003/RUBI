@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:iceflow_mobile/core/extensions/build_context_extensions.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 
@@ -10,8 +11,8 @@ class SettingsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = context.colorScheme;
+    final textTheme = context.textTheme;
     final authState = context.watch<AuthCubit>().state;
     final user = authState is Authenticated ? authState.user : null;
 

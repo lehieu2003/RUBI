@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iceflow_mobile/core/error/failure.dart';
-import 'package:iceflow_mobile/core/error/failure_messages.dart';
+import 'package:iceflow_mobile/core/network/api_failure.dart';
+import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 
 void main() {
   group('failureMessage', () {

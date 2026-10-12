@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:iceflow_mobile/core/error/failure.dart';
+import 'package:iceflow_mobile/core/network/api_failure.dart';
 
 /// A value-or-failure result, used instead of throwing across layers.
 sealed class Result<T> extends Equatable {

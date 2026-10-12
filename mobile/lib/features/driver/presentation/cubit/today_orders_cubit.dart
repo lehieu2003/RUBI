@@ -1,18 +1,16 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:iceflow_mobile/core/error/failure_messages.dart';
+import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
 import 'package:iceflow_mobile/features/driver/domain/usecases/confirm_delivery.dart';
 import 'package:iceflow_mobile/features/driver/domain/usecases/get_orders_for_date.dart';
 import 'package:injectable/injectable.dart';
 
-/// Trạng thái tab "Đơn hôm nay" của driver.
-enum TodayStatus { loading, loaded, error }
-
 /// State của [TodayOrdersCubit].
 ///
-/// [errorMessage] vừa dùng cho lỗi tải danh sách (kèm [TodayStatus.error])
+/// [errorMessage] vừa dùng cho lỗi tải danh sách (kèm [ViewStatus.error])
 /// vừa dùng cho lỗi xác nhận giao tạm thời (status vẫn `loaded` — danh sách
 /// giữ nguyên để hiển thị, Task 14 hiện message transient rồi cho user thử
 /// lại; lần `load`/`refresh` kế tiếp sẽ xoá nó).
@@ -26,9 +24,9 @@ class TodayOrdersState extends Equatable {
 
   /// State khởi tạo: đang tải, chưa có đơn.
   const TodayOrdersState.initial()
-      : this(status: TodayStatus.loading);
+      : this(status: ViewStatus.loading);
 
-  final TodayStatus status;
+  final ViewStatus status;
 
   /// Đơn của hôm nay — sau MỌI thao tác thành công luôn sắp: `shipping`
   /// trước (createdAt asc), `delivered` sau (createdAt asc).
@@ -61,19 +59,19 @@ class TodayOrdersCubit extends Cubit<TodayOrdersState> {
   /// Tải đơn của HÔM NAY (ngày local của device, khớp cách office nhập đơn).
   /// Reset toàn bộ state (kể cả [TodayOrdersState.errorMessage] cũ).
   Future<void> load() async {
-    emit(const TodayOrdersState(status: TodayStatus.loading));
+    emit(const TodayOrdersState(status: ViewStatus.loading));
     final res = await _getOrders(DateTime.now());
     // Màn hình đã đóng trong lúc chờ mạng: không còn ai nghe state này.
     if (isClosed) return;
     switch (res) {
       case Ok<List<DeliveryOrder>>(:final value):
         emit(TodayOrdersState(
-          status: TodayStatus.loaded,
+          status: ViewStatus.loaded,
           orders: _sortOrders(value),
         ));
       case Err<List<DeliveryOrder>>(:final failure):
         emit(TodayOrdersState(
-          status: TodayStatus.error,
+          status: ViewStatus.error,
           errorMessage: failureMessage(failure),
         ));
     }
@@ -88,12 +86,12 @@ class TodayOrdersCubit extends Cubit<TodayOrdersState> {
     switch (res) {
       case Ok<List<DeliveryOrder>>(:final value):
         emit(TodayOrdersState(
-          status: TodayStatus.loaded,
+          status: ViewStatus.loaded,
           orders: _sortOrders(value),
         ));
       case Err<List<DeliveryOrder>>(:final failure):
         emit(TodayOrdersState(
-          status: TodayStatus.error,
+          status: ViewStatus.error,
           orders: state.orders,
           errorMessage: failureMessage(failure),
         ));
@@ -136,7 +134,7 @@ class TodayOrdersCubit extends Cubit<TodayOrdersState> {
           );
         }).toList();
         emit(TodayOrdersState(
-          status: TodayStatus.loaded,
+          status: ViewStatus.loaded,
           orders: _sortOrders(updated),
         ));
       case Err<void>(:final failure):

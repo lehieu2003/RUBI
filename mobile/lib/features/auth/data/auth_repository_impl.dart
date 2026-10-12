@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:iceflow_mobile/core/error/failure.dart';
-import 'package:iceflow_mobile/core/network/auth_interceptor.dart';
+import 'package:iceflow_mobile/core/network/api_error_decoder.dart';
+import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/core/storage/auth_storage.dart';
 import 'package:iceflow_mobile/features/auth/data/auth_api.dart';

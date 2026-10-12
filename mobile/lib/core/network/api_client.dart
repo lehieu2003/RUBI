@@ -1,12 +1,12 @@
 import 'package:dio/dio.dart';
-import 'package:iceflow_mobile/core/config/app_config.dart';
+import 'package:iceflow_mobile/core/constants/api_constants.dart';
 import 'package:iceflow_mobile/core/network/auth_events.dart';
 import 'package:iceflow_mobile/core/network/auth_interceptor.dart';
 import 'package:iceflow_mobile/core/storage/auth_storage.dart';
 
 /// Builds the app-wide [Dio] client wired with [AuthInterceptor].
 ///
-/// Base URL comes from [AppConfig.apiBaseUrl]; requests and responses use
+/// Base URL comes from [ApiConstants.baseUrl]; requests and responses use
 /// the JSON envelope (`{ "success": ..., "data"|"error": ... }`).
 Dio createApiClient({
   required AuthStorage authStorage,
@@ -14,9 +14,9 @@ Dio createApiClient({
 }) {
   return Dio(
     BaseOptions(
-      baseUrl: AppConfig.apiBaseUrl,
-      connectTimeout: const Duration(seconds: 15),
-      receiveTimeout: const Duration(seconds: 15),
+      baseUrl: ApiConstants.baseUrl,
+      connectTimeout: ApiConstants.timeout,
+      receiveTimeout: ApiConstants.timeout,
       contentType: Headers.jsonContentType,
       headers: {'Accept': Headers.jsonContentType},
     ),

@@ -6,7 +6,7 @@ import 'package:iceflow_mobile/features/driver/domain/repositories/driver_reposi
 import 'package:iceflow_mobile/features/driver/presentation/cubit/history_cubit.dart';
 import 'package:iceflow_mobile/features/driver/presentation/cubit/today_orders_cubit.dart';
 import 'package:iceflow_mobile/features/schedule/domain/repositories/schedule_repository.dart';
-import 'package:iceflow_mobile/injector.dart';
+import 'package:iceflow_mobile/core/di/injection_container.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 

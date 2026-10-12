@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:iceflow_mobile/core/constants/app_constants.dart';
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:iceflow_mobile/router.dart';
 
@@ -23,7 +24,7 @@ class IceFlowApp extends HookWidget {
     }, const []);
 
     return MaterialApp.router(
-      title: 'IceFlow',
+      title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),

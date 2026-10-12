@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 /// Base class for all domain failures.
 ///
-/// User-facing (Vietnamese) copy is centralized in `failure_messages.dart`
+/// User-facing (Vietnamese) copy is centralized in `api_failure_messages.dart`
 /// via [failureMessage]; `message` fields carry server/validator-provided text.
 sealed class Failure extends Equatable {
   const Failure();

@@ -2,18 +2,19 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
+import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
 import 'package:iceflow_mobile/features/driver/presentation/cubit/today_orders_cubit.dart';
 import 'package:iceflow_mobile/features/driver/presentation/screens/today_tab.dart';
 import 'package:iceflow_mobile/features/driver/presentation/widgets/delivery_card.dart';
-import 'package:iceflow_mobile/injector.dart';
+import 'package:iceflow_mobile/core/di/injection_container.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockTodayOrdersCubit extends Mock implements TodayOrdersCubit {}
 
 TodayOrdersState stateWith(
   List<DeliveryOrder> orders, {
-  TodayStatus status = TodayStatus.loaded,
+  ViewStatus status = ViewStatus.loaded,
   String? errorMessage,
   String? confirmingOrderId,
 }) {
@@ -69,7 +70,7 @@ void main() {
       whenListen(
         cubit,
         const Stream<TodayOrdersState>.empty(),
-        initialState: const TodayOrdersState(status: TodayStatus.loading),
+        initialState: const TodayOrdersState(status: ViewStatus.loading),
       );
       await pumpTodayTab(tester);
 
@@ -95,7 +96,7 @@ void main() {
         cubit,
         const Stream<TodayOrdersState>.empty(),
         initialState: const TodayOrdersState(
-          status: TodayStatus.error,
+          status: ViewStatus.error,
           errorMessage: 'Không có kết nối. Vui lòng thử lại.',
         ),
       );
@@ -148,7 +149,7 @@ void main() {
         const Stream<TodayOrdersState>.empty(),
         initialState: stateWith(
           [shippingOrder('o-1')],
-          status: TodayStatus.error,
+          status: ViewStatus.error,
           errorMessage: 'Không có kết nối. Vui lòng thử lại.',
         ),
       );

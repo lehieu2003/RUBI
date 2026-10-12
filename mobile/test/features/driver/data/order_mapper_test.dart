@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:iceflow_mobile/core/error/failure.dart';
+import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/driver/data/dto/driver_dtos.dart';
 import 'package:iceflow_mobile/features/driver/data/mappers/order_mapper.dart';

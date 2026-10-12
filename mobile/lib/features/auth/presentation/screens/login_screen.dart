@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:iceflow_mobile/core/extensions/build_context_extensions.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 
@@ -83,13 +84,13 @@ class LoginScreen extends HookWidget {
                     Icon(
                       Icons.ac_unit,
                       size: 64,
-                      color: Theme.of(context).colorScheme.primary,
+                      color: context.colorScheme.primary,
                     ),
                     const SizedBox(height: 16),
                     Text(
                       AppStrings.loginTitle,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.headlineMedium,
+                      style: context.textTheme.headlineMedium,
                     ),
                     const SizedBox(height: 48),
                     TextFormField(
@@ -136,7 +137,7 @@ class LoginScreen extends HookWidget {
                             message,
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
+                              color: context.colorScheme.error,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
