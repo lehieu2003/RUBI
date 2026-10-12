@@ -7,15 +7,12 @@ import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 import 'package:iceflow_mobile/core/network/auth_events.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/core/storage/app_preferences.dart';
-import 'package:iceflow_mobile/core/storage/auth_storage.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository.dart';
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockAuthRepository extends Mock implements AuthRepository {}
-
-class _MockAuthStorage extends Mock implements AuthStorage {}
 
 class _MockAppPreferences extends Mock implements AppPreferences {}
 
@@ -32,15 +29,19 @@ void main() {
     name: 'Nguyễn Thị Vân',
     role: UserRole.staff,
   );
+  const admin = User(
+    id: 'u-admin-1',
+    email: 'chu@iceflow.vn',
+    name: 'Nguyễn Văn Chủ',
+    role: UserRole.admin,
+  );
 
   late _MockAuthRepository repo;
-  late _MockAuthStorage storage;
   late _MockAppPreferences preferences;
   late AuthEvents authEvents;
 
   setUp(() {
     repo = _MockAuthRepository();
-    storage = _MockAuthStorage();
     preferences = _MockAppPreferences();
     when(() => preferences.readLastEmail()).thenAnswer((_) async => null);
     when(() => preferences.saveLastEmail(any())).thenAnswer((_) async {});
@@ -54,7 +55,6 @@ void main() {
   AuthCubit buildCubit() =>
       AuthCubit(
         repo: repo,
-        storage: storage,
         preferences: preferences,
         authEvents: authEvents,
       );
@@ -99,7 +99,7 @@ void main() {
 
     group('login', () {
       blocTest<AuthCubit, AuthState>(
-        'DRIVER → Authenticated, không đụng storage',
+        'DRIVER → Authenticated',
         build: buildCubit,
         setUp: () {
           when(() => repo.login(
@@ -109,9 +109,6 @@ void main() {
         },
         act: (cubit) => cubit.login('tai@iceflow.vn', 'secret'),
         expect: () => [const Authenticated(driver)],
-        verify: (_) {
-          verifyNever(() => storage.clear());
-        },
       );
 
       blocTest<AuthCubit, AuthState>(
@@ -165,38 +162,37 @@ void main() {
         ],
       );
 
-      blocTest<AuthCubit, AuthState>(
-        'role STAFF → Unauthenticated + message chính xác + xoá token đã lưu '
-        '(Review Focus 4)',
-        build: buildCubit,
-        setUp: () {
-          when(() => repo.login(
-                email: any(named: 'email'),
-                password: any(named: 'password'),
-              )).thenAnswer((_) async => const Ok<User>(staff));
-          when(() => storage.clear()).thenAnswer((_) async {});
-        },
-        act: (cubit) => cubit.login('van@iceflow.vn', 'secret'),
-        expect: () => [
-          const Unauthenticated(
-            message: 'Tài khoản này chưa dùng được trên app',
-          ),
-        ],
-        verify: (_) {
-          verify(() => storage.clear()).called(1);
-        },
-      );
+      // App dành cho cả ba vai trò: không vai trò nào bị chặn ở đăng nhập.
+      for (final (label, user) in [
+        ('Nhân viên', staff),
+        ('Quản lý', admin),
+      ]) {
+        blocTest<AuthCubit, AuthState>(
+          '$label đăng nhập → Authenticated, nhớ email',
+          build: buildCubit,
+          setUp: () {
+            when(() => repo.login(
+                  email: any(named: 'email'),
+                  password: any(named: 'password'),
+                )).thenAnswer((_) async => Ok<User>(user));
+          },
+          act: (cubit) => cubit.login(user.email, 'secret'),
+          expect: () => [Authenticated(user)],
+          verify: (_) {
+            verify(() => preferences.saveLastEmail(user.email)).called(1);
+          },
+        );
+      }
     });
 
     blocTest<AuthCubit, AuthState>(
-      'login thất bại hoặc bị chặn vai trò → không nhớ email',
+      'login thất bại → không nhớ email',
       build: buildCubit,
       setUp: () {
-        when(() => storage.clear()).thenAnswer((_) async {});
         when(() => repo.login(
               email: any(named: 'email'),
               password: any(named: 'password'),
-            )).thenAnswer((_) async => const Ok<User>(staff));
+            )).thenAnswer((_) async => const Err<User>(NetworkFailure()));
       },
       act: (cubit) => cubit.login('van@iceflow.vn', 'secret'),
       verify: (_) {

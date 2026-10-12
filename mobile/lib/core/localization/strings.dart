@@ -30,10 +30,13 @@ abstract final class AppStrings {
   static const historyRangeLimit = 'Chỉ xem được trong 30 ngày gần nhất';
   static const historyFutureDate = 'Không thể xem ngày trong tương lai';
 
-  // ---- Driver: bottom navigation (HomeShell) ----
+  // ---- Thanh dưới (HomeShell) ----
   static const navToday = 'Hôm nay';
   static const navHistory = 'Lịch sử';
   static const navSchedule = 'Ca làm';
+  static const navShiftReview = 'Duyệt ca';
+  static const navInventory = 'Kho lạnh';
+  static const navDebt = 'Công nợ';
   static const navSettings = 'Cài đặt';
 
   // ---- Driver: tab "Đơn hôm nay" ----
@@ -95,6 +98,74 @@ abstract final class AppStrings {
 
   /// "Đã có: An, Bình".
   static String shiftOthers(String names) => 'Đã có: $names';
+
+  // ---- Tab "Duyệt ca" (Quản lý) ----
+  static const roleStaff = 'Nhân viên';
+  static const roleDriver = 'Tài xế';
+  static const approveButton = 'Duyệt';
+  static const rejectButton = 'Từ chối';
+  static const approveAllButton = 'Duyệt tất cả';
+  static const approveAllTitle = 'Duyệt tất cả?';
+  static String approveAllBody(int count) =>
+      'Duyệt $count yêu cầu đang chờ trong tuần này?';
+  static const shiftReviewNonePending = 'Không có yêu cầu chờ duyệt trong tuần';
+  static String shiftReviewPendingCount(int count) =>
+      '$count yêu cầu chờ duyệt trong tuần';
+  static const shiftReviewEmptyDay = 'Không có ca nào trong ngày này';
+  static String shiftsApproved(int count) => 'Đã duyệt $count ca';
+  static String shiftsRejected(int count) => 'Đã từ chối $count ca';
+
+  // ---- Tab "Kho lạnh" (Quản lý) ----
+  static const stockTotalBags = 'Tổng tồn';
+  static const stockTotalKg = 'Tổng khối lượng';
+  static const stockEmpty = 'Chưa có sản phẩm nào đang bán';
+  static const stockLowTitle = 'Sắp hết hàng';
+  static const stockLowBadge = 'Sắp hết';
+
+  /// "Đá Viên 5kg: còn bán được 18 Bao (mức cảnh báo 20)".
+  static String stockLowLine(String product, String sellable, String unit, String level) =>
+      '$product: còn bán được $sellable $unit (mức cảnh báo $level)';
+  static String stockOnHand(String quantity, String unit) => 'Tồn: $quantity $unit';
+  static String stockSellable(String quantity) => 'Còn bán được: $quantity';
+  static const stockNegativeHint =
+      'Xuất nhiều hơn số đã nhập. Nhập sản lượng còn thiếu hoặc kiểm kho.';
+  static const stockProductionButton = 'Nhập mẻ';
+  static const stockCountButton = 'Kiểm kho';
+  static const stockProductionTitle = 'Nhập sản lượng mới';
+  static const stockCountTitle = 'Kiểm kho';
+  static String stockProductionLabel(String unit) => 'Số lượng nhập ($unit)';
+  static String stockCountLabel(String unit) => 'Số đếm thực tế ($unit)';
+  static const stockNoteLabel = 'Ghi chú (không bắt buộc)';
+  static const stockProductionSubmit = 'Xác nhận nhập kho';
+  static const stockCountSubmit = 'Lưu số kiểm';
+  static const stockProductionInvalid = 'Nhập số lượng lớn hơn 0';
+  static const stockCountInvalid = 'Nhập số đếm từ 0 trở lên';
+  static String stockProductionSaved(int quantity, String unit, int onHand) =>
+      'Đã nhập $quantity $unit. Tồn mới: $onHand';
+  static String stockCountSaved(int onHand, String unit) =>
+      'Đã lưu kiểm kho. Tồn mới: $onHand $unit';
+
+  // ---- Tab "Công nợ" (Quản lý) ----
+  static String debtTotalLabel(int count) => 'Tổng nợ của $count khách';
+  static const debtNone = 'Không có khách nào đang nợ';
+  static const debtNeverPaid = 'Chưa từng trả';
+  static String debtLastPaid(String date) => 'Trả gần nhất: $date';
+  static const ledgerOutstandingLabel = 'Còn nợ';
+  static const ledgerEmpty = 'Chưa có dòng nào trong sổ nợ';
+  static const ledgerDebt = 'Ghi nợ (đơn đã đối soát)';
+  static const ledgerPayment = 'Thu tiền';
+  static const loadMoreButton = 'Xem thêm';
+  static const paymentButton = 'Thu tiền';
+  static const paymentTitle = 'Ghi nhận thu tiền';
+  static String paymentOutstanding(String amount) => 'Khách còn nợ $amount';
+  static const paymentAmountLabel = 'Số tiền thu';
+  static const paymentNotesLabel = 'Ghi chú (không bắt buộc)';
+  static const paymentSubmit = 'Xác nhận thu';
+  static const paymentInvalid = 'Nhập số tiền lớn hơn 0';
+  static String paymentAboveDebt(String amount) =>
+      'Số tiền thu không được vượt số đang nợ ($amount)';
+  static String paymentSaved(String amount, String remaining) =>
+      'Đã thu $amount. Còn nợ $remaining';
 
   // ---- Tab cài đặt: giao diện ----
   static const themeTitle = 'Giao diện';

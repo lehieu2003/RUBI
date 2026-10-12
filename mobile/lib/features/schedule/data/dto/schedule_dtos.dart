@@ -67,14 +67,17 @@ class SchedulePersonDto {
   final List<ShiftDto>? shifts;
 }
 
-/// Một ca: phần tử của `people[].shifts` và `data.shift` của
-/// `POST /api/schedule/my`.
+/// Một ca: phần tử của `people[].shifts`, `data.shift` của
+/// `POST /api/schedule/my`, và `shifts` trong `GET /api/schedule/assignments`.
 @JsonSerializable(createToJson: false)
 class ShiftDto {
-  const ShiftDto({this.shiftDate, this.shift, this.status});
+  const ShiftDto({this.id, this.shiftDate, this.shift, this.status});
 
   factory ShiftDto.fromJson(Map<String, dynamic> json) =>
       _$ShiftDtoFromJson(json);
+
+  /// Chỉ có trong `GET /api/schedule/assignments` (lịch Quản lý xem).
+  final String? id;
 
   /// `yyyy-MM-dd`.
   final String? shiftDate;

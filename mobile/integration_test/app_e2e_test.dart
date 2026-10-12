@@ -22,6 +22,11 @@ const _newPassword = String.fromEnvironment('E2E_NEW_PASSWORD');
 /// The customer of the one order out for delivery with that driver.
 const _customer = String.fromEnvironment('E2E_CUSTOMER');
 
+/// Seeded accounts of the other two roles (src/db/seed.ts).
+const _staffEmail = 'nhanvien@miendong.vn';
+const _managerEmail = 'quanly@rubi.local';
+const _seedPassword = '12345678';
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -47,7 +52,9 @@ void main() {
   }
 
   testWidgets('a new driver: wrong password, forced password change, a '
-      'delivery, a shift, sign out and back in', (tester) async {
+      'delivery, a shift, sign out and back in; then staff sign in and the '
+      'manager approves the shift, records a production batch and a payment',
+      (tester) async {
     expect(_email, isNotEmpty, reason: 'run through scripts/mobile-e2e-local.sh');
 
     // Start as main() does, but without a session left by an earlier run.
@@ -137,5 +144,78 @@ void main() {
     // The delivery confirmed above is still there, as delivered.
     await waitFor(tester, find.text(_customer));
     expect(find.text(AppStrings.badgeDelivered), findsWidgets);
+
+    // --- The app is for every role: staff and the manager get in too, each
+    // with their own tabs (accounts of the seed).
+    Future<void> signOut() async {
+      if (find.text(AppStrings.navSettings).evaluate().isNotEmpty) {
+        await tester.tap(find.text(AppStrings.navSettings).last);
+      }
+      await waitFor(tester, find.text(AppStrings.logoutButton));
+      await tester.tap(find.text(AppStrings.logoutButton));
+      await waitFor(tester, find.text(AppStrings.logoutDialogTitle));
+      await tester.tap(find.text(AppStrings.logoutButton).last);
+    }
+
+    await signOut();
+    await signIn(tester, _staffEmail, _seedPassword);
+    // Staff land on "Ca làm", loaded from the server for their own role.
+    await waitFor(tester, find.text(AppStrings.scheduleHint));
+    expect(find.byType(NavigationDestination), findsNWidgets(2));
+    expect(find.text(AppStrings.navToday), findsNothing);
+    await tester.tap(find.text(AppStrings.navSettings));
+    await waitFor(tester, find.text(_staffEmail));
+
+    await signOut();
+    await signIn(tester, _managerEmail, _seedPassword);
+    // The manager lands on "Duyệt ca" and approves the request the driver
+    // left for tomorrow.
+    await waitFor(tester, find.text(AppStrings.navShiftReview).first);
+    await waitFor(tester, find.byKey(const Key('shift_review_approve_all')));
+    if (weekday == DateTime.sunday) {
+      await tester.tap(find.byTooltip(AppStrings.nextWeekTooltip));
+      await waitFor(tester, find.byKey(const Key('shift_review_approve_all')));
+    } else {
+      await tester.tap(find.byKey(Key('schedule_day_$weekday')));
+    }
+    await tester.pump(const Duration(milliseconds: 300));
+    final requested = find.byKey(const Key('shift_review_slot_SLOT_21_24'));
+    await waitFor(tester, requested);
+    await tester.tap(
+      find.descendant(of: requested, matching: find.text(AppStrings.approveButton)),
+    );
+    await waitFor(tester, find.text(AppStrings.shiftsApproved(1)));
+    expect(
+      find.descendant(of: requested, matching: find.text(AppStrings.approveButton)),
+      findsNothing,
+    );
+
+    // "Kho lạnh": stock from the server, then a production batch of 5.
+    await tester.tap(find.text(AppStrings.navInventory));
+    await waitFor(tester, find.text(AppStrings.stockTotalBags));
+    await tester.tap(find.text(AppStrings.stockProductionButton).first);
+    await waitFor(tester, find.byKey(const Key('stock_sheet_quantity')));
+    await tester.enterText(find.byKey(const Key('stock_sheet_quantity')), '5');
+    await tester.tap(find.byKey(const Key('stock_sheet_submit')));
+    await waitFor(tester, find.textContaining('Đã nhập 5'));
+
+
+    // "Công nợ": the report from the server, a customer's ledger, a payment.
+    await tester.tap(find.text(AppStrings.navDebt));
+    await waitFor(tester, find.byKey(const Key('debt_total')));
+    await tester.tap(find.byIcon(Icons.chevron_right).first);
+    await waitFor(tester, find.byKey(const Key('ledger_pay')));
+    await tester.tap(find.byKey(const Key('ledger_pay')));
+    await waitFor(tester, find.byKey(const Key('payment_amount')));
+    await tester.enterText(find.byKey(const Key('payment_amount')), '1000');
+    await tester.enterText(find.byKey(const Key('payment_notes')), 'Thu thử từ app');
+    await tester.tap(find.byKey(const Key('payment_submit')));
+    await waitFor(tester, find.textContaining('Đã thu 1.000đ'));
+    await waitFor(tester, find.text('−1.000đ'));
+    await tester.tap(find.byType(BackButton));
+    await waitFor(tester, find.byKey(const Key('debt_total')));
+
+    await tester.tap(find.text(AppStrings.navSettings));
+    await waitFor(tester, find.text(_managerEmail));
   });
 }

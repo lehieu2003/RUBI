@@ -124,7 +124,14 @@ abstract final class ScheduleMapper {
     if (status == null) {
       return Err(UnexpectedFailure('Unknown shift status: ${dto.status}'));
     }
-    return Ok(Shift(date: date, slot: slot, status: status));
+    return Ok(
+      Shift(
+        date: date,
+        slot: slot,
+        status: status,
+        id: MappingValidator.nonEmpty(dto.id),
+      ),
+    );
   }
 
   /// `yyyy-MM-dd` → 00:00 local của ngày đó; `null` nếu thiếu, sai định dạng

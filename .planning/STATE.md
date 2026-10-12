@@ -120,6 +120,11 @@ v3.0 decisions:
 | 261012-mee | Mobile: end-to-end test of the app on an Android emulator against a real server, with a one-command script | 2026-10-12 | test/mobile-emulator-e2e | [261012-mee-mobile-emulator-e2e](./quick/261012-mee-mobile-emulator-e2e/) |
 | 261012-mdn | Mobile driver: order notes on the delivery card; the list reloads when the app comes back from the background | 2026-10-12 | feat/mobile-driver-notes-refresh | [261012-mdn-mobile-driver-notes-refresh](./quick/261012-mdn-mobile-driver-notes-refresh/) |
 | 261012-mtm | Mobile: light / dark / follow-the-phone appearance in Settings, remembered on the device | 2026-10-12 | feat/mobile-theme-mode | [261012-mtm-mobile-theme-mode](./quick/261012-mtm-mobile-theme-mode/) |
+| 261012-mmd | Mobile: manager data layer — team schedule and shift review, cold storage, customer debt | 2026-10-12 | feat/mobile-manager-data | [261012-mmd-mobile-manager-data](./quick/261012-mmd-mobile-manager-data/) |
+| 261012-mrs | Mobile: every role can sign in; the bottom bar shows the tabs of the signed-in role | 2026-10-12 | feat/mobile-role-shell | [261012-mrs-mobile-role-shell](./quick/261012-mrs-mobile-role-shell/) |
+| 261012-msv | Mobile manager: "Duyệt ca" tab — the team's week, approve and reject shift requests | 2026-10-12 | feat/mobile-shift-review | [261012-msv-mobile-shift-review](./quick/261012-msv-mobile-shift-review/) |
+| 261012-mcl | Mobile manager: "Kho lạnh" tab — stock, low-stock alert, production batch and stock count | 2026-10-12 | feat/mobile-cold-storage | [261012-mcl-mobile-cold-storage](./quick/261012-mcl-mobile-cold-storage/) |
+| 261012-mdb | Mobile manager: "Công nợ" tab — who owes what, a customer's ledger, recording a payment | 2026-10-12 | feat/mobile-debt | [261012-mdb-mobile-debt](./quick/261012-mdb-mobile-debt/) |
 
 ## Session Continuity
 

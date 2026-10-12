@@ -6,7 +6,6 @@ import 'package:iceflow_mobile/app.dart';
 import 'package:iceflow_mobile/core/network/auth_events.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/core/storage/app_preferences.dart';
-import 'package:iceflow_mobile/core/storage/auth_storage.dart';
 import 'package:iceflow_mobile/core/theme/theme_cubit.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository.dart';
@@ -14,8 +13,6 @@ import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart'
 import 'package:mocktail/mocktail.dart';
 
 class _MockAuthRepository extends Mock implements AuthRepository {}
-
-class _MockAuthStorage extends Mock implements AuthStorage {}
 
 class _MockAppPreferences extends Mock implements AppPreferences {}
 
@@ -33,7 +30,6 @@ void main() {
 
     final cubit = AuthCubit(
       repo: repo,
-      storage: _MockAuthStorage(),
       preferences: preferences,
       authEvents: authEvents,
     );

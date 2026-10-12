@@ -2,7 +2,7 @@
 abstract final class RouteNames {
   static const login = '/login';
 
-  /// Shell 4 tab của driver.
+  /// Shell sau đăng nhập, tab theo vai trò.
   static const home = '/home';
 
   /// Đổi mật khẩu: bắt buộc sau khi Quản lý cấp / đặt lại mật khẩu, hoặc mở
