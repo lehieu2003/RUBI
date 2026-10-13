@@ -239,6 +239,53 @@ abstract final class AppStrings {
   static const customerPricesEmpty = 'Chưa có sản phẩm nào đang bán';
   static const customerPriceMissing = 'Chưa có giá';
 
+  // ---- Nhân sự (Quản lý) ----
+  static const staffTitle = 'Nhân sự';
+  static const staffSubtitle = 'Tài khoản, vai trò, mật khẩu';
+  static const staffEmpty = 'Chưa có tài khoản nào';
+  static const staffAddButton = 'Thêm';
+  static const staffAddTitle = 'Tạo tài khoản';
+  static const staffNameLabel = 'Họ tên';
+  static const staffEmailLabel = 'Email đăng nhập';
+  static const staffTempPasswordLabel = 'Mật khẩu tạm';
+  static const staffTempPasswordHelper =
+      'Ít nhất 8 ký tự, gồm cả chữ và số. Người nhận phải đổi khi đăng nhập.';
+  static const staffNameEmailRequired = 'Nhập họ tên và email';
+  static const staffNameRequired = 'Nhập họ tên';
+  static const staffLockedBadge = 'Đã khóa';
+  static String staffRoleLabel(String role) => switch (role) {
+        'admin' => 'Quản lý',
+        'staff' => roleStaff,
+        'driver' => roleDriver,
+        _ => role,
+      };
+  static const staffEditButton = 'Sửa tên, số điện thoại';
+  static String staffRoleButton(String role) => 'Chuyển thành $role';
+  static String staffRoleTitle(String role) => 'Chuyển thành $role?';
+  static String staffRoleToDriverBody(String name) =>
+      '$name sẽ thấy màn giao hàng của Tài xế thay cho màn của Nhân viên.';
+  static String staffRoleFromDriverBody(String name) =>
+      '$name sẽ không còn giao hàng. Các đơn Chờ giao / Đang giao của họ trở về chưa gán tài xế.';
+  static const staffRoleConfirm = 'Chuyển';
+  static const staffResetButton = 'Đặt lại mật khẩu';
+  static String staffResetTitle(String name) => 'Mật khẩu mới cho $name';
+  static const staffLockButton = 'Khóa tài khoản';
+  static const staffUnlockButton = 'Mở khóa tài khoản';
+  static String staffLockTitle(String name) => 'Khóa tài khoản $name?';
+  static const staffLockBody = 'Người này sẽ không đăng nhập được cho tới khi mở khóa.';
+  static const staffLockDriverBody =
+      'Người này sẽ không đăng nhập được. Các đơn Chờ giao / Đang giao của họ trở về chưa gán tài xế.';
+  static String staffCreated(String name) =>
+      'Đã tạo tài khoản $name. Mật khẩu tạm phải đổi ở lần đăng nhập đầu.';
+  static String staffSaved(String name) => 'Đã lưu thông tin $name';
+  static String staffRoleChanged(String name, String role) => '$name giờ là $role.';
+  static String staffLocked(String name) => 'Đã khóa $name.';
+  static String staffUnlocked(String name) => 'Đã mở khóa $name.';
+  static String staffPasswordReset(String name) =>
+      'Đã đặt lại mật khẩu của $name. Họ phải đổi ở lần đăng nhập kế.';
+  static String staffOrdersUnassigned(int count) =>
+      '$count đơn của họ trở về chưa gán tài xế.';
+
   // ---- Bộ lọc danh sách đơn ----
   static const orderFilterAnyDate = 'Mọi ngày';
   static const orderFilterAnyDriver = 'Mọi tài xế';

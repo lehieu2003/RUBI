@@ -93,6 +93,8 @@ import 'package:iceflow_mobile/features/staff/data/staff_repository_impl.dart'
     as _i853;
 import 'package:iceflow_mobile/features/staff/domain/repositories/staff_repository.dart'
     as _i1042;
+import 'package:iceflow_mobile/features/staff/presentation/cubit/staff_cubit.dart'
+    as _i857;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
 
@@ -136,6 +138,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i345.OrdersCubit>(
       () => _i345.OrdersCubit(repo: gh<_i420.OrdersRepository>()),
+    );
+    gh.factory<_i857.StaffCubit>(
+      () => _i857.StaffCubit(repo: gh<_i1042.StaffRepository>()),
     );
     gh.lazySingleton<_i452.AuthRepository>(
       () => _i1004.AuthRepositoryImpl(
