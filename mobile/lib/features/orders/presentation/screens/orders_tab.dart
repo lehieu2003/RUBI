@@ -5,23 +5,20 @@ import 'package:iceflow_mobile/core/di/injection_container.dart';
 import 'package:iceflow_mobile/core/extensions/build_context_extensions.dart';
 import 'package:iceflow_mobile/core/extensions/number_format.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
-import 'package:iceflow_mobile/core/pagination/search_debouncer.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/orders/domain/entities/office_order.dart';
+import 'package:iceflow_mobile/features/orders/domain/entities/order_entry.dart';
 import 'package:iceflow_mobile/features/orders/presentation/cubit/orders_cubit.dart';
+import 'package:iceflow_mobile/features/orders/presentation/screens/order_entry_screen.dart';
+import 'package:iceflow_mobile/features/orders/presentation/widgets/order_card.dart';
+import 'package:iceflow_mobile/shared/widgets/app_button.dart';
+import 'package:iceflow_mobile/shared/widgets/app_header.dart';
 import 'package:iceflow_mobile/shared/widgets/error_views.dart';
-
-String _dateTime(DateTime date) {
-  final local = date.toLocal();
-  String two(int value) => value.toString().padLeft(2, '0');
-  return '${two(local.hour)}:${two(local.minute)} '
-      '${two(local.day)}/${two(local.month)}';
-}
-
-String _linesSummary(OfficeOrder order) => order.lines
-    .map((line) => '${line.productName} ${line.sizeKg}kg × ${line.quantity}')
-    .join(', ');
+import 'package:iceflow_mobile/shared/widgets/load_more_button.dart';
+import 'package:iceflow_mobile/shared/widgets/search_field.dart';
+import 'package:iceflow_mobile/shared/widgets/snack_bars.dart';
+import 'package:iceflow_mobile/shared/widgets/state_views.dart';
 
 /// Màn "Đơn hàng" của văn phòng (Quản lý, Nhân viên): danh sách theo trạng
 /// thái, tìm kiếm; bấm một đơn để xem chi tiết, gán tài xế, đổi trạng thái
@@ -35,41 +32,60 @@ class OrdersTab extends StatelessWidget {
       // Rời màn unmount cubit → quay lại tải lại từ đầu.
       create: (_) => sl<OrdersCubit>()..load(),
       child: Scaffold(
-        appBar: AppBar(title: const Text(AppStrings.navOrders)),
+        appBar: AppHeader(
+          title: AppStrings.navOrders,
+          subtitle: AppStrings.ordersSubtitle,
+          actions: [
+            // Trên thanh đầu chứ không nổi ở góc dưới: câu báo "Đã lên đơn"
+            // ở đáy màn hình không được che nút khi lên liền mấy đơn.
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Builder(
+                builder: (context) => FilledButton.tonalIcon(
+                  key: const Key('orders_new'),
+                  onPressed: () => _newOrder(context),
+                  icon: const Icon(Icons.add),
+                  label: const Text(AppStrings.orderEntryButton),
+                ),
+              ),
+            ),
+          ],
+        ),
         body: const _OrdersBody(),
       ),
     );
   }
+
+  Future<void> _newOrder(BuildContext context) async {
+    // Capture trước await — context không dùng được qua async gap an toàn.
+    final messenger = ScaffoldMessenger.of(context);
+    final cubit = context.read<OrdersCubit>();
+    final created = await Navigator.of(context).push<CreatedOrder>(
+      MaterialPageRoute(builder: (_) => const OrderEntryScreen()),
+    );
+    if (created == null) return;
+    messenger.showMessage(
+      AppStrings.orderEntrySaved(created.code, formatVnd(created.total)),
+    );
+    if (!cubit.isClosed) await cubit.load();
+  }
 }
 
-class _OrdersBody extends HookWidget {
+class _OrdersBody extends StatelessWidget {
   const _OrdersBody();
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<OrdersCubit>();
-    final debouncer = useMemoized(SearchDebouncer.new);
-    useEffect(() => debouncer.dispose, const []);
 
     return BlocBuilder<OrdersCubit, OrdersState>(
       builder: (context, state) {
         return Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-              child: TextField(
-                key: const Key('orders_search'),
-                textInputAction: TextInputAction.search,
-                decoration: const InputDecoration(
-                  hintText: AppStrings.ordersSearchHint,
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-                // Chờ ngừng gõ rồi mới hỏi server.
-                onChanged: (text) => debouncer.run(() => cubit.setSearch(text)),
-                onSubmitted: cubit.setSearch,
-              ),
+            SearchField(
+              key: const Key('orders_search'),
+              hint: AppStrings.ordersSearchHint,
+              onSearch: cubit.setSearch,
             ),
             _StatusTabs(state: state, onSelect: cubit.selectTab),
             if (state.orders.isEmpty && state.status == ViewStatus.error)
@@ -77,7 +93,7 @@ class _OrdersBody extends HookWidget {
                 child: ErrorView(message: state.errorMessage, onRetry: cubit.load),
               )
             else if (state.orders.isEmpty && state.status == ViewStatus.loading)
-              const Expanded(child: Center(child: CircularProgressIndicator()))
+              const Expanded(child: LoadingView())
             else
               Expanded(
                 child: RefreshIndicator(
@@ -91,37 +107,17 @@ class _OrdersBody extends HookWidget {
                           onRetry: cubit.load,
                         ),
                       if (state.orders.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.all(32),
-                          child: Text(
-                            AppStrings.ordersEmpty,
-                            textAlign: TextAlign.center,
-                            style: context.textTheme.titleMedium,
-                          ),
-                        ),
+                        const EmptyView(message: AppStrings.ordersEmpty),
                       for (final order in state.orders)
-                        _OrderCard(
+                        OrderCard(
                           order: order,
                           onTap: () => _openOrder(context, order),
                         ),
                       if (state.hasMore)
-                        Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: state.loadingMore
-                              ? const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(8),
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                )
-                              : TextButton(
-                                  key: const Key('orders_load_more'),
-                                  onPressed: cubit.loadMore,
-                                  style: TextButton.styleFrom(
-                                    minimumSize: const Size.fromHeight(48),
-                                  ),
-                                  child: const Text(AppStrings.loadMoreButton),
-                                ),
+                        LoadMoreButton(
+                          key: const Key('orders_load_more'),
+                          loading: state.loadingMore,
+                          onPressed: cubit.loadMore,
                         ),
                     ],
                   ),
@@ -145,14 +141,10 @@ class _OrdersBody extends HookWidget {
       builder: (_) => _OrderSheet(order: order, cubit: cubit),
     );
     if (result == null) return;
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(result.message),
-          backgroundColor: result.ok ? null : errorColor,
-        ),
-      );
+    messenger.showMessage(
+      result.message,
+      errorColor: result.ok ? null : errorColor,
+    );
   }
 }
 
@@ -199,131 +191,6 @@ class _StatusTabs extends StatelessWidget {
               ),
             ),
         ],
-      ),
-    );
-  }
-}
-
-/// Nhãn trạng thái của một đơn.
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.status});
-
-  final OfficeOrderStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = context.colorScheme;
-    final (background, foreground) = switch (status) {
-      OfficeOrderStatus.pending => (
-          colorScheme.surfaceContainerHighest,
-          colorScheme.onSurface,
-        ),
-      OfficeOrderStatus.shipping => (
-          colorScheme.primaryContainer,
-          colorScheme.onPrimaryContainer,
-        ),
-      OfficeOrderStatus.delivered ||
-      OfficeOrderStatus.completed =>
-        (colorScheme.secondaryContainer, colorScheme.onSecondaryContainer),
-      OfficeOrderStatus.cancelled => (
-          colorScheme.errorContainer,
-          colorScheme.onErrorContainer,
-        ),
-    };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        AppStrings.orderStatusLabel(status.wireName),
-        style: context.textTheme.labelMedium?.copyWith(
-          color: foreground,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-}
-
-/// Một đơn trong danh sách.
-class _OrderCard extends StatelessWidget {
-  const _OrderCard({required this.order, required this.onTap});
-
-  final OfficeOrder order;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = context.colorScheme;
-    final textTheme = context.textTheme;
-    final muted = colorScheme.onSurfaceVariant;
-    return Card(
-      key: Key('order_${order.id}'),
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${order.code} · ${_dateTime(order.createdAt)}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.labelLarge?.copyWith(color: muted),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  _StatusBadge(status: order.status),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                order.customerName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-              ),
-              Text(
-                _linesSummary(order),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      order.driverName == null
-                          ? AppStrings.orderUnassigned
-                          : AppStrings.orderDriver(order.driverName!),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: order.driverName == null &&
-                                !order.status.isFinal
-                            ? colorScheme.error
-                            : muted,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    formatVnd(order.total),
-                    style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -377,24 +244,14 @@ class _OrderSheet extends HookWidget {
     }
 
     Widget action(String label, VoidCallback onPressed, {Key? key, bool primary = false}) {
-      final style = ButtonStyle(
-        minimumSize: WidgetStateProperty.all(const Size.fromHeight(48)),
-      );
       return Padding(
         padding: const EdgeInsets.only(top: 8),
-        child: primary
-            ? FilledButton(
-                key: key,
-                onPressed: busy.value ? null : onPressed,
-                style: style,
-                child: Text(label),
-              )
-            : OutlinedButton(
-                key: key,
-                onPressed: busy.value ? null : onPressed,
-                style: style,
-                child: Text(label),
-              ),
+        child: AppButton(
+          key: key,
+          label: label,
+          onPressed: busy.value ? null : onPressed,
+          variant: primary ? AppButtonVariant.primary : AppButtonVariant.secondary,
+        ),
       );
     }
 
@@ -408,7 +265,7 @@ class _OrderSheet extends HookWidget {
             Row(
               children: [
                 Expanded(child: Text(order.code, style: textTheme.titleLarge)),
-                _StatusBadge(status: status),
+                OrderStatusBadge(status: status),
               ],
             ),
             const SizedBox(height: 8),
@@ -511,20 +368,18 @@ class _OrderSheet extends HookWidget {
             if (!status.isFinal)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: TextButton(
+                child: AppButton(
                   key: const Key('order_cancel'),
+                  label: AppStrings.orderCancelButton,
                   onPressed: busy.value ? null : cancel,
-                  style: TextButton.styleFrom(
-                    minimumSize: const Size.fromHeight(48),
-                    foregroundColor: colorScheme.error,
-                  ),
-                  child: const Text(AppStrings.orderCancelButton),
+                  variant: AppButtonVariant.text,
+                  danger: true,
                 ),
               ),
             if (busy.value)
               const Padding(
                 padding: EdgeInsets.only(top: 12),
-                child: Center(child: CircularProgressIndicator()),
+                child: LoadingView(),
               ),
           ],
         ),
@@ -549,7 +404,7 @@ class _DriverDialog extends HookWidget {
     if (result == null) {
       content = const Padding(
         padding: EdgeInsets.all(24),
-        child: Center(child: CircularProgressIndicator()),
+        child: LoadingView(),
       );
     } else if (result case Ok<List<DriverOption>>(:final value)) {
       content = value.isEmpty

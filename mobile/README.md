@@ -44,11 +44,21 @@ What the features share.
 
 ## `lib/shared/widgets`
 
-Widgets more than one feature uses. Today: `error_views.dart` (`ErrorView` for a first load that failed, `ErrorBanner` above a list that is kept on screen). A widget only one feature uses stays in that feature's `presentation/widgets`.
+Widgets more than one feature uses. A widget only one feature uses stays in that feature's `presentation/widgets`.
+
+| File | What it gives |
+|---|---|
+| `app_header.dart` | `AppHeader` — the top bar of every screen: title, optional one-line subtitle, optional actions. Use it for `Scaffold.appBar` instead of `AppBar`. |
+| `app_button.dart` | `AppButton` — full-width, 48dp button; `variant` (primary / secondary / text), `icon`, `loading`, `danger`. |
+| `state_views.dart` | `LoadingView` (spinner while there is nothing to show yet), `EmptyView` (the sentence of an empty list). |
+| `error_views.dart` | `ErrorView` for a first load that failed, `ErrorBanner` above a list that is kept on screen. |
+| `load_more_button.dart` | `LoadMoreButton` — "Xem thêm" at the end of a paged list. |
+| `search_field.dart` | `SearchField` — search box that waits for the user to stop typing. |
+| `snack_bars.dart` | `messenger.showMessage(...)` — the result of an action, replacing the message on screen. |
 
 ## End-to-end test on an emulator
 
-`integration_test/app_e2e_test.dart` drives the real app on an Android emulator against a real server: a wrong password, the forced password change of a new account, confirming a delivery, requesting and withdrawing a shift, signing out and back in, then a staff account assigning a waiting order to a driver and cancelling it with a reason, and the manager approving the driver's shift, recording a production batch and a customer's payment, reading both in the audit log, and opening the orders screen from "Thêm".
+`integration_test/app_e2e_test.dart` drives the real app on an Android emulator against a real server: a wrong password, the forced password change of a new account, confirming a delivery, requesting and withdrawing a shift, signing out and back in, then a staff account taking an order (customer found by typing without accents), assigning it to a driver and cancelling it with a reason, and the manager approving the driver's shift, recording a production batch and a customer's payment, reading both in the audit log, opening the orders screen from "Thêm", and settling the driver's delivery one bag short.
 
 ```bash
 flutter emulators --launch <id>     # any Android emulator

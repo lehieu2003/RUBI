@@ -9,7 +9,12 @@ import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/debt/domain/entities/customer_debt.dart';
 import 'package:iceflow_mobile/features/debt/presentation/cubit/ledger_cubit.dart';
+import 'package:iceflow_mobile/shared/widgets/app_button.dart';
+import 'package:iceflow_mobile/shared/widgets/app_header.dart';
 import 'package:iceflow_mobile/shared/widgets/error_views.dart';
+import 'package:iceflow_mobile/shared/widgets/load_more_button.dart';
+import 'package:iceflow_mobile/shared/widgets/snack_bars.dart';
+import 'package:iceflow_mobile/shared/widgets/state_views.dart';
 
 String _dateTime(DateTime date) {
   final local = date.toLocal();
@@ -30,7 +35,7 @@ class CustomerLedgerScreen extends StatelessWidget {
     return BlocProvider<LedgerCubit>(
       create: (_) => sl<LedgerCubit>(param1: debt)..load(),
       child: Scaffold(
-        appBar: AppBar(title: Text(debt.customerName)),
+        appBar: AppHeader(title: debt.customerName),
         body: BlocBuilder<LedgerCubit, LedgerState>(
           builder: (context, state) {
             final cubit = context.read<LedgerCubit>();
@@ -50,7 +55,7 @@ class CustomerLedgerScreen extends StatelessWidget {
                 else if (state.entries.isEmpty &&
                     state.status == ViewStatus.loading)
                   const Expanded(
-                    child: Center(child: CircularProgressIndicator()),
+                    child: LoadingView(),
                   )
                 else
                   Expanded(
@@ -65,34 +70,14 @@ class CustomerLedgerScreen extends StatelessWidget {
                               onRetry: cubit.load,
                             ),
                           if (state.entries.isEmpty)
-                            Padding(
-                              padding: const EdgeInsets.all(32),
-                              child: Text(
-                                AppStrings.ledgerEmpty,
-                                textAlign: TextAlign.center,
-                                style: context.textTheme.titleMedium,
-                              ),
-                            ),
+                            const EmptyView(message: AppStrings.ledgerEmpty),
                           for (final entry in state.entries)
                             _EntryTile(entry: entry),
                           if (state.hasMore)
-                            Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: state.loadingMore
-                                  ? const Center(
-                                      child: Padding(
-                                        padding: EdgeInsets.all(8),
-                                        child: CircularProgressIndicator(),
-                                      ),
-                                    )
-                                  : TextButton(
-                                      key: const Key('ledger_load_more'),
-                                      onPressed: cubit.loadMore,
-                                      style: TextButton.styleFrom(
-                                        minimumSize: const Size.fromHeight(48),
-                                      ),
-                                      child: const Text(AppStrings.loadMoreButton),
-                                    ),
+                            LoadMoreButton(
+                              key: const Key('ledger_load_more'),
+                              loading: state.loadingMore,
+                              onPressed: cubit.loadMore,
                             ),
                         ],
                       ),
@@ -117,9 +102,7 @@ class CustomerLedgerScreen extends StatelessWidget {
       builder: (_) => _PaymentSheet(cubit: cubit),
     );
     if (message == null) return;
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+    messenger.showMessage(message);
   }
 }
 
@@ -153,13 +136,12 @@ class _Outstanding extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          FilledButton.icon(
+          AppButton(
             key: const Key('ledger_pay'),
+            label: AppStrings.paymentButton,
+            icon: Icons.payments_outlined,
             // Hết nợ thì không còn gì để thu.
             onPressed: amount > 0 ? onPay : null,
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-            icon: const Icon(Icons.payments_outlined),
-            label: const Text(AppStrings.paymentButton),
           ),
         ],
       ),

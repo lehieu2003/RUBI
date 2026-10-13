@@ -6,6 +6,7 @@ import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/core/router/route_names.dart';
 import 'package:iceflow_mobile/core/theme/theme_cubit.dart';
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:iceflow_mobile/shared/widgets/app_header.dart';
 
 /// Tab "Cài đặt": thông tin user từ [AuthCubit] (provider cấp shell) +
 /// đăng xuất (có dialog xác nhận) + phiên bản app.
@@ -32,7 +33,7 @@ class SettingsTab extends StatelessWidget {
     final user = authState is Authenticated ? authState.user : null;
 
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppHeader(title: title),
       body: ListView(
         children: [
           Card(

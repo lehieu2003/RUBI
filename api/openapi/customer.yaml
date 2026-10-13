@@ -122,6 +122,78 @@ paths:
           $ref: ./components/responses/errors.yaml#/Conflict
         "500":
           $ref: ./components/responses/errors.yaml#/ServerError
+  /api/customers/{id}/prices:
+    get:
+      operationId: listCustomerPrices
+      tags:
+        - Customers
+      summary: Products on sale with this customer's price and what is left to sell
+      description: |-
+        Access: ADMIN, STAFF.
+
+        Feeds the order form once a customer is picked. `price` is the customer's own price, else the default one; null when the product has no price yet and cannot be ordered. `sellable` is the stock on the books minus what unsettled orders already took (it can be negative); null when the product never had a stock record. Ordered by name then size.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        productId:
+                          type: string
+                          minLength: 1
+                        name:
+                          type: string
+                        sizeKg:
+                          type: integer
+                        unit:
+                          type: string
+                        price:
+                          anyOf:
+                            - type: number
+                            - type: "null"
+                        sellable:
+                          anyOf:
+                            - type: integer
+                            - type: "null"
+                      required:
+                        - productId
+                        - name
+                        - sizeKg
+                        - unit
+                        - price
+                        - sellable
+                      additionalProperties: false
+                required:
+                  - success
+                  - data
+                additionalProperties: false
+        "400":
+          $ref: ./components/responses/errors.yaml#/BadRequest
+        "401":
+          $ref: ./components/responses/errors.yaml#/Unauthorized
+        "403":
+          $ref: ./components/responses/errors.yaml#/Forbidden
+        "404":
+          $ref: ./components/responses/errors.yaml#/NotFound
+        "500":
+          $ref: ./components/responses/errors.yaml#/ServerError
   /api/customers/debt-export:
     get:
       operationId: exportCustomerDebt

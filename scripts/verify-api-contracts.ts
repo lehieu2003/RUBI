@@ -539,6 +539,47 @@ async function main() {
   await call('deleteAsset', { params: { id: asset.id } });
   await call('deleteAsset', { params: { id: asset.id }, expectError: 404 });
 
+  // ---- Taking an order: the customer's price list, then the order itself ----
+  // Last on purpose: a new order would shift the counts the sections above compare.
+  const priced: Json[] = data(await call('listCustomerPrices', { params: { id: customer.id } }));
+  await call('listCustomerPrices', { as: 'staff', params: { id: customer.id } });
+  await call('listCustomerPrices', { as: 'driver', params: { id: customer.id }, expectError: 403 });
+  await call('listCustomerPrices', { params: { id: 'khong-ton-tai' }, expectError: 404 });
+  const [first, second] = priced.filter((item) => item.price !== null);
+  if (!first || !second) throw new Error('Seed data must contain two products with a price.');
+  const taken = data(
+    await call('createOrder', {
+      as: 'staff',
+      body: {
+        customerId: customer.id,
+        items: [
+          { productId: first.productId, quantity: 3 },
+          { productId: second.productId, quantity: 0 },
+        ],
+        notes: 'Giao cổng sau',
+      },
+    })
+  );
+  if (taken.total !== 3 * first.price) {
+    failures.push(`createOrder: total ${taken.total}, expected 3 x ${first.price} from the customer's price list`);
+  }
+  const stored = data(await call('listOrders', { query: { customerId: customer.id } })).find((item: Json) => item.id === taken.id);
+  if (!stored) {
+    failures.push('createOrder: the new order is not in the order list');
+  } else if (stored.orderItems.length !== 1 || stored.orderItems[0].quantity !== 3 || stored.notes !== 'Giao cổng sau') {
+    failures.push(`createOrder: stored ${stored.orderItems.length} line(s) and notes "${stored.notes}", expected the one line above 0 and its notes`);
+  }
+  const after = data(await call('listCustomerPrices', { params: { id: customer.id } })).find((item: Json) => item.productId === first.productId);
+  if (first.sellable !== null && after.sellable !== first.sellable - 3) {
+    failures.push(`listCustomerPrices: sellable went from ${first.sellable} to ${after.sellable} after ordering 3`);
+  }
+  const oneLine = [{ productId: first.productId, quantity: 1 }];
+  await call('createOrder', { body: { customerId: customer.id, items: [{ productId: first.productId, quantity: 0 }] }, expectError: 400 });
+  await call('createOrder', { body: { customerId: customer.id, items: [{ productId: 'khong-ton-tai', quantity: 1 }] }, expectError: 400 });
+  await call('createOrder', { body: { customerId: 'khong-ton-tai', items: oneLine }, expectError: 404 });
+  await call('createOrder', { as: 'driver', body: { customerId: customer.id, items: oneLine }, expectError: 403 });
+  await call('createOrder', { as: 'anon', body: { customerId: customer.id, items: oneLine }, expectError: 401 });
+
   await call('logout');
 
   // ---- Result ----

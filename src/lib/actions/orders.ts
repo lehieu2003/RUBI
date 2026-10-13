@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth';
 import { stockOnHand } from '@/lib/inventory';
 import { type AuditActor, describeLines, dong, recordAudit } from '@/lib/audit';
+import { OrderEntryError } from '@/lib/order-entry-error';
 
 // Order entry belongs to the office (manager and staff). Server actions are
 // reachable by anyone holding a session, drivers included, so the role is
@@ -130,6 +131,8 @@ const SaveOrderSchema = z.object({
     .refine((items) => items.some((i) => i.quantity > 0), {
       message: 'Cần ít nhất một sản phẩm có số lượng lớn hơn 0',
     }),
+  // What the driver must know at the door. The web drawer does not send it.
+  notes: z.string().trim().max(500, 'Ghi chú tối đa 500 ký tự').optional(),
 });
 
 export type SaveOrderInput = z.infer<typeof SaveOrderSchema>;
@@ -145,11 +148,14 @@ export type SaveOrderResult =
         customerName: string;
       };
     }
-  | { success: false; error: string };
+  // `status` is what POST /api/orders answers with: 400 or 404 for an order
+  // that cannot be taken as entered, 500 for anything else.
+  | { success: false; error: string; status: 400 | 404 | 500 };
 
 async function saveOrderInternal(
   customerId: string,
-  lineItems: { productId: string; quantity: number }[]
+  lineItems: { productId: string; quantity: number }[],
+  notes?: string
 ) {
   const actor = await requireOfficeActor();
   const factoryId = actor.factoryId;
@@ -175,10 +181,10 @@ async function saveOrderInternal(
     }),
   ]);
   if (!customer) {
-    throw new Error('Không tìm thấy khách hàng');
+    throw new OrderEntryError('Không tìm thấy khách hàng', 404);
   }
   if (sellable.length !== productIds.length) {
-    throw new Error('Có sản phẩm không tồn tại hoặc đã ngừng bán');
+    throw new OrderEntryError('Có sản phẩm không tồn tại hoặc đã ngừng bán', 400);
   }
 
   // Overrides win over the global price.
@@ -189,7 +195,7 @@ async function saveOrderInternal(
   // The server is the only source of prices, so a product with no price at
   // all must stop the order instead of being sold for 0.
   if (productIds.some((productId) => !prices.has(productId))) {
-    throw new Error('Có sản phẩm chưa có giá bán. Báo Quản lý cài giá trước khi lên đơn.');
+    throw new OrderEntryError('Có sản phẩm chưa có giá bán. Báo Quản lý cài giá trước khi lên đơn.', 400);
   }
 
   const validItems = orderedItems.map((item) => ({
@@ -207,6 +213,7 @@ async function saveOrderInternal(
         customerId,
         status: 'PENDING',
         total: total,
+        notes: notes || null,
         factoryId,
         orderItems: {
           create: validItems.map((item) => ({
@@ -251,11 +258,12 @@ export async function saveOrder(
       return {
         success: false,
         error: parsed.error.issues.map((e: { message: string }) => e.message).join(', '),
+        status: 400,
       };
     }
 
-    const { customerId, lineItems } = parsed.data;
-    const order = await saveOrderInternal(customerId, lineItems);
+    const { customerId, lineItems, notes } = parsed.data;
+    const order = await saveOrderInternal(customerId, lineItems, notes);
 
     revalidatePath('/orders');
 
@@ -266,6 +274,7 @@ export async function saveOrder(
       success: false,
       error:
         error instanceof Error ? error.message : 'Failed to save order',
+      status: error instanceof OrderEntryError ? error.status : 500,
     };
   }
 }

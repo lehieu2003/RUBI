@@ -83,7 +83,8 @@ value() { printf '%s\n' "$PREPARED" | sed -n "s/^$1=//p"; }
     --dart-define="E2E_EMAIL=$(value E2E_EMAIL)" \
     --dart-define="E2E_PASSWORD=$(value E2E_PASSWORD)" \
     --dart-define="E2E_NEW_PASSWORD=$(value E2E_NEW_PASSWORD)" \
-    --dart-define="E2E_CUSTOMER=$(value E2E_CUSTOMER)"
+    --dart-define="E2E_CUSTOMER=$(value E2E_CUSTOMER)" \
+    --dart-define="E2E_ORDER_ID=$(value E2E_ORDER_ID)"
 )
 
 # What the app did must be on the server.

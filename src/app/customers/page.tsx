@@ -303,6 +303,10 @@ export default function CustomersPage() {
               {user?.role === 'ADMIN' && (
                 <Link
                   href={`/customers/${selectedCustomer.id}`}
+                  // No prefetch: the link appears with the drawer and is clicked right
+                  // away. On a slow browser the prefetch was still in flight at the
+                  // click, and the navigation then never completed.
+                  prefetch={false}
                   className="flex items-center justify-between rounded border border-outline-variant bg-surface p-4 hover:border-[#004a99] hover:bg-container-low transition-all"
                 >
                   <span className="flex items-center gap-2.5 text-sm font-bold text-on-surface">

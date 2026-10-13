@@ -22,6 +22,9 @@ const _newPassword = String.fromEnvironment('E2E_NEW_PASSWORD');
 /// The customer of the one order out for delivery with that driver.
 const _customer = String.fromEnvironment('E2E_CUSTOMER');
 
+/// That order's id.
+const _orderId = String.fromEnvironment('E2E_ORDER_ID');
+
 /// Seeded accounts of the other two roles (src/db/seed.ts).
 const _staffEmail = 'nhanvien@miendong.vn';
 const _managerEmail = 'quanly@rubi.local';
@@ -52,9 +55,9 @@ void main() {
   }
 
   testWidgets('a new driver: wrong password, forced password change, a '
-      'delivery, a shift, sign out and back in; then staff work the orders and the '
+      'delivery, a shift, sign out and back in; then staff take, assign and cancel an order and the '
       'manager approves the shift, records a production batch and a payment, '
-      'and reads the audit log',
+      'reads the audit log and settles the delivery',
       (tester) async {
     expect(_email, isNotEmpty, reason: 'run through scripts/mobile-e2e-local.sh');
 
@@ -170,7 +173,33 @@ void main() {
     await waitFor(tester, orderCards);
     expect(find.byType(NavigationDestination), findsNWidgets(3));
     expect(find.text(AppStrings.navToday), findsNothing);
-    // They hand a waiting order to a driver, then cancel it with a reason.
+    // They take an order on the phone: pick the customer by typing without
+    // accents, two bags of the first product on sale, a note for the driver.
+    await tester.tap(find.byKey(const Key('orders_new')));
+    await waitFor(tester, find.byKey(const Key('order_entry_customer_search')));
+    await tester.enterText(
+      find.byKey(const Key('order_entry_customer_search')),
+      'gio bien',
+    );
+    await waitFor(tester, find.text('Quán Nhậu Gió Biển'));
+    await tester.tap(find.text('Quán Nhậu Gió Biển'));
+    await waitFor(tester, find.byKey(const Key('order_entry_save')));
+    await waitFor(tester, find.byTooltip(AppStrings.settleIncreaseTooltip));
+    await tester.tap(find.byTooltip(AppStrings.settleIncreaseTooltip).first);
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.tap(find.byTooltip(AppStrings.settleIncreaseTooltip).first);
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.enterText(
+      find.byKey(const Key('order_entry_notes')),
+      'Lên thử từ app',
+    );
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.byKey(const Key('order_entry_save')));
+    await waitFor(tester, find.textContaining('Đã lên đơn'));
+    await tester.pump(const Duration(milliseconds: 600));
+    // The new order is the newest one waiting: they hand it to a driver,
+    // then cancel it with a reason.
     await tester.tap(find.byKey(const Key('orders_tab_PENDING')));
     await tester.pump(const Duration(milliseconds: 300));
     await waitFor(tester, orderCards);
@@ -273,5 +302,17 @@ void main() {
     await waitFor(tester, orderCards);
     await tester.tap(find.byType(BackButton));
     await waitFor(tester, find.text(_managerEmail));
+    // "Thêm" → "Đối soát": the driver's delivery is settled one short.
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.tap(find.byKey(const Key('more_settle')));
+    final delivery = find.byKey(const Key('order_$_orderId'));
+    await waitFor(tester, delivery);
+    await tester.tap(delivery);
+    await waitFor(tester, find.byKey(const Key('settle_confirm')));
+    await tester.tap(find.byTooltip(AppStrings.settleDecreaseTooltip).first);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.ensureVisible(find.byKey(const Key('settle_confirm')));
+    await tester.tap(find.byKey(const Key('settle_confirm')));
+    await waitFor(tester, find.textContaining('Đã chốt đơn'));
   });
 }

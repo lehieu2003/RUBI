@@ -9,6 +9,8 @@ import 'package:iceflow_mobile/features/debt/domain/entities/customer_debt.dart'
 import 'package:iceflow_mobile/features/debt/presentation/cubit/debt_cubit.dart';
 import 'package:iceflow_mobile/features/debt/presentation/screens/customer_ledger_screen.dart';
 import 'package:iceflow_mobile/shared/widgets/error_views.dart';
+import 'package:iceflow_mobile/shared/widgets/app_header.dart';
+import 'package:iceflow_mobile/shared/widgets/state_views.dart';
 
 String _day(DateTime date) {
   final local = date.toLocal();
@@ -27,7 +29,7 @@ class DebtTab extends StatelessWidget {
       // Rời tab unmount cubit → quay lại tải lại từ đầu.
       create: (_) => sl<DebtCubit>()..load(),
       child: Scaffold(
-        appBar: AppBar(title: const Text(AppStrings.navDebt)),
+        appBar: AppHeader(title: AppStrings.navDebt),
         body: BlocBuilder<DebtCubit, DebtState>(
           builder: (context, state) {
             final cubit = context.read<DebtCubit>();
@@ -36,7 +38,7 @@ class DebtTab extends StatelessWidget {
               return ErrorView(message: state.errorMessage, onRetry: cubit.load);
             }
             if (debts == null) {
-              return const Center(child: CircularProgressIndicator());
+              return const LoadingView();
             }
             return Column(
               children: [
@@ -53,14 +55,7 @@ class DebtTab extends StatelessWidget {
                       children: [
                         _Total(amount: state.totalOutstanding, count: debts.length),
                         if (debts.isEmpty)
-                          Padding(
-                            padding: const EdgeInsets.all(32),
-                            child: Text(
-                              AppStrings.debtNone,
-                              textAlign: TextAlign.center,
-                              style: context.textTheme.titleMedium,
-                            ),
-                          ),
+                          const EmptyView(message: AppStrings.debtNone),
                         for (final debt in debts)
                           _DebtCard(
                             debt: debt,

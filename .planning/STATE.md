@@ -128,6 +128,12 @@ v3.0 decisions:
 | 261012-mma | Mobile manager: "Thêm" tab instead of a fifth tab, and the audit log screen | 2026-10-12 | feat/mobile-more-audit-log | [261012-mma-mobile-more-audit-log](./quick/261012-mma-mobile-more-audit-log/) |
 | 261012-mod | Mobile: office orders data layer — list with filters and counts, drivers, assign, change status | 2026-10-12 | feat/mobile-orders-data | [261012-mod-mobile-orders-data](./quick/261012-mod-mobile-orders-data/) |
 | 261012-mos | Mobile: orders screen for manager and staff — status tabs, search, assign driver, change status, cancel | 2026-10-12 | feat/mobile-orders-screen | [261012-mos-mobile-orders-screen](./quick/261012-mos-mobile-orders-screen/) |
+| 261013-mst | Mobile: settlement for the manager — delivered orders, actual quantity per line, confirm | 2026-10-13 | feat/mobile-settlement | [261013-mst-mobile-settlement](./quick/261013-mst-mobile-settlement/) |
+| 261013-msw | Mobile: shared widgets — AppHeader, AppButton, loading / empty views, load-more, search field, snackbar helper | 2026-10-13 | refactor/mobile-shared-widgets | [261013-msw-mobile-shared-widgets](./quick/261013-msw-mobile-shared-widgets/) |
+| 261013-aco | API: create an order over REST and a customer's price list with sellable stock, for the mobile app | 2026-10-13 | feat/api-create-order | [261013-aco-api-create-order](./quick/261013-aco-api-create-order/) |
+| 261013-moe | Mobile: order entry data layer — customers, a customer's price list with sellable stock, create order | 2026-10-13 | feat/mobile-order-entry-data | [261013-moe-mobile-order-entry-data](./quick/261013-moe-mobile-order-entry-data/) |
+| 261013-mes | Mobile: order entry screen — pick a customer, quantities at the customer's prices, notes, save | 2026-10-13 | feat/mobile-order-entry-screen | [261013-mes-mobile-order-entry-screen](./quick/261013-mes-mobile-order-entry-screen/) |
+| 261013-fpf | Fix: customer price link stuck on a slow browser (the flaky access e2e test) | 2026-10-13 | fix/e2e-customer-price-page-flake | [261013-fpf-fix-price-page-flake](./quick/261013-fpf-fix-price-page-flake/) |
 
 ## Session Continuity
 

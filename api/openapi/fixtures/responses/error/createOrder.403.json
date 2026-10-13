@@ -1,0 +1,22 @@
+{
+  "operationId": "createOrder",
+  "request": {
+    "method": "POST",
+    "path": "/api/orders",
+    "as": "driver",
+    "body": {
+      "customerId": "cmv6ehyfu0003i9e4p70r8esm",
+      "items": [
+        {
+          "productId": "prod-bi-5",
+          "quantity": 1
+        }
+      ]
+    }
+  },
+  "status": 403,
+  "body": {
+    "success": false,
+    "error": "Bạn không có quyền thực hiện thao tác này"
+  }
+}

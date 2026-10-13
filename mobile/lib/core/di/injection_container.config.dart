@@ -57,10 +57,16 @@ import 'package:iceflow_mobile/features/inventory/domain/repositories/inventory_
     as _i793;
 import 'package:iceflow_mobile/features/inventory/presentation/cubit/inventory_cubit.dart'
     as _i14;
+import 'package:iceflow_mobile/features/orders/data/order_entry_repository_impl.dart'
+    as _i862;
 import 'package:iceflow_mobile/features/orders/data/orders_repository_impl.dart'
     as _i755;
+import 'package:iceflow_mobile/features/orders/domain/repositories/order_entry_repository.dart'
+    as _i482;
 import 'package:iceflow_mobile/features/orders/domain/repositories/orders_repository.dart'
     as _i420;
+import 'package:iceflow_mobile/features/orders/presentation/cubit/order_entry_cubit.dart'
+    as _i111;
 import 'package:iceflow_mobile/features/orders/presentation/cubit/orders_cubit.dart'
     as _i345;
 import 'package:iceflow_mobile/features/schedule/data/schedule_repository_impl.dart'
@@ -126,6 +132,9 @@ extension GetItInjectableX on _i174.GetIt {
       (debt, _) =>
           _i759.LedgerCubit(repo: gh<_i360.DebtRepository>(), debt: debt),
     );
+    gh.lazySingleton<_i482.OrderEntryRepository>(
+      () => _i862.OrderEntryRepositoryImpl(dio: gh<_i361.Dio>()),
+    );
     gh.lazySingleton<_i285.ScheduleRepository>(
       () => _i110.ScheduleRepositoryImpl(dio: gh<_i361.Dio>()),
     );
@@ -150,6 +159,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i1.TeamScheduleCubit>(
       () => _i1.TeamScheduleCubit(repo: gh<_i987.TeamScheduleRepository>()),
+    );
+    gh.factory<_i111.OrderEntryCubit>(
+      () => _i111.OrderEntryCubit(repo: gh<_i482.OrderEntryRepository>()),
     );
     gh.factory<_i756.ScheduleCubit>(
       () => _i756.ScheduleCubit(repo: gh<_i285.ScheduleRepository>()),

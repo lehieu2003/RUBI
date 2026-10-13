@@ -1,0 +1,22 @@
+{
+  "operationId": "createOrder",
+  "request": {
+    "method": "POST",
+    "path": "/api/orders",
+    "as": "admin",
+    "body": {
+      "customerId": "khong-ton-tai",
+      "items": [
+        {
+          "productId": "prod-bi-5",
+          "quantity": 1
+        }
+      ]
+    }
+  },
+  "status": 404,
+  "body": {
+    "success": false,
+    "error": "Không tìm thấy khách hàng"
+  }
+}

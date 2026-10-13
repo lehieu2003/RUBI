@@ -7,14 +7,20 @@ import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 import 'package:iceflow_mobile/core/pagination/page_params.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/orders/domain/entities/office_order.dart';
+import 'package:iceflow_mobile/features/orders/domain/repositories/order_entry_repository.dart';
 import 'package:iceflow_mobile/features/orders/domain/repositories/orders_repository.dart';
+import 'package:iceflow_mobile/features/orders/presentation/cubit/order_entry_cubit.dart';
 import 'package:iceflow_mobile/features/orders/presentation/cubit/orders_cubit.dart';
+import 'package:iceflow_mobile/features/orders/presentation/screens/order_entry_screen.dart';
 import 'package:iceflow_mobile/features/orders/presentation/screens/orders_tab.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'order_entry_fixtures.dart';
 import 'orders_fixtures.dart';
 
 class _MockOrdersRepository extends Mock implements OrdersRepository {}
+
+class _MockEntryRepo extends Mock implements OrderEntryRepository {}
 
 void main() {
   setUpAll(() {
@@ -357,6 +363,71 @@ void main() {
         ),
       ).called(1);
     });
+  });
+
+  testWidgets('"Lên đơn" → mở màn lên đơn; lưu xong thì báo mã đơn và tải lại',
+      (tester) async {
+    final entryRepo = _MockEntryRepo();
+    when(() => entryRepo.getCustomers()).thenAnswer((_) async => const Ok(customers));
+    when(() => entryRepo.getPriceList(any())).thenAnswer((_) async => const Ok(priceList));
+    when(
+      () => entryRepo.createOrder(
+        customerId: any(named: 'customerId'),
+        quantities: any(named: 'quantities'),
+        notes: any(named: 'notes'),
+      ),
+    ).thenAnswer((_) async => const Ok(created));
+    sl.registerFactory<OrderEntryCubit>(() => OrderEntryCubit(repo: entryRepo));
+    addTearDown(() => sl.unregister<OrderEntryCubit>());
+    await pumpTab(tester);
+    clearInteractions(repo);
+
+    await tester.tap(find.byKey(const Key('orders_new')));
+    await tester.pumpAndSettle();
+    expect(find.byType(OrderEntryScreen), findsOneWidget);
+    await tester.tap(find.byKey(const Key('order_entry_customer_c-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('order_entry_plus_p-1')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('order_entry_save')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(OrderEntryScreen), findsNothing);
+    expect(
+      find.text(AppStrings.orderEntrySaved('DH-ABC123', '36.000đ')),
+      findsOneWidget,
+    );
+    verify(
+      () => repo.getOrders(
+        filter: any(named: 'filter'),
+        status: any(named: 'status'),
+        page: any(named: 'page'),
+      ),
+    ).called(1);
+  });
+
+  testWidgets('thoát màn lên đơn giữa chừng → không báo gì, không tải lại',
+      (tester) async {
+    final entryRepo = _MockEntryRepo();
+    when(() => entryRepo.getCustomers()).thenAnswer((_) async => const Ok(customers));
+    sl.registerFactory<OrderEntryCubit>(() => OrderEntryCubit(repo: entryRepo));
+    addTearDown(() => sl.unregister<OrderEntryCubit>());
+    await pumpTab(tester);
+    clearInteractions(repo);
+
+    await tester.tap(find.byKey(const Key('orders_new')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SnackBar), findsNothing);
+    verifyNever(
+      () => repo.getOrders(
+        filter: any(named: 'filter'),
+        status: any(named: 'status'),
+        page: any(named: 'page'),
+      ),
+    );
   });
 
   testWidgets('màn hình 360dp, tên dài → không overflow (danh sách và chi tiết)',

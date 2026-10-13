@@ -216,6 +216,43 @@ abstract final class AppStrings {
   static const orderSettleHint =
       'Đơn đã giao chờ Quản lý đối soát để ghi nợ và trừ kho.';
 
+  // ---- Lên đơn (Quản lý, Nhân viên) ----
+  static const orderEntryNoLines = 'Nhập số lượng cho ít nhất một sản phẩm';
+  static const orderEntryTitle = 'Lên đơn';
+  static const orderEntryButton = 'Lên đơn';
+  static const orderEntryPickCustomer = 'Chọn khách hàng';
+  static const orderEntryCustomerHint = 'Tìm tên, mã hoặc số điện thoại';
+  static const orderEntryNoCustomers = 'Không tìm thấy khách hàng nào';
+  static const orderEntryChangeCustomer = 'Đổi khách';
+  static const orderEntryNoProducts = 'Chưa có sản phẩm nào đang bán';
+  static String orderEntryPrice(String price, String unit) => '$price/$unit';
+  static String orderEntrySellable(int left) => 'Còn $left';
+  static const orderEntryNoPrice = 'Chưa có giá — báo Quản lý cài giá';
+  static const orderEntryNotesHint = 'Ghi chú cho tài xế (không bắt buộc)';
+  static String orderEntryTotal(int lines) => 'Tạm tính ($lines dòng)';
+  static const orderEntrySave = 'Lưu đơn';
+  static const orderEntryUnsure =
+      'Mất kết nối khi đang lưu. Xem lại danh sách đơn trước khi lưu lại, kẻo trùng đơn.';
+  static String orderEntrySaved(String code, String total) =>
+      'Đã lên đơn $code · $total';
+
+  // ---- Đối soát (Quản lý) ----
+  static const settleTitle = 'Đối soát';
+  static const settleSubtitle = 'Chốt số thực giao, ghi nợ và trừ kho';
+  static String settlePendingCount(int count) =>
+      '$count đơn đã giao chờ đối soát';
+  static const settleEmpty = 'Không có đơn nào cần đối soát';
+  static const settleActualLabel = 'Số lượng thực giao';
+  static String settleOrdered(int quantity, String unitPrice) =>
+      'Đặt $quantity · $unitPrice';
+  static const settleDebtLabel = 'Ghi nợ cho khách';
+  static const settleNote =
+      'Chốt xong không sửa lại được: nợ của khách và tồn kho đổi theo số này.';
+  static const settleConfirmButton = 'Xác nhận chốt';
+  static const settleDecreaseTooltip = 'Giảm';
+  static const settleIncreaseTooltip = 'Tăng';
+  static String settleDone(String code) => 'Đã chốt đơn $code';
+
   // ---- Tab cài đặt: giao diện ----
   static const themeTitle = 'Giao diện';
   static const themeSystem = 'Theo máy';

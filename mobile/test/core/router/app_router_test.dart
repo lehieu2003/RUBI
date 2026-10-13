@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -307,14 +309,54 @@ void main() {
       expect(find.byType(NavigationDestination), findsNWidgets(4));
       expect(find.text(AppStrings.shiftReviewNonePending), findsOneWidget);
       expect(find.text(AppStrings.navSchedule), findsNothing);
-      // "Thêm": lối vào Đơn hàng và Nhật ký, rồi tới tài khoản, cài đặt và đăng xuất.
+      // "Thêm": lối vào Đơn hàng, Đối soát và Nhật ký, rồi tới tài khoản, cài đặt và đăng xuất.
       await tester.tap(find.text(AppStrings.navMore));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('more_orders')), findsOneWidget);
+      expect(find.byKey(const Key('more_settle')), findsOneWidget);
       expect(find.byKey(const Key('more_audit_log')), findsOneWidget);
       expect(find.text('chu@iceflow.vn'), findsOneWidget);
       expect(find.text(AppStrings.themeTitle), findsOneWidget);
+      // Menu dài hơn màn hình test: cuộn xuống mới tới Đăng xuất.
+      await tester.scrollUntilVisible(
+        find.text(AppStrings.logoutButton),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
       expect(find.text(AppStrings.logoutButton), findsOneWidget);
+    });
+
+    testWidgets('về trạng thái chưa đăng nhập → câu báo đang hiện và đang chờ '
+        'đều bị xoá, không theo sang phiên của người kế tiếp', (tester) async {
+      // Phiên chưa khôi phục xong: app còn ở AuthUnknown cho tới khi có kết quả.
+      final restoring = Completer<Result<User?>>();
+      when(() => repo.restoreSession()).thenAnswer((_) => restoring.future);
+      when(() => preferences.readThemeMode()).thenAnswer((_) async => null);
+      final cubit = buildCubit();
+      addTearDown(cubit.close);
+      final themeCubit = ThemeCubit(preferences: preferences);
+      addTearDown(themeCubit.close);
+      await tester.pumpWidget(
+        IceFlowApp(authCubit: cubit, themeCubit: themeCubit),
+      );
+      await tester.pumpAndSettle();
+
+      final messenger = tester.state<ScaffoldMessengerState>(
+        find.byType(ScaffoldMessenger).first,
+      );
+      messenger
+        ..showSnackBar(const SnackBar(content: Text('Đã gửi đăng ký')))
+        ..showSnackBar(const SnackBar(content: Text('Câu báo đang chờ')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('Đã gửi đăng ký'), findsOneWidget);
+
+      restoring.complete(const Ok<User?>(null));
+      await tester.pumpAndSettle();
+
+      expect(cubit.state, isA<Unauthenticated>());
+      expect(find.text('Đã gửi đăng ký'), findsNothing);
+      expect(find.text('Câu báo đang chờ'), findsNothing);
     });
   });
 }

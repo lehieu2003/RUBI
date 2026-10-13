@@ -10,6 +10,8 @@ import 'package:iceflow_mobile/features/driver/presentation/widgets/delivery_car
 import 'package:iceflow_mobile/core/di/injection_container.dart';
 import 'package:iceflow_mobile/shared/widgets/error_views.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:iceflow_mobile/shared/widgets/app_header.dart';
+import 'package:iceflow_mobile/shared/widgets/state_views.dart';
 
 /// Tab "Đơn hôm nay": AppBar "Đơn hôm nay" + danh sách [DeliveryCard] có
 /// pull-to-refresh và luồng xác nhận đã giao.
@@ -25,14 +27,14 @@ class TodayTab extends StatelessWidget {
       create: (_) => sl<TodayOrdersCubit>()..load(),
       child: _RefreshOnResume(
         child: Scaffold(
-          appBar: AppBar(title: const Text(AppStrings.todayTitle)),
+          appBar: AppHeader(title: AppStrings.todayTitle),
           body: BlocBuilder<TodayOrdersCubit, TodayOrdersState>(
             builder: (context, state) {
               final cubit = context.read<TodayOrdersCubit>();
 
               // Lần tải đầu chưa có gì → spinner.
               if (state.status == ViewStatus.loading && state.orders.isEmpty) {
-                return const Center(child: CircularProgressIndicator());
+                return const LoadingView();
               }
               // Tải lỗi mà không có đơn cũ để giữ → màn lỗi + Thử lại.
               if (state.orders.isEmpty && state.status == ViewStatus.error) {
