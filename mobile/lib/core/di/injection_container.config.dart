@@ -29,6 +29,10 @@ import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository
     as _i452;
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart'
     as _i251;
+import 'package:iceflow_mobile/features/customers/data/customers_repository_impl.dart'
+    as _i580;
+import 'package:iceflow_mobile/features/customers/domain/repositories/customers_repository.dart'
+    as _i585;
 import 'package:iceflow_mobile/features/debt/data/debt_repository_impl.dart'
     as _i61;
 import 'package:iceflow_mobile/features/debt/domain/entities/customer_debt.dart'
@@ -140,6 +144,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i987.TeamScheduleRepository>(
       () => _i783.TeamScheduleRepositoryImpl(dio: gh<_i361.Dio>()),
+    );
+    gh.lazySingleton<_i585.CustomersRepository>(
+      () => _i580.CustomersRepositoryImpl(dio: gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i103.DriverRepository>(
       () => _i340.DriverRepositoryImpl(dio: gh<_i361.Dio>()),
