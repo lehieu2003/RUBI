@@ -139,6 +139,7 @@ v3.0 decisions:
 | 261013-mcu | Mobile: customers — directory with search, contact and price list; the manager adds customers and opens the ledger | 2026-10-13 | feat/mobile-customers | [261013-mcu-mobile-customers](./quick/261013-mcu-mobile-customers/) |
 | 261013-msf | Mobile: staff accounts for the manager — create, edit, change role, reset password, lock | 2026-10-13 | feat/mobile-staff | [261013-msf-mobile-staff](./quick/261013-msf-mobile-staff/) |
 | 261013-arp | API: list default prices (all products) and split a customer's price into default and own | 2026-10-13 | feat/api-read-prices | [261013-arp-api-read-prices](./quick/261013-arp-api-read-prices/) |
+| 261013-mpp | Mobile: products and default prices for the manager — add, change price, edit, stop / resume selling | 2026-10-13 | feat/mobile-products-prices | [261013-mpp-mobile-products-prices](./quick/261013-mpp-mobile-products-prices/) |
 
 ## Session Continuity
 
