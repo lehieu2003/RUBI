@@ -393,6 +393,19 @@ void main() {
     await tester.tap(find.byType(BackButton).last);
     // The menu is scrolled by now: the account card is off screen.
     await tester.pump(const Duration(milliseconds: 600));
+    // "Thêm" → "Vỏ bao": three more shells go out to the customer holding
+    // the most.
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.ensureVisible(find.byKey(const Key('more_shells')));
+    await tester.tap(find.byKey(const Key('more_shells')));
+    await waitFor(tester, find.byKey(const Key('shells_total_held')));
+    await tester.tap(find.text('Vựa Hải Sản Năm Căn'));
+    await waitFor(tester, find.byKey(const Key('shells_out')));
+    await tester.enterText(find.byKey(const Key('shells_out')), '3');
+    await tester.tap(find.byKey(const Key('shells_save')));
+    await waitFor(tester, find.textContaining('giao thêm 3 vỏ'));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.byType(BackButton).last);
     // "Thêm" → "Bảng công": this month's report loads from the server, and
     // so does the previous month.
     await tester.pump(const Duration(milliseconds: 600));
