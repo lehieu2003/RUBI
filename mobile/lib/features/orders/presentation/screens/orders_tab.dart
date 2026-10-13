@@ -12,6 +12,7 @@ import 'package:iceflow_mobile/features/orders/domain/entities/order_entry.dart'
 import 'package:iceflow_mobile/features/orders/presentation/cubit/orders_cubit.dart';
 import 'package:iceflow_mobile/features/orders/presentation/screens/order_entry_screen.dart';
 import 'package:iceflow_mobile/features/orders/presentation/widgets/order_card.dart';
+import 'package:iceflow_mobile/features/orders/presentation/widgets/order_filter_bar.dart';
 import 'package:iceflow_mobile/shared/widgets/app_button.dart';
 import 'package:iceflow_mobile/shared/widgets/app_header.dart';
 import 'package:iceflow_mobile/shared/widgets/error_views.dart';
@@ -87,6 +88,7 @@ class _OrdersBody extends StatelessWidget {
               hint: AppStrings.ordersSearchHint,
               onSearch: cubit.setSearch,
             ),
+            OrderFilterBar(state: state, cubit: cubit),
             _StatusTabs(state: state, onSelect: cubit.selectTab),
             if (state.orders.isEmpty && state.status == ViewStatus.error)
               Expanded(

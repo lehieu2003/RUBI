@@ -216,6 +216,13 @@ abstract final class AppStrings {
   static const orderSettleHint =
       'Đơn đã giao chờ Quản lý đối soát để ghi nợ và trừ kho.';
 
+  // ---- Bộ lọc danh sách đơn ----
+  static const orderFilterAnyDate = 'Mọi ngày';
+  static const orderFilterAnyDriver = 'Mọi tài xế';
+  static const orderFilterUnassigned = 'Chưa gán tài xế';
+  static const orderFilterDriverTitle = 'Lọc theo tài xế';
+  static const orderFilterClear = 'Bỏ lọc';
+
   // ---- Lên đơn (Quản lý, Nhân viên) ----
   static const orderEntryNoLines = 'Nhập số lượng cho ít nhất một sản phẩm';
   static const orderEntryTitle = 'Lên đơn';
