@@ -101,6 +101,12 @@ import 'package:iceflow_mobile/features/schedule/presentation/cubit/shift_report
     as _i79;
 import 'package:iceflow_mobile/features/schedule/presentation/cubit/team_schedule_cubit.dart'
     as _i1;
+import 'package:iceflow_mobile/features/shells/data/shells_repository_impl.dart'
+    as _i101;
+import 'package:iceflow_mobile/features/shells/domain/shell_balance.dart'
+    as _i379;
+import 'package:iceflow_mobile/features/shells/presentation/shells_cubit.dart'
+    as _i547;
 import 'package:iceflow_mobile/features/staff/data/staff_repository_impl.dart'
     as _i853;
 import 'package:iceflow_mobile/features/staff/domain/repositories/staff_repository.dart'
@@ -170,6 +176,9 @@ extension GetItInjectableX on _i174.GetIt {
       (debt, _) =>
           _i759.LedgerCubit(repo: gh<_i360.DebtRepository>(), debt: debt),
     );
+    gh.lazySingleton<_i379.ShellsRepository>(
+      () => _i101.ShellsRepositoryImpl(dio: gh<_i361.Dio>()),
+    );
     gh.lazySingleton<_i482.OrderEntryRepository>(
       () => _i862.OrderEntryRepositoryImpl(dio: gh<_i361.Dio>()),
     );
@@ -215,6 +224,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i79.ShiftReportCubit>(
       () => _i79.ShiftReportCubit(repo: gh<_i797.ShiftReportRepository>()),
+    );
+    gh.factory<_i547.ShellsCubit>(
+      () => _i547.ShellsCubit(repo: gh<_i379.ShellsRepository>()),
     );
     gh.factory<_i1045.CustomersCubit>(
       () => _i1045.CustomersCubit(repo: gh<_i585.CustomersRepository>()),

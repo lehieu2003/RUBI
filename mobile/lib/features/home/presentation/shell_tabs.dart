@@ -20,6 +20,7 @@ import 'package:iceflow_mobile/features/products/presentation/screens/products_s
 import 'package:iceflow_mobile/features/schedule/presentation/screens/schedule_tab.dart';
 import 'package:iceflow_mobile/features/schedule/presentation/screens/shift_report_screen.dart';
 import 'package:iceflow_mobile/features/schedule/presentation/screens/shift_review_tab.dart';
+import 'package:iceflow_mobile/features/shells/presentation/shells_screen.dart';
 import 'package:iceflow_mobile/features/staff/presentation/screens/staff_screen.dart';
 import 'package:iceflow_mobile/shared/widgets/snack_bars.dart';
 
@@ -181,6 +182,16 @@ Widget _buildMore(BuildContext context) => SettingsTab(
           ),
         ),
         ListTile(
+          key: const Key('more_shells'),
+          leading: const Icon(Icons.inventory_2_outlined),
+          title: const Text(AppStrings.shellsTitle),
+          subtitle: const Text(AppStrings.shellsSubtitle),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => const ShellsScreen()),
+          ),
+        ),
+        ListTile(
           key: const Key('more_shift_report'),
           leading: const Icon(Icons.table_chart_outlined),
           title: const Text(AppStrings.shiftReportTitle),
@@ -219,7 +230,7 @@ Widget _buildMore(BuildContext context) => SettingsTab(
 /// - Tài xế: giao hàng (hôm nay, lịch sử) và đăng ký ca.
 /// - Nhân viên: đơn hàng, khách hàng và đăng ký ca.
 /// - Quản lý: duyệt ca, kho lạnh, công nợ, và "Thêm" (đơn hàng, khách
-///   hàng, đối soát, sản phẩm & giá, bảng công, nhân sự, nhật ký, cài đặt).
+///   hàng, đối soát, sản phẩm & giá, vỏ bao, bảng công, nhân sự, nhật ký, cài đặt).
 ///   Không tự đăng ký ca (server từ chối). Thanh dưới chỉ đủ chỗ cho ba màn
 ///   dùng hằng ngày: màn mới của Quản lý thêm vào "Thêm".
 List<ShellTab> shellTabsFor(UserRole role) {
