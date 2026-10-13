@@ -85,10 +85,14 @@ import 'package:iceflow_mobile/features/products/presentation/cubit/products_cub
     as _i276;
 import 'package:iceflow_mobile/features/schedule/data/schedule_repository_impl.dart'
     as _i110;
+import 'package:iceflow_mobile/features/schedule/data/shift_report_repository_impl.dart'
+    as _i222;
 import 'package:iceflow_mobile/features/schedule/data/team_schedule_repository_impl.dart'
     as _i783;
 import 'package:iceflow_mobile/features/schedule/domain/repositories/schedule_repository.dart'
     as _i285;
+import 'package:iceflow_mobile/features/schedule/domain/repositories/shift_report_repository.dart'
+    as _i797;
 import 'package:iceflow_mobile/features/schedule/domain/repositories/team_schedule_repository.dart'
     as _i987;
 import 'package:iceflow_mobile/features/schedule/presentation/cubit/schedule_cubit.dart'
@@ -191,6 +195,9 @@ extension GetItInjectableX on _i174.GetIt {
         preferences: gh<_i681.AppPreferences>(),
         authEvents: gh<_i1021.AuthEvents>(),
       ),
+    );
+    gh.lazySingleton<_i797.ShiftReportRepository>(
+      () => _i222.ShiftReportRepositoryImpl(dio: gh<_i361.Dio>()),
     );
     gh.factory<_i1.TeamScheduleCubit>(
       () => _i1.TeamScheduleCubit(repo: gh<_i987.TeamScheduleRepository>()),
