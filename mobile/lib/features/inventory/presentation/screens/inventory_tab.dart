@@ -9,6 +9,9 @@ import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/inventory/domain/entities/stock.dart';
 import 'package:iceflow_mobile/features/inventory/presentation/cubit/inventory_cubit.dart';
 import 'package:iceflow_mobile/shared/widgets/error_views.dart';
+import 'package:iceflow_mobile/shared/widgets/app_header.dart';
+import 'package:iceflow_mobile/shared/widgets/snack_bars.dart';
+import 'package:iceflow_mobile/shared/widgets/state_views.dart';
 
 String _number(num value) {
   final digits = value.round().abs().toString();
@@ -30,7 +33,7 @@ class InventoryTab extends StatelessWidget {
       // Rời tab unmount cubit → quay lại tải lại từ đầu.
       create: (_) => sl<InventoryCubit>()..load(),
       child: Scaffold(
-        appBar: AppBar(title: const Text(AppStrings.navInventory)),
+        appBar: AppHeader(title: AppStrings.navInventory),
         body: BlocBuilder<InventoryCubit, InventoryState>(
           builder: (context, state) {
             final cubit = context.read<InventoryCubit>();
@@ -39,7 +42,7 @@ class InventoryTab extends StatelessWidget {
               return ErrorView(message: state.errorMessage, onRetry: cubit.load);
             }
             if (stock == null) {
-              return const Center(child: CircularProgressIndicator());
+              return const LoadingView();
             }
             final low = stock.lowStockItems;
             return Column(
@@ -58,14 +61,7 @@ class InventoryTab extends StatelessWidget {
                         _Totals(stock: stock),
                         if (low.isNotEmpty) _LowStockAlert(items: low),
                         if (stock.items.isEmpty)
-                          Padding(
-                            padding: const EdgeInsets.all(32),
-                            child: Text(
-                              AppStrings.stockEmpty,
-                              textAlign: TextAlign.center,
-                              style: context.textTheme.titleMedium,
-                            ),
-                          ),
+                          const EmptyView(message: AppStrings.stockEmpty),
                         for (final item in stock.items)
                           _StockCard(
                             item: item,
@@ -107,9 +103,7 @@ class InventoryTab extends StatelessWidget {
       builder: (_) => _StockSheet(item: item, counting: counting, cubit: cubit),
     );
     if (message == null) return;
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+    messenger.showMessage(message);
   }
 }
 

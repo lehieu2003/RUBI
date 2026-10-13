@@ -9,6 +9,9 @@ import 'package:iceflow_mobile/features/schedule/domain/shift_rules.dart';
 import 'package:iceflow_mobile/features/schedule/presentation/cubit/schedule_cubit.dart';
 import 'package:iceflow_mobile/features/schedule/presentation/widgets/week_widgets.dart';
 import 'package:iceflow_mobile/shared/widgets/error_views.dart';
+import 'package:iceflow_mobile/shared/widgets/app_header.dart';
+import 'package:iceflow_mobile/shared/widgets/snack_bars.dart';
+import 'package:iceflow_mobile/shared/widgets/state_views.dart';
 
 /// Tab "Ca làm": lịch tuần của cả nhóm, đăng ký và huỷ ca của chính mình.
 ///
@@ -23,7 +26,7 @@ class ScheduleTab extends StatelessWidget {
       // Rời tab unmount cubit → quay lại tải lại từ đầu (như TodayTab).
       create: (_) => sl<ScheduleCubit>()..load(),
       child: Scaffold(
-        appBar: AppBar(title: const Text(AppStrings.navSchedule)),
+        appBar: AppHeader(title: AppStrings.navSchedule),
         body: BlocBuilder<ScheduleCubit, ScheduleState>(
           builder: (context, state) {
             final cubit = context.read<ScheduleCubit>();
@@ -56,7 +59,7 @@ class ScheduleTab extends StatelessWidget {
                   )
                 else if (week == null)
                   const Expanded(
-                    child: Center(child: CircularProgressIndicator()),
+                    child: LoadingView(),
                   )
                 else ...[
                   if (state.status == ViewStatus.error)
@@ -98,14 +101,10 @@ class ScheduleTab extends StatelessWidget {
     final errorColor = context.colorScheme.error;
     final result = await context.read<ScheduleCubit>().toggle(info);
     if (result == null) return;
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(result.message),
-          backgroundColor: result.ok ? null : errorColor,
-        ),
-      );
+    messenger.showMessage(
+      result.message,
+      errorColor: result.ok ? null : errorColor,
+    );
   }
 }
 

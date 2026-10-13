@@ -7,6 +7,9 @@ import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/audit/domain/entities/audit_entry.dart';
 import 'package:iceflow_mobile/features/audit/presentation/cubit/audit_log_cubit.dart';
 import 'package:iceflow_mobile/shared/widgets/error_views.dart';
+import 'package:iceflow_mobile/shared/widgets/app_header.dart';
+import 'package:iceflow_mobile/shared/widgets/load_more_button.dart';
+import 'package:iceflow_mobile/shared/widgets/state_views.dart';
 
 String _dateTime(DateTime date) {
   final local = date.toLocal();
@@ -37,7 +40,10 @@ class AuditLogScreen extends StatelessWidget {
     return BlocProvider<AuditLogCubit>(
       create: (_) => sl<AuditLogCubit>()..load(),
       child: Scaffold(
-        appBar: AppBar(title: const Text(AppStrings.auditLogTitle)),
+        appBar: AppHeader(
+          title: AppStrings.auditLogTitle,
+          subtitle: AppStrings.auditLogSubtitle,
+        ),
         body: BlocBuilder<AuditLogCubit, AuditLogState>(
           builder: (context, state) {
             final cubit = context.read<AuditLogCubit>();
@@ -80,7 +86,7 @@ class AuditLogScreen extends StatelessWidget {
                 else if (state.entries.isEmpty &&
                     state.status == ViewStatus.loading)
                   const Expanded(
-                    child: Center(child: CircularProgressIndicator()),
+                    child: LoadingView(),
                   )
                 else
                   Expanded(
@@ -95,34 +101,14 @@ class AuditLogScreen extends StatelessWidget {
                               onRetry: cubit.load,
                             ),
                           if (state.entries.isEmpty)
-                            Padding(
-                              padding: const EdgeInsets.all(32),
-                              child: Text(
-                                AppStrings.auditLogEmpty,
-                                textAlign: TextAlign.center,
-                                style: context.textTheme.titleMedium,
-                              ),
-                            ),
+                            const EmptyView(message: AppStrings.auditLogEmpty),
                           for (final entry in state.entries)
                             _EntryCard(entry: entry),
                           if (state.hasMore)
-                            Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: state.loadingMore
-                                  ? const Center(
-                                      child: Padding(
-                                        padding: EdgeInsets.all(8),
-                                        child: CircularProgressIndicator(),
-                                      ),
-                                    )
-                                  : TextButton(
-                                      key: const Key('audit_load_more'),
-                                      onPressed: cubit.loadMore,
-                                      style: TextButton.styleFrom(
-                                        minimumSize: const Size.fromHeight(48),
-                                      ),
-                                      child: const Text(AppStrings.loadMoreButton),
-                                    ),
+                            LoadMoreButton(
+                              key: const Key('audit_load_more'),
+                              loading: state.loadingMore,
+                              onPressed: cubit.loadMore,
                             ),
                         ],
                       ),
