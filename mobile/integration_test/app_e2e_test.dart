@@ -353,6 +353,30 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     await tester.tap(find.byType(BackButton).last);
     await waitFor(tester, find.text(_managerEmail));
+    // "Thêm" → "Sản phẩm & giá": the manager changes the default price of
+    // the first product.
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.ensureVisible(find.byKey(const Key('more_products')));
+    await tester.tap(find.byKey(const Key('more_products')));
+    await waitFor(tester, find.byKey(const Key('products_new')));
+    final productTiles = find.byWidgetPredicate((widget) {
+      final key = widget.key;
+      return widget is ListTile &&
+          key is ValueKey<String> &&
+          key.value.startsWith('product_');
+    });
+    await waitFor(tester, productTiles);
+    await tester.tap(productTiles.first);
+    await waitFor(tester, find.byKey(const Key('product_price')));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.byKey(const Key('product_price')));
+    await waitFor(tester, find.byKey(const Key('product_price_input')));
+    await tester.enterText(find.byKey(const Key('product_price_input')), '12345');
+    await tester.tap(find.byKey(const Key('product_price_save')));
+    await waitFor(tester, find.textContaining('giờ giá 12.345đ'));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.byType(BackButton).last);
+    await waitFor(tester, find.text(_managerEmail));
     // "Thêm" → "Nhân sự": the manager creates a staff account, then locks it.
     await tester.pump(const Duration(milliseconds: 600));
     await tester.ensureVisible(find.byKey(const Key('more_staff')));

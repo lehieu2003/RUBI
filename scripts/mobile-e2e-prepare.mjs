@@ -127,11 +127,17 @@ async function verify(userId, orderId, userName) {
     problems.push(`account nv-app@rubi.local is ${made.role}, active=${made.isActive}; expected a locked STAFF account`);
   }
 
+  // The default price the manager changed in the app (first product by name).
+  const priceList = (await call('GET', '/api/prices/global', { token })).data;
+  if (priceList[0]?.price !== 12345) {
+    problems.push(`default price of ${priceList[0]?.name} ${priceList[0]?.sizeKg}kg is ${priceList[0]?.price}, expected the 12345 set in the app`);
+  }
+
   if (problems.length > 0) {
     console.error('✖ ' + problems.join('\n✖ '));
     process.exit(1);
   }
-  console.log('✓ server state matches what the app did: order delivered by the driver and settled by the manager, shift requested and approved, payment recorded, an order taken, assigned and cancelled, a customer added, an account created and locked');
+  console.log('✓ server state matches what the app did: order delivered by the driver and settled by the manager, shift requested and approved, payment recorded, an order taken, assigned and cancelled, a customer added, a default price changed, an account created and locked');
 }
 
 const [command, ...args] = process.argv.slice(2);
