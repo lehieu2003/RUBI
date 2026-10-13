@@ -57,8 +57,12 @@ import 'package:iceflow_mobile/features/inventory/domain/repositories/inventory_
     as _i793;
 import 'package:iceflow_mobile/features/inventory/presentation/cubit/inventory_cubit.dart'
     as _i14;
+import 'package:iceflow_mobile/features/orders/data/order_entry_repository_impl.dart'
+    as _i862;
 import 'package:iceflow_mobile/features/orders/data/orders_repository_impl.dart'
     as _i755;
+import 'package:iceflow_mobile/features/orders/domain/repositories/order_entry_repository.dart'
+    as _i482;
 import 'package:iceflow_mobile/features/orders/domain/repositories/orders_repository.dart'
     as _i420;
 import 'package:iceflow_mobile/features/orders/presentation/cubit/orders_cubit.dart'
@@ -125,6 +129,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factoryParam<_i759.LedgerCubit, _i694.CustomerDebt, dynamic>(
       (debt, _) =>
           _i759.LedgerCubit(repo: gh<_i360.DebtRepository>(), debt: debt),
+    );
+    gh.lazySingleton<_i482.OrderEntryRepository>(
+      () => _i862.OrderEntryRepositoryImpl(dio: gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i285.ScheduleRepository>(
       () => _i110.ScheduleRepositoryImpl(dio: gh<_i361.Dio>()),

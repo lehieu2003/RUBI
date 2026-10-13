@@ -216,6 +216,9 @@ abstract final class AppStrings {
   static const orderSettleHint =
       'Đơn đã giao chờ Quản lý đối soát để ghi nợ và trừ kho.';
 
+  // ---- Lên đơn (Quản lý, Nhân viên) ----
+  static const orderEntryNoLines = 'Nhập số lượng cho ít nhất một sản phẩm';
+
   // ---- Đối soát (Quản lý) ----
   static const settleTitle = 'Đối soát';
   static const settleSubtitle = 'Chốt số thực giao, ghi nợ và trừ kho';
