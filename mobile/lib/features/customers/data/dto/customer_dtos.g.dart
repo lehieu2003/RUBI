@@ -21,4 +21,6 @@ CustomerPriceDto _$CustomerPriceDtoFromJson(Map<String, dynamic> json) =>
       sizeKg: (json['sizeKg'] as num?)?.toInt(),
       unit: json['unit'] as String?,
       price: json['price'] as num?,
+      basePrice: json['basePrice'] as num?,
+      customPrice: json['customPrice'] as num?,
     );

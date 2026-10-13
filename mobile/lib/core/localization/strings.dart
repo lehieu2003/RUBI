@@ -238,6 +238,18 @@ abstract final class AppStrings {
   static const customerPricesTitle = 'Bảng giá áp cho khách này';
   static const customerPricesEmpty = 'Chưa có sản phẩm nào đang bán';
   static const customerPriceMissing = 'Chưa có giá';
+  static const customerPriceCustomBadge = 'Giá riêng';
+  static String customerPriceDefault(String price) => 'Mặc định $price';
+  static String customerPriceTitle(String label) => 'Giá riêng: $label';
+  static const customerPriceLabel = 'Giá cho khách này';
+  static const customerPriceHelper =
+      'Áp cho đơn lên từ bây giờ. Đơn đã lên giữ giá cũ.';
+  static const customerPriceInvalid = 'Giá phải lớn hơn 0';
+  static const customerPriceUseDefault = 'Dùng giá mặc định';
+  static String customerPriceSet(String label, String price) =>
+      '$label: giá riêng $price';
+  static String customerPriceRemoved(String label) =>
+      '$label: trở về giá mặc định';
 
   // ---- Nhân sự (Quản lý) ----
   static const staffTitle = 'Nhân sự';

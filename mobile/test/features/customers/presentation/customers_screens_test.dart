@@ -234,6 +234,112 @@ void main() {
       expect(opened, gioBien);
     });
 
+    testWidgets('Nhân viên: dòng giá chỉ xem; có giá riêng thì ghi rõ kèm giá mặc định',
+        (tester) async {
+      when(() => repo.getPrices(any())).thenAnswer((_) async => const Ok(pricesWithOwn));
+      await pumpDetail(tester, gioBien);
+
+      final row = find.byKey(const Key('customer_price_p-1'));
+      expect(tester.widget<ListTile>(row).onTap, isNull);
+      expect(find.descendant(of: row, matching: find.text('11.000đ/Bao')), findsOneWidget);
+      expect(
+        find.descendant(
+          of: row,
+          matching: find.text(
+            '${AppStrings.customerPriceCustomBadge} · '
+            '${AppStrings.customerPriceDefault('12.000đ')}',
+          ),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Quản lý: bấm dòng giá → đặt giá riêng; giá 0 bị chặn', (tester) async {
+      when(
+        () => repo.setCustomPrice(
+          customerId: any(named: 'customerId'),
+          productId: any(named: 'productId'),
+          price: any(named: 'price'),
+        ),
+      ).thenAnswer((_) async => const Ok<void>(null));
+      await tester.pumpWidget(
+        const MaterialApp(home: CustomerDetailScreen(customer: gioBien, canManage: true)),
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('customer_price_p-1')));
+      await tester.pumpAndSettle();
+
+      final input = find.byKey(const Key('customer_price_input'));
+      expect(tester.widget<TextField>(input).controller!.text, '12000');
+      expect(find.text(AppStrings.customerPriceDefault('12.000đ')), findsOneWidget);
+      expect(find.byKey(const Key('customer_price_remove')), findsNothing);
+      await tester.enterText(input, '0');
+      await tester.tap(find.byKey(const Key('customer_price_save')));
+      await tester.pump();
+      expect(find.text(AppStrings.customerPriceInvalid), findsOneWidget);
+
+      when(() => repo.getPrices(any())).thenAnswer((_) async => const Ok(pricesWithOwn));
+      await tester.enterText(input, '11000');
+      await tester.tap(find.byKey(const Key('customer_price_save')));
+      await tester.pumpAndSettle();
+
+      verify(
+        () => repo.setCustomPrice(customerId: 'c-1', productId: 'p-1', price: 11000),
+      ).called(1);
+      expect(find.text(AppStrings.customerPriceSet('Đá Bi 5kg', '11.000đ')), findsOneWidget);
+      expect(find.text('11.000đ/Bao'), findsOneWidget);
+    });
+
+    testWidgets('Quản lý: khách đang có giá riêng → "Dùng giá mặc định" gỡ nó',
+        (tester) async {
+      when(() => repo.getPrices(any())).thenAnswer((_) async => const Ok(pricesWithOwn));
+      when(
+        () => repo.removeCustomPrice(
+          customerId: any(named: 'customerId'),
+          productId: any(named: 'productId'),
+        ),
+      ).thenAnswer((_) async => const Ok<void>(null));
+      await tester.pumpWidget(
+        const MaterialApp(home: CustomerDetailScreen(customer: gioBien, canManage: true)),
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('customer_price_p-1')));
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<TextField>(find.byKey(const Key('customer_price_input'))).controller!.text,
+        '11000',
+      );
+
+      when(() => repo.getPrices(any())).thenAnswer((_) async => const Ok(prices));
+      await tester.tap(find.byKey(const Key('customer_price_remove')));
+      await tester.pumpAndSettle();
+
+      verify(() => repo.removeCustomPrice(customerId: 'c-1', productId: 'p-1')).called(1);
+      expect(find.text(AppStrings.customerPriceRemoved('Đá Bi 5kg')), findsOneWidget);
+      expect(find.text('12.000đ/Bao'), findsOneWidget);
+    });
+
+    testWidgets('server từ chối → hộp vẫn mở với câu của server', (tester) async {
+      when(
+        () => repo.setCustomPrice(
+          customerId: any(named: 'customerId'),
+          productId: any(named: 'productId'),
+          price: any(named: 'price'),
+        ),
+      ).thenAnswer((_) async => const Err<void>(ServerFailure('Không tìm thấy khách hàng hoặc sản phẩm')));
+      await tester.pumpWidget(
+        const MaterialApp(home: CustomerDetailScreen(customer: gioBien, canManage: true)),
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('customer_price_p-1')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('customer_price_save')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Không tìm thấy khách hàng hoặc sản phẩm'), findsOneWidget);
+      expect(find.byKey(const Key('customer_price_save')), findsOneWidget);
+    });
+
     testWidgets('bảng giá lỗi → câu báo lỗi, thử lại được', (tester) async {
       when(() => repo.getPrices(any()))
           .thenAnswer((_) async => const Err(NetworkFailure()));

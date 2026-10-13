@@ -14,6 +14,19 @@ abstract class CustomersRepository {
   /// kích cỡ.
   Future<Result<List<CustomerPrice>>> getPrices(String customerId);
 
+  /// Đặt giá riêng của khách [customerId] cho một sản phẩm (chỉ Quản lý).
+  Future<Result<void>> setCustomPrice({
+    required String customerId,
+    required String productId,
+    required double price,
+  });
+
+  /// Gỡ giá riêng: khách trở về giá mặc định của sản phẩm (chỉ Quản lý).
+  Future<Result<void>> removeCustomPrice({
+    required String customerId,
+    required String productId,
+  });
+
   /// Thêm khách hàng (chỉ Quản lý). [code] và [name] bắt buộc.
   ///
   /// Mã đã có → `Err(ServerFailure)` 409 với câu của server.

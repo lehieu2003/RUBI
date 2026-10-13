@@ -127,6 +127,13 @@ async function verify(userId, orderId, userName) {
     problems.push(`account nv-app@rubi.local is ${made.role}, active=${made.isActive}; expected a locked STAFF account`);
   }
 
+  // The own price the manager gave a customer in the app.
+  const minhTam = customers.find((customer) => customer.name === 'Đại Lý Nước Ngọt Minh Tâm');
+  const ownPrices = minhTam ? (await call('GET', `/api/customers/${minhTam.id}/prices`, { token })).data : [];
+  if (ownPrices[0]?.customPrice !== 11111 || ownPrices[0]?.price !== 11111) {
+    problems.push(`own price of the first product for Minh Tâm is ${ownPrices[0]?.customPrice}, expected the 11111 set in the app`);
+  }
+
   // The default price the manager changed in the app (first product by name).
   const priceList = (await call('GET', '/api/prices/global', { token })).data;
   if (priceList[0]?.price !== 12345) {
@@ -137,7 +144,7 @@ async function verify(userId, orderId, userName) {
     console.error('✖ ' + problems.join('\n✖ '));
     process.exit(1);
   }
-  console.log('✓ server state matches what the app did: order delivered by the driver and settled by the manager, shift requested and approved, payment recorded, an order taken, assigned and cancelled, a customer added, a default price changed, an account created and locked');
+  console.log('✓ server state matches what the app did: order delivered by the driver and settled by the manager, shift requested and approved, payment recorded, an order taken, assigned and cancelled, a customer added and another given their own price, a default price changed, an account created and locked');
 }
 
 const [command, ...args] = process.argv.slice(2);

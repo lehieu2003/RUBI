@@ -97,8 +97,13 @@ void main() {
           sizeKg: first['sizeKg'] as int,
           unit: first['unit'] as String,
           price: (first['price'] as num).toDouble(),
+          basePrice: (first['basePrice'] as num?)?.toDouble(),
+          customPrice: (first['customPrice'] as num?)?.toDouble(),
         ),
       );
+      // Response đã ghi là của một khách đang có giá riêng cho sản phẩm này.
+      expect(prices.first.hasCustomPrice, isTrue);
+      expect(prices.first.price, prices.first.customPrice);
 
       adapter.onGet('/api/customers/c-2/prices', (server) {
         server.reply(200, {
@@ -112,6 +117,24 @@ void main() {
         ((await repo.getPrices('c-2')) as Ok<List<CustomerPrice>>).value.single.price,
         isNull,
       );
+    });
+
+    test('setCustomPrice / removeCustomPrice: response thật → Ok; gửi đúng khách '
+        'và sản phẩm', () async {
+      adapter.onPost('/api/prices/customer/override',
+          (server) => server.reply(200, recorded('setCustomerPrice')),
+          data: Matchers.any);
+      final set = await repo.setCustomPrice(customerId: 'c-1', productId: 'p-1', price: 11000);
+      expect(set, isA<Ok<void>>());
+      expect(sentBody(), {'customerId': 'c-1', 'productId': 'p-1', 'price': 11000.0});
+
+      adapter.onDelete('/api/prices/customer/override',
+          (server) => server.reply(200, recorded('removeCustomerPrice')),
+          queryParameters: {'customerId': 'c-1', 'productId': 'p-1'});
+      final removed = await repo.removeCustomPrice(customerId: 'c-1', productId: 'p-1');
+      expect(removed, isA<Ok<void>>());
+      expect(requests.last.method, 'DELETE');
+      expect(requests.last.queryParameters, {'customerId': 'c-1', 'productId': 'p-1'});
     });
 
     test('getPrices: khách không tồn tại → response thật 404', () async {

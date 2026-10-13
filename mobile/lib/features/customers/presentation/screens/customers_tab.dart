@@ -54,7 +54,7 @@ class CustomersTab extends StatelessWidget {
               ),
           ],
         ),
-        body: _CustomersBody(onOpenLedger: onOpenLedger),
+        body: _CustomersBody(canManage: canManage, onOpenLedger: onOpenLedger),
       ),
     );
   }
@@ -72,8 +72,9 @@ class CustomersTab extends StatelessWidget {
 }
 
 class _CustomersBody extends StatelessWidget {
-  const _CustomersBody({required this.onOpenLedger});
+  const _CustomersBody({required this.canManage, required this.onOpenLedger});
 
+  final bool canManage;
   final CustomerLedgerOpener? onOpenLedger;
 
   @override
@@ -130,6 +131,7 @@ class _CustomersBody extends StatelessWidget {
                             MaterialPageRoute<void>(
                               builder: (_) => CustomerDetailScreen(
                                 customer: customer,
+                                canManage: canManage,
                                 onOpenLedger: onOpenLedger,
                               ),
                             ),

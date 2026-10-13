@@ -30,6 +30,8 @@ class CustomerPrice extends Equatable {
     required this.sizeKg,
     required this.unit,
     this.price,
+    this.basePrice,
+    this.customPrice,
   });
 
   final String productId;
@@ -37,9 +39,19 @@ class CustomerPrice extends Equatable {
   final int sizeKg;
   final String unit;
 
-  /// Giá riêng của khách, không có thì giá chung; `null` khi chưa có giá.
+  /// Giá tính cho đơn: giá riêng của khách, không có thì giá mặc định;
+  /// `null` khi chưa có giá nào.
   final double? price;
 
+  /// Giá mặc định của sản phẩm; `null` khi chưa có.
+  final double? basePrice;
+
+  /// Giá riêng Quản lý đặt cho khách này; `null` khi khách dùng giá mặc định.
+  final double? customPrice;
+
+  bool get hasCustomPrice => customPrice != null;
+
   @override
-  List<Object?> get props => [productId, name, sizeKg, unit, price];
+  List<Object?> get props =>
+      [productId, name, sizeKg, unit, price, basePrice, customPrice];
 }
