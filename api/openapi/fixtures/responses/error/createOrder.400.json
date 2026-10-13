@@ -1,0 +1,22 @@
+{
+  "operationId": "createOrder",
+  "request": {
+    "method": "POST",
+    "path": "/api/orders",
+    "as": "admin",
+    "body": {
+      "customerId": "cmv6ehyfu0003i9e4p70r8esm",
+      "items": [
+        {
+          "productId": "prod-bi-5",
+          "quantity": 0
+        }
+      ]
+    }
+  },
+  "status": 400,
+  "body": {
+    "success": false,
+    "error": "Cần ít nhất một sản phẩm có số lượng lớn hơn 0"
+  }
+}

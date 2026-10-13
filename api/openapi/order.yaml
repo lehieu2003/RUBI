@@ -222,6 +222,96 @@ paths:
           $ref: ./components/responses/errors.yaml#/Forbidden
         "500":
           $ref: ./components/responses/errors.yaml#/ServerError
+    post:
+      operationId: createOrder
+      tags:
+        - Orders
+      summary: Take an order for a customer, priced by the server
+      description: |-
+        Access: ADMIN, STAFF.
+
+        The body carries no price: every line is priced from the customer's price list (their own price, else the default one). Lines with quantity 0 are dropped; at least one line must be above 0. 404 when the customer does not exist; 400 when a product does not exist, is no longer on sale or has no price. Stock is not checked: an order may exceed what is left to sell. `notes` is what the driver must know at the door.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                customerId:
+                  type: string
+                  minLength: 1
+                items:
+                  minItems: 1
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      productId:
+                        type: string
+                        minLength: 1
+                      quantity:
+                        type: integer
+                        minimum: 0
+                    required:
+                      - productId
+                      - quantity
+                    additionalProperties: false
+                notes:
+                  type: string
+                  maxLength: 500
+              required:
+                - customerId
+                - items
+              additionalProperties: false
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        minLength: 1
+                      status:
+                        type: string
+                        const: PENDING
+                      total:
+                        type: number
+                      createdAt:
+                        type: string
+                        pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}
+                      customerName:
+                        type: string
+                    required:
+                      - id
+                      - status
+                      - total
+                      - createdAt
+                      - customerName
+                    additionalProperties: false
+                required:
+                  - success
+                  - data
+                additionalProperties: false
+        "400":
+          $ref: ./components/responses/errors.yaml#/BadRequest
+        "401":
+          $ref: ./components/responses/errors.yaml#/Unauthorized
+        "403":
+          $ref: ./components/responses/errors.yaml#/Forbidden
+        "404":
+          $ref: ./components/responses/errors.yaml#/NotFound
+        "500":
+          $ref: ./components/responses/errors.yaml#/ServerError
   /api/orders/counts:
     get:
       operationId: getOrderCounts

@@ -1,0 +1,16 @@
+{
+  "operationId": "listCustomerPrices",
+  "request": {
+    "method": "GET",
+    "path": "/api/customers/{id}/prices",
+    "as": "admin",
+    "params": {
+      "id": "khong-ton-tai"
+    }
+  },
+  "status": 404,
+  "body": {
+    "success": false,
+    "error": "Không tìm thấy khách hàng"
+  }
+}
