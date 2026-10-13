@@ -47,6 +47,17 @@ test.describe('what each role can reach', () => {
       // The page sits inside the app layout.
       await expect(page.getByRole('link', { name: 'Đối soát' })).toBeVisible();
     });
+
+    // The link is clicked the moment the drawer shows it. A slow browser used
+    // to leave the page stuck on the customer list.
+    test('reaches it on a slow browser too', async ({ page }) => {
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send('Emulation.setCPUThrottlingRate', { rate: 6 });
+      await page.goto('/customers');
+      await page.getByText('Đại Lý Nước Ngọt Minh Tâm').first().click();
+      await page.getByRole('link', { name: 'Bảng giá riêng của khách này' }).click();
+      await expect(page.getByRole('heading', { name: 'Bảng giá cho Đại Lý Nước Ngọt Minh Tâm' })).toBeVisible();
+    });
   });
 
   test.describe('driver', () => {
