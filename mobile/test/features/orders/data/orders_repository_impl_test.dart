@@ -270,6 +270,55 @@ void main() {
         );
       });
     });
+
+    group('settle', () {
+      final order = OfficeOrder(
+        id: 'o-1',
+        status: OfficeOrderStatus.delivered,
+        total: 350000,
+        createdAt: DateTime(2026, 10, 12),
+        customerName: 'Quán Cô Ba',
+        customerCode: 'KH001',
+        customerAddress: '',
+        customerPhone: '',
+        lines: const [
+          OrderLine(id: 'l-1', productName: 'Đá viên', sizeKg: 5, unit: 'bao', quantity: 10, unitPrice: 25000, lineTotal: 250000),
+          OrderLine(id: 'l-2', productName: 'Đá viên', sizeKg: 10, unit: 'bao', quantity: 5, unitPrice: 20000, lineTotal: 100000),
+        ],
+      );
+
+      test('response thật → Ok; gửi đủ mọi dòng, dòng không sửa lấy số đặt',
+          () async {
+        adapter.onPatch('/api/orders/o-1/reconcile',
+            (server) => server.reply(200, recorded('reconcileOrder')),
+            data: Matchers.any);
+
+        final res = await repo.settle(order: order, actualQty: {'l-2': 4});
+
+        expect(res, isA<Ok<void>>());
+        expect(sentBody(), {
+          'items': [
+            {'id': 'l-1', 'actualQty': 10},
+            {'id': 'l-2', 'actualQty': 4},
+          ],
+        });
+      });
+
+      test('đơn không ở trạng thái đã giao (409) → giữ câu của server', () async {
+        adapter.onPatch('/api/orders/o-1/reconcile', (server) {
+          server.reply(409, {
+            'success': false,
+            'error': 'Chỉ đối soát được đơn đã giao',
+            'code': 'ORDER_NOT_DELIVERED',
+          });
+        }, data: Matchers.any);
+
+        expect(
+          ((await repo.settle(order: order)) as Err<void>).failure,
+          const ServerFailure('Chỉ đối soát được đơn đã giao', statusCode: 409),
+        );
+      });
+    });
   });
 
   test('OfficeOrder.code và isFinal', () {

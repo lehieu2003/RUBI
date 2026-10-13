@@ -8,6 +8,7 @@ import 'package:iceflow_mobile/features/driver/presentation/screens/settings_tab
 import 'package:iceflow_mobile/features/driver/presentation/screens/today_tab.dart';
 import 'package:iceflow_mobile/features/inventory/presentation/screens/inventory_tab.dart';
 import 'package:iceflow_mobile/features/orders/presentation/screens/orders_tab.dart';
+import 'package:iceflow_mobile/features/orders/presentation/screens/settlement_screen.dart';
 import 'package:iceflow_mobile/features/schedule/presentation/screens/schedule_tab.dart';
 import 'package:iceflow_mobile/features/schedule/presentation/screens/shift_review_tab.dart';
 
@@ -103,6 +104,16 @@ Widget _buildMore(BuildContext context) => SettingsTab(
           ),
         ),
         ListTile(
+          key: const Key('more_settle'),
+          leading: const Icon(Icons.fact_check_outlined),
+          title: const Text(AppStrings.settleTitle),
+          subtitle: const Text(AppStrings.settleSubtitle),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => const SettlementScreen()),
+          ),
+        ),
+        ListTile(
           key: const Key('more_audit_log'),
           leading: const Icon(Icons.history),
           title: const Text(AppStrings.auditLogTitle),
@@ -120,8 +131,8 @@ Widget _buildMore(BuildContext context) => SettingsTab(
 ///
 /// - Tài xế: giao hàng (hôm nay, lịch sử) và đăng ký ca.
 /// - Nhân viên: đơn hàng và đăng ký ca.
-/// - Quản lý: duyệt ca, kho lạnh, công nợ, và "Thêm" (đơn hàng, nhật ký,
-///   cài đặt).
+/// - Quản lý: duyệt ca, kho lạnh, công nợ, và "Thêm" (đơn hàng, đối soát,
+///   nhật ký, cài đặt).
 ///   Không tự đăng ký ca (server từ chối). Thanh dưới chỉ đủ chỗ cho ba màn
 ///   dùng hằng ngày: màn mới của Quản lý thêm vào "Thêm".
 List<ShellTab> shellTabsFor(UserRole role) {

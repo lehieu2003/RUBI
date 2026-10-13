@@ -74,8 +74,13 @@ async function verify(userId, orderId, userName) {
   if (!delivered) problems.push('no ORDER_DELIVERED entry in the audit log');
   else if (delivered.userName !== userName) problems.push(`delivery logged for "${delivered.userName}", expected "${userName}"`);
 
-  const settle = (await call('GET', '/api/orders?status=DELIVERED&limit=200', { token })).data;
-  if (!settle.some((order) => order.id === orderId)) problems.push('the order is not DELIVERED on the server');
+  // The manager settled it in the app, one short on its first line.
+  const settled = (await call('GET', '/api/orders?status=COMPLETED&limit=200', { token })).data.find((order) => order.id === orderId);
+  if (!settled) problems.push('the order is not COMPLETED on the server');
+  else if (settled.orderItems[0].actualQty !== settled.orderItems[0].quantity - 1) {
+    problems.push(`first line settled at ${settled.orderItems[0].actualQty}, expected ${settled.orderItems[0].quantity - 1}`);
+  }
+  if (!trail.some((entry) => entry.action === 'ORDER_SETTLED')) problems.push('no ORDER_SETTLED entry in the audit log');
 
   const staff = (await call('GET', '/api/staff', { token })).data.users.find((item) => item.id === userId);
   if (!staff) problems.push('the account is gone');
@@ -108,7 +113,7 @@ async function verify(userId, orderId, userName) {
     console.error('✖ ' + problems.join('\n✖ '));
     process.exit(1);
   }
-  console.log('✓ server state matches what the app did: order DELIVERED and logged for the driver, shift requested and approved, payment recorded, an order assigned and cancelled');
+  console.log('✓ server state matches what the app did: order delivered by the driver and settled by the manager, shift requested and approved, payment recorded, an order assigned and cancelled');
 }
 
 const [command, ...args] = process.argv.slice(2);

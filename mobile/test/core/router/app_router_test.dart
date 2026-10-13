@@ -307,13 +307,20 @@ void main() {
       expect(find.byType(NavigationDestination), findsNWidgets(4));
       expect(find.text(AppStrings.shiftReviewNonePending), findsOneWidget);
       expect(find.text(AppStrings.navSchedule), findsNothing);
-      // "Thêm": lối vào Đơn hàng và Nhật ký, rồi tới tài khoản, cài đặt và đăng xuất.
+      // "Thêm": lối vào Đơn hàng, Đối soát và Nhật ký, rồi tới tài khoản, cài đặt và đăng xuất.
       await tester.tap(find.text(AppStrings.navMore));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('more_orders')), findsOneWidget);
+      expect(find.byKey(const Key('more_settle')), findsOneWidget);
       expect(find.byKey(const Key('more_audit_log')), findsOneWidget);
       expect(find.text('chu@iceflow.vn'), findsOneWidget);
       expect(find.text(AppStrings.themeTitle), findsOneWidget);
+      // Menu dài hơn màn hình test: cuộn xuống mới tới Đăng xuất.
+      await tester.scrollUntilVisible(
+        find.text(AppStrings.logoutButton),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
       expect(find.text(AppStrings.logoutButton), findsOneWidget);
     });
   });

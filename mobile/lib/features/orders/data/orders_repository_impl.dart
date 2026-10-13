@@ -140,6 +140,26 @@ class OrdersRepositoryImpl implements OrdersRepository {
     });
   }
 
+  @override
+  Future<Result<void>> settle({
+    required OfficeOrder order,
+    Map<String, int> actualQty = const {},
+  }) {
+    return guardApi('settle', tag: _tag, run: () async {
+      await _dio.patch<dynamic>(
+        '/api/orders/${order.id}/reconcile',
+        data: {
+          // Server chỉ ghi nợ và trừ kho các dòng được gửi → gửi đủ mọi dòng.
+          'items': [
+            for (final line in order.lines)
+              {'id': line.id, 'actualQty': actualQty[line.id] ?? line.quantity},
+          ],
+        },
+      );
+      return const Ok(null);
+    });
+  }
+
   Map<String, dynamic> _filterQuery(OrderFilter filter) {
     final search = filter.search?.trim();
     final date = filter.date;

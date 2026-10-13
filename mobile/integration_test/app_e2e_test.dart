@@ -22,6 +22,9 @@ const _newPassword = String.fromEnvironment('E2E_NEW_PASSWORD');
 /// The customer of the one order out for delivery with that driver.
 const _customer = String.fromEnvironment('E2E_CUSTOMER');
 
+/// That order's id.
+const _orderId = String.fromEnvironment('E2E_ORDER_ID');
+
 /// Seeded accounts of the other two roles (src/db/seed.ts).
 const _staffEmail = 'nhanvien@miendong.vn';
 const _managerEmail = 'quanly@rubi.local';
@@ -54,7 +57,7 @@ void main() {
   testWidgets('a new driver: wrong password, forced password change, a '
       'delivery, a shift, sign out and back in; then staff work the orders and the '
       'manager approves the shift, records a production batch and a payment, '
-      'and reads the audit log',
+      'reads the audit log and settles the delivery',
       (tester) async {
     expect(_email, isNotEmpty, reason: 'run through scripts/mobile-e2e-local.sh');
 
@@ -273,5 +276,17 @@ void main() {
     await waitFor(tester, orderCards);
     await tester.tap(find.byType(BackButton));
     await waitFor(tester, find.text(_managerEmail));
+    // "Thêm" → "Đối soát": the driver's delivery is settled one short.
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.tap(find.byKey(const Key('more_settle')));
+    final delivery = find.byKey(const Key('order_$_orderId'));
+    await waitFor(tester, delivery);
+    await tester.tap(delivery);
+    await waitFor(tester, find.byKey(const Key('settle_confirm')));
+    await tester.tap(find.byTooltip(AppStrings.settleDecreaseTooltip).first);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.ensureVisible(find.byKey(const Key('settle_confirm')));
+    await tester.tap(find.byKey(const Key('settle_confirm')));
+    await waitFor(tester, find.textContaining('Đã chốt đơn'));
   });
 }

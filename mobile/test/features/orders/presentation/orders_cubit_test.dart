@@ -22,6 +22,7 @@ void main() {
     registerFallbackValue(const PageParams());
     registerFallbackValue(const OrderFilter());
     registerFallbackValue(OfficeOrderStatus.pending);
+    registerFallbackValue(buildOrder('fallback'));
   });
 
   late _MockOrdersRepository repo;
@@ -306,6 +307,46 @@ void main() {
           await cubit.changeStatus(buildOrder('o-1'), OfficeOrderStatus.shipping);
 
       expect(result, (ok: false, message: 'Đơn đã đối soát'));
+      verify(
+        () => repo.getOrders(
+          filter: any(named: 'filter'),
+          status: any(named: 'status'),
+          page: any(named: 'page'),
+        ),
+      ).called(1);
+    });
+
+    test('settle → gửi số thực giao, báo mã đơn, tải lại', () async {
+      when(
+        () => repo.settle(
+          order: any(named: 'order'),
+          actualQty: any(named: 'actualQty'),
+        ),
+      ).thenAnswer((_) async => const Ok<void>(null));
+      final order =
+          buildOrder('order-abc123', status: OfficeOrderStatus.delivered);
+
+      final result = await cubit.settle(order, {'line-1': 9});
+
+      expect(result, (ok: true, message: AppStrings.settleDone('DH-ABC123')));
+      verify(() => repo.settle(order: order, actualQty: {'line-1': 9}))
+          .called(1);
+      expect(cubit.state.status, ViewStatus.loaded);
+    });
+
+    test('settle bị từ chối → câu báo của server, vẫn tải lại', () async {
+      when(
+        () => repo.settle(
+          order: any(named: 'order'),
+          actualQty: any(named: 'actualQty'),
+        ),
+      ).thenAnswer(
+        (_) async => const Err<void>(ServerFailure('Chỉ đối soát được đơn đã giao')),
+      );
+
+      final result = await cubit.settle(buildOrder('o-1'), const {});
+
+      expect(result, (ok: false, message: 'Chỉ đối soát được đơn đã giao'));
       verify(
         () => repo.getOrders(
           filter: any(named: 'filter'),

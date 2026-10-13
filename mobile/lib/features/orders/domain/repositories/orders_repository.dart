@@ -41,4 +41,14 @@ abstract class OrdersRepository {
     required OfficeOrderStatus status,
     String? cancellationReason,
   });
+
+  /// Đối soát một đơn đã giao (chỉ Quản lý): chốt số thực giao của từng dòng,
+  /// ghi nợ cho khách theo số đó và trừ kho. Mọi dòng của [order] đều được
+  /// gửi; dòng không có trong [actualQty] lấy số lượng đặt.
+  ///
+  /// Đơn không ở trạng thái đã giao → `Err(ServerFailure)` 409.
+  Future<Result<void>> settle({
+    required OfficeOrder order,
+    Map<String, int> actualQty = const {},
+  });
 }

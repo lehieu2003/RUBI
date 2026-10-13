@@ -211,6 +211,21 @@ class OrdersCubit extends Cubit<OrdersState> {
     };
   }
 
+  /// Đối soát [order] với số thực giao của từng dòng (dòng không có trong
+  /// [actualQty] lấy số đặt).
+  Future<OrderActionResult> settle(
+    OfficeOrder order,
+    Map<String, int> actualQty,
+  ) async {
+    final res = await _repo.settle(order: order, actualQty: actualQty);
+    // Thành công hay bị từ chối (đơn đã chốt ở nơi khác) đều lấy lại danh sách.
+    if (!isClosed) await load();
+    return switch (res) {
+      Ok<void>() => (ok: true, message: AppStrings.settleDone(order.code)),
+      Err<void>(:final failure) => (ok: false, message: failureMessage(failure)),
+    };
+  }
+
   OrdersState _copy({required bool loadingMore, String? errorMessage}) =>
       OrdersState(
         status: state.status,

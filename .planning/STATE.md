@@ -128,6 +128,7 @@ v3.0 decisions:
 | 261012-mma | Mobile manager: "Thêm" tab instead of a fifth tab, and the audit log screen | 2026-10-12 | feat/mobile-more-audit-log | [261012-mma-mobile-more-audit-log](./quick/261012-mma-mobile-more-audit-log/) |
 | 261012-mod | Mobile: office orders data layer — list with filters and counts, drivers, assign, change status | 2026-10-12 | feat/mobile-orders-data | [261012-mod-mobile-orders-data](./quick/261012-mod-mobile-orders-data/) |
 | 261012-mos | Mobile: orders screen for manager and staff — status tabs, search, assign driver, change status, cancel | 2026-10-12 | feat/mobile-orders-screen | [261012-mos-mobile-orders-screen](./quick/261012-mos-mobile-orders-screen/) |
+| 261013-mst | Mobile: settlement for the manager — delivered orders, actual quantity per line, confirm | 2026-10-13 | feat/mobile-settlement | [261013-mst-mobile-settlement](./quick/261013-mst-mobile-settlement/) |
 
 ## Session Continuity
 
