@@ -73,6 +73,10 @@ void main() {
 
   String text(WidgetTester tester, String key) =>
       tester.widget<Text>(find.byKey(Key(key))).data!;
+  String qty(WidgetTester tester, String lineId) => tester
+      .widget<TextField>(find.byKey(Key('settle_qty_$lineId')))
+      .controller!
+      .text;
 
   testWidgets('chỉ hỏi server các đơn đã giao; hiện số đơn đang chờ',
       (tester) async {
@@ -122,7 +126,7 @@ void main() {
 
     expect(find.text('Đá viên 5kg'), findsOneWidget);
     expect(find.text(AppStrings.settleOrdered(10, '25.000đ')), findsOneWidget);
-    expect(text(tester, 'settle_qty_line-1'), '10');
+    expect(qty(tester, 'line-1'), '10');
     expect(text(tester, 'settle_debt'), '250.000đ');
   });
 
@@ -156,13 +160,14 @@ void main() {
 
     await tester.tap(find.byKey(const Key('settle_plus_line-1')));
     await tester.pump();
-    expect(text(tester, 'settle_qty_line-1'), '2');
+    expect(qty(tester, 'line-1'), '2');
     expect(text(tester, 'settle_debt'), '50.000đ');
 
     await tester.tap(find.byKey(const Key('settle_minus_line-1')));
+    await tester.pump();
     await tester.tap(find.byKey(const Key('settle_minus_line-1')));
     await tester.pump();
-    expect(text(tester, 'settle_qty_line-1'), '0');
+    expect(qty(tester, 'line-1'), '0');
     expect(text(tester, 'settle_debt'), '0đ');
     expect(
       tester
@@ -170,6 +175,29 @@ void main() {
           .onPressed,
       isNull,
     );
+  });
+
+  testWidgets('gõ thẳng số thực giao → ghi nợ tính lại; xoá trắng là 0',
+      (tester) async {
+    stubSettle(const Ok<void>(null));
+    await pumpScreen(tester);
+    await openOrder(tester);
+
+    await tester.enterText(find.byKey(const Key('settle_qty_line-1')), '7');
+    await tester.pump();
+    expect(text(tester, 'settle_debt'), '175.000đ');
+
+    await tester.enterText(find.byKey(const Key('settle_qty_line-1')), '');
+    await tester.pump();
+    expect(text(tester, 'settle_debt'), '0đ');
+
+    await tester.enterText(find.byKey(const Key('settle_qty_line-1')), '12');
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('settle_confirm')));
+    await tester.pumpAndSettle();
+
+    verify(() => repo.settle(order: delivered, actualQty: {'line-1': 12}))
+        .called(1);
   });
 
   testWidgets('chốt thiếu một bao → gửi đúng số thực giao và báo đã chốt',
