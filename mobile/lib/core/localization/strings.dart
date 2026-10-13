@@ -365,6 +365,35 @@ abstract final class AppStrings {
   static String shiftReportLocked(String month) => 'Đã chốt công $month';
   static String shiftReportReopened(String month) => 'Đã mở lại $month';
 
+  // ---- Vỏ bao (Quản lý) ----
+  static const shellsTitle = 'Vỏ bao';
+  static const shellsSubtitle = 'Vỏ khách đang giữ và tiền cọc';
+  static const shellsEmpty = 'Chưa có khách nào phát sinh vỏ bao';
+  static String shellsTotalHeld(int count) => 'Khách đang giữ $count vỏ';
+  static String shellsTotalDeposit(String amount) => 'Tiền cọc: $amount';
+  static String shellsOutIn(int out, int back) => 'Đã giao $out · đã thu $back';
+  static String shellsHeld(int count) => '$count vỏ';
+  static String shellsHeldNow(int count) => 'Đang giữ $count vỏ.';
+  static const shellsModeAdd = 'Ghi thêm';
+  static const shellsModeSet = 'Sửa tổng';
+  static const shellsOutLabel = 'Giao thêm cho khách';
+  static const shellsInLabel = 'Thu về từ khách';
+  static const shellsOutTotalLabel = 'Tổng đã giao';
+  static const shellsInTotalLabel = 'Tổng đã thu';
+  static const shellsNothingEntered = 'Nhập số vỏ giao thêm hoặc thu về';
+  static const shellsInExceedsOut = 'Tổng đã thu không thể lớn hơn tổng đã giao';
+  static String shellsReturnTooMany(int held) =>
+      'Khách chỉ đang giữ $held vỏ, không thu về nhiều hơn được';
+  static String shellsRecorded(String name, int out, int back) {
+    final parts = [
+      if (out > 0) 'giao thêm $out vỏ',
+      if (back > 0) 'thu về $back vỏ',
+    ];
+    return '$name: ${parts.join(', ')}';
+  }
+
+  static String shellsCorrected(String name) => 'Đã sửa số vỏ của $name';
+
   // ---- Bộ lọc danh sách đơn ----
   static const orderFilterAnyDate = 'Mọi ngày';
   static const orderFilterAnyDriver = 'Mọi tài xế';
