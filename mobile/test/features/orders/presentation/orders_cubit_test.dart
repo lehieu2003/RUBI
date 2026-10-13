@@ -202,6 +202,95 @@ void main() {
     });
   });
 
+  group('OrdersCubit — lọc theo ngày và tài xế', () {
+    test('setDate → danh sách và số đếm cùng lọc theo ngày (bỏ giờ phút)',
+        () async {
+      await cubit.setDate(DateTime(2026, 10, 12, 15, 30));
+
+      expect(cubit.state.date, DateTime(2026, 10, 12));
+      final filter = OrderFilter(search: '', date: DateTime(2026, 10, 12));
+      verify(
+        () => repo.getOrders(filter: filter, status: null, page: any(named: 'page')),
+      ).called(1);
+      verify(() => repo.getCounts(filter: filter)).called(1);
+    });
+
+    test('setDriver → lọc theo tài xế; chọn lại đúng người đó thì thôi', () async {
+      await cubit.setDriver(driver: tai);
+      await cubit.setDriver(driver: tai);
+
+      expect(cubit.state.driver, tai);
+      expect(cubit.state.unassignedOnly, isFalse);
+      verify(
+        () => repo.getOrders(
+          filter: const OrderFilter(search: '', driverId: 'drv-1'),
+          status: null,
+          page: any(named: 'page'),
+        ),
+      ).called(1);
+    });
+
+    test('đơn chưa gán tài xế → bỏ tài xế đang lọc', () async {
+      await cubit.setDriver(driver: tai);
+      await cubit.setDriver(unassignedOnly: true);
+
+      expect(cubit.state.driver, isNull);
+      expect(cubit.state.unassignedOnly, isTrue);
+      verify(
+        () => repo.getOrders(
+          filter: const OrderFilter(search: '', unassignedOnly: true),
+          status: null,
+          page: any(named: 'page'),
+        ),
+      ).called(1);
+    });
+
+    test('bỏ lọc ngày / tài xế → về mọi ngày, mọi tài xế', () async {
+      await cubit.setDate(DateTime(2026, 10, 12));
+      await cubit.setDriver(driver: tai);
+      clearInteractions(repo);
+
+      await cubit.setDate(null);
+      await cubit.setDriver();
+
+      expect(cubit.state.date, isNull);
+      expect(cubit.state.driver, isNull);
+      verify(
+        () => repo.getOrders(
+          filter: const OrderFilter(search: ''),
+          status: null,
+          page: any(named: 'page'),
+        ),
+      ).called(1);
+    });
+
+    test('các bộ lọc cộng dồn với tab và từ khoá; "Xem thêm" giữ nguyên bộ lọc',
+        () async {
+      stubOrders(Ok(pageOf([buildOrder('o-1')], totalPages: 2)));
+      await cubit.setSearch('cô ba');
+      await cubit.selectTab(OfficeOrderStatus.pending);
+      await cubit.setDate(DateTime(2026, 10, 12));
+      await cubit.setDriver(driver: tai);
+      clearInteractions(repo);
+
+      await cubit.loadMore();
+
+      expect(cubit.state.search, 'cô ba');
+      expect(cubit.state.tab, OfficeOrderStatus.pending);
+      verify(
+        () => repo.getOrders(
+          filter: OrderFilter(
+            search: 'cô ba',
+            date: DateTime(2026, 10, 12),
+            driverId: 'drv-1',
+          ),
+          status: OfficeOrderStatus.pending,
+          page: const PageParams(page: 2, limit: 20),
+        ),
+      ).called(1);
+    });
+  });
+
   group('OrdersCubit — thao tác', () {
     test('assign → gán đúng đơn, tải lại, báo tên tài xế', () async {
       when(
