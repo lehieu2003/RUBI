@@ -146,5 +146,58 @@ void main() {
       expect(cubit.state.status, ViewStatus.error);
       expect(cubit.state.errorMessage, FailureMessages.network);
     });
+
+    test('setCustomPrice → gửi đúng khách, sản phẩm, giá; tải lại bảng giá',
+        () async {
+      when(
+        () => repo.setCustomPrice(
+          customerId: any(named: 'customerId'),
+          productId: any(named: 'productId'),
+          price: any(named: 'price'),
+        ),
+      ).thenAnswer((_) async => const Ok<void>(null));
+      final cubit = CustomerDetailCubit(repo: repo, customer: gioBien);
+      addTearDown(cubit.close);
+      await cubit.load();
+      when(() => repo.getPrices(any())).thenAnswer((_) async => const Ok(pricesWithOwn));
+
+      final result = await cubit.setCustomPrice(prices.first, 11000);
+
+      expect(result, (ok: true, message: AppStrings.customerPriceSet('Đá Bi 5kg', '11.000đ')));
+      verify(
+        () => repo.setCustomPrice(customerId: 'c-1', productId: 'p-1', price: 11000),
+      ).called(1);
+      expect(cubit.state.prices, pricesWithOwn);
+    });
+
+    test('removeCustomPrice → gỡ giá riêng, tải lại; lỗi → câu của server, giữ bảng giá',
+        () async {
+      when(() => repo.getPrices(any())).thenAnswer((_) async => const Ok(pricesWithOwn));
+      when(
+        () => repo.removeCustomPrice(
+          customerId: any(named: 'customerId'),
+          productId: any(named: 'productId'),
+        ),
+      ).thenAnswer((_) async => const Ok<void>(null));
+      final cubit = CustomerDetailCubit(repo: repo, customer: gioBien);
+      addTearDown(cubit.close);
+      await cubit.load();
+      when(() => repo.getPrices(any())).thenAnswer((_) async => const Ok(prices));
+
+      final removed = await cubit.removeCustomPrice(pricesWithOwn.first);
+      expect(removed, (ok: true, message: AppStrings.customerPriceRemoved('Đá Bi 5kg')));
+      verify(() => repo.removeCustomPrice(customerId: 'c-1', productId: 'p-1')).called(1);
+      expect(cubit.state.prices, prices);
+
+      when(
+        () => repo.removeCustomPrice(
+          customerId: any(named: 'customerId'),
+          productId: any(named: 'productId'),
+        ),
+      ).thenAnswer((_) async => const Err<void>(ServerFailure('Không tìm thấy khách hàng hoặc sản phẩm')));
+      final failed = await cubit.removeCustomPrice(pricesWithOwn.first);
+      expect(failed, (ok: false, message: 'Không tìm thấy khách hàng hoặc sản phẩm'));
+      expect(cubit.state.prices, prices);
+    });
   });
 }

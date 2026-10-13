@@ -343,6 +343,20 @@ void main() {
     await waitFor(tester, find.text('Đại Lý Nước Ngọt Minh Tâm'));
     await tester.tap(find.text('Đại Lý Nước Ngọt Minh Tâm'));
     await waitFor(tester, find.byKey(const Key('customer_ledger')));
+    // This customer gets their own price for the first product.
+    final priceRows = find.byWidgetPredicate((widget) {
+      final key = widget.key;
+      return widget is ListTile &&
+          key is ValueKey<String> &&
+          key.value.startsWith('customer_price_');
+    });
+    await waitFor(tester, priceRows);
+    await tester.tap(priceRows.first);
+    await waitFor(tester, find.byKey(const Key('customer_price_input')));
+    await tester.enterText(find.byKey(const Key('customer_price_input')), '11111');
+    await tester.tap(find.byKey(const Key('customer_price_save')));
+    await waitFor(tester, find.textContaining('giá riêng 11.111đ'));
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.tap(find.byKey(const Key('customer_ledger')));
     await waitFor(tester, find.textContaining('Thu thử từ app'));
     await tester.tap(find.byType(BackButton).last);
