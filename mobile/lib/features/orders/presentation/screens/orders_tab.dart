@@ -8,7 +8,9 @@ import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/orders/domain/entities/office_order.dart';
+import 'package:iceflow_mobile/features/orders/domain/entities/order_entry.dart';
 import 'package:iceflow_mobile/features/orders/presentation/cubit/orders_cubit.dart';
+import 'package:iceflow_mobile/features/orders/presentation/screens/order_entry_screen.dart';
 import 'package:iceflow_mobile/features/orders/presentation/widgets/order_card.dart';
 import 'package:iceflow_mobile/shared/widgets/app_button.dart';
 import 'package:iceflow_mobile/shared/widgets/app_header.dart';
@@ -33,10 +35,39 @@ class OrdersTab extends StatelessWidget {
         appBar: AppHeader(
           title: AppStrings.navOrders,
           subtitle: AppStrings.ordersSubtitle,
+          actions: [
+            // Trên thanh đầu chứ không nổi ở góc dưới: câu báo "Đã lên đơn"
+            // ở đáy màn hình không được che nút khi lên liền mấy đơn.
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Builder(
+                builder: (context) => FilledButton.tonalIcon(
+                  key: const Key('orders_new'),
+                  onPressed: () => _newOrder(context),
+                  icon: const Icon(Icons.add),
+                  label: const Text(AppStrings.orderEntryButton),
+                ),
+              ),
+            ),
+          ],
         ),
         body: const _OrdersBody(),
       ),
     );
+  }
+
+  Future<void> _newOrder(BuildContext context) async {
+    // Capture trước await — context không dùng được qua async gap an toàn.
+    final messenger = ScaffoldMessenger.of(context);
+    final cubit = context.read<OrdersCubit>();
+    final created = await Navigator.of(context).push<CreatedOrder>(
+      MaterialPageRoute(builder: (_) => const OrderEntryScreen()),
+    );
+    if (created == null) return;
+    messenger.showMessage(
+      AppStrings.orderEntrySaved(created.code, formatVnd(created.total)),
+    );
+    if (!cubit.isClosed) await cubit.load();
   }
 }
 
