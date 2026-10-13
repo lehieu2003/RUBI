@@ -3,6 +3,31 @@ import { type ApiContract, Id, Success, envelope, roles } from './common';
 
 export const priceContracts: ApiContract[] = [
   {
+    id: 'listGlobalPrices',
+    method: 'GET',
+    path: '/api/prices/global',
+    tag: 'Prices',
+    summary: 'Every product with its default price, discontinued ones included',
+    auth: roles('ADMIN'),
+    response: envelope(
+      z.array(
+        z.object({
+          id: Id,
+          name: z.string(),
+          sizeKg: z.number().int(),
+          unit: z.string(),
+          minStock: z.number().int().nullable(),
+          isActive: z.boolean(),
+          price: z.number().nullable(),
+        })
+      )
+    ),
+    errors: [400, 401, 403, 500],
+    notes:
+      'Feeds the manager\'s products-and-prices screen. Ordered by name then size. `price` is null for a product ' +
+      'without a default price; `isActive` false for a product taken off sale.',
+  },
+  {
     id: 'setGlobalPrice',
     method: 'POST',
     path: '/api/prices/global',

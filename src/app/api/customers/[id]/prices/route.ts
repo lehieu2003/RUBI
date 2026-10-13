@@ -1,12 +1,13 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
-import { loadCustomerPrices, loadSellableStock } from '@/lib/actions/orders';
+import { loadSellableStock } from '@/lib/actions/orders';
 import { apiSuccess, apiError } from '@/lib/api-response';
 
 // GET /api/customers/[id]/prices — what the order form needs once a customer
 // is picked: every product on sale with this customer's price and what is
-// left to sell. Same sources as the web order drawer.
+// left to sell. The price is split into the default one and the customer's
+// own, for the manager's price screen.
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await requireRole(['ADMIN', 'STAFF']);
@@ -21,27 +22,43 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       return apiError('Không tìm thấy khách hàng', 404);
     }
 
-    const [products, prices, sellable] = await Promise.all([
+    const [products, globalPrices, overrides, sellable] = await Promise.all([
       prisma.product.findMany({
         where: { isActive: true, factoryId },
         select: { id: true, name: true, sizeKg: true, unit: true },
         orderBy: [{ name: 'asc' }, { sizeKg: 'asc' }],
       }),
-      loadCustomerPrices(id),
+      prisma.globalPrice.findMany({
+        where: { product: { isActive: true, factoryId } },
+        select: { productId: true, pricePerUnit: true },
+      }),
+      prisma.customerPriceOverride.findMany({
+        where: { customerId: id, customer: { factoryId }, product: { factoryId } },
+        select: { productId: true, pricePerUnit: true },
+      }),
       loadSellableStock(),
     ]);
+    const base = new Map(globalPrices.map((row) => [row.productId, Number(row.pricePerUnit)]));
+    const custom = new Map(overrides.map((row) => [row.productId, Number(row.pricePerUnit)]));
 
     return apiSuccess(
-      products.map((product) => ({
-        productId: product.id,
-        name: product.name,
-        sizeKg: product.sizeKg,
-        unit: product.unit,
-        // null: no price set yet, the product cannot be ordered.
-        price: prices[product.id] ?? null,
-        // null: the product never had a stock record, nothing is known.
-        sellable: sellable[product.id] ?? null,
-      }))
+      products.map((product) => {
+        const basePrice = base.get(product.id) ?? null;
+        const customPrice = custom.get(product.id) ?? null;
+        return {
+          productId: product.id,
+          name: product.name,
+          sizeKg: product.sizeKg,
+          unit: product.unit,
+          // What an order is priced at: the customer's own price wins.
+          // null: no price at all, the product cannot be ordered.
+          price: customPrice ?? basePrice,
+          basePrice,
+          customPrice,
+          // null: the product never had a stock record, nothing is known.
+          sellable: sellable[product.id] ?? null,
+        };
+      })
     );
   } catch (error) {
     if (error instanceof Response) return error;
