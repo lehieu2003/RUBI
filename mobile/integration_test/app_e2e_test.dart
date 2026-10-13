@@ -175,7 +175,7 @@ void main() {
           key.value.startsWith('order_');
     });
     await waitFor(tester, orderCards);
-    expect(find.byType(NavigationDestination), findsNWidgets(3));
+    expect(find.byType(NavigationDestination), findsNWidgets(4));
     expect(find.text(AppStrings.navToday), findsNothing);
     // They take an order on the phone: pick the customer by typing without
     // accents, two bags of the first product on sale, a note for the driver.
@@ -234,6 +234,20 @@ void main() {
       tester,
       find.textContaining(': ${AppStrings.orderStatusLabel('CANCELLED')}'),
     );
+    // "Khách hàng": find a customer without typing accents, see their
+    // contact and the prices that apply to them. Staff cannot add customers.
+    await tester.tap(find.text(AppStrings.navCustomers));
+    await waitFor(tester, find.byKey(const Key('customers_search')));
+    expect(find.byKey(const Key('customers_new')), findsNothing);
+    await tester.enterText(find.byKey(const Key('customers_search')), 'minh tam');
+    await waitFor(tester, find.text('Đại Lý Nước Ngọt Minh Tâm'));
+    await tester.tap(find.text('Đại Lý Nước Ngọt Minh Tâm'));
+    await waitFor(tester, find.text(AppStrings.customerPricesTitle));
+    await waitFor(tester, find.textContaining('đ/'));
+    expect(find.byKey(const Key('customer_ledger')), findsNothing);
+    await tester.tap(find.byType(BackButton));
+    await waitFor(tester, find.byKey(const Key('customers_search')));
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.tap(find.text(AppStrings.navSchedule));
     await waitFor(tester, find.text(AppStrings.scheduleHint));
     await tester.tap(find.text(AppStrings.navSettings));
@@ -305,6 +319,39 @@ void main() {
     await tester.tap(find.byKey(const Key('more_orders')));
     await waitFor(tester, orderCards);
     await tester.tap(find.byType(BackButton));
+    await waitFor(tester, find.text(_managerEmail));
+    // "Thêm" → "Khách hàng": the manager adds a customer and opens the
+    // ledger of the one who paid above.
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.tap(find.byKey(const Key('more_customers')));
+    await waitFor(tester, find.byKey(const Key('customers_new')));
+    await tester.tap(find.byKey(const Key('customers_new')));
+    await waitFor(tester, find.byKey(const Key('customer_new_code')));
+    await tester.enterText(find.byKey(const Key('customer_new_code')), 'KH-APP');
+    await tester.enterText(
+      find.byKey(const Key('customer_new_name')),
+      'Khách Thêm Từ App',
+    );
+    await tester.enterText(
+      find.byKey(const Key('customer_new_phone')),
+      '0900111222',
+    );
+    await tester.tap(find.byKey(const Key('customer_new_save')));
+    await waitFor(tester, find.textContaining('Đã thêm khách'));
+    await waitFor(tester, find.text('Khách Thêm Từ App'));
+    await tester.enterText(find.byKey(const Key('customers_search')), 'minh tam');
+    await waitFor(tester, find.text('Đại Lý Nước Ngọt Minh Tâm'));
+    await tester.tap(find.text('Đại Lý Nước Ngọt Minh Tâm'));
+    await waitFor(tester, find.byKey(const Key('customer_ledger')));
+    await tester.tap(find.byKey(const Key('customer_ledger')));
+    await waitFor(tester, find.textContaining('Thu thử từ app'));
+    await tester.tap(find.byType(BackButton).last);
+    await waitFor(tester, find.byKey(const Key('customer_ledger')));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.byType(BackButton).last);
+    await waitFor(tester, find.byKey(const Key('customers_search')));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.byType(BackButton).last);
     await waitFor(tester, find.text(_managerEmail));
     // "Thêm" → "Đối soát": the driver's delivery is settled one short.
     await tester.pump(const Duration(milliseconds: 600));

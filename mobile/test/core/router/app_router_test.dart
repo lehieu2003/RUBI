@@ -269,7 +269,7 @@ void main() {
       );
       cubit.emit(const Authenticated(staff));
       await tester.pumpAndSettle();
-      expect(find.byType(NavigationDestination), findsNWidgets(3));
+      expect(find.byType(NavigationDestination), findsNWidgets(4));
       expect(find.text(AppStrings.ordersEmpty), findsOneWidget);
       expect(find.text(AppStrings.navToday), findsNothing);
       expect(find.text(AppStrings.navHistory), findsNothing);
@@ -313,6 +313,7 @@ void main() {
       await tester.tap(find.text(AppStrings.navMore));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('more_orders')), findsOneWidget);
+      expect(find.byKey(const Key('more_customers')), findsOneWidget);
       expect(find.byKey(const Key('more_settle')), findsOneWidget);
       expect(find.byKey(const Key('more_audit_log')), findsOneWidget);
       expect(find.text('chu@iceflow.vn'), findsOneWidget);
