@@ -89,6 +89,10 @@ import 'package:iceflow_mobile/features/schedule/presentation/cubit/schedule_cub
     as _i756;
 import 'package:iceflow_mobile/features/schedule/presentation/cubit/team_schedule_cubit.dart'
     as _i1;
+import 'package:iceflow_mobile/features/staff/data/staff_repository_impl.dart'
+    as _i853;
+import 'package:iceflow_mobile/features/staff/domain/repositories/staff_repository.dart'
+    as _i1042;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
 
@@ -114,6 +118,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i360.DebtRepository>(
       () => _i61.DebtRepositoryImpl(dio: gh<_i361.Dio>()),
+    );
+    gh.lazySingleton<_i1042.StaffRepository>(
+      () => _i853.StaffRepositoryImpl(dio: gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i971.AuditRepository>(
       () => _i156.AuditRepositoryImpl(dio: gh<_i361.Dio>()),
