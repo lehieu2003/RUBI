@@ -58,14 +58,36 @@ describe('GET /api/customers/[id]/prices', () => {
     assert.match(route, /apiError\('Không tìm thấy khách hàng', 404\)/);
   });
 
-  it('uses the price list and the sellable stock of the web order drawer', () => {
-    assert.match(route, /loadCustomerPrices\(id\)/);
+  it('reads prices within the factory and the sellable stock of the web order drawer', () => {
     assert.match(route, /loadSellableStock\(\)/);
     assert.match(route, /where: \{ isActive: true, factoryId \}/);
+    assert.match(route, /where: \{ product: \{ isActive: true, factoryId \} \}/);
+    assert.match(route, /where: \{ customerId: id, customer: \{ factoryId \}, product: \{ factoryId \} \}/);
+  });
+
+  it("prices an order at the customer's own price, else the default one, and reports both", () => {
+    assert.match(route, /price: customPrice \?\? basePrice/);
+    assert.match(route, /basePrice,\s*customPrice,/);
   });
 
   it('says null, not 0, for a product without a price or without a stock record', () => {
-    assert.match(route, /price: prices\[product\.id\] \?\? null/);
+    assert.match(route, /base\.get\(product\.id\) \?\? null/);
+    assert.match(route, /custom\.get\(product\.id\) \?\? null/);
     assert.match(route, /sellable: sellable\[product\.id\] \?\? null/);
+  });
+});
+
+describe('GET /api/prices/global', () => {
+  const route = read('src/app/api/prices/global/route.ts');
+  const get = route.slice(route.indexOf('export async function GET'), route.indexOf('export async function POST'));
+
+  it('is for the manager and only lists products of this factory', () => {
+    assert.match(get, /await requireRole\(\['ADMIN'\]\)/);
+    assert.match(get, /where: \{ factoryId: session\.factoryId \}/);
+  });
+
+  it('lists discontinued products too, and null for a product without a price', () => {
+    assert.doesNotMatch(get, /where: \{[^}]*isActive/);
+    assert.match(get, /price: globalPrice \? Number\(globalPrice\.pricePerUnit\) : null/);
   });
 });
