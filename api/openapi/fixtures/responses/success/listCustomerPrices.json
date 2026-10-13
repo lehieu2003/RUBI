@@ -1,0 +1,33 @@
+{
+  "operationId": "listCustomerPrices",
+  "request": {
+    "method": "GET",
+    "path": "/api/customers/{id}/prices",
+    "as": "admin",
+    "params": {
+      "id": "cmv6ehyfu0003i9e4p70r8esm"
+    }
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": [
+      {
+        "productId": "prod-bi-5",
+        "name": "Đá Bi",
+        "sizeKg": 5,
+        "unit": "Bao",
+        "price": 12000,
+        "sellable": 145
+      },
+      {
+        "productId": "prod-bi-10",
+        "name": "Đá Bi",
+        "sizeKg": 10,
+        "unit": "Bao",
+        "price": 22000,
+        "sellable": 190
+      }
+    ]
+  }
+}

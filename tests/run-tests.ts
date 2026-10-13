@@ -35,3 +35,4 @@ import './lib/pagination.test';
 import './lib/vietnam-time.test';
 import './lib/inventory.test';
 import './api/customer-payments.test';
+import './api/create-order.test';

@@ -1,0 +1,16 @@
+{
+  "operationId": "listCustomerPrices",
+  "request": {
+    "method": "GET",
+    "path": "/api/customers/{id}/prices",
+    "as": "driver",
+    "params": {
+      "id": "cmv6ehyfu0003i9e4p70r8esm"
+    }
+  },
+  "status": 403,
+  "body": {
+    "success": false,
+    "error": "Bạn không có quyền thực hiện thao tác này"
+  }
+}

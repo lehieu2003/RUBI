@@ -61,6 +61,8 @@ paths:
     $ref: ./factory.yaml#/paths/~1api~1factory
   /api/customers:
     $ref: ./customer.yaml#/paths/~1api~1customers
+  /api/customers/{id}/prices:
+    $ref: ./customer.yaml#/paths/~1api~1customers~1{id}~1prices
   /api/customers/debt-export:
     $ref: ./customer.yaml#/paths/~1api~1customers~1debt-export
   /api/customers/{id}/payments:

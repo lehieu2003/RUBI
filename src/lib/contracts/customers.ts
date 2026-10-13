@@ -77,6 +77,33 @@ export const customerContracts: ApiContract[] = [
     notes: '409 when the customer code already exists.',
   },
   {
+    id: 'listCustomerPrices',
+    method: 'GET',
+    path: '/api/customers/{id}/prices',
+    tag: 'Customers',
+    summary: 'Products on sale with this customer\'s price and what is left to sell',
+    auth: roles('ADMIN', 'STAFF'),
+    params: z.object({ id: Id }),
+    response: envelope(
+      z.array(
+        z.object({
+          productId: Id,
+          name: z.string(),
+          sizeKg: z.number().int(),
+          unit: z.string(),
+          price: z.number().nullable(),
+          sellable: z.number().int().nullable(),
+        })
+      )
+    ),
+    errors: [400, 401, 403, 404, 500],
+    notes:
+      'Feeds the order form once a customer is picked. `price` is the customer\'s own price, else the default one; ' +
+      'null when the product has no price yet and cannot be ordered. `sellable` is the stock on the books minus what ' +
+      'unsettled orders already took (it can be negative); null when the product never had a stock record. Ordered ' +
+      'by name then size.',
+  },
+  {
     id: 'exportCustomerDebt',
     method: 'GET',
     path: '/api/customers/debt-export',

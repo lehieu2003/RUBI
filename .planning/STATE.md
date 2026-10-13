@@ -130,6 +130,7 @@ v3.0 decisions:
 | 261012-mos | Mobile: orders screen for manager and staff — status tabs, search, assign driver, change status, cancel | 2026-10-12 | feat/mobile-orders-screen | [261012-mos-mobile-orders-screen](./quick/261012-mos-mobile-orders-screen/) |
 | 261013-mst | Mobile: settlement for the manager — delivered orders, actual quantity per line, confirm | 2026-10-13 | feat/mobile-settlement | [261013-mst-mobile-settlement](./quick/261013-mst-mobile-settlement/) |
 | 261013-msw | Mobile: shared widgets — AppHeader, AppButton, loading / empty views, load-more, search field, snackbar helper | 2026-10-13 | refactor/mobile-shared-widgets | [261013-msw-mobile-shared-widgets](./quick/261013-msw-mobile-shared-widgets/) |
+| 261013-aco | API: create an order over REST and a customer's price list with sellable stock, for the mobile app | 2026-10-13 | feat/api-create-order | [261013-aco-api-create-order](./quick/261013-aco-api-create-order/) |
 
 ## Session Continuity
 

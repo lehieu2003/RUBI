@@ -1,0 +1,33 @@
+{
+  "operationId": "createOrder",
+  "request": {
+    "method": "POST",
+    "path": "/api/orders",
+    "as": "staff",
+    "body": {
+      "customerId": "cmv6ehyfu0003i9e4p70r8esm",
+      "items": [
+        {
+          "productId": "prod-bi-5",
+          "quantity": 3
+        },
+        {
+          "productId": "prod-bi-10",
+          "quantity": 0
+        }
+      ],
+      "notes": "Giao cổng sau"
+    }
+  },
+  "status": 201,
+  "body": {
+    "success": true,
+    "data": {
+      "id": "cmv6ehzj50017i9e48ay7ng7d",
+      "status": "PENDING",
+      "total": 36000,
+      "createdAt": "2026-10-13T08:10:13.409Z",
+      "customerName": "Khách kiểm tra hợp đồng"
+    }
+  }
+}
