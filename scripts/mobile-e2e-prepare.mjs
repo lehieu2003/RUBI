@@ -120,11 +120,18 @@ async function verify(userId, orderId, userName) {
     problems.push(`customer KH-APP stored as "${added.name}" / "${added.phone}"`);
   }
 
+  // The account the manager created in the app and then locked.
+  const made = (await call('GET', '/api/staff', { token })).data.users.find((item) => item.email === 'nv-app@rubi.local');
+  if (!made) problems.push('no account nv-app@rubi.local: the one created in the app is missing');
+  else if (made.role !== 'STAFF' || made.isActive !== false) {
+    problems.push(`account nv-app@rubi.local is ${made.role}, active=${made.isActive}; expected a locked STAFF account`);
+  }
+
   if (problems.length > 0) {
     console.error('✖ ' + problems.join('\n✖ '));
     process.exit(1);
   }
-  console.log('✓ server state matches what the app did: order delivered by the driver and settled by the manager, shift requested and approved, payment recorded, an order taken, assigned and cancelled, a customer added');
+  console.log('✓ server state matches what the app did: order delivered by the driver and settled by the manager, shift requested and approved, payment recorded, an order taken, assigned and cancelled, a customer added, an account created and locked');
 }
 
 const [command, ...args] = process.argv.slice(2);
