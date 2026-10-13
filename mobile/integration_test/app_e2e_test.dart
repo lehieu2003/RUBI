@@ -353,6 +353,40 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     await tester.tap(find.byType(BackButton).last);
     await waitFor(tester, find.text(_managerEmail));
+    // "Thêm" → "Nhân sự": the manager creates a staff account, then locks it.
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.ensureVisible(find.byKey(const Key('more_staff')));
+    await tester.tap(find.byKey(const Key('more_staff')));
+    await waitFor(tester, find.byKey(const Key('staff_new')));
+    await tester.tap(find.byKey(const Key('staff_new')));
+    await waitFor(tester, find.byKey(const Key('staff_new_name')));
+    await tester.enterText(
+      find.byKey(const Key('staff_new_name')),
+      'Nhân Viên Từ App',
+    );
+    await tester.enterText(
+      find.byKey(const Key('staff_new_email')),
+      'nv-app@rubi.local',
+    );
+    await tester.enterText(
+      find.byKey(const Key('staff_new_password')),
+      'Tam12345x',
+    );
+    await tester.tap(find.byKey(const Key('staff_new_save')));
+    await waitFor(tester, find.textContaining('Đã tạo tài khoản'));
+    await waitFor(tester, find.text('Nhân Viên Từ App'));
+    await tester.tap(find.text('Nhân Viên Từ App'));
+    await waitFor(tester, find.byKey(const Key('staff_lock')));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.byKey(const Key('staff_lock')));
+    await waitFor(tester, find.byKey(const Key('staff_confirm')));
+    await tester.tap(find.byKey(const Key('staff_confirm')));
+    await waitFor(tester, find.textContaining('Đã khóa Nhân Viên Từ App'));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.byType(BackButton).last);
+    await waitFor(tester, find.text(_managerEmail));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.ensureVisible(find.byKey(const Key('more_settle')));
     // "Thêm" → "Đối soát": the driver's delivery is settled one short.
     await tester.pump(const Duration(milliseconds: 600));
     await tester.tap(find.byKey(const Key('more_settle')));
