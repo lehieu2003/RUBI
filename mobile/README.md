@@ -44,7 +44,17 @@ What the features share.
 
 ## `lib/shared/widgets`
 
-Widgets more than one feature uses. Today: `error_views.dart` (`ErrorView` for a first load that failed, `ErrorBanner` above a list that is kept on screen). A widget only one feature uses stays in that feature's `presentation/widgets`.
+Widgets more than one feature uses. A widget only one feature uses stays in that feature's `presentation/widgets`.
+
+| File | What it gives |
+|---|---|
+| `app_header.dart` | `AppHeader` — the top bar of every screen: title, optional one-line subtitle, optional actions. Use it for `Scaffold.appBar` instead of `AppBar`. |
+| `app_button.dart` | `AppButton` — full-width, 48dp button; `variant` (primary / secondary / text), `icon`, `loading`, `danger`. |
+| `state_views.dart` | `LoadingView` (spinner while there is nothing to show yet), `EmptyView` (the sentence of an empty list). |
+| `error_views.dart` | `ErrorView` for a first load that failed, `ErrorBanner` above a list that is kept on screen. |
+| `load_more_button.dart` | `LoadMoreButton` — "Xem thêm" at the end of a paged list. |
+| `search_field.dart` | `SearchField` — search box that waits for the user to stop typing. |
+| `snack_bars.dart` | `messenger.showMessage(...)` — the result of an action, replacing the message on screen. |
 
 ## End-to-end test on an emulator
 
