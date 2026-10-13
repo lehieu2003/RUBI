@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iceflow_mobile/core/di/injection_container.dart';
@@ -9,6 +8,7 @@ import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/orders/domain/entities/order_entry.dart';
 import 'package:iceflow_mobile/features/orders/presentation/cubit/order_entry_cubit.dart';
+import 'package:iceflow_mobile/features/orders/presentation/widgets/quantity_stepper.dart';
 import 'package:iceflow_mobile/shared/widgets/app_button.dart';
 import 'package:iceflow_mobile/shared/widgets/app_header.dart';
 import 'package:iceflow_mobile/shared/widgets/error_views.dart';
@@ -26,19 +26,57 @@ class OrderEntryScreen extends StatelessWidget {
       child: BlocBuilder<OrderEntryCubit, OrderEntryState>(
         builder: (context, state) {
           final customer = state.customer;
-          return Scaffold(
-            appBar: AppHeader(
-              title: AppStrings.orderEntryTitle,
-              subtitle: customer?.name ?? AppStrings.orderEntryPickCustomer,
+          return PopScope<CreatedOrder>(
+            // Đã nhập số lượng thì hỏi lại trước khi thoát; lưu xong thì màn
+            // tự đóng bằng lệnh riêng, không qua đây.
+            canPop: state.quantities.isEmpty,
+            onPopInvokedWithResult: (didPop, _) {
+              if (!didPop && !state.submitting) _confirmLeave(context);
+            },
+            child: Scaffold(
+              appBar: AppHeader(
+                title: AppStrings.orderEntryTitle,
+                subtitle: customer?.name ?? AppStrings.orderEntryPickCustomer,
+              ),
+              body: customer == null
+                  ? _CustomerPicker(state: state)
+                  : _OrderForm(state: state, customer: customer),
             ),
-            body: customer == null
-                ? _CustomerPicker(state: state)
-                : _OrderForm(state: state, customer: customer),
           );
         },
       ),
     );
   }
+}
+
+/// Hỏi lại trước khi bỏ một đơn đang nhập dở.
+Future<void> _confirmLeave(BuildContext context) async {
+  final navigator = Navigator.of(context);
+  final leave = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text(AppStrings.orderEntryLeaveTitle),
+      content: const Text(AppStrings.orderEntryLeaveBody),
+      actions: [
+        TextButton(
+          key: const Key('order_entry_stay'),
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          style: TextButton.styleFrom(minimumSize: const Size(64, 48)),
+          child: const Text(AppStrings.orderEntryStay),
+        ),
+        TextButton(
+          key: const Key('order_entry_leave'),
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          style: TextButton.styleFrom(
+            minimumSize: const Size(64, 48),
+            foregroundColor: Theme.of(dialogContext).colorScheme.error,
+          ),
+          child: const Text(AppStrings.orderEntryLeave),
+        ),
+      ],
+    ),
+  );
+  if (leave == true) navigator.pop();
 }
 
 /// Bước 1: gõ để lọc danh sách khách ngay trên máy, bấm để chọn.
@@ -264,9 +302,8 @@ class _OrderForm extends HookWidget {
   }
 }
 
-/// Một sản phẩm: tên, giá của khách, số còn bán được, và ô số lượng với nút
-/// giảm / tăng. Gõ thẳng số vào ô cho nhanh với số lớn.
-class _ProductRow extends HookWidget {
+/// Một sản phẩm: tên, giá của khách, số còn bán được, và ô số lượng.
+class _ProductRow extends StatelessWidget {
   const _ProductRow({
     required this.product,
     required this.quantity,
@@ -282,15 +319,6 @@ class _ProductRow extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = useTextEditingController();
-    // Nút giảm / tăng đổi số → ô chữ theo; đang gõ thì không đụng con trỏ.
-    useEffect(() {
-      if ((int.tryParse(controller.text) ?? 0) != quantity) {
-        controller.text = quantity == 0 ? '' : '$quantity';
-      }
-      return null;
-    }, [quantity]);
-
     final colorScheme = context.colorScheme;
     final textTheme = context.textTheme;
     final muted = colorScheme.onSurfaceVariant;
@@ -350,39 +378,12 @@ class _ProductRow extends HookWidget {
               ],
             ),
           ),
-          IconButton(
-            key: Key('order_entry_minus_${product.productId}'),
-            tooltip: AppStrings.settleDecreaseTooltip,
-            onPressed: active && quantity > 0 ? () => onChanged(quantity - 1) : null,
-            icon: const Icon(Icons.remove_circle_outline),
-          ),
-          SizedBox(
-            width: 60,
-            child: TextField(
-              key: Key('order_entry_qty_${product.productId}'),
-              controller: controller,
-              enabled: active,
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(4),
-              ],
-              textAlign: TextAlign.center,
-              style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-              decoration: const InputDecoration(
-                hintText: '0',
-                border: OutlineInputBorder(),
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(vertical: 10),
-              ),
-              onChanged: (text) => onChanged(int.tryParse(text) ?? 0),
-            ),
-          ),
-          IconButton(
-            key: Key('order_entry_plus_${product.productId}'),
-            tooltip: AppStrings.settleIncreaseTooltip,
-            onPressed: active ? () => onChanged(quantity + 1) : null,
-            icon: const Icon(Icons.add_circle_outline),
+          QuantityStepper(
+            keyPrefix: 'order_entry',
+            id: product.productId,
+            quantity: quantity,
+            enabled: active,
+            onChanged: onChanged,
           ),
         ],
       ),

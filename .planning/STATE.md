@@ -135,6 +135,7 @@ v3.0 decisions:
 | 261013-mes | Mobile: order entry screen — pick a customer, quantities at the customer's prices, notes, save | 2026-10-13 | feat/mobile-order-entry-screen | [261013-mes-mobile-order-entry-screen](./quick/261013-mes-mobile-order-entry-screen/) |
 | 261013-fpf | Fix: customer price link stuck on a slow browser (the flaky access e2e test) | 2026-10-13 | fix/e2e-customer-price-page-flake | [261013-fpf-fix-price-page-flake](./quick/261013-fpf-fix-price-page-flake/) |
 | 261013-mof | Mobile: filter orders by date and by driver (or unassigned) | 2026-10-13 | feat/mobile-order-filters | [261013-mof-mobile-order-filters](./quick/261013-mof-mobile-order-filters/) |
+| 261013-mfp | Mobile: type the delivered quantity at settlement; confirm before leaving a half-entered order | 2026-10-13 | feat/mobile-order-form-polish | [261013-mfp-mobile-order-form-polish](./quick/261013-mfp-mobile-order-form-polish/) |
 
 ## Session Continuity
 
