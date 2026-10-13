@@ -16,6 +16,9 @@ class OrdersState extends Equatable {
     required this.status,
     this.search = '',
     this.tab,
+    this.date,
+    this.driver,
+    this.unassignedOnly = false,
     this.orders = const [],
     this.counts,
     this.hasMore = false,
@@ -32,21 +35,66 @@ class OrdersState extends Equatable {
   /// Tab trạng thái đang xem; `null` = tất cả.
   final OfficeOrderStatus? tab;
 
+  /// Chỉ đơn tạo trong ngày này; `null` = mọi ngày.
+  final DateTime? date;
+
+  /// Chỉ đơn của tài xế này; `null` = mọi tài xế.
+  final DriverOption? driver;
+
+  /// Chỉ đơn chưa gán tài xế (khi bật thì [driver] là `null`).
+  final bool unassignedOnly;
+
   /// Các đơn đã tải của tab đang xem, mới nhất trước.
   final List<OfficeOrder> orders;
 
-  /// Số đơn theo trạng thái dưới từ khoá hiện tại; `null` khi chưa có.
+  /// Số đơn theo trạng thái dưới bộ lọc hiện tại; `null` khi chưa có.
   final OrderCounts? counts;
   final bool hasMore;
   final PageParams nextPage;
   final bool loadingMore;
   final String? errorMessage;
 
+  /// Bộ lọc gửi cho server, dùng chung cho danh sách và số đếm.
+  OrderFilter get filter => OrderFilter(
+        search: search,
+        date: date,
+        driverId: driver?.id,
+        unassignedOnly: unassignedOnly,
+      );
+
+  /// Cùng tab và bộ lọc, với kết quả khác.
+  OrdersState _result({
+    required ViewStatus status,
+    List<OfficeOrder> orders = const [],
+    OrderCounts? counts,
+    bool hasMore = false,
+    PageParams nextPage = const PageParams(),
+    bool loadingMore = false,
+    String? errorMessage,
+  }) =>
+      OrdersState(
+        status: status,
+        search: search,
+        tab: tab,
+        date: date,
+        driver: driver,
+        unassignedOnly: unassignedOnly,
+        orders: orders,
+        counts: counts,
+        hasMore: hasMore,
+        nextPage: nextPage,
+        loadingMore: loadingMore,
+        errorMessage: errorMessage,
+      );
+
   @override
   List<Object?> get props => [
         status,
         search,
         tab,
+        date,
+        driver,
+        unassignedOnly,
         orders,
         counts,
         hasMore,
@@ -71,39 +119,73 @@ class OrdersCubit extends Cubit<OrdersState> {
   /// Tăng mỗi lần đổi tab / từ khoá, để kết quả về muộn không đè lên.
   int _generation = 0;
 
-  /// Tải lại trang đầu và số đếm với tab và từ khoá hiện tại.
-  Future<void> load() => _reload(search: state.search, tab: state.tab);
+  /// Tải lại trang đầu và số đếm với tab và bộ lọc hiện tại.
+  Future<void> load() => _reload(state);
 
   Future<void> selectTab(OfficeOrderStatus? tab) {
     if (tab == state.tab) return Future.value();
-    return _reload(search: state.search, tab: tab, keep: false);
+    return _reload(_view(tab: tab), keep: false);
   }
 
   Future<void> setSearch(String search) {
     final trimmed = search.trim();
     if (trimmed == state.search) return Future.value();
-    return _reload(search: trimmed, tab: state.tab, keep: false);
+    return _reload(_view(search: trimmed), keep: false);
   }
 
-  Future<void> _reload({
-    required String search,
-    required OfficeOrderStatus? tab,
-    bool keep = true,
-  }) async {
-    final generation = ++_generation;
-    emit(
+  /// Lọc theo ngày tạo đơn; `null` = mọi ngày.
+  Future<void> setDate(DateTime? date) {
+    final day = date == null ? null : DateTime(date.year, date.month, date.day);
+    if (day == state.date) return Future.value();
+    return _reload(_view(date: day, keepDate: false), keep: false);
+  }
+
+  /// Lọc theo tài xế: một tài xế, hoặc [unassignedOnly] cho đơn chưa gán;
+  /// không truyền gì = mọi tài xế.
+  Future<void> setDriver({DriverOption? driver, bool unassignedOnly = false}) {
+    final only = unassignedOnly && driver == null;
+    if (driver == state.driver && only == state.unassignedOnly) {
+      return Future.value();
+    }
+    return _reload(
+      _view(driver: driver, unassignedOnly: only, keepDriver: false),
+      keep: false,
+    );
+  }
+
+  /// State hiện tại với tab / bộ lọc khác (chưa có kết quả).
+  OrdersState _view({
+    String? search,
+    Object? tab = _unchanged,
+    DateTime? date,
+    bool keepDate = true,
+    DriverOption? driver,
+    bool unassignedOnly = false,
+    bool keepDriver = true,
+  }) =>
       OrdersState(
         status: ViewStatus.loading,
-        search: search,
-        tab: tab,
+        search: search ?? state.search,
+        tab: identical(tab, _unchanged) ? state.tab : tab as OfficeOrderStatus?,
+        date: keepDate ? state.date : date,
+        driver: keepDriver ? state.driver : driver,
+        unassignedOnly: keepDriver ? state.unassignedOnly : unassignedOnly,
+      );
+
+  static const Object _unchanged = Object();
+
+  Future<void> _reload(OrdersState view, {bool keep = true}) async {
+    final generation = ++_generation;
+    emit(
+      view._result(
+        status: ViewStatus.loading,
         orders: keep ? state.orders : const [],
         counts: state.counts,
       ),
     );
-    final filter = OrderFilter(search: search);
     final results = await Future.wait([
-      _repo.getOrders(filter: filter, status: tab),
-      _repo.getCounts(filter: filter),
+      _repo.getOrders(filter: view.filter, status: view.tab),
+      _repo.getCounts(filter: view.filter),
     ]);
     if (isClosed || generation != _generation) return;
     final list = results[0] as Result<Paginated<OfficeOrder>>;
@@ -111,10 +193,8 @@ class OrdersCubit extends Cubit<OrdersState> {
     switch (list) {
       case Ok<Paginated<OfficeOrder>>(:final value):
         emit(
-          OrdersState(
+          view._result(
             status: ViewStatus.loaded,
-            search: search,
-            tab: tab,
             orders: value.items,
             // Không đếm được thì giữ số cũ: danh sách vẫn dùng được.
             counts: counts is Ok<OrderCounts> ? counts.value : state.counts,
@@ -124,10 +204,8 @@ class OrdersCubit extends Cubit<OrdersState> {
         );
       case Err<Paginated<OfficeOrder>>(:final failure):
         emit(
-          OrdersState(
+          view._result(
             status: ViewStatus.error,
-            search: search,
-            tab: tab,
             orders: state.orders,
             counts: state.counts,
             errorMessage: failureMessage(failure),
@@ -142,7 +220,7 @@ class OrdersCubit extends Cubit<OrdersState> {
     final generation = _generation;
     emit(_copy(loadingMore: true));
     final res = await _repo.getOrders(
-      filter: OrderFilter(search: state.search),
+      filter: state.filter,
       status: state.tab,
       page: state.nextPage,
     );
@@ -150,10 +228,8 @@ class OrdersCubit extends Cubit<OrdersState> {
     switch (res) {
       case Ok<Paginated<OfficeOrder>>(:final value):
         emit(
-          OrdersState(
+          state._result(
             status: ViewStatus.loaded,
-            search: state.search,
-            tab: state.tab,
             orders: [...state.orders, ...value.items],
             counts: state.counts,
             hasMore: value.hasNext,
@@ -227,10 +303,8 @@ class OrdersCubit extends Cubit<OrdersState> {
   }
 
   OrdersState _copy({required bool loadingMore, String? errorMessage}) =>
-      OrdersState(
+      state._result(
         status: state.status,
-        search: state.search,
-        tab: state.tab,
         orders: state.orders,
         counts: state.counts,
         hasMore: state.hasMore,

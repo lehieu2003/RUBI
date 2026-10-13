@@ -365,6 +365,95 @@ void main() {
     });
   });
 
+  group('OrdersTab — lọc', () {
+    testWidgets('chọn ngày → chip hiện ngày, server được hỏi theo ngày; ✕ bỏ lọc',
+        (tester) async {
+      await pumpTab(tester);
+      expect(find.text(AppStrings.orderFilterAnyDate), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('orders_filter_date')));
+      await tester.pumpAndSettle();
+      // Lịch mở ở hôm nay: bấm OK là chọn hôm nay.
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      String two(int value) => value.toString().padLeft(2, '0');
+      expect(
+        find.text('${two(today.day)}/${two(today.month)}/${today.year}'),
+        findsOneWidget,
+      );
+      verify(
+        () => repo.getOrders(
+          filter: OrderFilter(search: '', date: today),
+          status: null,
+          page: any(named: 'page'),
+        ),
+      ).called(1);
+
+      await tester.tap(find.byTooltip(AppStrings.orderFilterClear));
+      await tester.pumpAndSettle();
+      expect(find.text(AppStrings.orderFilterAnyDate), findsOneWidget);
+    });
+
+    testWidgets('chọn tài xế → chip hiện tên, server được hỏi theo tài xế',
+        (tester) async {
+      await pumpTab(tester);
+      expect(find.text(AppStrings.orderFilterAnyDriver), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('orders_filter_driver')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('driver_filter_drv-1')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('orders_filter_driver')),
+          matching: find.text('Nguyễn Văn Tài'),
+        ),
+        findsOneWidget,
+      );
+      verify(
+        () => repo.getOrders(
+          filter: const OrderFilter(search: '', driverId: 'drv-1'),
+          status: null,
+          page: any(named: 'page'),
+        ),
+      ).called(1);
+    });
+
+    testWidgets('"Chưa gán tài xế" → chỉ đơn chưa gán; "Mọi tài xế" bỏ lọc',
+        (tester) async {
+      await pumpTab(tester);
+
+      await tester.tap(find.byKey(const Key('orders_filter_driver')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('driver_filter_unassigned')));
+      await tester.pumpAndSettle();
+      verify(
+        () => repo.getOrders(
+          filter: const OrderFilter(search: '', unassignedOnly: true),
+          status: null,
+          page: any(named: 'page'),
+        ),
+      ).called(1);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('orders_filter_driver')),
+          matching: find.text(AppStrings.orderFilterUnassigned),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const Key('orders_filter_driver')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('driver_filter_all')));
+      await tester.pumpAndSettle();
+      expect(find.text(AppStrings.orderFilterAnyDriver), findsOneWidget);
+    });
+  });
+
   testWidgets('"Lên đơn" → mở màn lên đơn; lưu xong thì báo mã đơn và tải lại',
       (tester) async {
     final entryRepo = _MockEntryRepo();

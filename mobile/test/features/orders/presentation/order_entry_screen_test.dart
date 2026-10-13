@@ -296,6 +296,71 @@ void main() {
     });
   });
 
+  group('thoát giữa chừng', () {
+    testWidgets('chưa nhập gì → thoát luôn, không hỏi', (tester) async {
+      await pumpScreen(tester);
+      await pickGioBien(tester);
+
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(OrderEntryScreen), findsNothing);
+      expect(find.text(AppStrings.orderEntryLeaveTitle), findsNothing);
+    });
+
+    testWidgets('đã nhập số lượng → hỏi lại; "Ở lại" giữ nguyên đơn đang nhập',
+        (tester) async {
+      await pumpScreen(tester);
+      await pickGioBien(tester);
+      await tester.enterText(find.byKey(const Key('order_entry_qty_p-1')), '3');
+      await tester.pump();
+
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.text(AppStrings.orderEntryLeaveTitle), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('order_entry_stay')));
+      await tester.pumpAndSettle();
+      expect(find.byType(OrderEntryScreen), findsOneWidget);
+      expect(total(tester), '36.000đ');
+    });
+
+    testWidgets('"Bỏ đơn" → đóng màn, không lên đơn nào', (tester) async {
+      await pumpScreen(tester);
+      await pickGioBien(tester);
+      await tester.tap(find.byKey(const Key('order_entry_plus_p-1')));
+      await tester.pump();
+
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('order_entry_leave')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(OrderEntryScreen), findsNothing);
+      expect(popped, isNull);
+      verifyNever(
+        () => repo.createOrder(
+          customerId: any(named: 'customerId'),
+          quantities: any(named: 'quantities'),
+          notes: any(named: 'notes'),
+        ),
+      );
+    });
+
+    testWidgets('nút quay lại của máy cũng bị hỏi', (tester) async {
+      await pumpScreen(tester);
+      await pickGioBien(tester);
+      await tester.tap(find.byKey(const Key('order_entry_plus_p-1')));
+      await tester.pump();
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(find.text(AppStrings.orderEntryLeaveTitle), findsOneWidget);
+      expect(find.byType(OrderEntryScreen), findsOneWidget);
+    });
+  });
+
   testWidgets('màn hình 360dp, tên dài, đặt quá số còn bán được → không overflow',
       (tester) async {
     tester.view.physicalSize = const Size(360, 640);
