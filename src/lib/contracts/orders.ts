@@ -3,6 +3,7 @@ import {
   type ApiContract,
   DateOnly,
   Id,
+  IsoDateTime,
   OrderRow,
   OrderStatus,
   OrderWithItems,
@@ -24,6 +25,17 @@ const orderFilters = {
   q: z.string().optional().meta({ description: 'Customer name or code, or an order code such as DH-JI9A6Q' }),
 };
 
+export const CreateOrderBody = z.object({
+  customerId: z.string().min(1, 'Vui lòng chọn khách hàng'),
+  items: z
+    .array(z.object({ productId: Id, quantity: z.number().int().min(0) }))
+    .min(1, 'Cần ít nhất một sản phẩm')
+    .refine((items) => items.some((item) => item.quantity > 0), {
+      message: 'Cần ít nhất một sản phẩm có số lượng lớn hơn 0',
+    }),
+  notes: z.string().trim().max(500, 'Ghi chú tối đa 500 ký tự').optional(),
+});
+
 export const orderContracts: ApiContract[] = [
   {
     id: 'listOrders',
@@ -39,6 +51,31 @@ export const orderContracts: ApiContract[] = [
       'An unknown `status` value is ignored rather than rejected. `date` is a Vietnam calendar day and filters on the ' +
       'creation time; `completedDate` filters on the day the order was settled. 400 for a malformed `date` or ' +
       '`completedDate`, or a `page`/`limit` that is not a positive integer or exceeds the maximum.',
+  },
+  {
+    id: 'createOrder',
+    method: 'POST',
+    path: '/api/orders',
+    tag: 'Orders',
+    summary: 'Take an order for a customer, priced by the server',
+    auth: roles('ADMIN', 'STAFF'),
+    body: CreateOrderBody,
+    response: envelope(
+      z.object({
+        id: Id,
+        status: z.literal('PENDING'),
+        total: z.number(),
+        createdAt: IsoDateTime,
+        customerName: z.string(),
+      })
+    ),
+    successStatus: 201,
+    errors: [400, 401, 403, 404, 500],
+    notes:
+      'The body carries no price: every line is priced from the customer\'s price list (their own price, else the ' +
+      'default one). Lines with quantity 0 are dropped; at least one line must be above 0. 404 when the customer does ' +
+      'not exist; 400 when a product does not exist, is no longer on sale or has no price. Stock is not checked: an ' +
+      'order may exceed what is left to sell. `notes` is what the driver must know at the door.',
   },
   {
     id: 'getOrderCounts',

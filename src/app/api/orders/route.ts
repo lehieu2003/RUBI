@@ -4,6 +4,8 @@ import { requireRole } from '@/lib/auth/helpers';
 import { orderWhere } from '@/lib/order-filters';
 import { MAX_PAGE_SIZE, paginationMeta, parsePagination } from '@/lib/pagination';
 import { apiSuccess, apiError } from "@/lib/api-response";
+import { saveOrder } from '@/lib/actions/orders';
+import { CreateOrderBody } from '@/lib/contracts/orders';
 
 // GET /api/orders - List orders with filters (D-06)
 // Supports: customerId, status, date
@@ -56,5 +58,33 @@ export async function GET(request: NextRequest) {
     if (error instanceof Response) return error;
     console.error('[GET /api/orders]', error);
     return apiError('Không thể tải danh sách đơn hàng', 500);
+  }
+}
+
+// POST /api/orders - Take an order (the mobile app; the web drawer calls the
+// same `saveOrder` as a server action). No price in the body: the server
+// prices every line from the customer's price list.
+export async function POST(request: NextRequest) {
+  try {
+    const session = await requireRole(['ADMIN', 'STAFF']);
+    if (!session.factoryId) {
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
+    }
+
+    const parsed = CreateOrderBody.safeParse(await request.json().catch(() => null));
+    if (!parsed.success) {
+      return apiError(parsed.error.issues[0]?.message ?? 'Dữ liệu không hợp lệ', 400);
+    }
+    const { customerId, items, notes } = parsed.data;
+
+    const result = await saveOrder({ customerId, lineItems: items, notes });
+    if (!result.success) {
+      return apiError(result.status === 500 ? 'Không thể lưu đơn hàng' : result.error, result.status);
+    }
+    return apiSuccess(result.order, 201);
+  } catch (error) {
+    if (error instanceof Response) return error;
+    console.error('[POST /api/orders]', error);
+    return apiError('Không thể lưu đơn hàng', 500);
   }
 }
