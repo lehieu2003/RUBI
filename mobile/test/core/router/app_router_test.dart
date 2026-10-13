@@ -315,7 +315,12 @@ void main() {
       expect(find.byKey(const Key('more_orders')), findsOneWidget);
       expect(find.byKey(const Key('more_customers')), findsOneWidget);
       expect(find.byKey(const Key('more_settle')), findsOneWidget);
-      expect(find.byKey(const Key('more_staff')), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('more_staff')),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
+      expect(find.byKey(const Key('more_products')), findsOneWidget);
       expect(find.text('chu@iceflow.vn'), findsOneWidget);
       // Menu dài hơn màn hình test: cuộn xuống mới tới Nhật ký, cài đặt và
       // Đăng xuất.
