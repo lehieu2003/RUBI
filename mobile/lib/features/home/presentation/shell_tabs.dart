@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:iceflow_mobile/core/di/injection_container.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
+import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/audit/presentation/screens/audit_log_screen.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
+import 'package:iceflow_mobile/features/customers/domain/entities/customer.dart';
+import 'package:iceflow_mobile/features/customers/presentation/screens/customers_tab.dart';
+import 'package:iceflow_mobile/features/debt/domain/entities/customer_debt.dart';
+import 'package:iceflow_mobile/features/debt/domain/repositories/debt_repository.dart';
+import 'package:iceflow_mobile/features/debt/presentation/screens/customer_ledger_screen.dart';
 import 'package:iceflow_mobile/features/debt/presentation/screens/debt_tab.dart';
 import 'package:iceflow_mobile/features/driver/presentation/screens/history_tab.dart';
 import 'package:iceflow_mobile/features/driver/presentation/screens/settings_tab.dart';
@@ -11,6 +18,7 @@ import 'package:iceflow_mobile/features/orders/presentation/screens/orders_tab.d
 import 'package:iceflow_mobile/features/orders/presentation/screens/settlement_screen.dart';
 import 'package:iceflow_mobile/features/schedule/presentation/screens/schedule_tab.dart';
 import 'package:iceflow_mobile/features/schedule/presentation/screens/shift_review_tab.dart';
+import 'package:iceflow_mobile/shared/widgets/snack_bars.dart';
 
 /// Một tab của shell sau đăng nhập.
 class ShellTab {
@@ -73,6 +81,12 @@ const _orders = ShellTab(
   selectedIcon: Icons.receipt_long,
   builder: _buildOrders,
 );
+const _customers = ShellTab(
+  label: AppStrings.navCustomers,
+  icon: Icons.people_alt_outlined,
+  selectedIcon: Icons.people_alt,
+  builder: _buildCustomers,
+);
 const _settings = ShellTab(
   label: AppStrings.navSettings,
   icon: Icons.settings_outlined,
@@ -87,7 +101,32 @@ Widget _buildShiftReview(BuildContext context) => const ShiftReviewTab();
 Widget _buildInventory(BuildContext context) => const InventoryTab();
 Widget _buildDebt(BuildContext context) => const DebtTab();
 Widget _buildOrders(BuildContext context) => const OrdersTab();
+Widget _buildCustomers(BuildContext context) => const CustomersTab();
 Widget _buildSettings(BuildContext context) => const SettingsTab();
+
+/// Mở sổ nợ của một khách từ màn Khách hàng (Quản lý). Sổ nợ cần số còn nợ
+/// hiện tại, nên hỏi server trước; khách không có trong danh sách nợ là
+/// khách không nợ.
+Future<void> _openCustomerLedger(BuildContext context, Customer customer) async {
+  // Capture trước await — context không dùng được qua async gap an toàn.
+  final navigator = Navigator.of(context);
+  final messenger = ScaffoldMessenger.of(context);
+  final errorColor = Theme.of(context).colorScheme.error;
+  switch (await sl<DebtRepository>().getDebts()) {
+    case Ok<List<CustomerDebt>>(:final value):
+      final debt = value.where((debt) => debt.customerId == customer.id).firstOrNull ??
+          CustomerDebt(
+            customerId: customer.id,
+            customerName: customer.name,
+            outstandingDebt: 0,
+          );
+      await navigator.push(
+        MaterialPageRoute<void>(builder: (_) => CustomerLedgerScreen(debt: debt)),
+      );
+    case Err<List<CustomerDebt>>():
+      messenger.showMessage(AppStrings.customerLedgerFailed, errorColor: errorColor);
+  }
+}
 
 /// Tab "Thêm" của Quản lý: các màn ít dùng hơn, rồi tới phần cài đặt.
 Widget _buildMore(BuildContext context) => SettingsTab(
@@ -101,6 +140,21 @@ Widget _buildMore(BuildContext context) => SettingsTab(
           trailing: const Icon(Icons.chevron_right),
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute<void>(builder: (_) => const OrdersTab()),
+          ),
+        ),
+        ListTile(
+          key: const Key('more_customers'),
+          leading: const Icon(Icons.people_alt_outlined),
+          title: const Text(AppStrings.navCustomers),
+          subtitle: const Text(AppStrings.customersSubtitle),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => const CustomersTab(
+                canManage: true,
+                onOpenLedger: _openCustomerLedger,
+              ),
+            ),
           ),
         ),
         ListTile(
@@ -130,15 +184,15 @@ Widget _buildMore(BuildContext context) => SettingsTab(
 /// mà server cho vai trò đó dùng: thêm màn hình mới thì thêm vào đây.
 ///
 /// - Tài xế: giao hàng (hôm nay, lịch sử) và đăng ký ca.
-/// - Nhân viên: đơn hàng và đăng ký ca.
-/// - Quản lý: duyệt ca, kho lạnh, công nợ, và "Thêm" (đơn hàng, đối soát,
-///   nhật ký, cài đặt).
+/// - Nhân viên: đơn hàng, khách hàng và đăng ký ca.
+/// - Quản lý: duyệt ca, kho lạnh, công nợ, và "Thêm" (đơn hàng, khách
+///   hàng, đối soát, nhật ký, cài đặt).
 ///   Không tự đăng ký ca (server từ chối). Thanh dưới chỉ đủ chỗ cho ba màn
 ///   dùng hằng ngày: màn mới của Quản lý thêm vào "Thêm".
 List<ShellTab> shellTabsFor(UserRole role) {
   return switch (role) {
     UserRole.driver => const [_today, _history, _schedule, _settings],
-    UserRole.staff => const [_orders, _schedule, _settings],
+    UserRole.staff => const [_orders, _customers, _schedule, _settings],
     UserRole.admin => const [_shiftReview, _inventory, _debt, _more],
   };
 }

@@ -216,6 +216,29 @@ abstract final class AppStrings {
   static const orderSettleHint =
       'Đơn đã giao chờ Quản lý đối soát để ghi nợ và trừ kho.';
 
+  // ---- Khách hàng (Quản lý, Nhân viên) ----
+  static const navCustomers = 'Khách hàng';
+  static const customersSubtitle = 'Danh bạ, liên hệ và bảng giá';
+  static const customersSearchHint = 'Tìm tên, mã hoặc số điện thoại';
+  static const customersEmpty = 'Chưa có khách hàng nào';
+  static const customersNoMatch = 'Không tìm thấy khách hàng nào';
+  static const customerAddButton = 'Thêm';
+  static const customerAddTitle = 'Thêm khách hàng';
+  static const customerCodeLabel = 'Mã khách (VD: KH-012)';
+  static const customerNameLabel = 'Tên khách hàng';
+  static const customerPhoneLabel = 'Số điện thoại';
+  static const customerAddressLabel = 'Địa chỉ';
+  static const customerCodeNameRequired = 'Nhập mã và tên khách hàng';
+  static const customerSaveButton = 'Lưu';
+  static String customerCreated(String name) => 'Đã thêm khách $name';
+  static const customerNoPhone = 'Chưa có số điện thoại';
+  static const customerNoAddress = 'Chưa có địa chỉ';
+  static const customerLedgerButton = 'Sổ nợ và thu tiền';
+  static const customerLedgerFailed = 'Không tải được công nợ của khách. Thử lại sau.';
+  static const customerPricesTitle = 'Bảng giá áp cho khách này';
+  static const customerPricesEmpty = 'Chưa có sản phẩm nào đang bán';
+  static const customerPriceMissing = 'Chưa có giá';
+
   // ---- Bộ lọc danh sách đơn ----
   static const orderFilterAnyDate = 'Mọi ngày';
   static const orderFilterAnyDriver = 'Mọi tài xế';
