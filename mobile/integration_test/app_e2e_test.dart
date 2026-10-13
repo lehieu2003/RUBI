@@ -343,6 +343,20 @@ void main() {
     await waitFor(tester, find.text('Đại Lý Nước Ngọt Minh Tâm'));
     await tester.tap(find.text('Đại Lý Nước Ngọt Minh Tâm'));
     await waitFor(tester, find.byKey(const Key('customer_ledger')));
+    // This customer gets their own price for the first product.
+    final priceRows = find.byWidgetPredicate((widget) {
+      final key = widget.key;
+      return widget is ListTile &&
+          key is ValueKey<String> &&
+          key.value.startsWith('customer_price_');
+    });
+    await waitFor(tester, priceRows);
+    await tester.tap(priceRows.first);
+    await waitFor(tester, find.byKey(const Key('customer_price_input')));
+    await tester.enterText(find.byKey(const Key('customer_price_input')), '11111');
+    await tester.tap(find.byKey(const Key('customer_price_save')));
+    await waitFor(tester, find.textContaining('giá riêng 11.111đ'));
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.tap(find.byKey(const Key('customer_ledger')));
     await waitFor(tester, find.textContaining('Thu thử từ app'));
     await tester.tap(find.byType(BackButton).last);
@@ -352,7 +366,58 @@ void main() {
     await waitFor(tester, find.byKey(const Key('customers_search')));
     await tester.pump(const Duration(milliseconds: 400));
     await tester.tap(find.byType(BackButton).last);
-    await waitFor(tester, find.text(_managerEmail));
+    // The menu is scrolled by now: the account card is off screen.
+    await tester.pump(const Duration(milliseconds: 600));
+    // "Thêm" → "Sản phẩm & giá": the manager changes the default price of
+    // the first product.
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.ensureVisible(find.byKey(const Key('more_products')));
+    await tester.tap(find.byKey(const Key('more_products')));
+    await waitFor(tester, find.byKey(const Key('products_new')));
+    final productTiles = find.byWidgetPredicate((widget) {
+      final key = widget.key;
+      return widget is ListTile &&
+          key is ValueKey<String> &&
+          key.value.startsWith('product_');
+    });
+    await waitFor(tester, productTiles);
+    await tester.tap(productTiles.first);
+    await waitFor(tester, find.byKey(const Key('product_price')));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.byKey(const Key('product_price')));
+    await waitFor(tester, find.byKey(const Key('product_price_input')));
+    await tester.enterText(find.byKey(const Key('product_price_input')), '12345');
+    await tester.tap(find.byKey(const Key('product_price_save')));
+    await waitFor(tester, find.textContaining('giờ giá 12.345đ'));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.byType(BackButton).last);
+    // The menu is scrolled by now: the account card is off screen.
+    await tester.pump(const Duration(milliseconds: 600));
+    // "Thêm" → "Vỏ bao": three more shells go out to the customer holding
+    // the most.
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.ensureVisible(find.byKey(const Key('more_shells')));
+    await tester.tap(find.byKey(const Key('more_shells')));
+    await waitFor(tester, find.byKey(const Key('shells_total_held')));
+    await tester.tap(find.text('Vựa Hải Sản Năm Căn'));
+    await waitFor(tester, find.byKey(const Key('shells_out')));
+    await tester.enterText(find.byKey(const Key('shells_out')), '3');
+    await tester.tap(find.byKey(const Key('shells_save')));
+    await waitFor(tester, find.textContaining('giao thêm 3 vỏ'));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.byType(BackButton).last);
+    // "Thêm" → "Bảng công": this month's report loads from the server, and
+    // so does the previous month.
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.ensureVisible(find.byKey(const Key('more_shift_report')));
+    await tester.tap(find.byKey(const Key('more_shift_report')));
+    await waitFor(tester, find.byKey(const Key('shift_report_totals')));
+    await tester.tap(find.byKey(const Key('shift_report_previous')));
+    await tester.pump(const Duration(milliseconds: 300));
+    await waitFor(tester, find.byKey(const Key('shift_report_totals')));
+    await tester.tap(find.byType(BackButton).last);
+    // The menu is scrolled by now: the account card is off screen.
+    await tester.pump(const Duration(milliseconds: 600));
     // "Thêm" → "Nhân sự": the manager creates a staff account, then locks it.
     await tester.pump(const Duration(milliseconds: 600));
     await tester.ensureVisible(find.byKey(const Key('more_staff')));
@@ -384,7 +449,8 @@ void main() {
     await waitFor(tester, find.textContaining('Đã khóa Nhân Viên Từ App'));
     await tester.pump(const Duration(milliseconds: 400));
     await tester.tap(find.byType(BackButton).last);
-    await waitFor(tester, find.text(_managerEmail));
+    // The menu is scrolled by now: the account card is off screen.
+    await tester.pump(const Duration(milliseconds: 600));
     await tester.pump(const Duration(milliseconds: 400));
     await tester.ensureVisible(find.byKey(const Key('more_settle')));
     // "Thêm" → "Đối soát": the driver's delivery is settled one short.

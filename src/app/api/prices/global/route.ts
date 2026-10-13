@@ -10,6 +10,44 @@ const SetGlobalPriceSchema = z.object({
   price: z.number().positive(),
 });
 
+// GET /api/prices/global — every product with its default price, for the
+// manager's "products and prices" screen. Discontinued products are listed
+// too, so that one can be put back on sale.
+export async function GET() {
+  try {
+    const session = await requireRole(['ADMIN']);
+    if (!session.factoryId) {
+      return apiError('Tài khoản chưa được gán nhà máy', 400);
+    }
+
+    const products = await prisma.product.findMany({
+      where: { factoryId: session.factoryId },
+      select: {
+        id: true,
+        name: true,
+        sizeKg: true,
+        unit: true,
+        minStock: true,
+        isActive: true,
+        globalPrices: { select: { pricePerUnit: true } },
+      },
+      orderBy: [{ name: 'asc' }, { sizeKg: 'asc' }],
+    });
+
+    return apiSuccess(
+      products.map(({ globalPrices: globalPrice, ...product }) => ({
+        ...product,
+        // null: no default price yet, the product cannot be ordered.
+        price: globalPrice ? Number(globalPrice.pricePerUnit) : null,
+      }))
+    );
+  } catch (error) {
+    if (error instanceof Response) return error;
+    console.error('[GET /api/prices/global]', error);
+    return apiError('Không thể tải bảng giá', 500);
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);

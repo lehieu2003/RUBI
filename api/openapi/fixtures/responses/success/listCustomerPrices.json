@@ -5,7 +5,7 @@
     "path": "/api/customers/{id}/prices",
     "as": "admin",
     "params": {
-      "id": "cmv6ehyfu0003i9e4p70r8esm"
+      "id": "cmv6s10wg0003i9gxrud127mj"
     }
   },
   "status": 200,
@@ -17,8 +17,10 @@
         "name": "Đá Bi",
         "sizeKg": 5,
         "unit": "Bao",
-        "price": 12000,
-        "sellable": 145
+        "price": 11000,
+        "basePrice": 12000,
+        "customPrice": 11000,
+        "sellable": 195
       },
       {
         "productId": "prod-bi-10",
@@ -26,6 +28,8 @@
         "sizeKg": 10,
         "unit": "Bao",
         "price": 22000,
+        "basePrice": 22000,
+        "customPrice": null,
         "sellable": 190
       }
     ]

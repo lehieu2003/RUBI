@@ -77,18 +77,36 @@ import 'package:iceflow_mobile/features/orders/presentation/cubit/order_entry_cu
     as _i111;
 import 'package:iceflow_mobile/features/orders/presentation/cubit/orders_cubit.dart'
     as _i345;
+import 'package:iceflow_mobile/features/products/data/products_repository_impl.dart'
+    as _i970;
+import 'package:iceflow_mobile/features/products/domain/repositories/products_repository.dart'
+    as _i308;
+import 'package:iceflow_mobile/features/products/presentation/cubit/products_cubit.dart'
+    as _i276;
 import 'package:iceflow_mobile/features/schedule/data/schedule_repository_impl.dart'
     as _i110;
+import 'package:iceflow_mobile/features/schedule/data/shift_report_repository_impl.dart'
+    as _i222;
 import 'package:iceflow_mobile/features/schedule/data/team_schedule_repository_impl.dart'
     as _i783;
 import 'package:iceflow_mobile/features/schedule/domain/repositories/schedule_repository.dart'
     as _i285;
+import 'package:iceflow_mobile/features/schedule/domain/repositories/shift_report_repository.dart'
+    as _i797;
 import 'package:iceflow_mobile/features/schedule/domain/repositories/team_schedule_repository.dart'
     as _i987;
 import 'package:iceflow_mobile/features/schedule/presentation/cubit/schedule_cubit.dart'
     as _i756;
+import 'package:iceflow_mobile/features/schedule/presentation/cubit/shift_report_cubit.dart'
+    as _i79;
 import 'package:iceflow_mobile/features/schedule/presentation/cubit/team_schedule_cubit.dart'
     as _i1;
+import 'package:iceflow_mobile/features/shells/data/shells_repository_impl.dart'
+    as _i101;
+import 'package:iceflow_mobile/features/shells/domain/shell_balance.dart'
+    as _i379;
+import 'package:iceflow_mobile/features/shells/presentation/shells_cubit.dart'
+    as _i547;
 import 'package:iceflow_mobile/features/staff/data/staff_repository_impl.dart'
     as _i853;
 import 'package:iceflow_mobile/features/staff/domain/repositories/staff_repository.dart'
@@ -121,6 +139,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i360.DebtRepository>(
       () => _i61.DebtRepositoryImpl(dio: gh<_i361.Dio>()),
     );
+    gh.lazySingleton<_i308.ProductsRepository>(
+      () => _i970.ProductsRepositoryImpl(dio: gh<_i361.Dio>()),
+    );
     gh.lazySingleton<_i1042.StaffRepository>(
       () => _i853.StaffRepositoryImpl(dio: gh<_i361.Dio>()),
     );
@@ -139,6 +160,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i345.OrdersCubit>(
       () => _i345.OrdersCubit(repo: gh<_i420.OrdersRepository>()),
     );
+    gh.factory<_i276.ProductsCubit>(
+      () => _i276.ProductsCubit(repo: gh<_i308.ProductsRepository>()),
+    );
     gh.factory<_i857.StaffCubit>(
       () => _i857.StaffCubit(repo: gh<_i1042.StaffRepository>()),
     );
@@ -151,6 +175,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factoryParam<_i759.LedgerCubit, _i694.CustomerDebt, dynamic>(
       (debt, _) =>
           _i759.LedgerCubit(repo: gh<_i360.DebtRepository>(), debt: debt),
+    );
+    gh.lazySingleton<_i379.ShellsRepository>(
+      () => _i101.ShellsRepositoryImpl(dio: gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i482.OrderEntryRepository>(
       () => _i862.OrderEntryRepositoryImpl(dio: gh<_i361.Dio>()),
@@ -180,6 +207,9 @@ extension GetItInjectableX on _i174.GetIt {
         authEvents: gh<_i1021.AuthEvents>(),
       ),
     );
+    gh.lazySingleton<_i797.ShiftReportRepository>(
+      () => _i222.ShiftReportRepositoryImpl(dio: gh<_i361.Dio>()),
+    );
     gh.factory<_i1.TeamScheduleCubit>(
       () => _i1.TeamScheduleCubit(repo: gh<_i987.TeamScheduleRepository>()),
     );
@@ -191,6 +221,12 @@ extension GetItInjectableX on _i174.GetIt {
         repo: gh<_i585.CustomersRepository>(),
         customer: customer,
       ),
+    );
+    gh.factory<_i79.ShiftReportCubit>(
+      () => _i79.ShiftReportCubit(repo: gh<_i797.ShiftReportRepository>()),
+    );
+    gh.factory<_i547.ShellsCubit>(
+      () => _i547.ShellsCubit(repo: gh<_i379.ShellsRepository>()),
     );
     gh.factory<_i1045.CustomersCubit>(
       () => _i1045.CustomersCubit(repo: gh<_i585.CustomersRepository>()),

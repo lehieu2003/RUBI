@@ -238,6 +238,18 @@ abstract final class AppStrings {
   static const customerPricesTitle = 'Bảng giá áp cho khách này';
   static const customerPricesEmpty = 'Chưa có sản phẩm nào đang bán';
   static const customerPriceMissing = 'Chưa có giá';
+  static const customerPriceCustomBadge = 'Giá riêng';
+  static String customerPriceDefault(String price) => 'Mặc định $price';
+  static String customerPriceTitle(String label) => 'Giá riêng: $label';
+  static const customerPriceLabel = 'Giá cho khách này';
+  static const customerPriceHelper =
+      'Áp cho đơn lên từ bây giờ. Đơn đã lên giữ giá cũ.';
+  static const customerPriceInvalid = 'Giá phải lớn hơn 0';
+  static const customerPriceUseDefault = 'Dùng giá mặc định';
+  static String customerPriceSet(String label, String price) =>
+      '$label: giá riêng $price';
+  static String customerPriceRemoved(String label) =>
+      '$label: trở về giá mặc định';
 
   // ---- Nhân sự (Quản lý) ----
   static const staffTitle = 'Nhân sự';
@@ -285,6 +297,102 @@ abstract final class AppStrings {
       'Đã đặt lại mật khẩu của $name. Họ phải đổi ở lần đăng nhập kế.';
   static String staffOrdersUnassigned(int count) =>
       '$count đơn của họ trở về chưa gán tài xế.';
+
+  // ---- Sản phẩm & giá (Quản lý) ----
+  static const productsTitle = 'Sản phẩm & giá';
+  static const productsSubtitle = 'Giá mặc định, đơn vị, ngừng bán';
+  static const productsEmpty = 'Chưa có sản phẩm nào';
+  static const productsDiscontinued = 'Đã ngừng bán';
+  static const productAddButton = 'Thêm';
+  static const productAddTitle = 'Thêm sản phẩm';
+  static const productNameLabel = 'Tên sản phẩm (VD: Đá Bi)';
+  static const productSizeLabel = 'Cỡ bao';
+  static const productUnitLabel = 'Đơn vị';
+  static const productDefaultUnit = 'Bao';
+  static const productPriceLabel = 'Giá mặc định';
+  static const productPriceHelper =
+      'Áp cho đơn lên từ bây giờ, trừ khách có giá riêng. Đơn đã lên giữ giá cũ.';
+  static const productAlertLabel = 'Cảnh báo khi tồn còn';
+  static const productAlertHelper = 'Để trống nếu không cần cảnh báo tồn kho thấp.';
+  static String productAlertAt(int level) => 'Cảnh báo khi còn $level';
+  static const productAlertOff = 'Không cảnh báo tồn kho';
+  static const productNoPriceHint = 'Chưa có giá — chưa lên đơn được';
+  static const productNameRequired = 'Nhập tên sản phẩm';
+  static const productNameUnitRequired = 'Nhập tên và đơn vị';
+  static const productSizeInvalid = 'Cỡ bao phải từ 1 đến 1000 kg';
+  static const productPriceInvalid = 'Giá phải lớn hơn 0';
+  static const productPriceButton = 'Đổi giá';
+  static String productPriceTitle(String label) => 'Giá của $label';
+  static const productEditButton = 'Sửa tên, đơn vị, cảnh báo';
+  static const productStopButton = 'Ngừng bán';
+  static const productResumeButton = 'Bán lại';
+  static String productStopTitle(String label) => 'Ngừng bán $label?';
+  static const productStopBody =
+      'Sản phẩm sẽ không còn trên form lên đơn. Đơn đã lên vẫn giữ nguyên, và có thể bán lại bất cứ lúc nào.';
+  static String productCreated(String label) => 'Đã thêm $label';
+  static String productPriceSet(String label, String price) =>
+      '$label giờ giá $price';
+  static String productSaved(String label) => 'Đã lưu $label';
+  static String productStopped(String label) => 'Đã ngừng bán $label';
+  static String productResumed(String label) => 'Đã bán lại $label';
+
+  // ---- Bảng công (Quản lý) ----
+  static const shiftReportTitle = 'Bảng công';
+  static const shiftReportSubtitle = 'Ca đã duyệt, giờ công, chốt tháng';
+  static String shiftReportMonth(int month, int year) => 'Tháng $month/$year';
+  static const shiftReportPreviousMonth = 'Tháng trước';
+  static const shiftReportNextMonth = 'Tháng sau';
+  static const shiftReportEmpty = 'Chưa ai có ca trong tháng này';
+  static String shiftReportTotals(int shifts, int hours) =>
+      '$shifts ca đã duyệt · $hours giờ công';
+  static String shiftReportPersonTotals(int shifts, int hours, int days) =>
+      '$shifts ca · $hours giờ · $days ngày';
+  static String shiftReportPersonPending(int count) => '$count ca chờ duyệt';
+  static String shiftReportPersonRejected(int count) => '$count ca bị từ chối';
+  static const shiftReportNoApproved = 'Chưa có ca nào được duyệt';
+  static const shiftReportOpenHint = 'Tháng còn mở: ca vẫn đăng ký và duyệt được.';
+  static String shiftReportPendingHint(int count) =>
+      'Còn $count ca chờ duyệt: duyệt hết rồi mới chốt công được.';
+  static String shiftReportLockedAt(String date) => 'Đã chốt công ngày $date.';
+  static const shiftReportLockButton = 'Chốt công tháng';
+  static const shiftReportReopenButton = 'Mở lại tháng';
+  static String shiftReportLockTitle(String month) => 'Chốt công $month?';
+  static const shiftReportLockBody =
+      'Sau khi chốt, không ai đăng ký, rút hay duyệt ca của tháng này được nữa, cho tới khi mở lại.';
+  static String shiftReportReopenTitle(String month) => 'Mở lại $month?';
+  static const shiftReportReopenBody =
+      'Ca của tháng này lại đăng ký và duyệt được; số công có thể thay đổi.';
+  static String shiftReportLocked(String month) => 'Đã chốt công $month';
+  static String shiftReportReopened(String month) => 'Đã mở lại $month';
+
+  // ---- Vỏ bao (Quản lý) ----
+  static const shellsTitle = 'Vỏ bao';
+  static const shellsSubtitle = 'Vỏ khách đang giữ và tiền cọc';
+  static const shellsEmpty = 'Chưa có khách nào phát sinh vỏ bao';
+  static String shellsTotalHeld(int count) => 'Khách đang giữ $count vỏ';
+  static String shellsTotalDeposit(String amount) => 'Tiền cọc: $amount';
+  static String shellsOutIn(int out, int back) => 'Đã giao $out · đã thu $back';
+  static String shellsHeld(int count) => '$count vỏ';
+  static String shellsHeldNow(int count) => 'Đang giữ $count vỏ.';
+  static const shellsModeAdd = 'Ghi thêm';
+  static const shellsModeSet = 'Sửa tổng';
+  static const shellsOutLabel = 'Giao thêm cho khách';
+  static const shellsInLabel = 'Thu về từ khách';
+  static const shellsOutTotalLabel = 'Tổng đã giao';
+  static const shellsInTotalLabel = 'Tổng đã thu';
+  static const shellsNothingEntered = 'Nhập số vỏ giao thêm hoặc thu về';
+  static const shellsInExceedsOut = 'Tổng đã thu không thể lớn hơn tổng đã giao';
+  static String shellsReturnTooMany(int held) =>
+      'Khách chỉ đang giữ $held vỏ, không thu về nhiều hơn được';
+  static String shellsRecorded(String name, int out, int back) {
+    final parts = [
+      if (out > 0) 'giao thêm $out vỏ',
+      if (back > 0) 'thu về $back vỏ',
+    ];
+    return '$name: ${parts.join(', ')}';
+  }
+
+  static String shellsCorrected(String name) => 'Đã sửa số vỏ của $name';
 
   // ---- Bộ lọc danh sách đơn ----
   static const orderFilterAnyDate = 'Mọi ngày';

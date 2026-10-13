@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:iceflow_mobile/core/extensions/number_format.dart';
 import 'package:iceflow_mobile/core/extensions/search_text.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
@@ -147,8 +148,59 @@ class CustomerDetailCubit extends Cubit<CustomerDetailState> {
   final CustomersRepository _repo;
   final String _customerId;
 
-  Future<void> load() async {
-    emit(const CustomerDetailState(status: ViewStatus.loading));
+  /// Đặt giá riêng của khách cho [product] (chỉ Quản lý), rồi tải lại bảng
+  /// giá.
+  Future<CustomerActionResult> setCustomPrice(
+    CustomerPrice product,
+    double price,
+  ) async {
+    final res = await _repo.setCustomPrice(
+      customerId: _customerId,
+      productId: product.productId,
+      price: price,
+    );
+    return _afterPriceChange(
+      res,
+      AppStrings.customerPriceSet(
+        '${product.name} ${product.sizeKg}kg',
+        formatVnd(price),
+      ),
+    );
+  }
+
+  /// Gỡ giá riêng: khách trở về giá mặc định.
+  Future<CustomerActionResult> removeCustomPrice(CustomerPrice product) async {
+    final res = await _repo.removeCustomPrice(
+      customerId: _customerId,
+      productId: product.productId,
+    );
+    return _afterPriceChange(
+      res,
+      AppStrings.customerPriceRemoved('${product.name} ${product.sizeKg}kg'),
+    );
+  }
+
+  Future<CustomerActionResult> _afterPriceChange(
+    Result<void> res,
+    String message,
+  ) async {
+    switch (res) {
+      case Ok<void>():
+        if (!isClosed) await load(keep: true);
+        return (ok: true, message: message);
+      case Err<void>(:final failure):
+        return (ok: false, message: failureMessage(failure));
+    }
+  }
+
+  /// [keep]: giữ bảng giá đang xem trong lúc tải lại (sau khi đổi một giá).
+  Future<void> load({bool keep = false}) async {
+    emit(
+      CustomerDetailState(
+        status: ViewStatus.loading,
+        prices: keep ? state.prices : const [],
+      ),
+    );
     final res = await _repo.getPrices(_customerId);
     if (isClosed) return;
     switch (res) {

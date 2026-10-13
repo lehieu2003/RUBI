@@ -92,14 +92,17 @@ export const customerContracts: ApiContract[] = [
           sizeKg: z.number().int(),
           unit: z.string(),
           price: z.number().nullable(),
+          basePrice: z.number().nullable(),
+          customPrice: z.number().nullable(),
           sellable: z.number().int().nullable(),
         })
       )
     ),
     errors: [400, 401, 403, 404, 500],
     notes:
-      'Feeds the order form once a customer is picked. `price` is the customer\'s own price, else the default one; ' +
-      'null when the product has no price yet and cannot be ordered. `sellable` is the stock on the books minus what ' +
+      'Feeds the order form once a customer is picked. `price` is what an order is priced at: `customPrice` (the ' +
+      'customer\'s own price, null when they have none) if set, else `basePrice` (the default price, null when the ' +
+      'product has none); null when the product has no price at all and cannot be ordered. `sellable` is the stock on the books minus what ' +
       'unsettled orders already took (it can be negative); null when the product never had a stock record. Ordered ' +
       'by name then size.',
   },
