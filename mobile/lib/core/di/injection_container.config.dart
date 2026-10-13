@@ -77,6 +77,10 @@ import 'package:iceflow_mobile/features/orders/presentation/cubit/order_entry_cu
     as _i111;
 import 'package:iceflow_mobile/features/orders/presentation/cubit/orders_cubit.dart'
     as _i345;
+import 'package:iceflow_mobile/features/products/data/products_repository_impl.dart'
+    as _i970;
+import 'package:iceflow_mobile/features/products/domain/repositories/products_repository.dart'
+    as _i308;
 import 'package:iceflow_mobile/features/schedule/data/schedule_repository_impl.dart'
     as _i110;
 import 'package:iceflow_mobile/features/schedule/data/team_schedule_repository_impl.dart'
@@ -120,6 +124,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i360.DebtRepository>(
       () => _i61.DebtRepositoryImpl(dio: gh<_i361.Dio>()),
+    );
+    gh.lazySingleton<_i308.ProductsRepository>(
+      () => _i970.ProductsRepositoryImpl(dio: gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i1042.StaffRepository>(
       () => _i853.StaffRepositoryImpl(dio: gh<_i361.Dio>()),
