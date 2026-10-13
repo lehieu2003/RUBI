@@ -286,6 +286,44 @@ abstract final class AppStrings {
   static String staffOrdersUnassigned(int count) =>
       '$count đơn của họ trở về chưa gán tài xế.';
 
+  // ---- Sản phẩm & giá (Quản lý) ----
+  static const productsTitle = 'Sản phẩm & giá';
+  static const productsSubtitle = 'Giá mặc định, đơn vị, ngừng bán';
+  static const productsEmpty = 'Chưa có sản phẩm nào';
+  static const productsDiscontinued = 'Đã ngừng bán';
+  static const productAddButton = 'Thêm';
+  static const productAddTitle = 'Thêm sản phẩm';
+  static const productNameLabel = 'Tên sản phẩm (VD: Đá Bi)';
+  static const productSizeLabel = 'Cỡ bao';
+  static const productUnitLabel = 'Đơn vị';
+  static const productDefaultUnit = 'Bao';
+  static const productPriceLabel = 'Giá mặc định';
+  static const productPriceHelper =
+      'Áp cho đơn lên từ bây giờ, trừ khách có giá riêng. Đơn đã lên giữ giá cũ.';
+  static const productAlertLabel = 'Cảnh báo khi tồn còn';
+  static const productAlertHelper = 'Để trống nếu không cần cảnh báo tồn kho thấp.';
+  static String productAlertAt(int level) => 'Cảnh báo khi còn $level';
+  static const productAlertOff = 'Không cảnh báo tồn kho';
+  static const productNoPriceHint = 'Chưa có giá — chưa lên đơn được';
+  static const productNameRequired = 'Nhập tên sản phẩm';
+  static const productNameUnitRequired = 'Nhập tên và đơn vị';
+  static const productSizeInvalid = 'Cỡ bao phải từ 1 đến 1000 kg';
+  static const productPriceInvalid = 'Giá phải lớn hơn 0';
+  static const productPriceButton = 'Đổi giá';
+  static String productPriceTitle(String label) => 'Giá của $label';
+  static const productEditButton = 'Sửa tên, đơn vị, cảnh báo';
+  static const productStopButton = 'Ngừng bán';
+  static const productResumeButton = 'Bán lại';
+  static String productStopTitle(String label) => 'Ngừng bán $label?';
+  static const productStopBody =
+      'Sản phẩm sẽ không còn trên form lên đơn. Đơn đã lên vẫn giữ nguyên, và có thể bán lại bất cứ lúc nào.';
+  static String productCreated(String label) => 'Đã thêm $label';
+  static String productPriceSet(String label, String price) =>
+      '$label giờ giá $price';
+  static String productSaved(String label) => 'Đã lưu $label';
+  static String productStopped(String label) => 'Đã ngừng bán $label';
+  static String productResumed(String label) => 'Đã bán lại $label';
+
   // ---- Bộ lọc danh sách đơn ----
   static const orderFilterAnyDate = 'Mọi ngày';
   static const orderFilterAnyDriver = 'Mọi tài xế';
