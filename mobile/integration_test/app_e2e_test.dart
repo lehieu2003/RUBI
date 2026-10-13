@@ -366,7 +366,8 @@ void main() {
     await waitFor(tester, find.byKey(const Key('customers_search')));
     await tester.pump(const Duration(milliseconds: 400));
     await tester.tap(find.byType(BackButton).last);
-    await waitFor(tester, find.text(_managerEmail));
+    // The menu is scrolled by now: the account card is off screen.
+    await tester.pump(const Duration(milliseconds: 600));
     // "Thêm" → "Sản phẩm & giá": the manager changes the default price of
     // the first product.
     await tester.pump(const Duration(milliseconds: 600));
@@ -390,7 +391,20 @@ void main() {
     await waitFor(tester, find.textContaining('giờ giá 12.345đ'));
     await tester.pump(const Duration(milliseconds: 400));
     await tester.tap(find.byType(BackButton).last);
-    await waitFor(tester, find.text(_managerEmail));
+    // The menu is scrolled by now: the account card is off screen.
+    await tester.pump(const Duration(milliseconds: 600));
+    // "Thêm" → "Bảng công": this month's report loads from the server, and
+    // so does the previous month.
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.ensureVisible(find.byKey(const Key('more_shift_report')));
+    await tester.tap(find.byKey(const Key('more_shift_report')));
+    await waitFor(tester, find.byKey(const Key('shift_report_totals')));
+    await tester.tap(find.byKey(const Key('shift_report_previous')));
+    await tester.pump(const Duration(milliseconds: 300));
+    await waitFor(tester, find.byKey(const Key('shift_report_totals')));
+    await tester.tap(find.byType(BackButton).last);
+    // The menu is scrolled by now: the account card is off screen.
+    await tester.pump(const Duration(milliseconds: 600));
     // "Thêm" → "Nhân sự": the manager creates a staff account, then locks it.
     await tester.pump(const Duration(milliseconds: 600));
     await tester.ensureVisible(find.byKey(const Key('more_staff')));
@@ -422,7 +436,8 @@ void main() {
     await waitFor(tester, find.textContaining('Đã khóa Nhân Viên Từ App'));
     await tester.pump(const Duration(milliseconds: 400));
     await tester.tap(find.byType(BackButton).last);
-    await waitFor(tester, find.text(_managerEmail));
+    // The menu is scrolled by now: the account card is off screen.
+    await tester.pump(const Duration(milliseconds: 600));
     await tester.pump(const Duration(milliseconds: 400));
     await tester.ensureVisible(find.byKey(const Key('more_settle')));
     // "Thêm" → "Đối soát": the driver's delivery is settled one short.
