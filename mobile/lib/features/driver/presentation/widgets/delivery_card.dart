@@ -3,6 +3,7 @@ import 'package:iceflow_mobile/core/extensions/build_context_extensions.dart';
 import 'package:iceflow_mobile/core/extensions/number_format.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
+import 'package:iceflow_mobile/shared/widgets/app_button.dart';
 
 // `formatVnd` / `formatQuantity` nay ở core, dùng chung cho mọi feature.
 export 'package:iceflow_mobile/core/extensions/number_format.dart';
@@ -160,23 +161,12 @@ class DeliveryCard extends StatelessWidget {
               ),
               if (!isDelivered) ...[
                 const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    // Chặn bấm khi đang chờ cubit xác nhận (chống bấm đôi).
-                    onPressed: isConfirming ? null : onConfirm,
-                    icon: isConfirming
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2.5),
-                          )
-                        : const Icon(Icons.check, size: 20),
-                    label: const Text(AppStrings.confirmDeliveredButton),
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(48),
-                    ),
-                  ),
+                AppButton(
+                  label: AppStrings.confirmDeliveredButton,
+                  icon: Icons.check,
+                  onPressed: onConfirm,
+                  // Chặn bấm khi đang chờ cubit xác nhận (chống bấm đôi).
+                  loading: isConfirming,
                 ),
               ],
             ],

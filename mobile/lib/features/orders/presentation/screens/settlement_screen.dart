@@ -5,12 +5,17 @@ import 'package:iceflow_mobile/core/di/injection_container.dart';
 import 'package:iceflow_mobile/core/extensions/build_context_extensions.dart';
 import 'package:iceflow_mobile/core/extensions/number_format.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
-import 'package:iceflow_mobile/core/pagination/search_debouncer.dart';
 import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/orders/domain/entities/office_order.dart';
 import 'package:iceflow_mobile/features/orders/presentation/cubit/orders_cubit.dart';
 import 'package:iceflow_mobile/features/orders/presentation/widgets/order_card.dart';
+import 'package:iceflow_mobile/shared/widgets/app_button.dart';
+import 'package:iceflow_mobile/shared/widgets/app_header.dart';
 import 'package:iceflow_mobile/shared/widgets/error_views.dart';
+import 'package:iceflow_mobile/shared/widgets/load_more_button.dart';
+import 'package:iceflow_mobile/shared/widgets/search_field.dart';
+import 'package:iceflow_mobile/shared/widgets/snack_bars.dart';
+import 'package:iceflow_mobile/shared/widgets/state_views.dart';
 
 /// Màn "Đối soát" của Quản lý: các đơn đã giao chờ chốt. Bấm một đơn để nhập
 /// số thực giao của từng dòng rồi chốt — server ghi nợ và trừ kho theo số đó.
@@ -23,21 +28,22 @@ class SettlementScreen extends StatelessWidget {
       // Cùng cubit với màn Đơn hàng, đứng yên ở trạng thái "Đã giao".
       create: (_) => sl<OrdersCubit>()..selectTab(OfficeOrderStatus.delivered),
       child: Scaffold(
-        appBar: AppBar(title: const Text(AppStrings.settleTitle)),
+        appBar: AppHeader(
+          title: AppStrings.settleTitle,
+          subtitle: AppStrings.settleSubtitle,
+        ),
         body: const _SettlementBody(),
       ),
     );
   }
 }
 
-class _SettlementBody extends HookWidget {
+class _SettlementBody extends StatelessWidget {
   const _SettlementBody();
 
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<OrdersCubit>();
-    final debouncer = useMemoized(SearchDebouncer.new);
-    useEffect(() => debouncer.dispose, const []);
 
     return BlocBuilder<OrdersCubit, OrdersState>(
       builder: (context, state) {
@@ -45,20 +51,10 @@ class _SettlementBody extends HookWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-              child: TextField(
-                key: const Key('settle_search'),
-                textInputAction: TextInputAction.search,
-                decoration: const InputDecoration(
-                  hintText: AppStrings.ordersSearchHint,
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-                onChanged: (text) => debouncer.run(() => cubit.setSearch(text)),
-                onSubmitted: cubit.setSearch,
-              ),
+            SearchField(
+              key: const Key('settle_search'),
+              hint: AppStrings.ordersSearchHint,
+              onSearch: cubit.setSearch,
             ),
             if (waiting != null && waiting > 0)
               Padding(
@@ -74,7 +70,7 @@ class _SettlementBody extends HookWidget {
                 child: ErrorView(message: state.errorMessage, onRetry: cubit.load),
               )
             else if (state.orders.isEmpty && state.status == ViewStatus.loading)
-              const Expanded(child: Center(child: CircularProgressIndicator()))
+              const Expanded(child: LoadingView())
             else
               Expanded(
                 child: RefreshIndicator(
@@ -88,37 +84,17 @@ class _SettlementBody extends HookWidget {
                           onRetry: cubit.load,
                         ),
                       if (state.orders.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.all(32),
-                          child: Text(
-                            AppStrings.settleEmpty,
-                            textAlign: TextAlign.center,
-                            style: context.textTheme.titleMedium,
-                          ),
-                        ),
+                        const EmptyView(message: AppStrings.settleEmpty),
                       for (final order in state.orders)
                         OrderCard(
                           order: order,
                           onTap: () => _openOrder(context, order),
                         ),
                       if (state.hasMore)
-                        Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: state.loadingMore
-                              ? const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(8),
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                )
-                              : TextButton(
-                                  key: const Key('settle_load_more'),
-                                  onPressed: cubit.loadMore,
-                                  style: TextButton.styleFrom(
-                                    minimumSize: const Size.fromHeight(48),
-                                  ),
-                                  child: const Text(AppStrings.loadMoreButton),
-                                ),
+                        LoadMoreButton(
+                          key: const Key('settle_load_more'),
+                          loading: state.loadingMore,
+                          onPressed: cubit.loadMore,
                         ),
                     ],
                   ),
@@ -142,14 +118,10 @@ class _SettlementBody extends HookWidget {
       builder: (_) => _SettleSheet(order: order, cubit: cubit),
     );
     if (result == null) return;
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(result.message),
-          backgroundColor: result.ok ? null : errorColor,
-        ),
-      );
+    messenger.showMessage(
+      result.message,
+      errorColor: result.ok ? null : errorColor,
+    );
   }
 }
 
@@ -286,19 +258,11 @@ class _SettleSheet extends HookWidget {
               style: textTheme.bodySmall?.copyWith(color: muted),
             ),
             const SizedBox(height: 12),
-            FilledButton(
+            AppButton(
               key: const Key('settle_confirm'),
-              onPressed: busy.value ? null : confirm,
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(48),
-              ),
-              child: busy.value
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text(AppStrings.settleConfirmButton),
+              label: AppStrings.settleConfirmButton,
+              onPressed: confirm,
+              loading: busy.value,
             ),
           ],
         ),

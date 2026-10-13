@@ -7,6 +7,8 @@ import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/core/router/route_names.dart';
 import 'package:iceflow_mobile/features/auth/domain/password_policy.dart';
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:iceflow_mobile/shared/widgets/app_button.dart';
+import 'package:iceflow_mobile/shared/widgets/app_header.dart';
 
 /// Màn đổi mật khẩu.
 ///
@@ -77,7 +79,7 @@ class ChangePasswordScreen extends HookWidget {
         );
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.changePasswordTitle)),
+      appBar: AppHeader(title: AppStrings.changePasswordTitle),
       body: SafeArea(
         // Cuộn được khi bàn phím che form trên màn hình thấp.
         child: Center(
@@ -169,13 +171,11 @@ class ChangePasswordScreen extends HookWidget {
                     ),
                     if (forced) ...[
                       const SizedBox(height: 8),
-                      TextButton(
+                      AppButton(
                         key: const Key('change_password_logout'),
+                        label: AppStrings.logoutButton,
                         onPressed: submitting.value ? null : cubit.logout,
-                        style: TextButton.styleFrom(
-                          minimumSize: const Size.fromHeight(48),
-                        ),
-                        child: const Text(AppStrings.logoutButton),
+                        variant: AppButtonVariant.text,
                       ),
                     ],
                   ],

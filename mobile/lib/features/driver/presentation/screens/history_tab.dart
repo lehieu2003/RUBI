@@ -8,6 +8,8 @@ import 'package:iceflow_mobile/features/driver/presentation/cubit/history_cubit.
 import 'package:iceflow_mobile/features/driver/presentation/widgets/delivery_card.dart';
 import 'package:iceflow_mobile/core/di/injection_container.dart';
 import 'package:iceflow_mobile/shared/widgets/error_views.dart';
+import 'package:iceflow_mobile/shared/widgets/app_header.dart';
+import 'package:iceflow_mobile/shared/widgets/state_views.dart';
 
 /// Label ngày trên header: 'Thứ Ba, 06/10/2026' — thứ tiếng Việt (EEEE) +
 /// ngày dd/MM/yyyy, gộp MỘT dòng [titleMedium]. Cần [initializeDateFormatting]
@@ -43,7 +45,7 @@ class HistoryTab extends StatelessWidget {
       // pattern TodayTab. Rời tab unmount cubit → quay lại tải lại từ đầu.
       create: (_) => sl<HistoryCubit>()..load(),
       child: Scaffold(
-        appBar: AppBar(title: const Text(AppStrings.navHistory)),
+        appBar: AppHeader(title: AppStrings.navHistory),
         body: BlocBuilder<HistoryCubit, HistoryState>(
           builder: (context, state) {
             final cubit = context.read<HistoryCubit>();
@@ -65,7 +67,7 @@ class HistoryTab extends StatelessWidget {
                     ),
                   )
                 else if (state.status == ViewStatus.loading)
-                  const Expanded(child: Center(child: CircularProgressIndicator()))
+                  const Expanded(child: LoadingView())
                 else if (state.orders.isEmpty)
                   Expanded(
                     child: Center(

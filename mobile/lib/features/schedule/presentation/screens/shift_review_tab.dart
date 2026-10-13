@@ -10,6 +10,9 @@ import 'package:iceflow_mobile/features/schedule/domain/team_schedule_rules.dart
 import 'package:iceflow_mobile/features/schedule/presentation/cubit/team_schedule_cubit.dart';
 import 'package:iceflow_mobile/features/schedule/presentation/widgets/week_widgets.dart';
 import 'package:iceflow_mobile/shared/widgets/error_views.dart';
+import 'package:iceflow_mobile/shared/widgets/app_header.dart';
+import 'package:iceflow_mobile/shared/widgets/snack_bars.dart';
+import 'package:iceflow_mobile/shared/widgets/state_views.dart';
 
 /// Tab "Duyệt ca" của Quản lý: ai làm ca nào trong tuần, và duyệt / từ chối
 /// các yêu cầu nhân viên, tài xế gửi lên.
@@ -22,7 +25,7 @@ class ShiftReviewTab extends StatelessWidget {
       // Rời tab unmount cubit → quay lại tải lại từ đầu.
       create: (_) => sl<TeamScheduleCubit>()..load(),
       child: Scaffold(
-        appBar: AppBar(title: const Text(AppStrings.navShiftReview)),
+        appBar: AppHeader(title: AppStrings.navShiftReview),
         body: BlocBuilder<TeamScheduleCubit, TeamScheduleState>(
           builder: (context, state) {
             final cubit = context.read<TeamScheduleCubit>();
@@ -52,7 +55,7 @@ class ShiftReviewTab extends StatelessWidget {
                   )
                 else if (people == null)
                   const Expanded(
-                    child: Center(child: CircularProgressIndicator()),
+                    child: LoadingView(),
                   )
                 else ...[
                   if (state.status == ViewStatus.error)
@@ -71,14 +74,7 @@ class ShiftReviewTab extends StatelessWidget {
                       child: state.slots.isEmpty
                           ? ListView(
                               children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(32),
-                                  child: Text(
-                                    AppStrings.shiftReviewEmptyDay,
-                                    textAlign: TextAlign.center,
-                                    style: context.textTheme.titleMedium,
-                                  ),
-                                ),
+                                const EmptyView(message: AppStrings.shiftReviewEmptyDay),
                               ],
                             )
                           : ListView(
@@ -119,14 +115,10 @@ class ShiftReviewTab extends StatelessWidget {
         .read<TeamScheduleCubit>()
         .review(shifts, approve: approve);
     if (result == null) return;
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(result.message),
-          backgroundColor: result.ok ? null : errorColor,
-        ),
-      );
+    messenger.showMessage(
+      result.message,
+      errorColor: result.ok ? null : errorColor,
+    );
   }
 
   Future<void> _approveAll(BuildContext context, List<Shift> pending) async {
