@@ -42,7 +42,11 @@ void main() {
     final end = DateTime.now().add(timeout);
     while (DateTime.now().isBefore(end)) {
       await tester.pump(const Duration(milliseconds: 200));
-      if (finder.evaluate().isNotEmpty) return;
+      try {
+        if (finder.evaluate().isNotEmpty) return;
+      } on StateError {
+        // `.first` / `.last` of a finder with no match yet: keep waiting.
+      }
     }
     fail('Timed out waiting for $finder');
   }
