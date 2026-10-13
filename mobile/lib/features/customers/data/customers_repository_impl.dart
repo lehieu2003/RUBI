@@ -62,6 +62,35 @@ class CustomersRepositoryImpl implements CustomersRepository {
   }
 
   @override
+  Future<Result<void>> setCustomPrice({
+    required String customerId,
+    required String productId,
+    required double price,
+  }) {
+    return guardApi('setCustomPrice', tag: _tag, run: () async {
+      await _dio.post<dynamic>(
+        '/api/prices/customer/override',
+        data: {'customerId': customerId, 'productId': productId, 'price': price},
+      );
+      return const Ok(null);
+    });
+  }
+
+  @override
+  Future<Result<void>> removeCustomPrice({
+    required String customerId,
+    required String productId,
+  }) {
+    return guardApi('removeCustomPrice', tag: _tag, run: () async {
+      await _dio.delete<dynamic>(
+        '/api/prices/customer/override',
+        queryParameters: {'customerId': customerId, 'productId': productId},
+      );
+      return const Ok(null);
+    });
+  }
+
+  @override
   Future<Result<Customer>> createCustomer({
     required String code,
     required String name,

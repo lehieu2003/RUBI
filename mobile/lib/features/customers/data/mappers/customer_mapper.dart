@@ -48,6 +48,8 @@ abstract final class CustomerMapper {
         sizeKg: sizeKg,
         unit: unit,
         price: dto.price?.toDouble(),
+        basePrice: dto.basePrice?.toDouble(),
+        customPrice: dto.customPrice?.toDouble(),
       ),
     );
   }

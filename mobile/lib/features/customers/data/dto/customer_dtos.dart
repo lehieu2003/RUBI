@@ -32,6 +32,8 @@ class CustomerPriceDto {
     this.sizeKg,
     this.unit,
     this.price,
+    this.basePrice,
+    this.customPrice,
   });
 
   factory CustomerPriceDto.fromJson(Map<String, dynamic> json) =>
@@ -44,4 +46,10 @@ class CustomerPriceDto {
 
   /// `null` hợp lệ: sản phẩm chưa có giá.
   final num? price;
+
+  /// `null` hợp lệ: sản phẩm chưa có giá mặc định.
+  final num? basePrice;
+
+  /// `null` hợp lệ: khách không có giá riêng.
+  final num? customPrice;
 }
