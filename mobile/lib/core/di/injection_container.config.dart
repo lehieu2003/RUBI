@@ -29,6 +29,14 @@ import 'package:iceflow_mobile/features/auth/domain/repositories/auth_repository
     as _i452;
 import 'package:iceflow_mobile/features/auth/presentation/cubit/auth_cubit.dart'
     as _i251;
+import 'package:iceflow_mobile/features/customers/data/customers_repository_impl.dart'
+    as _i580;
+import 'package:iceflow_mobile/features/customers/domain/entities/customer.dart'
+    as _i706;
+import 'package:iceflow_mobile/features/customers/domain/repositories/customers_repository.dart'
+    as _i585;
+import 'package:iceflow_mobile/features/customers/presentation/cubit/customers_cubit.dart'
+    as _i1045;
 import 'package:iceflow_mobile/features/debt/data/debt_repository_impl.dart'
     as _i61;
 import 'package:iceflow_mobile/features/debt/domain/entities/customer_debt.dart'
@@ -141,6 +149,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i987.TeamScheduleRepository>(
       () => _i783.TeamScheduleRepositoryImpl(dio: gh<_i361.Dio>()),
     );
+    gh.lazySingleton<_i585.CustomersRepository>(
+      () => _i580.CustomersRepositoryImpl(dio: gh<_i361.Dio>()),
+    );
     gh.lazySingleton<_i103.DriverRepository>(
       () => _i340.DriverRepositoryImpl(dio: gh<_i361.Dio>()),
     );
@@ -162,6 +173,15 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i111.OrderEntryCubit>(
       () => _i111.OrderEntryCubit(repo: gh<_i482.OrderEntryRepository>()),
+    );
+    gh.factoryParam<_i1045.CustomerDetailCubit, _i706.Customer, dynamic>(
+      (customer, _) => _i1045.CustomerDetailCubit(
+        repo: gh<_i585.CustomersRepository>(),
+        customer: customer,
+      ),
+    );
+    gh.factory<_i1045.CustomersCubit>(
+      () => _i1045.CustomersCubit(repo: gh<_i585.CustomersRepository>()),
     );
     gh.factory<_i756.ScheduleCubit>(
       () => _i756.ScheduleCubit(repo: gh<_i285.ScheduleRepository>()),

@@ -58,7 +58,7 @@ Widgets more than one feature uses. A widget only one feature uses stays in that
 
 ## End-to-end test on an emulator
 
-`integration_test/app_e2e_test.dart` drives the real app on an Android emulator against a real server: a wrong password, the forced password change of a new account, confirming a delivery, requesting and withdrawing a shift, signing out and back in, then a staff account taking an order (customer found by typing without accents), assigning it to a driver and cancelling it with a reason, and the manager approving the driver's shift, recording a production batch and a customer's payment, reading both in the audit log, opening the orders screen from "Thêm", and settling the driver's delivery one bag short.
+`integration_test/app_e2e_test.dart` drives the real app on an Android emulator against a real server: a wrong password, the forced password change of a new account, confirming a delivery, requesting and withdrawing a shift, signing out and back in, then a staff account taking an order (customer found by typing without accents), assigning it to a driver and cancelling it with a reason, then looking up a customer and their prices, and the manager approving the driver's shift, recording a production batch and a customer's payment, reading both in the audit log, opening the orders screen from "Thêm", adding a customer and opening another one's ledger, and settling the driver's delivery one bag short.
 
 ```bash
 flutter emulators --launch <id>     # any Android emulator
