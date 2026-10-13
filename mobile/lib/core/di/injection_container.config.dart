@@ -65,6 +65,8 @@ import 'package:iceflow_mobile/features/orders/domain/repositories/order_entry_r
     as _i482;
 import 'package:iceflow_mobile/features/orders/domain/repositories/orders_repository.dart'
     as _i420;
+import 'package:iceflow_mobile/features/orders/presentation/cubit/order_entry_cubit.dart'
+    as _i111;
 import 'package:iceflow_mobile/features/orders/presentation/cubit/orders_cubit.dart'
     as _i345;
 import 'package:iceflow_mobile/features/schedule/data/schedule_repository_impl.dart'
@@ -157,6 +159,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i1.TeamScheduleCubit>(
       () => _i1.TeamScheduleCubit(repo: gh<_i987.TeamScheduleRepository>()),
+    );
+    gh.factory<_i111.OrderEntryCubit>(
+      () => _i111.OrderEntryCubit(repo: gh<_i482.OrderEntryRepository>()),
     );
     gh.factory<_i756.ScheduleCubit>(
       () => _i756.ScheduleCubit(repo: gh<_i285.ScheduleRepository>()),

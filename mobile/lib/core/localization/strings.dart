@@ -218,6 +218,23 @@ abstract final class AppStrings {
 
   // ---- Lên đơn (Quản lý, Nhân viên) ----
   static const orderEntryNoLines = 'Nhập số lượng cho ít nhất một sản phẩm';
+  static const orderEntryTitle = 'Lên đơn';
+  static const orderEntryButton = 'Lên đơn';
+  static const orderEntryPickCustomer = 'Chọn khách hàng';
+  static const orderEntryCustomerHint = 'Tìm tên, mã hoặc số điện thoại';
+  static const orderEntryNoCustomers = 'Không tìm thấy khách hàng nào';
+  static const orderEntryChangeCustomer = 'Đổi khách';
+  static const orderEntryNoProducts = 'Chưa có sản phẩm nào đang bán';
+  static String orderEntryPrice(String price, String unit) => '$price/$unit';
+  static String orderEntrySellable(int left) => 'Còn $left';
+  static const orderEntryNoPrice = 'Chưa có giá — báo Quản lý cài giá';
+  static const orderEntryNotesHint = 'Ghi chú cho tài xế (không bắt buộc)';
+  static String orderEntryTotal(int lines) => 'Tạm tính ($lines dòng)';
+  static const orderEntrySave = 'Lưu đơn';
+  static const orderEntryUnsure =
+      'Mất kết nối khi đang lưu. Xem lại danh sách đơn trước khi lưu lại, kẻo trùng đơn.';
+  static String orderEntrySaved(String code, String total) =>
+      'Đã lên đơn $code · $total';
 
   // ---- Đối soát (Quản lý) ----
   static const settleTitle = 'Đối soát';

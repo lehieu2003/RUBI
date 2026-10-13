@@ -132,6 +132,7 @@ v3.0 decisions:
 | 261013-msw | Mobile: shared widgets — AppHeader, AppButton, loading / empty views, load-more, search field, snackbar helper | 2026-10-13 | refactor/mobile-shared-widgets | [261013-msw-mobile-shared-widgets](./quick/261013-msw-mobile-shared-widgets/) |
 | 261013-aco | API: create an order over REST and a customer's price list with sellable stock, for the mobile app | 2026-10-13 | feat/api-create-order | [261013-aco-api-create-order](./quick/261013-aco-api-create-order/) |
 | 261013-moe | Mobile: order entry data layer — customers, a customer's price list with sellable stock, create order | 2026-10-13 | feat/mobile-order-entry-data | [261013-moe-mobile-order-entry-data](./quick/261013-moe-mobile-order-entry-data/) |
+| 261013-mes | Mobile: order entry screen — pick a customer, quantities at the customer's prices, notes, save | 2026-10-13 | feat/mobile-order-entry-screen | [261013-mes-mobile-order-entry-screen](./quick/261013-mes-mobile-order-entry-screen/) |
 
 ## Session Continuity
 

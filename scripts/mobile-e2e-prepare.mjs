@@ -108,12 +108,15 @@ async function verify(userId, orderId, userName) {
   else if (!orderTrail.some((entry) => entry.action === 'ORDER_ASSIGNED' && entry.orderId === cancelled.orderId)) {
     problems.push('the order cancelled in the app has no ORDER_ASSIGNED entry');
   }
+  // That same order was taken in the app, by the staff account.
+  const takenInApp = cancelled && orderTrail.find((entry) => entry.action === 'ORDER_CREATED' && entry.orderId === cancelled.orderId);
+  if (cancelled && !takenInApp) problems.push('the order cancelled in the app was not created in the app (no ORDER_CREATED entry)');
 
   if (problems.length > 0) {
     console.error('✖ ' + problems.join('\n✖ '));
     process.exit(1);
   }
-  console.log('✓ server state matches what the app did: order delivered by the driver and settled by the manager, shift requested and approved, payment recorded, an order assigned and cancelled');
+  console.log('✓ server state matches what the app did: order delivered by the driver and settled by the manager, shift requested and approved, payment recorded, an order taken, assigned and cancelled');
 }
 
 const [command, ...args] = process.argv.slice(2);

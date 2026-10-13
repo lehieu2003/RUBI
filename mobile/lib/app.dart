@@ -25,6 +25,17 @@ class IceFlowApp extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final router = useMemoized(() => createRouter(authCubit));
+    final messengerKey = useMemoized(GlobalKey<ScaffoldMessengerState>.new);
+    useEffect(() {
+      // Câu báo của người vừa đăng xuất không theo sang phiên của người kế
+      // tiếp (và không nằm đè lên nút ở đáy màn hình của họ).
+      final subscription = authCubit.stream.listen((state) {
+        if (state is Unauthenticated) {
+          messengerKey.currentState?.clearSnackBars();
+        }
+      });
+      return subscription.cancel;
+    }, const []);
     useEffect(() {
       // Khôi phục phiên đã lưu ngay khi app mở (một lần). Router coi
       // AuthUnknown là "cho phép đứng yên" nên không splash — màn hình đổi
@@ -46,6 +57,7 @@ class IceFlowApp extends HookWidget {
           supportedLocales: const [Locale('vi')],
           localizationsDelegates: GlobalMaterialLocalizations.delegates,
           routerConfig: router,
+          scaffoldMessengerKey: messengerKey,
         ),
       ),
     );

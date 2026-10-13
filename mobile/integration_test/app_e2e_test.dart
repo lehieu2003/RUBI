@@ -55,7 +55,7 @@ void main() {
   }
 
   testWidgets('a new driver: wrong password, forced password change, a '
-      'delivery, a shift, sign out and back in; then staff work the orders and the '
+      'delivery, a shift, sign out and back in; then staff take, assign and cancel an order and the '
       'manager approves the shift, records a production batch and a payment, '
       'reads the audit log and settles the delivery',
       (tester) async {
@@ -173,7 +173,33 @@ void main() {
     await waitFor(tester, orderCards);
     expect(find.byType(NavigationDestination), findsNWidgets(3));
     expect(find.text(AppStrings.navToday), findsNothing);
-    // They hand a waiting order to a driver, then cancel it with a reason.
+    // They take an order on the phone: pick the customer by typing without
+    // accents, two bags of the first product on sale, a note for the driver.
+    await tester.tap(find.byKey(const Key('orders_new')));
+    await waitFor(tester, find.byKey(const Key('order_entry_customer_search')));
+    await tester.enterText(
+      find.byKey(const Key('order_entry_customer_search')),
+      'gio bien',
+    );
+    await waitFor(tester, find.text('Quán Nhậu Gió Biển'));
+    await tester.tap(find.text('Quán Nhậu Gió Biển'));
+    await waitFor(tester, find.byKey(const Key('order_entry_save')));
+    await waitFor(tester, find.byTooltip(AppStrings.settleIncreaseTooltip));
+    await tester.tap(find.byTooltip(AppStrings.settleIncreaseTooltip).first);
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.tap(find.byTooltip(AppStrings.settleIncreaseTooltip).first);
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.enterText(
+      find.byKey(const Key('order_entry_notes')),
+      'Lên thử từ app',
+    );
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.byKey(const Key('order_entry_save')));
+    await waitFor(tester, find.textContaining('Đã lên đơn'));
+    await tester.pump(const Duration(milliseconds: 600));
+    // The new order is the newest one waiting: they hand it to a driver,
+    // then cancel it with a reason.
     await tester.tap(find.byKey(const Key('orders_tab_PENDING')));
     await tester.pump(const Duration(milliseconds: 300));
     await waitFor(tester, orderCards);
