@@ -97,6 +97,8 @@ import 'package:iceflow_mobile/features/schedule/domain/repositories/team_schedu
     as _i987;
 import 'package:iceflow_mobile/features/schedule/presentation/cubit/schedule_cubit.dart'
     as _i756;
+import 'package:iceflow_mobile/features/schedule/presentation/cubit/shift_report_cubit.dart'
+    as _i79;
 import 'package:iceflow_mobile/features/schedule/presentation/cubit/team_schedule_cubit.dart'
     as _i1;
 import 'package:iceflow_mobile/features/staff/data/staff_repository_impl.dart'
@@ -210,6 +212,9 @@ extension GetItInjectableX on _i174.GetIt {
         repo: gh<_i585.CustomersRepository>(),
         customer: customer,
       ),
+    );
+    gh.factory<_i79.ShiftReportCubit>(
+      () => _i79.ShiftReportCubit(repo: gh<_i797.ShiftReportRepository>()),
     );
     gh.factory<_i1045.CustomersCubit>(
       () => _i1045.CustomersCubit(repo: gh<_i585.CustomersRepository>()),

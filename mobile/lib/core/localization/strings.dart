@@ -336,6 +336,35 @@ abstract final class AppStrings {
   static String productStopped(String label) => 'Đã ngừng bán $label';
   static String productResumed(String label) => 'Đã bán lại $label';
 
+  // ---- Bảng công (Quản lý) ----
+  static const shiftReportTitle = 'Bảng công';
+  static const shiftReportSubtitle = 'Ca đã duyệt, giờ công, chốt tháng';
+  static String shiftReportMonth(int month, int year) => 'Tháng $month/$year';
+  static const shiftReportPreviousMonth = 'Tháng trước';
+  static const shiftReportNextMonth = 'Tháng sau';
+  static const shiftReportEmpty = 'Chưa ai có ca trong tháng này';
+  static String shiftReportTotals(int shifts, int hours) =>
+      '$shifts ca đã duyệt · $hours giờ công';
+  static String shiftReportPersonTotals(int shifts, int hours, int days) =>
+      '$shifts ca · $hours giờ · $days ngày';
+  static String shiftReportPersonPending(int count) => '$count ca chờ duyệt';
+  static String shiftReportPersonRejected(int count) => '$count ca bị từ chối';
+  static const shiftReportNoApproved = 'Chưa có ca nào được duyệt';
+  static const shiftReportOpenHint = 'Tháng còn mở: ca vẫn đăng ký và duyệt được.';
+  static String shiftReportPendingHint(int count) =>
+      'Còn $count ca chờ duyệt: duyệt hết rồi mới chốt công được.';
+  static String shiftReportLockedAt(String date) => 'Đã chốt công ngày $date.';
+  static const shiftReportLockButton = 'Chốt công tháng';
+  static const shiftReportReopenButton = 'Mở lại tháng';
+  static String shiftReportLockTitle(String month) => 'Chốt công $month?';
+  static const shiftReportLockBody =
+      'Sau khi chốt, không ai đăng ký, rút hay duyệt ca của tháng này được nữa, cho tới khi mở lại.';
+  static String shiftReportReopenTitle(String month) => 'Mở lại $month?';
+  static const shiftReportReopenBody =
+      'Ca của tháng này lại đăng ký và duyệt được; số công có thể thay đổi.';
+  static String shiftReportLocked(String month) => 'Đã chốt công $month';
+  static String shiftReportReopened(String month) => 'Đã mở lại $month';
+
   // ---- Bộ lọc danh sách đơn ----
   static const orderFilterAnyDate = 'Mọi ngày';
   static const orderFilterAnyDriver = 'Mọi tài xế';
