@@ -238,6 +238,10 @@ abstract final class AppStrings {
   static const orderEntryNotesHint = 'Ghi chú cho tài xế (không bắt buộc)';
   static String orderEntryTotal(int lines) => 'Tạm tính ($lines dòng)';
   static const orderEntrySave = 'Lưu đơn';
+  static const orderEntryLeaveTitle = 'Bỏ đơn đang nhập?';
+  static const orderEntryLeaveBody = 'Số lượng đã nhập sẽ mất.';
+  static const orderEntryStay = 'Ở lại';
+  static const orderEntryLeave = 'Bỏ đơn';
   static const orderEntryUnsure =
       'Mất kết nối khi đang lưu. Xem lại danh sách đơn trước khi lưu lại, kẻo trùng đơn.';
   static String orderEntrySaved(String code, String total) =>

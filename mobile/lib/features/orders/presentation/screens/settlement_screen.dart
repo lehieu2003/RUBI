@@ -9,6 +9,7 @@ import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/orders/domain/entities/office_order.dart';
 import 'package:iceflow_mobile/features/orders/presentation/cubit/orders_cubit.dart';
 import 'package:iceflow_mobile/features/orders/presentation/widgets/order_card.dart';
+import 'package:iceflow_mobile/features/orders/presentation/widgets/quantity_stepper.dart';
 import 'package:iceflow_mobile/shared/widgets/app_button.dart';
 import 'package:iceflow_mobile/shared/widgets/app_header.dart';
 import 'package:iceflow_mobile/shared/widgets/error_views.dart';
@@ -147,10 +148,9 @@ class _SettleSheet extends HookWidget {
       (sum, line) => sum + actual.value[line.id]! * line.unitPrice,
     );
 
-    void change(OrderLine line, int delta) {
-      final next = actual.value[line.id]! + delta;
-      if (next < 0) return;
-      actual.value = {...actual.value, line.id: next};
+    void set(OrderLine line, int quantity) {
+      if (quantity < 0) return;
+      actual.value = {...actual.value, line.id: quantity};
     }
 
     Future<void> confirm() async {
@@ -162,7 +162,13 @@ class _SettleSheet extends HookWidget {
 
     return SafeArea(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        // Bàn phím số mở ra thì nội dung dâng lên theo, không bị che.
+        padding: EdgeInsets.fromLTRB(
+          24,
+          0,
+          24,
+          24 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -204,34 +210,16 @@ class _SettleSheet extends HookWidget {
                         ],
                       ),
                     ),
-                    IconButton.outlined(
-                      key: Key('settle_minus_${line.id}'),
-                      tooltip: AppStrings.settleDecreaseTooltip,
-                      onPressed: busy.value || actual.value[line.id] == 0
-                          ? null
-                          : () => change(line, -1),
-                      icon: const Icon(Icons.remove),
-                    ),
-                    SizedBox(
-                      width: 44,
-                      child: Text(
-                        '${actual.value[line.id]}',
-                        key: Key('settle_qty_${line.id}'),
-                        textAlign: TextAlign.center,
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          // Lệch so với số đặt thì nổi lên.
-                          color: actual.value[line.id] == line.quantity
-                              ? null
-                              : context.colorScheme.error,
-                        ),
-                      ),
-                    ),
-                    IconButton.outlined(
-                      key: Key('settle_plus_${line.id}'),
-                      tooltip: AppStrings.settleIncreaseTooltip,
-                      onPressed: busy.value ? null : () => change(line, 1),
-                      icon: const Icon(Icons.add),
+                    QuantityStepper(
+                      keyPrefix: 'settle',
+                      id: line.id,
+                      quantity: actual.value[line.id]!,
+                      enabled: !busy.value,
+                      // Thực giao 0 là một câu trả lời, không phải ô chưa nhập.
+                      showZero: true,
+                      // Lệch so với số đặt thì nổi lên.
+                      highlighted: actual.value[line.id] != line.quantity,
+                      onChanged: (quantity) => set(line, quantity),
                     ),
                   ],
                 ),
