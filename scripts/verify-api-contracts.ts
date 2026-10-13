@@ -303,6 +303,11 @@ async function main() {
   await call('exportCustomerDebt', { as: 'staff', expectError: 403 });
   const products = data(await call('listProducts', { as: 'staff' }));
   await call('setGlobalPrice', { body: { productId: products[0].id, price: 12000 } });
+  const onSale = data(await call('listGlobalPrices')).find((item: Json) => item.id === products[0].id);
+  if (onSale?.price !== 12000 || onSale?.isActive !== true) {
+    failures.push(`listGlobalPrices: ${products[0].id} is listed as ${JSON.stringify(onSale)}, expected price 12000 and on sale`);
+  }
+  await call('listGlobalPrices', { as: 'staff', expectError: 403 });
 
   // ---- Products: the manager adds, edits and discontinues ----
   const newProduct = data(await call('createProduct', { body: { name: `Đá Thử ${unique}`, sizeKg: 7, price: 9000 } }));
@@ -310,6 +315,11 @@ async function main() {
   await call('createProduct', { body: { name: 'Thiếu giá', sizeKg: 7 }, expectError: 400 });
   await call('createProduct', { as: 'staff', body: { name: 'Không được phép', sizeKg: 7, price: 9000 }, expectError: 403 });
   await call('updateProduct', { params: { id: newProduct.id }, body: { unit: 'Túi', sizeKg: 8, isActive: false } });
+  // A discontinued product stays on the manager's price list, marked off sale.
+  const offSale = data(await call('listGlobalPrices')).find((item: Json) => item.id === newProduct.id);
+  if (offSale?.isActive !== false || offSale?.price !== 9000) {
+    failures.push(`listGlobalPrices: the discontinued product is listed as ${JSON.stringify(offSale)}`);
+  }
   await call('updateProduct', { params: { id: 'khong-ton-tai' }, body: { unit: 'Túi' }, expectError: 404 });
   // Low-stock alert level: set, refused when negative, cleared with null
   const withLevel = data(await call('updateProduct', { params: { id: newProduct.id }, body: { minStock: 25 } }));
@@ -319,7 +329,17 @@ async function main() {
   // The seeded Đá Bi 5kg already has orders: its size is fixed.
   await call('updateProduct', { params: { id: 'prod-bi-5' }, body: { sizeKg: 6 }, expectError: 409 });
   await call('setCustomerPrice', { body: { customerId: customer.id, productId: products[0].id, price: 11000 } });
+  const priceOf = async () =>
+    data(await call('listCustomerPrices', { params: { id: customer.id } })).find((item: Json) => item.productId === products[0].id);
+  const own = await priceOf();
+  if (own?.customPrice !== 11000 || own?.basePrice !== 12000 || own?.price !== 11000) {
+    failures.push(`listCustomerPrices: with an own price the product is ${JSON.stringify(own)}`);
+  }
   await call('removeCustomerPrice', { query: { customerId: customer.id, productId: products[0].id } });
+  const back = await priceOf();
+  if (back?.customPrice !== null || back?.price !== 12000) {
+    failures.push(`listCustomerPrices: after removing the own price the product is ${JSON.stringify(back)}`);
+  }
   await call('getInventory');
   await call('getInventory', { as: 'staff', expectError: 403 });
   await call('recordInventory', { body: { productId: products[0].id, quantity: 1, mode: 'ADD' } });

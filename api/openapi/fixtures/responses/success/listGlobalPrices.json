@@ -1,0 +1,32 @@
+{
+  "operationId": "listGlobalPrices",
+  "request": {
+    "method": "GET",
+    "path": "/api/prices/global",
+    "as": "admin"
+  },
+  "status": 200,
+  "body": {
+    "success": true,
+    "data": [
+      {
+        "id": "prod-bi-5",
+        "name": "Đá Bi",
+        "sizeKg": 5,
+        "unit": "Bao",
+        "minStock": null,
+        "isActive": true,
+        "price": 12000
+      },
+      {
+        "id": "prod-bi-10",
+        "name": "Đá Bi",
+        "sizeKg": 10,
+        "unit": "Bao",
+        "minStock": null,
+        "isActive": true,
+        "price": 22000
+      }
+    ]
+  }
+}

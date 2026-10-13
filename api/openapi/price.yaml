@@ -6,6 +6,71 @@ info:
   version: 1.0.0
 paths:
   /api/prices/global:
+    get:
+      operationId: listGlobalPrices
+      tags:
+        - Prices
+      summary: Every product with its default price, discontinued ones included
+      description: |-
+        Access: ADMIN.
+
+        Feeds the manager's products-and-prices screen. Ordered by name then size. `price` is null for a product without a default price; `isActive` false for a product taken off sale.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          minLength: 1
+                        name:
+                          type: string
+                        sizeKg:
+                          type: integer
+                        unit:
+                          type: string
+                        minStock:
+                          anyOf:
+                            - type: integer
+                            - type: "null"
+                        isActive:
+                          type: boolean
+                        price:
+                          anyOf:
+                            - type: number
+                            - type: "null"
+                      required:
+                        - id
+                        - name
+                        - sizeKg
+                        - unit
+                        - minStock
+                        - isActive
+                        - price
+                      additionalProperties: false
+                required:
+                  - success
+                  - data
+                additionalProperties: false
+        "400":
+          $ref: ./components/responses/errors.yaml#/BadRequest
+        "401":
+          $ref: ./components/responses/errors.yaml#/Unauthorized
+        "403":
+          $ref: ./components/responses/errors.yaml#/Forbidden
+        "500":
+          $ref: ./components/responses/errors.yaml#/ServerError
     post:
       operationId: setGlobalPrice
       tags:

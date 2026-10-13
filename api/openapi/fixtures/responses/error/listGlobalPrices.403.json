@@ -1,0 +1,13 @@
+{
+  "operationId": "listGlobalPrices",
+  "request": {
+    "method": "GET",
+    "path": "/api/prices/global",
+    "as": "staff"
+  },
+  "status": 403,
+  "body": {
+    "success": false,
+    "error": "Bạn không có quyền thực hiện thao tác này"
+  }
+}
