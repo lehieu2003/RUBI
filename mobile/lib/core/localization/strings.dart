@@ -216,6 +216,23 @@ abstract final class AppStrings {
   static const orderSettleHint =
       'Đơn đã giao chờ Quản lý đối soát để ghi nợ và trừ kho.';
 
+  // ---- Đối soát (Quản lý) ----
+  static const settleTitle = 'Đối soát';
+  static const settleSubtitle = 'Chốt số thực giao, ghi nợ và trừ kho';
+  static String settlePendingCount(int count) =>
+      '$count đơn đã giao chờ đối soát';
+  static const settleEmpty = 'Không có đơn nào cần đối soát';
+  static const settleActualLabel = 'Số lượng thực giao';
+  static String settleOrdered(int quantity, String unitPrice) =>
+      'Đặt $quantity · $unitPrice';
+  static const settleDebtLabel = 'Ghi nợ cho khách';
+  static const settleNote =
+      'Chốt xong không sửa lại được: nợ của khách và tồn kho đổi theo số này.';
+  static const settleConfirmButton = 'Xác nhận chốt';
+  static const settleDecreaseTooltip = 'Giảm';
+  static const settleIncreaseTooltip = 'Tăng';
+  static String settleDone(String code) => 'Đã chốt đơn $code';
+
   // ---- Tab cài đặt: giao diện ----
   static const themeTitle = 'Giao diện';
   static const themeSystem = 'Theo máy';

@@ -10,18 +10,8 @@ import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/orders/domain/entities/office_order.dart';
 import 'package:iceflow_mobile/features/orders/presentation/cubit/orders_cubit.dart';
+import 'package:iceflow_mobile/features/orders/presentation/widgets/order_card.dart';
 import 'package:iceflow_mobile/shared/widgets/error_views.dart';
-
-String _dateTime(DateTime date) {
-  final local = date.toLocal();
-  String two(int value) => value.toString().padLeft(2, '0');
-  return '${two(local.hour)}:${two(local.minute)} '
-      '${two(local.day)}/${two(local.month)}';
-}
-
-String _linesSummary(OfficeOrder order) => order.lines
-    .map((line) => '${line.productName} ${line.sizeKg}kg × ${line.quantity}')
-    .join(', ');
 
 /// Màn "Đơn hàng" của văn phòng (Quản lý, Nhân viên): danh sách theo trạng
 /// thái, tìm kiếm; bấm một đơn để xem chi tiết, gán tài xế, đổi trạng thái
@@ -100,7 +90,7 @@ class _OrdersBody extends HookWidget {
                           ),
                         ),
                       for (final order in state.orders)
-                        _OrderCard(
+                        OrderCard(
                           order: order,
                           onTap: () => _openOrder(context, order),
                         ),
@@ -204,131 +194,6 @@ class _StatusTabs extends StatelessWidget {
   }
 }
 
-/// Nhãn trạng thái của một đơn.
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.status});
-
-  final OfficeOrderStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = context.colorScheme;
-    final (background, foreground) = switch (status) {
-      OfficeOrderStatus.pending => (
-          colorScheme.surfaceContainerHighest,
-          colorScheme.onSurface,
-        ),
-      OfficeOrderStatus.shipping => (
-          colorScheme.primaryContainer,
-          colorScheme.onPrimaryContainer,
-        ),
-      OfficeOrderStatus.delivered ||
-      OfficeOrderStatus.completed =>
-        (colorScheme.secondaryContainer, colorScheme.onSecondaryContainer),
-      OfficeOrderStatus.cancelled => (
-          colorScheme.errorContainer,
-          colorScheme.onErrorContainer,
-        ),
-    };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        AppStrings.orderStatusLabel(status.wireName),
-        style: context.textTheme.labelMedium?.copyWith(
-          color: foreground,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-}
-
-/// Một đơn trong danh sách.
-class _OrderCard extends StatelessWidget {
-  const _OrderCard({required this.order, required this.onTap});
-
-  final OfficeOrder order;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = context.colorScheme;
-    final textTheme = context.textTheme;
-    final muted = colorScheme.onSurfaceVariant;
-    return Card(
-      key: Key('order_${order.id}'),
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${order.code} · ${_dateTime(order.createdAt)}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.labelLarge?.copyWith(color: muted),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  _StatusBadge(status: order.status),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                order.customerName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-              ),
-              Text(
-                _linesSummary(order),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      order.driverName == null
-                          ? AppStrings.orderUnassigned
-                          : AppStrings.orderDriver(order.driverName!),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: order.driverName == null &&
-                                !order.status.isFinal
-                            ? colorScheme.error
-                            : muted,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    formatVnd(order.total),
-                    style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// Chi tiết một đơn và các thao tác còn làm được với nó. Đóng lại với kết
 /// quả của thao tác vừa làm.
 class _OrderSheet extends HookWidget {
@@ -408,7 +273,7 @@ class _OrderSheet extends HookWidget {
             Row(
               children: [
                 Expanded(child: Text(order.code, style: textTheme.titleLarge)),
-                _StatusBadge(status: status),
+                OrderStatusBadge(status: status),
               ],
             ),
             const SizedBox(height: 8),
