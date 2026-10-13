@@ -141,6 +141,7 @@ v3.0 decisions:
 | 261013-arp | API: list default prices (all products) and split a customer's price into default and own | 2026-10-13 | feat/api-read-prices | [261013-arp-api-read-prices](./quick/261013-arp-api-read-prices/) |
 | 261013-mpp | Mobile: products and default prices for the manager — add, change price, edit, stop / resume selling | 2026-10-13 | feat/mobile-products-prices | [261013-mpp-mobile-products-prices](./quick/261013-mpp-mobile-products-prices/) |
 | 261013-mcp | Mobile: a customer's own price — the manager sets or removes it from the customer screen | 2026-10-13 | feat/mobile-customer-prices | [261013-mcp-mobile-customer-prices](./quick/261013-mcp-mobile-customer-prices/) |
+| 261013-msr | Mobile: shift report for the manager — per-person shifts, hours and days by month, close or reopen the month | 2026-10-13 | feat/mobile-shift-report | [261013-msr-mobile-shift-report](./quick/261013-msr-mobile-shift-report/) |
 
 ## Session Continuity
 
