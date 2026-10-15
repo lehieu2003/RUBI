@@ -35,6 +35,12 @@ Conflict:
     application/json:
       schema:
         $ref: ../schemas/error.yaml#/Error
+UnprocessableEntity:
+  description: The Idempotency-Key was already used for a different request (code IDEMPOTENCY_KEY_REUSED)
+  content:
+    application/json:
+      schema:
+        $ref: ../schemas/error.yaml#/Error
 TooManyRequests:
   description: Too many requests
   content:

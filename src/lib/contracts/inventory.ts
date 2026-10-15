@@ -79,13 +79,16 @@ export const inventoryContracts: ApiContract[] = [
       note: z.string().trim().max(200).optional(),
     }),
     response: envelope(InventoryRow),
-    errors: [400, 401, 403, 404, 500],
+    errors: [400, 401, 403, 404, 422, 500],
+    idempotent: true,
     notes:
       'With `mode: "ADD"` (a production batch) the quantity is added to the stock on hand. Otherwise (`SET` or omitted) ' +
       'it is a stock count of what is physically in the cold store. Units of orders that are SHIPPING or DELIVERED but ' +
       'not settled yet are not in the store but stay on the books until settlement, so the new balance is the counted ' +
       'quantity plus those units, and the count is kept in the history (compared with the books minus those units) ' +
-      'together with the optional `note`. The returned row is today\'s closing balance.',
+      'together with the optional `note`. The returned row is today\'s closing balance. ' +
+      'Send `Idempotency-Key` (one per submission, reused on resend) so a resent request is written once; ' +
+      '422 `IDEMPOTENCY_KEY_REUSED` when the key was used for a different request.',
   },
   {
     id: 'listStockCounts',

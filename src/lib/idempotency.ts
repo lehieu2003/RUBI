@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { apiError } from '@/lib/api-response';
+import { IDEMPOTENCY_HEADER } from '@/lib/contracts/common';
 
 // A payment, shells handed out and a production batch add to a balance, so
 // the same submission reaching the server twice (a retry after a lost
@@ -15,7 +16,6 @@ import { apiError } from '@/lib/api-response';
 // the same moment waits on the unique (factory, key) index, fails when the
 // first commits, and is then answered the same way.
 
-export const IDEMPOTENCY_HEADER = 'Idempotency-Key';
 const MAX_KEY_LENGTH = 100;
 
 /** The main client or the client of an open transaction. */

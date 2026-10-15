@@ -39,7 +39,17 @@ export interface ApiContract {
   /** Error statuses this endpoint is known to return */
   errors: number[];
   notes?: string;
+  /** Accepts the optional `Idempotency-Key` header (see IDEMPOTENCY_HEADER) */
+  idempotent?: boolean;
 }
+
+/**
+ * Optional request header of writes that add to a balance: one random value
+ * (a UUID) per user submission, reused when that submission is resent. A
+ * resend with the same key is not written again and gets the first answer;
+ * the same key with a different request gets 422 IDEMPOTENCY_KEY_REUSED.
+ */
+export const IDEMPOTENCY_HEADER = 'Idempotency-Key';
 
 /** `{ success: true, data }` — what `apiSuccess()` produces. */
 export const envelope = <T extends z.ZodType>(data: T) => z.object({ success: z.literal(true), data });
