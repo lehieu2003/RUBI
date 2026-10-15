@@ -22,10 +22,19 @@ class AuthFailure extends Failure {
   List<Object?> get props => [message, statusCode];
 }
 
-/// No connection / timeout — the request never reached the server.
-/// Its user-facing message is centralized (see [failureMessage]).
+/// No connection / timeout. Its user-facing message is centralized (see
+/// [failureMessage]).
+///
+/// [outcomeUnknown] is true when the request may already have reached the
+/// server (e.g. it was sent but no response came back in time): a write may
+/// have been committed, so callers must not invite a plain retry.
 class NetworkFailure extends Failure {
-  const NetworkFailure();
+  const NetworkFailure({this.outcomeUnknown = false});
+
+  final bool outcomeUnknown;
+
+  @override
+  List<Object?> get props => [outcomeUnknown];
 }
 
 /// Server returned an error response (>= 500, 400/403/404...).

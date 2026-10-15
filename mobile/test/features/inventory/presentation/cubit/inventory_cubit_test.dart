@@ -77,7 +77,7 @@ void main() {
 
       final result = await cubit.recordProduction(item(), 40);
 
-      expect(result, (ok: true, message: AppStrings.stockProductionSaved(40, 'Bao', 240)));
+      expect(result, (ok: true, unsure: false, message: AppStrings.stockProductionSaved(40, 'Bao', 240)));
       verify(() => repo.recordProduction(productId: 'prod-bi-5', quantity: 40)).called(1);
       expect(cubit.state.stock, stockOf(240));
     });
@@ -94,7 +94,7 @@ void main() {
 
       final result = await cubit.recordCount(item(), 188, note: 'Cuối tuần');
 
-      expect(result, (ok: true, message: AppStrings.stockCountSaved(188, 'Bao')));
+      expect(result, (ok: true, unsure: false, message: AppStrings.stockCountSaved(188, 'Bao')));
       verify(() => repo.recordCount(productId: 'prod-bi-5', counted: 188, note: 'Cuối tuần')).called(1);
     });
 
@@ -108,7 +108,7 @@ void main() {
 
       final result = await cubit.recordProduction(item(), 1);
 
-      expect(result, (ok: false, message: 'Số lượng không hợp lệ'));
+      expect(result, (ok: false, unsure: false, message: 'Số lượng không hợp lệ'));
       verify(() => repo.getStock()).called(1);
     });
 

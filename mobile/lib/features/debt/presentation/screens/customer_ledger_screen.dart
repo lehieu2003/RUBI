@@ -190,8 +190,8 @@ class _EntryTile extends StatelessWidget {
   }
 }
 
-/// Sheet ghi nhận thu tiền. Đóng lại với câu báo thành công; lỗi hiện ngay
-/// trong sheet.
+/// Sheet ghi nhận thu tiền. Đóng lại với câu báo thành công (hoặc câu báo
+/// chưa chắc đã lưu khi mất response); lỗi khác hiện ngay trong sheet.
 class _PaymentSheet extends HookWidget {
   const _PaymentSheet({required this.cubit});
 
@@ -221,7 +221,7 @@ class _PaymentSheet extends HookWidget {
       final result =
           await cubit.recordPayment(amount, notes: notesController.text);
       if (!context.mounted) return;
-      if (result.ok) {
+      if (result.ok || result.unsure) {
         Navigator.of(context).pop(result.message);
       } else {
         submitting.value = false;

@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iceflow_mobile/core/extensions/number_format.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
+import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 import 'package:iceflow_mobile/core/pagination/page_params.dart';
 import 'package:iceflow_mobile/core/pagination/pagination_entity.dart';
@@ -48,7 +49,9 @@ class LedgerState extends Equatable {
 }
 
 /// Kết quả ghi nhận một lần thu tiền, để màn hình báo cho người dùng.
-typedef PaymentResult = ({bool ok, String message});
+/// [unsure]: mất response, không biết server đã lưu chưa — sổ đã được tải
+/// lại, màn hình đóng sheet thay vì mời gửi lại.
+typedef PaymentResult = ({bool ok, bool unsure, String message});
 
 /// State management màn sổ nợ: các dòng ghi nợ / thu tiền của một khách
 /// (tải dần theo trang) và ghi nhận thu tiền.
@@ -147,13 +150,19 @@ class LedgerCubit extends Cubit<LedgerState> {
         }
         return (
           ok: true,
+          unsure: false,
           message: AppStrings.paymentSaved(
             formatVnd(amount.toDouble()),
             formatVnd(value.outstandingDebt),
           ),
         );
       case Err<PaymentReceipt>(:final failure):
-        return (ok: false, message: failureMessage(failure));
+        if (failure is NetworkFailure && failure.outcomeUnknown) {
+          // Server có thể đã ghi: tải lại sổ để người dùng tự kiểm.
+          if (!isClosed) await load();
+          return (ok: false, unsure: true, message: AppStrings.paymentUnsure);
+        }
+        return (ok: false, unsure: false, message: failureMessage(failure));
     }
   }
 

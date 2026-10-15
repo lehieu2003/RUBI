@@ -1,7 +1,11 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iceflow_mobile/core/di/injection_container.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
+import 'package:iceflow_mobile/core/network/api_error_decoder.dart';
 import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 import 'package:iceflow_mobile/core/pagination/page_params.dart';
@@ -194,6 +198,101 @@ void main() {
 
       expect(find.text(FailureMessages.tooManyAttempts), findsOneWidget);
       expect(find.text(AppStrings.paymentTitle), findsOneWidget);
+    });
+
+    void stubPayment(Future<Result<PaymentReceipt>> Function() answer) {
+      when(() => repo.recordPayment(
+            customerId: any(named: 'customerId'),
+            amount: any(named: 'amount'),
+            notes: any(named: 'notes'),
+          )).thenAnswer((_) => answer());
+    }
+
+    Future<void> submitPayment(WidgetTester tester, String amount) async {
+      await tester.enterText(find.byKey(const Key('payment_amount')), amount);
+      await tester.tap(find.byKey(const Key('payment_submit')));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('mất response (receive timeout) → báo chưa chắc đã lưu, đóng '
+        'sheet, tải lại sổ; không gửi lần hai', (tester) async {
+      // Đúng thứ guardApi trả khi request đã đi mà response không về kịp.
+      stubPayment(() async => Err(mapDioError(DioException(
+            requestOptions: RequestOptions(path: '/api/customers/c-1/payments'),
+            type: DioExceptionType.receiveTimeout,
+          ))));
+      await openLedger(tester);
+      clearInteractions(repo);
+      await tester.tap(find.byKey(const Key('ledger_pay')));
+      await tester.pumpAndSettle();
+
+      await submitPayment(tester, '100000');
+
+      expect(find.textContaining('Mất kết nối khi đang lưu'), findsOneWidget);
+      expect(find.text(FailureMessages.network), findsNothing);
+      // Sheet đã đóng: không còn nút để bấm gửi lại.
+      expect(find.text(AppStrings.paymentTitle), findsNothing);
+      expect(find.byKey(const Key('payment_submit')), findsNothing);
+      verify(() => repo.getLedger('c-1')).called(1);
+      verify(() => repo.recordPayment(customerId: 'c-1', amount: 100000, notes: '')).called(1);
+    });
+
+    testWidgets('không kết nối được (request chưa đi) → sheet còn mở, gửi lại được',
+        (tester) async {
+      var calls = 0;
+      stubPayment(() async {
+        calls++;
+        if (calls == 1) {
+          return Err(mapDioError(DioException(
+            requestOptions: RequestOptions(path: '/api/customers/c-1/payments'),
+            type: DioExceptionType.connectionError,
+            error: const SocketException('Connection refused'),
+          )));
+        }
+        return Ok(PaymentReceipt(
+          entry: entry('l-9', LedgerEntryType.payment, 100000),
+          outstandingDebt: 3300000,
+        ));
+      });
+      await openLedger(tester);
+      await tester.tap(find.byKey(const Key('ledger_pay')));
+      await tester.pumpAndSettle();
+
+      await submitPayment(tester, '100000');
+      expect(find.text(FailureMessages.network), findsOneWidget);
+      expect(find.text(AppStrings.paymentTitle), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('payment_submit')));
+      await tester.pumpAndSettle();
+      expect(calls, 2);
+      expect(find.text(AppStrings.paymentSaved('100.000đ', '3.300.000đ')), findsOneWidget);
+    });
+
+    testWidgets('server từ chối (400) → câu của server trong sheet; sửa số rồi '
+        'gửi lại được', (tester) async {
+      var calls = 0;
+      stubPayment(() async {
+        calls++;
+        if (calls == 1) {
+          return const Err(ServerFailure('Số tiền không hợp lệ', statusCode: 400));
+        }
+        return Ok(PaymentReceipt(
+          entry: entry('l-9', LedgerEntryType.payment, 200000),
+          outstandingDebt: 3200000,
+        ));
+      });
+      await openLedger(tester);
+      await tester.tap(find.byKey(const Key('ledger_pay')));
+      await tester.pumpAndSettle();
+
+      await submitPayment(tester, '100000');
+      expect(find.text('Số tiền không hợp lệ'), findsOneWidget);
+      expect(find.text(AppStrings.paymentTitle), findsOneWidget);
+
+      await submitPayment(tester, '200000');
+      expect(calls, 2);
+      verify(() => repo.recordPayment(customerId: 'c-1', amount: 200000, notes: '')).called(1);
+      expect(find.text(AppStrings.paymentSaved('200.000đ', '3.200.000đ')), findsOneWidget);
     });
 
     testWidgets('quay lại danh sách → tải lại số nợ', (tester) async {
