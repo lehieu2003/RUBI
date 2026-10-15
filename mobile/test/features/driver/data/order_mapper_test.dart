@@ -185,7 +185,7 @@ void main() {
       expect((res as Err<DeliveryOrder>).failure, isA<UnexpectedFailure>());
     });
 
-    test('thiếu customer.name / address / phone → Err(UnexpectedFailure)', () {
+    test('thiếu customer.name → Err(UnexpectedFailure)', () {
       final missingName = {
         ...orderShippingFixture,
         'customer': {...(orderShippingFixture['customer'] as Map<String, dynamic>), 'name': null},
@@ -194,24 +194,28 @@ void main() {
         OrderMapper.fromDto(OrderDto.fromJson(missingName)),
         isA<Err<DeliveryOrder>>(),
       );
+    });
 
-      final missingAddress = {
-        ...orderShippingFixture,
-        'customer': {...(orderShippingFixture['customer'] as Map<String, dynamic>), 'address': null},
-      };
-      expect(
-        OrderMapper.fromDto(OrderDto.fromJson(missingAddress)),
-        isA<Err<DeliveryOrder>>(),
-      );
+    // Server cho phép bỏ trống SĐT / địa chỉ (lưu ''): đơn vẫn phải giao được.
+    test('customer.address / phone rỗng hoặc null → Ok với chuỗi rỗng', () {
+      for (final empty in ['', null]) {
+        final noContact = {
+          ...orderShippingFixture,
+          'customer': {
+            ...(orderShippingFixture['customer'] as Map<String, dynamic>),
+            'address': empty,
+            'phone': empty,
+          },
+        };
 
-      final missingPhone = {
-        ...orderShippingFixture,
-        'customer': {...(orderShippingFixture['customer'] as Map<String, dynamic>), 'phone': null},
-      };
-      expect(
-        OrderMapper.fromDto(OrderDto.fromJson(missingPhone)),
-        isA<Err<DeliveryOrder>>(),
-      );
+        final res = OrderMapper.fromDto(OrderDto.fromJson(noContact));
+
+        expect(res, isA<Ok<DeliveryOrder>>(), reason: 'value: $empty');
+        final order = (res as Ok<DeliveryOrder>).value;
+        expect(order.customerAddress, '');
+        expect(order.customerPhone, '');
+        expect(order.customerName, 'Quán Cô Ba');
+      }
     });
 
     test('createdAt thiếu / sai định dạng → Err(UnexpectedFailure)', () {
