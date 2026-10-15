@@ -17,27 +17,30 @@ export async function GET(request: NextRequest) {
       return apiError('Bạn không có quyền thực hiện thao tác này', 403);
     }
 
-    const customers = await prisma.customer.findMany({
-      where: { factoryId: session.factoryId },
-      include: {
-        debtLedger: true,
-      },
-    });
+    // Totals per customer and entry type are summed by the database, so the
+    // report does not read the whole ledger, which grows with every order.
+    const [customers, groups] = await Promise.all([
+      prisma.customer.findMany({
+        where: { factoryId: session.factoryId },
+        select: { id: true, name: true },
+      }),
+      prisma.customerDebtLedger.groupBy({
+        by: ['customerId', 'type'],
+        where: { customer: { factoryId: session.factoryId } },
+        _sum: { amount: true },
+        _max: { createdAt: true },
+      }),
+    ]);
+    const groupByKey = new Map(groups.map((group) => [`${group.customerId}:${group.type}`, group]));
+    const groupOf = (customerId: string, type: 'DEBT' | 'PAYMENT') => groupByKey.get(`${customerId}:${type}`);
 
     const debtReport = customers.map((customer) => {
-      const totalDebt = customer.debtLedger
-        .filter(e => e.type === 'DEBT')
-        .reduce((sum, e) => sum + e.amount.toNumber(), 0);
-      const totalPayment = customer.debtLedger
-        .filter(e => e.type === 'PAYMENT')
-        .reduce((sum, e) => sum + e.amount.toNumber(), 0);
+      const debt = groupOf(customer.id, 'DEBT');
+      const payment = groupOf(customer.id, 'PAYMENT');
+      const totalDebt = debt?._sum.amount?.toNumber() ?? 0;
+      const totalPayment = payment?._sum.amount?.toNumber() ?? 0;
       const outstanding = totalDebt - totalPayment; // Positive = customer owes
-
-      // Find last payment date
-      const paymentEntries = customer.debtLedger.filter(e => e.type === 'PAYMENT');
-      const lastPaymentDate = paymentEntries.length > 0
-        ? paymentEntries.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0].createdAt
-        : null;
+      const lastPaymentDate = payment?._max.createdAt ?? null;
 
       return {
         customerId: customer.id,

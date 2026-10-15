@@ -16,4 +16,9 @@ describe('debt report source checks', () => {
   it('does not compute outstanding with reversed sign', () => {
     assert.doesNotMatch(route, /outstanding\s*=\s*totalPayment\s*-\s*totalDebt/);
   });
+
+  it('sums the ledger in the database instead of loading every entry', () => {
+    assert.match(route, /customerDebtLedger\.groupBy/);
+    assert.doesNotMatch(route, /debtLedger:\s*true/);
+  });
 });
