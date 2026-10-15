@@ -12,6 +12,10 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 const StatusSchema = z.object({
   status: z.enum(['PENDING', 'SHIPPING', 'DELIVERED', 'CANCELLED']),
   cancellationReason: z.string().optional(),
+  // The status the caller's screen showed. When it no longer matches, the
+  // change is refused (409 ORDER_STATUS_CHANGED) instead of overwriting e.g.
+  // a delivery the driver confirmed in the meantime. Optional for older clients.
+  expectedStatus: z.enum(['PENDING', 'SHIPPING', 'DELIVERED']).optional(),
 });
 
 export async function PATCH(
@@ -62,11 +66,19 @@ export async function PATCH(
       );
     }
 
+    const statusChanged = () =>
+      apiError('Trạng thái đơn đã thay đổi, vui lòng tải lại', 409, 'ORDER_STATUS_CHANGED');
+    if (parsed.data.expectedStatus && parsed.data.expectedStatus !== existing.status) {
+      return statusChanged();
+    }
+
     const cancelled = parsed.data.status === 'CANCELLED';
-    // The change and its log entry are written together.
-    const [order] = await prisma.$transaction([
-      prisma.order.update({
-        where: { id, factoryId: session.factoryId },
+    // The change and its log entry are written together. The status read above
+    // is checked again in the write itself, so an order settled, cancelled or
+    // delivered in the meantime is left alone.
+    const order = await prisma.$transaction(async (tx) => {
+      const result = await tx.order.updateMany({
+        where: { id, factoryId: existing.factoryId, status: existing.status },
         data: {
           status: parsed.data.status,
           // The driver list buckets delivered orders by deliveredAt, so the
@@ -78,10 +90,11 @@ export async function PATCH(
             ? `[HỦY: ${parsed.data.cancellationReason}]`
             : undefined,
         },
-      }),
-      recordAudit(
-        prisma,
-        { factoryId: session.factoryId, userId: session.userId, userName: session.name },
+      });
+      if (result.count === 0) return null;
+      await recordAudit(
+        tx,
+        { factoryId: existing.factoryId, userId: session.userId, userName: session.name },
         {
           action: cancelled ? 'ORDER_CANCELLED' : 'ORDER_STATUS_CHANGED',
           orderId: id,
@@ -90,8 +103,10 @@ export async function PATCH(
             ? `Hủy đơn (đang ${ORDER_STATUS_LABELS[existing.status]}). Lý do: ${parsed.data.cancellationReason}`
             : `${ORDER_STATUS_LABELS[existing.status]} → ${ORDER_STATUS_LABELS[parsed.data.status]}`,
         }
-      ),
-    ]);
+      );
+      return tx.order.findUniqueOrThrow({ where: { id } });
+    });
+    if (!order) return statusChanged();
 
     return apiSuccess({ ...order, total: order.total.toNumber() });
   } catch (error) {

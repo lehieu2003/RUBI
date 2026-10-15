@@ -50,19 +50,24 @@ export async function PATCH(
         return apiError('Dữ liệu không hợp lệ: có dòng hàng không thuộc đơn này', 400);
       }
 
-      // 1. Update actualQty for each line item
+      // 1. Mark the order COMPLETED first. The status is checked again in the
+      // write itself, so a second settlement, or an order cancelled in the
+      // meantime, is rejected before any debt or stock is booked.
+      const completed = await tx.order.updateMany({
+        where: { id, factoryId: session.factoryId, status: 'DELIVERED' },
+        data: { status: 'COMPLETED', completedAt: new Date() },
+      });
+      if (completed.count === 0) {
+        return apiError('Chỉ đối soát được đơn đã giao', 409, 'ORDER_NOT_DELIVERED');
+      }
+
+      // 2. Update actualQty for each line item
       for (const item of parsed.data.items) {
         await tx.orderItem.update({
           where: { id: item.id },
           data: { actualQty: item.actualQty },
         });
       }
-
-      // 2. Update order status to COMPLETED
-      await tx.order.update({
-        where: { id },
-        data: { status: 'COMPLETED', completedAt: new Date() },
-      });
 
       // 3. Calculate delivered total from actualQty * unitPrice
       const deliveredTotal = parsed.data.items.reduce((sum, itemInput) => {

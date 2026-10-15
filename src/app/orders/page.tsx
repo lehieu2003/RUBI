@@ -313,9 +313,14 @@ export default function OrdersPage() {
         body: JSON.stringify({
           status: newStatus,
           cancellationReason: reason,
+          // The status this screen shows: the API refuses the change if the
+          // order moved on meanwhile (e.g. the driver confirmed delivery).
+          expectedStatus: selectedOrder?.status,
         }),
       });
       const result = await res.json().catch(() => ({}));
+      // 409: the order changed or is final; reload so the screen shows its real status.
+      if (res.status === 409) queryClient.invalidateQueries({ queryKey: ['orders'] });
       if (!res.ok) throw new Error(result.error ?? 'Failed to update status');
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       setShowCancelDialog(false);

@@ -43,7 +43,7 @@ describe('audit log source checks', () => {
       'src/app/api/orders/[id]/confirm/route.ts': /await recordAudit\(\s*tx,[\s\S]*?action: 'ORDER_DELIVERED'/,
       'src/app/api/orders/[id]/reconcile/route.ts': /await recordAudit\(\s*tx,[\s\S]*?action: 'ORDER_SETTLED'/,
       'src/app/api/customers/[id]/payments/route.ts': /await recordAudit\(\s*tx,[\s\S]*?action: 'DEBT_PAYMENT'/,
-      'src/app/api/orders/[id]/status/route.ts': /prisma\.\$transaction\(\[\s*prisma\.order\.update\([\s\S]*?recordAudit\(\s*prisma,[\s\S]*?'ORDER_CANCELLED' : 'ORDER_STATUS_CHANGED'/,
+      'src/app/api/orders/[id]/status/route.ts': /prisma\.\$transaction\(async \(tx\) => \{\s*const result = await tx\.order\.updateMany\([\s\S]*?await recordAudit\(\s*tx,[\s\S]*?'ORDER_CANCELLED' : 'ORDER_STATUS_CHANGED'/,
     };
     for (const [file, pattern] of Object.entries(inTransaction)) {
       assert.match(read(file), pattern, file);

@@ -414,7 +414,7 @@ paths:
       description: |-
         Access: ADMIN, STAFF.
 
-        `cancellationReason` is required when the status is CANCELLED and is stored in `notes`. COMPLETED is only reached through reconciliation. A COMPLETED or CANCELLED order is final: 409 `ORDER_FINAL`.
+        `cancellationReason` is required when the status is CANCELLED and is stored in `notes`. COMPLETED is only reached through reconciliation. A COMPLETED or CANCELLED order is final: 409 `ORDER_FINAL`. `expectedStatus` is the status the caller last saw; when the order has changed since (or changes while the request runs), nothing is written: 409 `ORDER_STATUS_CHANGED`.
       parameters:
         - name: id
           in: path
@@ -438,6 +438,12 @@ paths:
                     - CANCELLED
                 cancellationReason:
                   type: string
+                expectedStatus:
+                  type: string
+                  enum:
+                    - PENDING
+                    - SHIPPING
+                    - DELIVERED
               required:
                 - status
               additionalProperties: false
@@ -618,7 +624,7 @@ paths:
       description: |-
         Access: ADMIN.
 
-        404 when the order does not exist; 409 `ORDER_NOT_DELIVERED` unless it is DELIVERED; 400 when a line does not belong to the order. Creates a DEBT ledger entry and deducts the delivered quantities from the stock on hand.
+        404 when the order does not exist; 409 `ORDER_NOT_DELIVERED` unless it is DELIVERED; 400 when a line does not belong to the order. Creates a DEBT ledger entry and deducts the delivered quantities from the stock on hand. An order is settled once: a concurrent second settlement, or an order cancelled meanwhile, gets 409 `ORDER_NOT_DELIVERED` with nothing booked.
       parameters:
         - name: id
           in: path
