@@ -69,7 +69,16 @@ paths:
       description: |-
         Access: ADMIN.
 
-        By default (`mode: "ADD"` or omitted) the numbers are increments. With `mode: "SET"` they replace both totals, to correct a mistyped entry; both `shellsOut` and `shellsIn` are then required (400 otherwise). The response echoes the numbers sent, not the new balance.
+        By default (`mode: "ADD"` or omitted) the numbers are increments. With `mode: "SET"` they replace both totals, to correct a mistyped entry; both `shellsOut` and `shellsIn` are then required (400 otherwise). The response echoes the numbers sent, not the new balance. Send `Idempotency-Key` (one per submission, reused on resend) so a resent request is written once; 422 `IDEMPOTENCY_KEY_REUSED` when the key was used for a different request.
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          description: One random value (a UUID) per submission, reused when that submission is resent. A resend is not written again and gets the first answer.
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 100
       requestBody:
         required: true
         content:
@@ -138,5 +147,7 @@ paths:
           $ref: ./components/responses/errors.yaml#/Forbidden
         "404":
           $ref: ./components/responses/errors.yaml#/NotFound
+        "422":
+          $ref: ./components/responses/errors.yaml#/UnprocessableEntity
         "500":
           $ref: ./components/responses/errors.yaml#/ServerError

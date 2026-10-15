@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
 import { z } from 'zod';
 import { apiSuccess, apiError } from "@/lib/api-response";
+import { Idempotency } from '@/lib/idempotency';
 
 const ShellDepositSchema = z.object({
   customerId: z.string(),
@@ -83,29 +84,42 @@ export async function PATCH(request: NextRequest) {
       return apiError('Không tìm thấy khách hàng', 404);
     }
 
-    await prisma.customerShellDeposit.upsert({
-      where: { customerId },
-      create: {
-        customerId,
-        shellsOut: shellsOut ?? 0,
-        shellsIn: shellsIn ?? 0,
-        depositPerShell: 50000, // Default 50,000 VND per D-09
-      },
-      update:
-        mode === 'SET'
-          ? { shellsOut, shellsIn }
-          : {
-              shellsOut: { increment: shellsOut ?? 0 },
-              shellsIn: { increment: shellsIn ?? 0 },
-            },
-    });
+    const idempotency = Idempotency.from(request, session.factoryId, 'PATCH /api/deposits/shells', parsed.data);
+    if (idempotency instanceof Response) return idempotency;
 
-    return apiSuccess({
-          success: true,
-          customerId,
-          shellsOut: shellsOut ?? 0,
-          shellsIn: shellsIn ?? 0,
+    // ADD adds to the running counts, so a resend of the same submission
+    // (same Idempotency-Key) gets the first answer back instead.
+    return await idempotency.run(() =>
+      prisma.$transaction(async (tx) => {
+        await idempotency.begin(tx);
+        await tx.customerShellDeposit.upsert({
+          where: { customerId },
+          create: {
+            customerId,
+            shellsOut: shellsOut ?? 0,
+            shellsIn: shellsIn ?? 0,
+            depositPerShell: 50000, // Default 50,000 VND per D-09
+          },
+          update:
+            mode === 'SET'
+              ? { shellsOut, shellsIn }
+              : {
+                  shellsOut: { increment: shellsOut ?? 0 },
+                  shellsIn: { increment: shellsIn ?? 0 },
+                },
         });
+
+        return idempotency.finish(
+          tx,
+          apiSuccess({
+            success: true,
+            customerId,
+            shellsOut: shellsOut ?? 0,
+            shellsIn: shellsIn ?? 0,
+          })
+        );
+      })
+    );
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[PATCH /api/deposits/shells]', error);

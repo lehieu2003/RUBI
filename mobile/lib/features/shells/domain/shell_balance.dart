@@ -48,10 +48,14 @@ abstract class ShellsRepository {
 
   /// Ghi thêm vỏ giao cho khách ([shellsOut]) và vỏ thu về ([shellsIn]);
   /// hai số cộng vào tổng hiện có.
+  ///
+  /// [idempotencyKey]: mã của lần gửi này (xem `SubmissionKey`); gửi lại với
+  /// cùng mã thì server không ghi lần nữa.
   Future<Result<void>> record({
     required String customerId,
     int shellsOut = 0,
     int shellsIn = 0,
+    String? idempotencyKey,
   });
 
   /// Sửa lại cả hai tổng (khi đã nhập nhầm): [shellsOut] và [shellsIn] thay

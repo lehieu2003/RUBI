@@ -201,6 +201,24 @@ void main() {
         expect(sent, {'productId': 'prod-bi-5', 'quantity': 1, 'mode': 'ADD'});
       });
 
+      test('nhập mẻ: có mã → header Idempotency-Key; không mã → không có header',
+          () async {
+        final headers = <Map<String, dynamic>>[];
+        dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
+          headers.add(options.headers);
+          handler.next(options);
+        }));
+        adapter.onPost(path, (server) {
+          server.reply(200, {'success': true, 'data': rowFixture});
+        }, data: Matchers.any);
+
+        await repo.recordProduction(productId: 'prod-bi-5', quantity: 1, idempotencyKey: 'key-1');
+        await repo.recordProduction(productId: 'prod-bi-5', quantity: 1);
+
+        expect(headers[0]['Idempotency-Key'], 'key-1');
+        expect(headers[1].containsKey('Idempotency-Key'), isFalse);
+      });
+
       test('kiểm kho → gửi mode SET kèm ghi chú đã trim; ghi chú rỗng thì bỏ',
           () async {
         final sent = <Object?>[];

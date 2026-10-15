@@ -51,7 +51,7 @@ describe('record payment API source checks', () => {
   });
 
   it('returns money as numbers', () => {
-    assert.match(route, /amount: result\.payment\.amount\.toNumber\(\)/);
+    assert.match(route, /amount: payment\.amount\.toNumber\(\)/);
   });
 });
 

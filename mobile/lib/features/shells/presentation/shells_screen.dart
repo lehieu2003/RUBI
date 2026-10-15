@@ -6,6 +6,7 @@ import 'package:iceflow_mobile/core/di/injection_container.dart';
 import 'package:iceflow_mobile/core/extensions/build_context_extensions.dart';
 import 'package:iceflow_mobile/core/extensions/number_format.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
+import 'package:iceflow_mobile/core/network/idempotency.dart';
 import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/shells/domain/shell_balance.dart';
 import 'package:iceflow_mobile/features/shells/presentation/shells_cubit.dart';
@@ -140,6 +141,9 @@ class _ShellDialog extends HookWidget {
     final back = useTextEditingController();
     final error = useState<String?>(null);
     final busy = useState(false);
+    // Một mã cho lần ghi thêm này, giữ đến khi đóng hộp: bấm lưu lại sau lỗi
+    // không cộng hai lần.
+    final submission = useMemoized(SubmissionKey.new);
 
     void switchMode(bool toCorrecting) {
       correcting.value = toCorrecting;
@@ -170,7 +174,12 @@ class _ShellDialog extends HookWidget {
       error.value = null;
       final result = correcting.value
           ? await cubit.correct(balance, shellsOut: shellsOut, shellsIn: shellsIn)
-          : await cubit.record(balance, shellsOut: shellsOut, shellsIn: shellsIn);
+          : await cubit.record(
+              balance,
+              shellsOut: shellsOut,
+              shellsIn: shellsIn,
+              idempotencyKey: submission.keyFor((shellsOut, shellsIn)),
+            );
       if (!context.mounted) return;
       if (result.ok || result.unsure) {
         Navigator.of(context).pop(result);

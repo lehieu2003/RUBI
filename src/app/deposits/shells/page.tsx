@@ -6,6 +6,7 @@ import { Plus, ArrowDownToLine, ArrowUpFromLine, AlertCircle, CheckCircle2, Load
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
 import { exportToCSV } from '@/lib/export-excel';
+import { useSubmissionKey } from '@/lib/submission-key';
 
 interface DepositRecord {
   customerId: string;
@@ -36,6 +37,7 @@ export default function ShellDepositsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const submission = useSubmissionKey();
 
   useEffect(() => {
     async function fetchData() {
@@ -69,19 +71,22 @@ export default function ShellDepositsPage() {
     }
     setSubmitting(true);
     try {
+      const body = JSON.stringify({
+        customerId: selectedCustomer,
+        shellsOut: shellsOut ? parseInt(shellsOut) : undefined,
+        shellsIn: shellsIn ? parseInt(shellsIn) : undefined,
+      });
       const res = await fetch(API_ENDPOINTS.DEPOSITS.SHELLS, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerId: selectedCustomer,
-          shellsOut: shellsOut ? parseInt(shellsOut) : undefined,
-          shellsIn: shellsIn ? parseInt(shellsIn) : undefined,
-        }),
+        // A retry of the same entry after a lost answer is added once.
+        headers: { 'Content-Type': 'application/json', ...submission.headers(body) },
+        body,
       });
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error || 'Failed to record');
       }
+      submission.done();
       // Refresh deposits
       const refreshRes = await fetch(API_ENDPOINTS.DEPOSITS.SHELLS);
       if (refreshRes.ok) {

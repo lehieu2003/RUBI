@@ -273,6 +273,24 @@ void main() {
         expect(receipt.entry.notes, 'Tiền mặt');
       });
 
+      test('có mã → header Idempotency-Key; không mã → không có header',
+          () async {
+        final headers = <Map<String, dynamic>>[];
+        dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
+          headers.add(options.headers);
+          handler.next(options);
+        }));
+        adapter.onPost(path, (server) {
+          server.reply(201, {'success': true, 'data': <String, dynamic>{}});
+        }, data: Matchers.any);
+
+        await repo.recordPayment(customerId: 'c-1', amount: 1000, idempotencyKey: 'key-1');
+        await repo.recordPayment(customerId: 'c-1', amount: 1000);
+
+        expect(headers[0]['Idempotency-Key'], 'key-1');
+        expect(headers[1].containsKey('Idempotency-Key'), isFalse);
+      });
+
       test('không ghi chú → không gửi `notes`', () async {
         Object? sent;
         dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {

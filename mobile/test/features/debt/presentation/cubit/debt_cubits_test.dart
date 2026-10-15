@@ -157,6 +157,7 @@ void main() {
             customerId: any(named: 'customerId'),
             amount: any(named: 'amount'),
             notes: any(named: 'notes'),
+            idempotencyKey: any(named: 'idempotencyKey'),
           )).thenAnswer((_) async => const Err(NetworkFailure(outcomeUnknown: true)));
       final cubit = buildCubit();
       addTearDown(cubit.close);
@@ -194,6 +195,7 @@ void main() {
             customerId: any(named: 'customerId'),
             amount: any(named: 'amount'),
             notes: any(named: 'notes'),
+            idempotencyKey: any(named: 'idempotencyKey'),
           )).thenAnswer((_) async {
         server.insert(0, payment);
         return Ok(PaymentReceipt(entry: payment, outstandingDebt: 3399000));
@@ -257,6 +259,7 @@ void main() {
             customerId: any(named: 'customerId'),
             amount: any(named: 'amount'),
             notes: any(named: 'notes'),
+            idempotencyKey: any(named: 'idempotencyKey'),
           )).thenAnswer(
         (_) async => Ok(
           PaymentReceipt(
@@ -272,7 +275,7 @@ void main() {
       final result = await cubit.recordPayment(500000, notes: 'Tiền mặt');
 
       expect(result, (ok: true, unsure: false, message: AppStrings.paymentSaved('500.000đ', '2.900.000đ')));
-      verify(() => repo.recordPayment(customerId: 'c-1', amount: 500000, notes: 'Tiền mặt')).called(1);
+      verify(() => repo.recordPayment(customerId: 'c-1', amount: 500000, notes: 'Tiền mặt', idempotencyKey: any(named: 'idempotencyKey'))).called(1);
       expect(cubit.state.outstandingDebt, 2900000);
       expect(cubit.state.entries.map((e) => e.id), ['l-9', 'l-1']);
     });
@@ -285,6 +288,7 @@ void main() {
             customerId: any(named: 'customerId'),
             amount: any(named: 'amount'),
             notes: any(named: 'notes'),
+            idempotencyKey: any(named: 'idempotencyKey'),
           )).thenAnswer(
         (_) async => const Err(
           ServerFailure('Số tiền thu vượt quá công nợ hiện tại (3.400.000đ)', statusCode: 409),

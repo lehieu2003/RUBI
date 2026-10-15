@@ -64,17 +64,20 @@ class ShellsCubit extends Cubit<ShellsState> {
     }
   }
 
-  /// Ghi thêm vỏ giao và vỏ thu về của một khách.
+  /// Ghi thêm vỏ giao và vỏ thu về của một khách. [idempotencyKey]: mã của
+  /// lần gửi, do hộp nhập giữ, để gửi lại không bị cộng hai lần.
   Future<ShellActionResult> record(
     ShellBalance balance, {
     required int shellsOut,
     required int shellsIn,
+    String? idempotencyKey,
   }) =>
       _after(
         _repo.record(
           customerId: balance.customerId,
           shellsOut: shellsOut,
           shellsIn: shellsIn,
+          idempotencyKey: idempotencyKey,
         ),
         AppStrings.shellsRecorded(balance.customerName, shellsOut, shellsIn),
       );

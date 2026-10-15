@@ -432,7 +432,7 @@ paths:
       description: |-
         Access: ADMIN.
 
-        Stored as a PAYMENT entry in the debt ledger. `amount` is whole VND. 409 `PAYMENT_EXCEEDS_DEBT` when it is more than the customer currently owes. `outstandingDebt` is what remains after this payment.
+        Stored as a PAYMENT entry in the debt ledger. `amount` is whole VND. 409 `PAYMENT_EXCEEDS_DEBT` when it is more than the customer currently owes. `outstandingDebt` is what remains after this payment. Send `Idempotency-Key` (one per submission, reused on resend) so a resent request is written once; 422 `IDEMPOTENCY_KEY_REUSED` when the key was used for a different request.
       parameters:
         - name: id
           in: path
@@ -440,6 +440,14 @@ paths:
           schema:
             type: string
             minLength: 1
+        - name: Idempotency-Key
+          in: header
+          required: false
+          description: One random value (a UUID) per submission, reused when that submission is resent. A resend is not written again and gets the first answer.
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 100
       requestBody:
         required: true
         content:
@@ -522,6 +530,8 @@ paths:
           $ref: ./components/responses/errors.yaml#/NotFound
         "409":
           $ref: ./components/responses/errors.yaml#/Conflict
+        "422":
+          $ref: ./components/responses/errors.yaml#/UnprocessableEntity
         "500":
           $ref: ./components/responses/errors.yaml#/ServerError
   /api/customers/{id}/ledger:

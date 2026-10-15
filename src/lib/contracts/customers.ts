@@ -134,11 +134,14 @@ export const customerContracts: ApiContract[] = [
     body: RecordPaymentBody,
     successStatus: 201,
     response: envelope(z.object({ payment: DebtLedgerEntry, outstandingDebt: z.number() })),
-    errors: [400, 401, 403, 404, 409, 500],
+    errors: [400, 401, 403, 404, 409, 422, 500],
+    idempotent: true,
     notes:
       'Stored as a PAYMENT entry in the debt ledger. `amount` is whole VND. ' +
       '409 `PAYMENT_EXCEEDS_DEBT` when it is more than the customer currently owes. ' +
-      '`outstandingDebt` is what remains after this payment.',
+      '`outstandingDebt` is what remains after this payment. ' +
+      'Send `Idempotency-Key` (one per submission, reused on resend) so a resent request is written once; ' +
+      '422 `IDEMPOTENCY_KEY_REUSED` when the key was used for a different request.',
   },
   {
     id: 'listCustomerLedger',

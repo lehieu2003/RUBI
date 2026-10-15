@@ -131,7 +131,7 @@ describe('stock count history', () => {
   });
 
   it('a production batch is not a stock count', () => {
-    assert.match(route, /if \(mode === 'ADD'\) \{\s*return changeStock\(tx, productId, \{ add: quantity \}\);/);
+    assert.match(route, /if \(mode === 'ADD'\) \{\s*return idempotency\.finish\(tx, apiSuccess\(await changeStock\(tx, productId, \{ add: quantity \}\)\)\);/);
   });
 
   it('the history is manager-only, scoped to the factory and paginated with a stable order', () => {
