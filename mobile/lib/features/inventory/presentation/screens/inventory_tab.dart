@@ -334,7 +334,7 @@ class _StockSheet extends HookWidget {
           ? await cubit.recordCount(item, quantity, note: noteController.text)
           : await cubit.recordProduction(item, quantity);
       if (!context.mounted) return;
-      if (result.ok) {
+      if (result.ok || result.unsure) {
         Navigator.of(context).pop(result.message);
       } else {
         submitting.value = false;

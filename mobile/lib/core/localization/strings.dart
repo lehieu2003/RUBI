@@ -146,6 +146,8 @@ abstract final class AppStrings {
       'Đã nhập $quantity $unit. Tồn mới: $onHand';
   static String stockCountSaved(int onHand, String unit) =>
       'Đã lưu kiểm kho. Tồn mới: $onHand $unit';
+  static const stockUnsure =
+      'Mất kết nối khi đang lưu. Xem lại tồn kho trước khi nhập lại, kẻo ghi trùng.';
 
   // ---- Tab "Công nợ" (Quản lý) ----
   static String debtTotalLabel(int count) => 'Tổng nợ của $count khách';
@@ -168,6 +170,8 @@ abstract final class AppStrings {
       'Số tiền thu không được vượt số đang nợ ($amount)';
   static String paymentSaved(String amount, String remaining) =>
       'Đã thu $amount. Còn nợ $remaining';
+  static const paymentUnsure =
+      'Mất kết nối khi đang lưu. Xem lại sổ nợ bên dưới trước khi thu lại, kẻo ghi trùng.';
 
   // ---- Màn "Nhật ký" (Quản lý) ----
   static const auditLogTitle = 'Nhật ký';
@@ -393,6 +397,8 @@ abstract final class AppStrings {
   }
 
   static String shellsCorrected(String name) => 'Đã sửa số vỏ của $name';
+  static const shellsUnsure =
+      'Mất kết nối khi đang lưu. Xem lại số vỏ trước khi ghi lại, kẻo ghi trùng.';
 
   // ---- Bộ lọc danh sách đơn ----
   static const orderFilterAnyDate = 'Mọi ngày';
