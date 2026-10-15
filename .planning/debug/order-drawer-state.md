@@ -1,5 +1,5 @@
 ---
-status: awaiting_human_verify
+status: resolved
 trigger: "#8 from .planning/audits/2026-10-15-user-behavior-ui-logic-audit.md: web order entry drawer — quantities typed right after picking a customer are wiped when that customer's prices arrive; and after closing the drawer without saving, the previous customer's quantities (and prices/stock/error) survive, so pressing Enter before the next customer's prices load can create an order for the new customer with the old quantities. Fix with regression tests."
 created: 2026-10-15
 updated: 2026-10-15
