@@ -9,14 +9,16 @@ DeliveryOrder buildOrder({
   OrderStatus status = OrderStatus.shipping,
   List<OrderItem>? items,
   String? notes,
+  String customerAddress = '123 Lê Lợi, Phường Bến Nghé, Quận 1, TP.HCM',
+  String customerPhone = '0903123456',
 }) {
   return DeliveryOrder(
     id: 'o-1',
     status: status,
     total: 350000,
     customerName: 'Nguyễn Văn A',
-    customerAddress: '123 Lê Lợi, Phường Bến Nghé, Quận 1, TP.HCM',
-    customerPhone: '0903123456',
+    customerAddress: customerAddress,
+    customerPhone: customerPhone,
     items:
         items ??
         const [
@@ -108,6 +110,64 @@ void main() {
       );
 
       expect(find.textContaining(AppStrings.productsOther(2)), findsOneWidget);
+    });
+  });
+
+  group('DeliveryCard — khách thiếu SĐT / địa chỉ', () {
+    testWidgets('SĐT rỗng → ẩn nút Gọi, giữ Chỉ đường + xác nhận', (
+      tester,
+    ) async {
+      await pumpCard(tester, buildOrder(customerPhone: ''));
+
+      expect(
+        find.widgetWithText(OutlinedButton, AppStrings.callButton),
+        findsNothing,
+      );
+      expect(
+        find.widgetWithText(OutlinedButton, AppStrings.directionsButton),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(FilledButton, AppStrings.confirmDeliveredButton),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('địa chỉ rỗng → ẩn nút Chỉ đường, giữ Gọi + xác nhận', (
+      tester,
+    ) async {
+      await pumpCard(tester, buildOrder(customerAddress: ''));
+
+      expect(
+        find.widgetWithText(OutlinedButton, AppStrings.directionsButton),
+        findsNothing,
+      );
+      expect(
+        find.widgetWithText(OutlinedButton, AppStrings.callButton),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(FilledButton, AppStrings.confirmDeliveredButton),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('cả hai rỗng → không nút Gọi / Chỉ đường, vẫn xác nhận được', (
+      tester,
+    ) async {
+      var confirmed = false;
+      await pumpCard(
+        tester,
+        buildOrder(customerPhone: '', customerAddress: ''),
+        onConfirm: () => confirmed = true,
+      );
+
+      expect(find.byType(OutlinedButton), findsNothing);
+      expect(find.text('Nguyễn Văn A'), findsOneWidget);
+      await tester.tap(
+        find.widgetWithText(FilledButton, AppStrings.confirmDeliveredButton),
+      );
+      expect(confirmed, isTrue);
     });
   });
 

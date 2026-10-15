@@ -41,6 +41,9 @@ class DeliveryCard extends StatelessWidget {
     final colorScheme = context.colorScheme;
     final isDelivered = order.status == OrderStatus.delivered;
     final textTheme = context.textTheme;
+    // Khách không có SĐT / địa chỉ → ẩn nút tương ứng (không mở tel:/maps rỗng).
+    final hasPhone = order.customerPhone.isNotEmpty;
+    final hasAddress = order.customerAddress.isNotEmpty;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -64,15 +67,17 @@ class DeliveryCard extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        order.customerAddress,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                      if (hasAddress) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          order.customerAddress,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -133,34 +138,38 @@ class DeliveryCard extends StatelessWidget {
             // Gọi / Chỉ đường (driver có thể cần gọi sau khi giao) nhưng
             // ẨN nút xác nhận.
             if (!readOnly) ...[
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: onCall,
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(0, 48),
+              if (hasPhone || hasAddress) ...[
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    if (hasPhone)
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: onCall,
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(0, 48),
+                          ),
+                          icon: const Icon(Icons.call_outlined, size: 20),
+                          label: const Text(AppStrings.callButton),
+                        ),
                       ),
-                      icon: const Icon(Icons.call_outlined, size: 20),
-                      label: const Text(AppStrings.callButton),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: onDirections,
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(0, 48),
+                    if (hasPhone && hasAddress) const SizedBox(width: 8),
+                    if (hasAddress)
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: onDirections,
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(0, 48),
+                          ),
+                          icon: const Icon(Icons.map_outlined, size: 20),
+                          label: const Text(AppStrings.directionsButton),
+                        ),
                       ),
-                      icon: const Icon(Icons.map_outlined, size: 20),
-                      label: const Text(AppStrings.directionsButton),
-                    ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
               if (!isDelivered) ...[
-                const SizedBox(height: 8),
+                SizedBox(height: hasPhone || hasAddress ? 8 : 16),
                 AppButton(
                   label: AppStrings.confirmDeliveredButton,
                   icon: Icons.check,
