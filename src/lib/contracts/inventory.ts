@@ -48,6 +48,7 @@ export const inventoryContracts: ApiContract[] = [
             quantityOnHand: z.number().int(),
             totalKg: z.number(),
             sellable: z.number().int(),
+            outForDelivery: z.number().int(),
             minStock: z.number().int().nullable(),
             lowStock: z.boolean(),
           })
@@ -61,7 +62,8 @@ export const inventoryContracts: ApiContract[] = [
       'Stock is a running balance: the closing stock of one day is the opening stock of the next. ' +
       'A negative quantity means more was delivered than was ever recorded as produced. `sellable` is the stock on ' +
       'hand minus what orders that are not settled yet already took; `lowStock` is true when the product has an alert ' +
-      'level (`minStock`) and `sellable` is at or below it.',
+      'level (`minStock`) and `sellable` is at or below it. `outForDelivery` is what orders that are SHIPPING or ' +
+      'DELIVERED but not settled yet hold: still on the books, no longer in the cold store.',
   },
   {
     id: 'recordInventory',
@@ -80,8 +82,10 @@ export const inventoryContracts: ApiContract[] = [
     errors: [400, 401, 403, 404, 500],
     notes:
       'With `mode: "ADD"` (a production batch) the quantity is added to the stock on hand. Otherwise (`SET` or omitted) ' +
-      'it is a stock count: the counted quantity replaces the balance and the count is kept in the history together with ' +
-      'the optional `note`. The returned row is today\'s closing balance.',
+      'it is a stock count of what is physically in the cold store. Units of orders that are SHIPPING or DELIVERED but ' +
+      'not settled yet are not in the store but stay on the books until settlement, so the new balance is the counted ' +
+      'quantity plus those units, and the count is kept in the history (compared with the books minus those units) ' +
+      'together with the optional `note`. The returned row is today\'s closing balance.',
   },
   {
     id: 'listStockCounts',
@@ -94,6 +98,8 @@ export const inventoryContracts: ApiContract[] = [
     response: paginated(StockCountEntry),
     errors: [400, 401, 403, 500],
     notes:
+      '`bookQuantity` is what should have been in the cold store at the count: the books minus the units of orders ' +
+      'out for delivery (SHIPPING or DELIVERED, not settled yet). ' +
       '`difference` is `countedQuantity - bookQuantity`: negative is a loss (melting, breakage), positive a surplus. ' +
       '`countedByName` is null when the account that counted no longer exists. `from` and `to` are Vietnam calendar ' +
       'days, both inclusive; 400 when one is malformed or `from` is after `to`.',

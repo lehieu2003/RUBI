@@ -249,8 +249,9 @@ model Inventory {
   @@map("inventory")
 }
 
-// One row per stock count: what the books said, what was counted, and who
-// counted. The difference is the loss (melting, breakage) or surplus.
+// One row per stock count: what should have been in the cold store (the
+// books minus orders out for delivery, not settled yet), what was counted, and
+// who counted. The difference is the loss (melting, breakage) or surplus.
 model StockCount {
   id              String   @id @default(cuid())
   factoryId       String   @map("factory_id")

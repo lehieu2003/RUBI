@@ -18,6 +18,7 @@
           "quantityOnHand": 200,
           "totalKg": 1000,
           "sellable": 200,
+          "outForDelivery": 0,
           "minStock": null,
           "lowStock": false
         },
@@ -29,6 +30,7 @@
           "quantityOnHand": 200,
           "totalKg": 2000,
           "sellable": 200,
+          "outForDelivery": 0,
           "minStock": null,
           "lowStock": false
         }
