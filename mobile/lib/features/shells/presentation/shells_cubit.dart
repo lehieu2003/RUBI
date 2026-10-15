@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
+import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/core/view_state/view_status.dart';
@@ -31,7 +32,9 @@ class ShellsState extends Equatable {
 }
 
 /// Kết quả một lần ghi vỏ, để màn hình báo cho người dùng.
-typedef ShellActionResult = ({bool ok, String message});
+/// [unsure]: mất response, không biết server đã lưu chưa — danh sách đã được
+/// tải lại, màn hình đóng hộp thay vì mời gửi lại.
+typedef ShellActionResult = ({bool ok, bool unsure, String message});
 
 /// State management màn "Vỏ bao": số vỏ từng khách đang giữ, ghi vỏ giao /
 /// thu, sửa lại tổng.
@@ -99,9 +102,14 @@ class ShellsCubit extends Cubit<ShellsState> {
       case Ok<void>():
         // Số còn giữ và tiền cọc do server tính: lấy lại thay vì tự cộng.
         if (!isClosed) await load();
-        return (ok: true, message: message);
+        return (ok: true, unsure: false, message: message);
       case Err<void>(:final failure):
-        return (ok: false, message: failureMessage(failure));
+        if (failure is NetworkFailure && failure.outcomeUnknown) {
+          // Server có thể đã ghi: tải lại để người dùng tự kiểm.
+          if (!isClosed) await load();
+          return (ok: false, unsure: true, message: AppStrings.shellsUnsure);
+        }
+        return (ok: false, unsure: false, message: failureMessage(failure));
     }
   }
 }

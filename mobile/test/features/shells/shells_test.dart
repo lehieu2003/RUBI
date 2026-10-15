@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:iceflow_mobile/core/di/injection_container.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
+import 'package:iceflow_mobile/core/network/api_error_decoder.dart';
 import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
@@ -294,6 +295,65 @@ void main() {
 
       expect(find.text('Không tìm thấy khách hàng'), findsOneWidget);
       expect(find.byKey(const Key('shells_save')), findsOneWidget);
+    });
+
+    void stubRecord(Future<Result<void>> Function() answer) {
+      when(
+        () => repo.record(
+          customerId: any(named: 'customerId'),
+          shellsOut: any(named: 'shellsOut'),
+          shellsIn: any(named: 'shellsIn'),
+        ),
+      ).thenAnswer((_) => answer());
+    }
+
+    testWidgets('ghi thêm mất response (receive timeout) → báo chưa chắc đã '
+        'lưu, đóng hộp, tải lại; không gửi lần hai', (tester) async {
+      // Đúng thứ guardApi trả khi request đã đi mà response không về kịp.
+      stubRecord(() async => Err<void>(mapDioError(DioException(
+            requestOptions: RequestOptions(path: '/api/deposits/shells'),
+            type: DioExceptionType.receiveTimeout,
+          ))));
+      await pumpScreen(tester);
+      await open(tester, 'c-1');
+      clearInteractions(repo);
+
+      await tester.enterText(find.byKey(const Key('shells_out')), '5');
+      await tester.tap(find.byKey(const Key('shells_save')));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Mất kết nối khi đang lưu'), findsOneWidget);
+      expect(find.text(FailureMessages.network), findsNothing);
+      // Hộp đã đóng: không còn nút để bấm gửi lại.
+      expect(find.byKey(const Key('shells_save')), findsNothing);
+      verify(() => repo.getBalances()).called(1);
+      verify(() => repo.record(customerId: 'c-1', shellsOut: 5, shellsIn: 0)).called(1);
+    });
+
+    testWidgets('ghi thêm bị server từ chối (400) → câu của server; sửa số rồi '
+        'gửi lại được', (tester) async {
+      var calls = 0;
+      stubRecord(() async {
+        calls++;
+        return calls == 1
+            ? const Err<void>(ServerFailure('Số vỏ không hợp lệ', statusCode: 400))
+            : const Ok<void>(null);
+      });
+      await pumpScreen(tester);
+      await open(tester, 'c-1');
+
+      await tester.enterText(find.byKey(const Key('shells_out')), '5');
+      await tester.tap(find.byKey(const Key('shells_save')));
+      await tester.pumpAndSettle();
+      expect(find.text('Số vỏ không hợp lệ'), findsOneWidget);
+      expect(find.byKey(const Key('shells_save')), findsOneWidget);
+
+      await tester.enterText(find.byKey(const Key('shells_out')), '4');
+      await tester.tap(find.byKey(const Key('shells_save')));
+      await tester.pumpAndSettle();
+      expect(calls, 2);
+      verify(() => repo.record(customerId: 'c-1', shellsOut: 4, shellsIn: 0)).called(1);
+      expect(find.byKey(const Key('shells_save')), findsNothing);
     });
 
     testWidgets('chưa có khách nào → câu báo; tải lỗi → Thử lại', (tester) async {

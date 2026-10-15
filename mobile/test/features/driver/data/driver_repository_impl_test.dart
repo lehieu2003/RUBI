@@ -184,6 +184,35 @@ void main() {
         expect(capturedQuery, {'date': '2026-01-05'});
       });
 
+      test('1 khách không có SĐT / địa chỉ → vẫn trả đủ mọi đơn', () async {
+        final noContact = {
+          ...ordersFixture[0],
+          'customer': {
+            ...(ordersFixture[0]['customer']! as Map<String, dynamic>),
+            'address': '',
+            'phone': '',
+          },
+        };
+        adapter.onGet('/api/driver/orders', (server) {
+          server.reply(200, {
+            'success': true,
+            'data': {
+              'driver': {'id': 'd1', 'name': 'Tài'},
+              'orders': [noContact, ordersFixture[1]],
+            },
+          });
+        });
+
+        final res = await repo.getOrders(DateTime(2026, 10, 7));
+
+        expect(res.isOk, isTrue);
+        final orders = (res as Ok<List<DeliveryOrder>>).value;
+        expect(orders.map((o) => o.id), ['order-1', 'order-2']);
+        expect(orders[0].customerPhone, '');
+        expect(orders[0].customerAddress, '');
+        expect(orders[1], expectedOrders()[1]);
+      });
+
       test('200 với orders rỗng → Ok([])', () async {
         adapter.onGet('/api/driver/orders', (server) {
           server.reply(200, {

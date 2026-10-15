@@ -111,12 +111,15 @@ export const orderContracts: ApiContract[] = [
     body: z.object({
       status: z.enum(['PENDING', 'SHIPPING', 'DELIVERED', 'CANCELLED']),
       cancellationReason: z.string().optional(),
+      expectedStatus: z.enum(['PENDING', 'SHIPPING', 'DELIVERED']).optional(),
     }),
     response: envelope(OrderRow),
     errors: [400, 401, 403, 404, 409, 500],
     notes:
       '`cancellationReason` is required when the status is CANCELLED and is stored in `notes`. ' +
-      'COMPLETED is only reached through reconciliation. A COMPLETED or CANCELLED order is final: 409 `ORDER_FINAL`.',
+      'COMPLETED is only reached through reconciliation. A COMPLETED or CANCELLED order is final: 409 `ORDER_FINAL`. ' +
+      '`expectedStatus` is the status the caller last saw; when the order has changed since (or changes while the ' +
+      'request runs), nothing is written: 409 `ORDER_STATUS_CHANGED`.',
   },
   {
     id: 'bulkAssignOrders',
@@ -162,6 +165,8 @@ export const orderContracts: ApiContract[] = [
     errors: [400, 401, 403, 404, 409, 500],
     notes:
       '404 when the order does not exist; 409 `ORDER_NOT_DELIVERED` unless it is DELIVERED; 400 when a line does not ' +
-      'belong to the order. Creates a DEBT ledger entry and deducts the delivered quantities from the stock on hand.',
+      'belong to the order. Creates a DEBT ledger entry and deducts the delivered quantities from the stock on hand. ' +
+      'An order is settled once: a concurrent second settlement, or an order cancelled meanwhile, gets 409 ' +
+      '`ORDER_NOT_DELIVERED` with nothing booked.',
   },
 ];

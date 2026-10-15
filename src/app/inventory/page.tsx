@@ -19,6 +19,7 @@ interface InventoryItem {
   sellable: number;
   minStock: number | null;
   lowStock: boolean;
+  outForDelivery: number;
 }
 
 interface StockCountEntry {
@@ -152,7 +153,9 @@ export default function InventoryPage() {
 
   const countedQty = counted.trim() === '' ? NaN : Number(counted);
   const countValid = Number.isInteger(countedQty) && countedQty >= 0;
-  const countDifference = countItem && countValid ? countedQty - countItem.quantityOnHand : 0;
+  // Bags on trucks or awaiting settlement are on the books but not in the store.
+  const expectedInStore = countItem ? countItem.quantityOnHand - countItem.outForDelivery : 0;
+  const countDifference = countItem && countValid ? countedQty - expectedInStore : 0;
 
   const handleStockCount = async () => {
     if (!countItem || !countValid) {
@@ -410,7 +413,7 @@ export default function InventoryPage() {
                   <tr className="border-b border-outline-variant bg-surface text-[12px] font-bold uppercase tracking-wider text-on-surface-variant">
                     <th className="py-3 px-4">Thời gian</th>
                     <th className="py-3 px-4">Sản phẩm</th>
-                    <th className="py-3 px-4 text-right">Trên sổ</th>
+                    <th className="py-3 px-4 text-right">Phải có trong kho</th>
                     <th className="py-3 px-4 text-right">Thực tế</th>
                     <th className="py-3 px-4 text-right">Chênh lệch</th>
                     <th className="py-3 px-4">Ghi chú</th>
@@ -534,7 +537,7 @@ export default function InventoryPage() {
               Kiểm kho: {countItem.productName} {countItem.sizeKg}kg
             </h3>
             <p className="text-on-surface-variant text-xs mb-5">
-              Nhập số đếm thực tế trong kho lạnh. Số này thay cho số trên sổ (hao hụt do tan chảy, vỡ...).
+              Nhập số đếm thực tế trong kho lạnh, không tính hàng đang giao. Chênh lệch là hao hụt (tan chảy, vỡ...) hoặc thừa.
             </p>
 
             <div className="space-y-4">
@@ -544,6 +547,22 @@ export default function InventoryPage() {
                   {countItem.quantityOnHand.toLocaleString('vi-VN')} {countItem.unit || 'bao'}
                 </span>
               </div>
+              {countItem.outForDelivery !== 0 && (
+                <>
+                  <div className="flex items-center justify-between px-3 text-sm">
+                    <span className="text-on-surface-variant">Đang giao, chưa đối soát</span>
+                    <span className="font-mono text-on-surface">
+                      −{countItem.outForDelivery.toLocaleString('vi-VN')} {countItem.unit || 'bao'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between rounded border border-outline-variant bg-surface px-3 py-2 text-sm">
+                    <span className="text-on-surface-variant">Phải có trong kho</span>
+                    <span className="font-bold font-mono text-on-surface">
+                      {expectedInStore.toLocaleString('vi-VN')} {countItem.unit || 'bao'}
+                    </span>
+                  </div>
+                </>
+              )}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1.5">
                   Số đếm thực tế

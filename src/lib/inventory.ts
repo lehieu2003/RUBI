@@ -57,16 +57,30 @@ export async function changeStock(db: InventoryDb, productId: string, change: St
  * Stock only leaves the books at settlement, so these are still counted in
  * the stock on hand.
  */
-export async function reservedByOpenOrders(
+export function reservedByOpenOrders(db: OrderItemDb, factoryId: string, productIds: string[]) {
+  return quantityOnOrders(db, factoryId, productIds, ['PENDING', 'SHIPPING', 'DELIVERED']);
+}
+
+/**
+ * Units per product that have left the cold store but are still on the books:
+ * on a truck (SHIPPING) or at the customer awaiting settlement (DELIVERED).
+ * A stock count does not see them; PENDING orders are still in the store.
+ */
+export function outForDelivery(db: OrderItemDb, factoryId: string, productIds: string[]) {
+  return quantityOnOrders(db, factoryId, productIds, ['SHIPPING', 'DELIVERED']);
+}
+
+async function quantityOnOrders(
   db: OrderItemDb,
   factoryId: string,
-  productIds: string[]
+  productIds: string[],
+  statuses: Array<'PENDING' | 'SHIPPING' | 'DELIVERED'>
 ): Promise<Map<string, number>> {
   const rows = await db.orderItem.groupBy({
     by: ['productId'],
     where: {
       productId: { in: productIds },
-      order: { factoryId, status: { in: ['PENDING', 'SHIPPING', 'DELIVERED'] } },
+      order: { factoryId, status: { in: statuses } },
     },
     _sum: { quantity: true },
   });

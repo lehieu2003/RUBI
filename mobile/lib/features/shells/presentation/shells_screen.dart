@@ -172,7 +172,7 @@ class _ShellDialog extends HookWidget {
           ? await cubit.correct(balance, shellsOut: shellsOut, shellsIn: shellsIn)
           : await cubit.record(balance, shellsOut: shellsOut, shellsIn: shellsIn);
       if (!context.mounted) return;
-      if (result.ok) {
+      if (result.ok || result.unsure) {
         Navigator.of(context).pop(result);
       } else {
         busy.value = false;

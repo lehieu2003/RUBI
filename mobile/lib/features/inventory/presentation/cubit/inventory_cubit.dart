@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
+import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/core/view_state/view_status.dart';
@@ -23,7 +24,9 @@ class InventoryState extends Equatable {
 }
 
 /// Kết quả một lần nhập mẻ / kiểm kho, để màn hình báo cho người dùng.
-typedef StockActionResult = ({bool ok, String message});
+/// [unsure]: mất response, không biết server đã lưu chưa — kho đã được tải
+/// lại, màn hình đóng sheet thay vì mời gửi lại.
+typedef StockActionResult = ({bool ok, bool unsure, String message});
 
 /// State management tab "Kho lạnh": tồn kho, nhập mẻ sản xuất, kiểm kho.
 @injectable
@@ -60,7 +63,8 @@ class InventoryCubit extends Cubit<InventoryState> {
     );
   }
 
-  /// Kiểm kho: số đếm [counted] thay cho tồn trên sổ của [item].
+  /// Kiểm kho: [counted] là số đang có trong kho lạnh; hàng đang giao chưa
+  /// đối soát vẫn nằm trên sổ, nên tồn trên sổ mới = [counted] + hàng đang giao.
   Future<StockActionResult> recordCount(
     StockItem item,
     int counted, {
@@ -81,9 +85,14 @@ class InventoryCubit extends Cubit<InventoryState> {
       case Ok<int>(:final value):
         // Lấy lại cả kho: tổng, số còn bán được và cảnh báo đều đổi theo.
         if (!isClosed) await load();
-        return (ok: true, message: success(value));
+        return (ok: true, unsure: false, message: success(value));
       case Err<int>(:final failure):
-        return (ok: false, message: failureMessage(failure));
+        if (failure is NetworkFailure && failure.outcomeUnknown) {
+          // Server có thể đã ghi: tải lại kho để người dùng tự kiểm.
+          if (!isClosed) await load();
+          return (ok: false, unsure: true, message: AppStrings.stockUnsure);
+        }
+        return (ok: false, unsure: false, message: failureMessage(failure));
     }
   }
 }

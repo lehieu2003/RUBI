@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { requireRole } from '@/lib/auth/helpers';
-import { changeStock, isLowStock, reservedByOpenOrders, stockOnHand } from '@/lib/inventory';
+import { changeStock, isLowStock, outForDelivery, reservedByOpenOrders, stockOnHand } from '@/lib/inventory';
 import { apiSuccess, apiError } from '@/lib/api-response';
 
 const RecordSchema = z.object({
@@ -30,9 +30,10 @@ export async function GET() {
 
     // Running balance: yesterday's closing stock carries over to today.
     const productIds = products.map((product) => product.id);
-    const [inventoryMap, reserved] = await Promise.all([
+    const [inventoryMap, reserved, out] = await Promise.all([
       stockOnHand(prisma, productIds),
       reservedByOpenOrders(prisma, factoryId, productIds),
+      outForDelivery(prisma, factoryId, productIds),
     ]);
 
     const items = products.map(product => {
@@ -47,6 +48,8 @@ export async function GET() {
         quantityOnHand,
         totalKg: quantityOnHand * product.sizeKg,
         sellable,
+        // On trucks or awaiting settlement: on the books but not in the store.
+        outForDelivery: out.get(product.id) ?? 0,
         minStock: product.minStock,
         lowStock: isLowStock(sellable, product.minStock),
       };
@@ -87,21 +90,26 @@ export async function POST(req: NextRequest) {
     }
 
     // ADD records a batch coming out of production; SET (the default) is a
-    // stock count: the counted quantity replaces the balance.
+    // stock count of what is physically inside the cold store.
     const factoryId = session.factoryId;
     const record = await prisma.$transaction(async (tx) => {
       if (mode === 'ADD') {
         return changeStock(tx, productId, { add: quantity });
       }
-      // Keep what the books said next to what was counted: the difference
-      // is the loss or surplus the manager reviews later.
-      const bookQuantity = (await stockOnHand(tx, [productId])).get(productId) ?? 0;
-      const counted = await changeStock(tx, productId, { set: quantity });
+      // Bags on trucks or awaiting settlement are still on the books (they
+      // leave them at settlement) but not in the store. The count is compared
+      // with what should be in the store, and they stay on the books so the
+      // settlement deducts them once.
+      const out = (await outForDelivery(tx, factoryId, [productId])).get(productId) ?? 0;
+      const book = (await stockOnHand(tx, [productId])).get(productId) ?? 0;
+      const counted = await changeStock(tx, productId, { set: quantity + out });
+      // bookQuantity is what should have been in the store, so the
+      // difference is the loss or surplus the manager reviews later.
       await tx.stockCount.create({
         data: {
           factoryId,
           productId,
-          bookQuantity,
+          bookQuantity: book - out,
           countedQuantity: quantity,
           note: note || null,
           countedById: session.userId,

@@ -35,7 +35,14 @@ describe('order status: settled and cancelled orders are final', () => {
   });
 
   it('checks the current status before writing', () => {
-    assert.ok(route.indexOf("'ORDER_FINAL'") < route.indexOf('prisma.order.update('), 'the guard must run before the update');
+    assert.ok(route.indexOf("'ORDER_FINAL'") < route.indexOf('tx.order.updateMany('), 'the guard must run before the update');
+  });
+
+  it('checks the status again in the write and refuses a stale screen', () => {
+    assert.match(route, /where: \{ id, factoryId: existing\.factoryId, status: existing\.status \}/);
+    assert.match(route, /expectedStatus: z\.enum\(\['PENDING', 'SHIPPING', 'DELIVERED'\]\)\.optional\(\)/);
+    assert.match(route, /409, 'ORDER_STATUS_CHANGED'/);
+    assert.doesNotMatch(route, /prisma\.order\.update\(/);
   });
 });
 

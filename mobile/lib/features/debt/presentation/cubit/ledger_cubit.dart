@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iceflow_mobile/core/extensions/number_format.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
+import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 import 'package:iceflow_mobile/core/pagination/page_params.dart';
 import 'package:iceflow_mobile/core/pagination/pagination_entity.dart';
@@ -25,7 +26,8 @@ class LedgerState extends Equatable {
 
   final ViewStatus status;
 
-  /// Số còn nợ: lấy từ danh sách công nợ lúc mở, cập nhật sau mỗi lần thu.
+  /// Số còn nợ: lúc mở lấy từ danh sách công nợ, sau đó đọc lại từ server
+  /// mỗi lần tải sổ và theo biên nhận sau mỗi lần thu.
   final double outstandingDebt;
 
   /// Các dòng đã tải, mới nhất trước.
@@ -48,7 +50,9 @@ class LedgerState extends Equatable {
 }
 
 /// Kết quả ghi nhận một lần thu tiền, để màn hình báo cho người dùng.
-typedef PaymentResult = ({bool ok, String message});
+/// [unsure]: mất response, không biết server đã lưu chưa — sổ đã được tải
+/// lại, màn hình đóng sheet thay vì mời gửi lại.
+typedef PaymentResult = ({bool ok, bool unsure, String message});
 
 /// State management màn sổ nợ: các dòng ghi nợ / thu tiền của một khách
 /// (tải dần theo trang) và ghi nhận thu tiền.
@@ -68,7 +72,7 @@ class LedgerCubit extends Cubit<LedgerState> {
   final DebtRepository _repo;
   final String _customerId;
 
-  /// Tải lại từ trang đầu.
+  /// Tải lại từ trang đầu, cùng số còn nợ hiện tại trên server.
   Future<void> load() async {
     emit(
       LedgerState(
@@ -77,20 +81,25 @@ class LedgerCubit extends Cubit<LedgerState> {
         entries: state.entries,
       ),
     );
-    final res = await _repo.getLedger(_customerId);
+    final (ledger, debts) =
+        await (_repo.getLedger(_customerId), _repo.getDebts()).wait;
     if (isClosed) return;
-    switch (res) {
-      case Ok<Paginated<LedgerEntry>>(:final value):
+    switch ((ledger, debts)) {
+      case (
+          Ok<Paginated<LedgerEntry>>(:final value),
+          Ok<List<CustomerDebt>>(value: final debtList),
+        ):
         emit(
           LedgerState(
             status: ViewStatus.loaded,
-            outstandingDebt: state.outstandingDebt,
+            outstandingDebt: _outstandingIn(debtList),
             entries: value.items,
             hasMore: value.hasNext,
             nextPage: PageParams(page: value.page + 1, limit: value.limit),
           ),
         );
-      case Err<Paginated<LedgerEntry>>(:final failure):
+      case (Err<Paginated<LedgerEntry>>(:final failure), _) ||
+            (_, Err<List<CustomerDebt>>(:final failure)):
         emit(
           LedgerState(
             status: ViewStatus.error,
@@ -102,6 +111,15 @@ class LedgerCubit extends Cubit<LedgerState> {
     }
   }
 
+  /// Số nợ của khách này trong báo cáo công nợ — cùng quy tắc DEBT − PAYMENT
+  /// server dùng để chặn thu vượt. Báo cáo bỏ khách đã hết nợ → 0.
+  double _outstandingIn(List<CustomerDebt> debts) {
+    for (final debt in debts) {
+      if (debt.customerId == _customerId) return debt.outstandingDebt;
+    }
+    return 0;
+  }
+
   /// Tải trang kế tiếp và nối vào cuối danh sách.
   Future<void> loadMore() async {
     if (!state.hasMore || state.loadingMore) return;
@@ -110,11 +128,18 @@ class LedgerCubit extends Cubit<LedgerState> {
     if (isClosed) return;
     switch (res) {
       case Ok<Paginated<LedgerEntry>>(:final value):
+        // Trang theo offset, mới nhất trước: dòng ghi sau lần tải trước (vừa
+        // thu ở đây hay ghi ở web) đẩy dòng cũ xuống, nên trang kế có thể lặp
+        // dòng đã hiện. Sổ chỉ thêm dòng, không xoá → bỏ trùng id là đủ.
+        final shown = {for (final e in state.entries) e.id};
         emit(
           LedgerState(
             status: ViewStatus.loaded,
             outstandingDebt: state.outstandingDebt,
-            entries: [...state.entries, ...value.items],
+            entries: [
+              ...state.entries,
+              ...value.items.where((e) => !shown.contains(e.id)),
+            ],
             hasMore: value.hasNext,
             nextPage: PageParams(page: value.page + 1, limit: value.limit),
           ),
@@ -147,13 +172,19 @@ class LedgerCubit extends Cubit<LedgerState> {
         }
         return (
           ok: true,
+          unsure: false,
           message: AppStrings.paymentSaved(
             formatVnd(amount.toDouble()),
             formatVnd(value.outstandingDebt),
           ),
         );
       case Err<PaymentReceipt>(:final failure):
-        return (ok: false, message: failureMessage(failure));
+        if (failure is NetworkFailure && failure.outcomeUnknown) {
+          // Server có thể đã ghi: tải lại sổ để người dùng tự kiểm.
+          if (!isClosed) await load();
+          return (ok: false, unsure: true, message: AppStrings.paymentUnsure);
+        }
+        return (ok: false, unsure: false, message: failureMessage(failure));
     }
   }
 
