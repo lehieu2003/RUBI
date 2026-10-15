@@ -94,6 +94,10 @@ describe('API contracts', () => {
     assert.match(route, /apiError\('Không tìm thấy đơn hàng', 404\)/);
     assert.match(route, /409, 'ORDER_NOT_DELIVERED'/);
     assert.match(route, /ownItemIds\.has\(item\.id\)/);
+    // the status is checked again in the write, before any debt or stock is booked
+    assert.match(route, /where: \{ id, factoryId: session\.factoryId, status: 'DELIVERED' \}/);
+    assert.ok(route.indexOf('tx.order.updateMany(') < route.indexOf('tx.customerDebtLedger.create('));
+    assert.ok(route.indexOf('tx.order.updateMany(') < route.indexOf('changeStock(tx'));
   });
 
   it('request schemas accept valid input and reject invalid input', () => {
