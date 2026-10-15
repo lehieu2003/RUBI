@@ -90,6 +90,128 @@ void main() {
   group('LedgerCubit', () {
     LedgerCubit buildCubit() => LedgerCubit(repo: repo, debt: debt);
 
+    // Mặc định server vẫn báo đúng số nợ lúc mở.
+    setUp(() => when(() => repo.getDebts()).thenAnswer((_) async => const Ok([debt])));
+
+    void stubBalance(double outstanding) {
+      when(() => repo.getDebts()).thenAnswer(
+        (_) async => Ok([
+          const CustomerDebt(customerId: 'c-2', customerName: 'B', outstandingDebt: 999),
+          CustomerDebt(customerId: 'c-1', customerName: debt.customerName, outstandingDebt: outstanding),
+        ]),
+      );
+    }
+
+    void stubFirstPage(List<LedgerEntry> items) {
+      when(() => repo.getLedger(any(), page: any(named: 'page')))
+          .thenAnswer((_) async => Ok(page(items, page: 1, totalPages: 1)));
+    }
+
+    test('load → số còn nợ đọc lại từ server, không giữ số lúc mở', () async {
+      stubFirstPage([entry('l-1', LedgerEntryType.debt, 3250000)]);
+      stubBalance(3250000);
+      final cubit = buildCubit();
+      addTearDown(cubit.close);
+
+      await cubit.load();
+
+      expect(cubit.state.status, ViewStatus.loaded);
+      expect(cubit.state.outstandingDebt, 3250000);
+    });
+
+    test('load lại (kéo để làm mới) → số còn nợ mới, kể cả khi đã hết nợ',
+        () async {
+      stubFirstPage([entry('l-1', LedgerEntryType.debt, 3400000)]);
+      final cubit = buildCubit();
+      addTearDown(cubit.close);
+      await cubit.load();
+      expect(cubit.state.outstandingDebt, 3400000);
+
+      // Nợ thêm ở web → số mới.
+      stubBalance(3660000);
+      await cubit.load();
+      expect(cubit.state.outstandingDebt, 3660000);
+
+      // Báo cáo công nợ không còn khách này (đã trả hết) → 0.
+      when(() => repo.getDebts()).thenAnswer((_) async => const Ok([]));
+      await cubit.load();
+      expect(cubit.state.outstandingDebt, 0);
+    });
+
+    test('không đọc được số nợ → lỗi, không coi số cũ là mới', () async {
+      stubFirstPage([entry('l-1', LedgerEntryType.debt, 3400000)]);
+      when(() => repo.getDebts()).thenAnswer((_) async => const Err(NetworkFailure()));
+      final cubit = buildCubit();
+      addTearDown(cubit.close);
+
+      await cubit.load();
+
+      expect(cubit.state.status, ViewStatus.error);
+      expect(cubit.state.errorMessage, FailureMessages.network);
+      expect(cubit.state.outstandingDebt, 3400000);
+    });
+
+    test('thu tiền mất response → tải lại sổ và cả số còn nợ', () async {
+      stubFirstPage([entry('l-1', LedgerEntryType.debt, 3400000)]);
+      when(() => repo.recordPayment(
+            customerId: any(named: 'customerId'),
+            amount: any(named: 'amount'),
+            notes: any(named: 'notes'),
+          )).thenAnswer((_) async => const Err(NetworkFailure(outcomeUnknown: true)));
+      final cubit = buildCubit();
+      addTearDown(cubit.close);
+      await cubit.load();
+
+      // Server thật ra đã lưu.
+      stubFirstPage([
+        entry('l-9', LedgerEntryType.payment, 150000),
+        entry('l-1', LedgerEntryType.debt, 3400000),
+      ]);
+      stubBalance(3250000);
+      final result = await cubit.recordPayment(150000);
+
+      expect(result.unsure, isTrue);
+      expect(cubit.state.entries.map((e) => e.id), ['l-9', 'l-1']);
+      expect(cubit.state.outstandingDebt, 3250000);
+    });
+
+    test('thu tiền rồi Xem thêm → không lặp dòng, không sót dòng', () async {
+      // Server: 21 dòng l-21 (mới nhất) … l-1, trang 20 dòng.
+      final server = [for (var i = 21; i >= 1; i--) entry('l-$i', LedgerEntryType.debt, 1000)];
+      when(() => repo.getLedger(any(), page: any(named: 'page'))).thenAnswer((invocation) async {
+        final params = invocation.namedArguments[#page] as PageParams? ?? const PageParams();
+        final start = (params.page - 1) * params.limit;
+        return Ok(Paginated(
+          items: server.skip(start).take(params.limit).toList(),
+          page: params.page,
+          limit: params.limit,
+          totalItems: server.length,
+          totalPages: (server.length / params.limit).ceil(),
+        ));
+      });
+      final payment = entry('p-1', LedgerEntryType.payment, 1000);
+      when(() => repo.recordPayment(
+            customerId: any(named: 'customerId'),
+            amount: any(named: 'amount'),
+            notes: any(named: 'notes'),
+          )).thenAnswer((_) async {
+        server.insert(0, payment);
+        return Ok(PaymentReceipt(entry: payment, outstandingDebt: 3399000));
+      });
+      final cubit = buildCubit();
+      addTearDown(cubit.close);
+      await cubit.load();
+      expect(cubit.state.entries, hasLength(20));
+
+      await cubit.recordPayment(1000);
+      await cubit.loadMore();
+
+      final ids = cubit.state.entries.map((e) => e.id).toList();
+      expect(ids.toSet(), hasLength(ids.length), reason: 'trùng dòng: $ids');
+      expect(ids, server.map((e) => e.id).toList());
+      expect(cubit.state.hasMore, isFalse);
+    });
+
     test('mở với số nợ của danh sách; load → trang đầu', () async {
       when(() => repo.getLedger(any(), page: any(named: 'page'))).thenAnswer(
         (_) async => Ok(page([entry('l-2', LedgerEntryType.payment, 1000)], page: 1, totalPages: 2)),
