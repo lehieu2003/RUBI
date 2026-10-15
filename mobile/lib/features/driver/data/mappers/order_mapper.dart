@@ -27,14 +27,10 @@ abstract final class OrderMapper {
     if (customerName == null) {
       return Err(MappingValidator.missing('Order', 'customer.name'));
     }
-    final customerAddress = MappingValidator.nonEmpty(customer?.address);
-    if (customerAddress == null) {
-      return Err(MappingValidator.missing('Order', 'customer.address'));
-    }
-    final customerPhone = MappingValidator.nonEmpty(customer?.phone);
-    if (customerPhone == null) {
-      return Err(MappingValidator.missing('Order', 'customer.phone'));
-    }
+    // SĐT / địa chỉ không bắt buộc (server lưu '' khi bỏ trống): rỗng thì
+    // card ẩn nút Gọi / Chỉ đường, đơn vẫn giao được.
+    final customerAddress = customer?.address ?? '';
+    final customerPhone = customer?.phone ?? '';
 
     final createdAt = DateTime.tryParse(dto.createdAt ?? '');
     if (createdAt == null) {
