@@ -1,6 +1,7 @@
 import { expect, test, type APIRequestContext } from '@playwright/test';
 import { sessionFile } from './support/env';
 import { createOrder, db, setStock, stockOf } from './support/db';
+import { expectToast } from './support/app';
 
 // A stock count only sees what is inside the cold store. Bags of orders that
 // left the store but are not settled yet (SHIPPING on a truck, DELIVERED at the
@@ -76,5 +77,21 @@ test.describe.serial('stock count while orders are out for delivery', () => {
     const stockCount = await newestCount();
     expect([stockCount.bookQuantity, stockCount.countedQuantity]).toEqual([100, 92]);
     expect(await stockOf(PRODUCT)).toBe(92);
+  });
+
+  test('the count dialog compares with what should be in the store', async ({ page }) => {
+    await createOrder({ customerPart: CUSTOMER, productId: PRODUCT, quantity: 20, status: 'SHIPPING' });
+
+    await page.goto('/inventory');
+    const row = page.locator('tbody tr', { hasText: 'Đá Mi' }).filter({ hasText: '20 kg' });
+    await row.getByRole('button', { name: 'Kiểm kho' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toContainText('Đang giao, chưa đối soát');
+    await expect(dialog).toContainText('Phải có trong kho');
+    await dialog.locator('input[type=number]').fill('80');
+    await expect(dialog).toContainText('Khớp với sổ');
+    await dialog.getByRole('button', { name: 'XÁC NHẬN KIỂM KHO' }).click();
+    await expectToast(page, /khớp sổ/);
+    expect(await stockOf(PRODUCT)).toBe(100);
   });
 });
