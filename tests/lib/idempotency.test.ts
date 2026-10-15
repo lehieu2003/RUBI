@@ -28,4 +28,18 @@ describe('idempotent additive writes', () => {
     assert.match(helper, /if \(response\.status >= 300\) \{\s*await tx\.idempotencyKey\.delete/);
     assert.match(helper, /422,\s*'IDEMPOTENCY_KEY_REUSED'/);
   });
+
+  for (const path of ['src/components/debt/payment-dialogs.tsx', 'src/app/deposits/shells/page.tsx', 'src/app/inventory/page.tsx']) {
+    it(`${path} sends one key per submission and forgets it once written`, () => {
+      const form = read(path);
+      assert.match(form, /const submission = useSubmissionKey\(\);/);
+      assert.match(form, /headers: \{ 'Content-Type': 'application\/json', \.\.\.submission\.headers\(body\) \},\s*body,/);
+      assert.match(form, /submission\.done\(\);/);
+    });
+  }
+
+  it('the form key is reused for the same body and replaced for a new one', () => {
+    const hook = read('src/lib/submission-key.ts');
+    assert.match(hook, /if \(current\.current\?\.body !== body\) current\.current = \{ body, key: randomKey\(\) \};/);
+  });
 });
