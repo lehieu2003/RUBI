@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { requireRole } from '@/lib/auth/helpers';
 import { changeStock, isLowStock, outForDelivery, reservedByOpenOrders, stockOnHand } from '@/lib/inventory';
 import { apiSuccess, apiError } from '@/lib/api-response';
+import { Idempotency } from '@/lib/idempotency';
 
 const RecordSchema = z.object({
   productId: z.string().min(1),
@@ -90,34 +91,40 @@ export async function POST(req: NextRequest) {
     }
 
     // ADD records a batch coming out of production; SET (the default) is a
-    // stock count of what is physically inside the cold store.
+    // stock count of what is physically inside the cold store. A batch adds to
+    // the stock, so a resend of the same submission (same Idempotency-Key)
+    // gets the first answer back instead of adding again.
     const factoryId = session.factoryId;
-    const record = await prisma.$transaction(async (tx) => {
-      if (mode === 'ADD') {
-        return changeStock(tx, productId, { add: quantity });
-      }
-      // Bags on trucks or awaiting settlement are still on the books (they
-      // leave them at settlement) but not in the store. The count is compared
-      // with what should be in the store, and they stay on the books so the
-      // settlement deducts them once.
-      const out = (await outForDelivery(tx, factoryId, [productId])).get(productId) ?? 0;
-      const book = (await stockOnHand(tx, [productId])).get(productId) ?? 0;
-      const counted = await changeStock(tx, productId, { set: quantity + out });
-      // bookQuantity is what should have been in the store, so the
-      // difference is the loss or surplus the manager reviews later.
-      await tx.stockCount.create({
-        data: {
-          factoryId,
-          productId,
-          bookQuantity: book - out,
-          countedQuantity: quantity,
-          note: note || null,
-          countedById: session.userId,
-        },
-      });
-      return counted;
-    });
-    return apiSuccess(record);
+    const idempotency = Idempotency.from(req, factoryId, 'POST /api/inventory', parsed.data);
+    if (idempotency instanceof Response) return idempotency;
+    return await idempotency.run(() =>
+      prisma.$transaction(async (tx) => {
+        await idempotency.begin(tx);
+        if (mode === 'ADD') {
+          return idempotency.finish(tx, apiSuccess(await changeStock(tx, productId, { add: quantity })));
+        }
+        // Bags on trucks or awaiting settlement are still on the books (they
+        // leave them at settlement) but not in the store. The count is compared
+        // with what should be in the store, and they stay on the books so the
+        // settlement deducts them once.
+        const out = (await outForDelivery(tx, factoryId, [productId])).get(productId) ?? 0;
+        const book = (await stockOnHand(tx, [productId])).get(productId) ?? 0;
+        const counted = await changeStock(tx, productId, { set: quantity + out });
+        // bookQuantity is what should have been in the store, so the
+        // difference is the loss or surplus the manager reviews later.
+        await tx.stockCount.create({
+          data: {
+            factoryId,
+            productId,
+            bookQuantity: book - out,
+            countedQuantity: quantity,
+            note: note || null,
+            countedById: session.userId,
+          },
+        });
+        return idempotency.finish(tx, apiSuccess(counted));
+      })
+    );
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[POST /api/inventory]', error);

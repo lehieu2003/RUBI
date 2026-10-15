@@ -4,6 +4,7 @@ import { requireRole } from '@/lib/auth/helpers';
 import { RecordPaymentBody } from '@/lib/contracts/customers';
 import { dong, recordAudit } from '@/lib/audit';
 import { apiSuccess, apiError } from '@/lib/api-response';
+import { Idempotency } from '@/lib/idempotency';
 
 // POST /api/customers/[id]/payments — the manager records money received
 // from a customer. It is stored as a PAYMENT entry in the debt ledger, which
@@ -31,54 +32,61 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return apiError('Không tìm thấy khách hàng', 404);
     }
 
+    const idempotency = Idempotency.from(request, factoryId, `POST /api/customers/${id}/payments`, parsed.data);
+    if (idempotency instanceof Response) return idempotency;
+
     // Check and write in one transaction so two payments recorded at the same
-    // moment cannot both pass the "not more than the debt" check.
-    const result = await prisma.$transaction(
-      async (tx) => {
-        // What the customer owes right now: DEBT entries minus PAYMENT entries.
-        const groups = await tx.customerDebtLedger.groupBy({
-          by: ['type'],
-          where: { customerId: id },
-          _sum: { amount: true },
-        });
-        const sum = (type: 'DEBT' | 'PAYMENT') =>
-          groups.find((group) => group.type === type)?._sum.amount?.toNumber() ?? 0;
-        const owed = sum('DEBT') - sum('PAYMENT');
+    // moment cannot both pass the "not more than the debt" check. A resend of
+    // the same submission (same Idempotency-Key) gets the first answer back.
+    return await idempotency.run(() =>
+      prisma.$transaction(
+        async (tx) => {
+          await idempotency.begin(tx);
+          // What the customer owes right now: DEBT entries minus PAYMENT entries.
+          const groups = await tx.customerDebtLedger.groupBy({
+            by: ['type'],
+            where: { customerId: id },
+            _sum: { amount: true },
+          });
+          const sum = (type: 'DEBT' | 'PAYMENT') =>
+            groups.find((group) => group.type === type)?._sum.amount?.toNumber() ?? 0;
+          const owed = sum('DEBT') - sum('PAYMENT');
 
-        if (amount > owed) {
-          return { ok: false as const, owed };
-        }
-        const payment = await tx.customerDebtLedger.create({
-          data: { customerId: id, type: 'PAYMENT', amount, notes: notes || null },
-        });
-        await recordAudit(
-          tx,
-          { factoryId, userId: session.userId, userName: session.name },
-          {
-            action: 'DEBT_PAYMENT',
-            customerId: id,
-            summary: `Thu tiền ${dong(amount)}${notes ? ` (${notes})` : ''}. Còn nợ ${dong(owed - amount)}`,
+          if (amount > owed) {
+            return idempotency.finish(
+              tx,
+              apiError(
+                `Số tiền thu vượt quá công nợ hiện tại (${owed.toLocaleString('vi-VN')}đ)`,
+                409,
+                'PAYMENT_EXCEEDS_DEBT'
+              )
+            );
           }
-        );
-        return { ok: true as const, payment, remaining: owed - amount };
-      },
-      { isolationLevel: 'Serializable' }
-    );
-
-    if (!result.ok) {
-      return apiError(
-        `Số tiền thu vượt quá công nợ hiện tại (${result.owed.toLocaleString('vi-VN')}đ)`,
-        409,
-        'PAYMENT_EXCEEDS_DEBT'
-      );
-    }
-
-    return apiSuccess(
-      {
-        payment: { ...result.payment, amount: result.payment.amount.toNumber() },
-        outstandingDebt: result.remaining,
-      },
-      201
+          const payment = await tx.customerDebtLedger.create({
+            data: { customerId: id, type: 'PAYMENT', amount, notes: notes || null },
+          });
+          await recordAudit(
+            tx,
+            { factoryId, userId: session.userId, userName: session.name },
+            {
+              action: 'DEBT_PAYMENT',
+              customerId: id,
+              summary: `Thu tiền ${dong(amount)}${notes ? ` (${notes})` : ''}. Còn nợ ${dong(owed - amount)}`,
+            }
+          );
+          return idempotency.finish(
+            tx,
+            apiSuccess(
+              {
+                payment: { ...payment, amount: payment.amount.toNumber() },
+                outstandingDebt: owed - amount,
+              },
+              201
+            )
+          );
+        },
+        { isolationLevel: 'Serializable' }
+      )
     );
   } catch (error) {
     if (error instanceof Response) return error;
