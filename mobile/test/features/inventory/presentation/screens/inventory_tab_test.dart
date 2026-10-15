@@ -1,7 +1,9 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iceflow_mobile/core/di/injection_container.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
+import 'package:iceflow_mobile/core/network/api_error_decoder.dart';
 import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
@@ -176,6 +178,62 @@ void main() {
 
       expect(find.text('Không tìm thấy sản phẩm'), findsOneWidget);
       expect(find.text(AppStrings.stockProductionTitle), findsOneWidget);
+    });
+
+    testWidgets('Nhập mẻ mất response (receive timeout) → báo chưa chắc đã '
+        'lưu, đóng sheet, tải lại kho; không gửi lần hai', (tester) async {
+      when(() => repo.getStock()).thenAnswer((_) async => const Ok(stock));
+      // Đúng thứ guardApi trả khi request đã đi mà response không về kịp.
+      when(() => repo.recordProduction(productId: any(named: 'productId'), quantity: any(named: 'quantity')))
+          .thenAnswer((_) async => Err(mapDioError(DioException(
+                requestOptions: RequestOptions(path: '/api/inventory'),
+                type: DioExceptionType.receiveTimeout,
+              ))));
+      await pumpTab(tester);
+      clearInteractions(repo);
+
+      await tester.tap(inCard('prod-vien-5', AppStrings.stockProductionButton));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('stock_sheet_quantity')), '40');
+      await tester.tap(find.byKey(const Key('stock_sheet_submit')));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Mất kết nối khi đang lưu'), findsOneWidget);
+      expect(find.text(FailureMessages.network), findsNothing);
+      // Sheet đã đóng: không còn nút để bấm gửi lại.
+      expect(find.text(AppStrings.stockProductionTitle), findsNothing);
+      expect(find.byKey(const Key('stock_sheet_submit')), findsNothing);
+      verify(() => repo.getStock()).called(1);
+      verify(() => repo.recordProduction(productId: 'prod-vien-5', quantity: 40)).called(1);
+    });
+
+    testWidgets('Nhập mẻ bị server từ chối (400) → câu của server; sửa số rồi '
+        'gửi lại được', (tester) async {
+      when(() => repo.getStock()).thenAnswer((_) async => const Ok(stock));
+      var calls = 0;
+      when(() => repo.recordProduction(productId: any(named: 'productId'), quantity: any(named: 'quantity')))
+          .thenAnswer((_) async {
+        calls++;
+        return calls == 1
+            ? const Err<int>(ServerFailure('Số lượng không hợp lệ', statusCode: 400))
+            : const Ok(60);
+      });
+      await pumpTab(tester);
+
+      await tester.tap(inCard('prod-vien-5', AppStrings.stockProductionButton));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('stock_sheet_quantity')), '40');
+      await tester.tap(find.byKey(const Key('stock_sheet_submit')));
+      await tester.pumpAndSettle();
+      expect(find.text('Số lượng không hợp lệ'), findsOneWidget);
+      expect(find.text(AppStrings.stockProductionTitle), findsOneWidget);
+
+      await tester.enterText(find.byKey(const Key('stock_sheet_quantity')), '30');
+      await tester.tap(find.byKey(const Key('stock_sheet_submit')));
+      await tester.pumpAndSettle();
+      expect(calls, 2);
+      verify(() => repo.recordProduction(productId: 'prod-vien-5', quantity: 30)).called(1);
+      expect(find.text(AppStrings.stockProductionSaved(30, 'Bao', 60)), findsOneWidget);
     });
 
     testWidgets('tải lỗi → câu báo lỗi và Thử lại', (tester) async {
