@@ -121,10 +121,12 @@ describe('stock count history', () => {
   const list = read('src/app/api/inventory/counts/route.ts');
 
   it('a count stores the book quantity read in the same transaction, before it is replaced', () => {
-    const book = route.indexOf('const bookQuantity = (await stockOnHand(tx, [productId]))');
-    const set = route.indexOf('changeStock(tx, productId, { set: quantity })');
+    const out = route.indexOf('(await outForDelivery(tx, factoryId, [productId]))');
+    const book = route.indexOf('const book = (await stockOnHand(tx, [productId]))');
+    const set = route.indexOf('changeStock(tx, productId, { set: quantity + out })');
     const save = route.indexOf('tx.stockCount.create');
-    assert.ok(book > 0 && book < set && set < save, 'read the books, set the stock, then keep the count');
+    assert.ok(out > 0 && book > 0 && out < set && book < set && set < save, 'read the books, set the stock, then keep the count');
+    assert.match(route, /bookQuantity: book - out/);
     assert.match(route, /countedById: session\.userId/);
   });
 
