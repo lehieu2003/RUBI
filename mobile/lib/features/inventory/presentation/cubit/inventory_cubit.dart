@@ -63,7 +63,8 @@ class InventoryCubit extends Cubit<InventoryState> {
     );
   }
 
-  /// Kiểm kho: số đếm [counted] thay cho tồn trên sổ của [item].
+  /// Kiểm kho: [counted] là số đang có trong kho lạnh; hàng đang giao chưa
+  /// đối soát vẫn nằm trên sổ, nên tồn trên sổ mới = [counted] + hàng đang giao.
   Future<StockActionResult> recordCount(
     StockItem item,
     int counted, {

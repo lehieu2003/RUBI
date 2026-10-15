@@ -144,8 +144,9 @@ abstract final class AppStrings {
   static const stockCountInvalid = 'Nhập số đếm từ 0 trở lên';
   static String stockProductionSaved(int quantity, String unit, int onHand) =>
       'Đã nhập $quantity $unit. Tồn mới: $onHand';
+  /// [onHand] là tồn trên sổ, đã gồm hàng đang giao chưa đối soát.
   static String stockCountSaved(int onHand, String unit) =>
-      'Đã lưu kiểm kho. Tồn mới: $onHand $unit';
+      'Đã lưu kiểm kho. Tồn trên sổ (gồm hàng đang giao): $onHand $unit';
   static const stockUnsure =
       'Mất kết nối khi đang lưu. Xem lại tồn kho trước khi nhập lại, kẻo ghi trùng.';
 
