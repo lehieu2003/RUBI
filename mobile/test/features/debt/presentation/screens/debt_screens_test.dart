@@ -297,10 +297,41 @@ void main() {
 
     testWidgets('quay lại danh sách → tải lại số nợ', (tester) async {
       await openLedger(tester);
+      clearInteractions(repo);
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
 
-      verify(() => repo.getDebts()).called(2);
+      verify(() => repo.getDebts()).called(1);
+    });
+
+    testWidgets('kéo để làm mới → "Còn nợ" theo server; sheet thu tiền chặn '
+        'theo số mới', (tester) async {
+      await openLedger(tester);
+      expect(tester.widget<Text>(find.byKey(const Key('ledger_outstanding'))).data, '3.400.000đ');
+
+      // Một đơn được đối soát và một lần thu ở web trong lúc màn này mở.
+      when(() => repo.getDebts()).thenAnswer(
+        (_) async => const Ok([
+          CustomerDebt(customerId: 'c-1', customerName: 'Đại Lý Nước Ngọt Minh Tâm', outstandingDebt: 3250000),
+          namCan,
+        ]),
+      );
+      await tester.fling(find.byType(ListView), const Offset(0, 400), 1000);
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<Text>(find.byKey(const Key('ledger_outstanding'))).data, '3.250.000đ');
+      await tester.tap(find.byKey(const Key('ledger_pay')));
+      await tester.pumpAndSettle();
+      expect(find.text(AppStrings.paymentOutstanding('3.250.000đ')), findsOneWidget);
+      await tester.enterText(find.byKey(const Key('payment_amount')), '3300000');
+      await tester.tap(find.byKey(const Key('payment_submit')));
+      await tester.pump();
+      expect(find.text(AppStrings.paymentAboveDebt('3.250.000đ')), findsOneWidget);
+      verifyNever(() => repo.recordPayment(
+            customerId: any(named: 'customerId'),
+            amount: any(named: 'amount'),
+            notes: any(named: 'notes'),
+          ));
     });
 
     testWidgets('còn trang sau → nút Xem thêm tải tiếp', (tester) async {
