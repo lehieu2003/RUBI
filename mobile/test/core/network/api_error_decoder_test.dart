@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iceflow_mobile/core/network/api_error_decoder.dart';
@@ -8,7 +10,7 @@ void main() {
   group('mapDioError', () {
     RequestOptions opts(String path) => RequestOptions(path: path);
 
-    test('connectionTimeout → NetworkFailure', () {
+    test('connectionTimeout → NetworkFailure (chắc chắn chưa gửi)', () {
       final err = DioException(
         requestOptions: opts('/x'),
         type: DioExceptionType.connectionTimeout,
@@ -16,13 +18,41 @@ void main() {
       expect(mapDioError(err), const NetworkFailure());
     });
 
-    test('receiveTimeout → NetworkFailure', () {
+    test('connectionError do socket (không mở được kết nối) → chắc chắn chưa gửi',
+        () {
       final err = DioException(
         requestOptions: opts('/x'),
-        type: DioExceptionType.receiveTimeout,
+        type: DioExceptionType.connectionError,
+        error: const SocketException('Connection refused'),
       );
       expect(mapDioError(err), const NetworkFailure());
     });
+
+    test('connectionError sau khi đã gửi (đứt trước khi có header) → chưa rõ',
+        () {
+      final err = DioException(
+        requestOptions: opts('/x'),
+        type: DioExceptionType.connectionError,
+        error: const HttpException(
+          'Connection closed before full header was received',
+        ),
+      );
+      expect(mapDioError(err), const NetworkFailure(outcomeUnknown: true));
+    });
+
+    for (final type in [
+      DioExceptionType.sendTimeout,
+      DioExceptionType.receiveTimeout,
+      DioExceptionType.transformTimeout,
+    ]) {
+      test('$type → NetworkFailure chưa rõ server đã lưu chưa', () {
+        final err = DioException(requestOptions: opts('/x'), type: type);
+        final failure = mapDioError(err);
+        expect(failure, const NetworkFailure(outcomeUnknown: true));
+        // Câu hiển thị chung không đổi với các nơi gọi khác.
+        expect(failureMessage(failure), FailureMessages.network);
+      });
+    }
 
     test('500 có error trong body → ServerFailure message từ body', () {
       final err = DioException(

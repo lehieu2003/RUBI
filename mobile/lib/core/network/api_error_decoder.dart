@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
@@ -13,12 +15,19 @@ Failure mapDioError(Object error, {String? serverMessage}) {
   }
 
   switch (error.type) {
-    case DioExceptionType.connectionError:
+    // Không mở được kết nối: request chắc chắn chưa tới server.
     case DioExceptionType.connectionTimeout:
+      return const NetworkFailure();
+    case DioExceptionType.connectionError:
+      // Thường là lỗi socket lúc mở kết nối (chưa gửi). Nhưng Dio cũng báo
+      // connectionError khi kết nối đứt sau khi đã gửi, trước khi có header
+      // response (HttpException): lúc đó server có thể đã lưu.
+      return NetworkFailure(outcomeUnknown: error.error is HttpException);
+    // Request đã (hoặc đang) gửi đi mà không có response: server có thể đã lưu.
     case DioExceptionType.sendTimeout:
     case DioExceptionType.receiveTimeout:
     case DioExceptionType.transformTimeout:
-      return const NetworkFailure();
+      return const NetworkFailure(outcomeUnknown: true);
 
     case DioExceptionType.badResponse:
       final statusCode = error.response?.statusCode;
