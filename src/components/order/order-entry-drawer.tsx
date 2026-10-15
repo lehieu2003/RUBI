@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { useOrderStore } from '@/stores/order-store';
@@ -26,6 +26,25 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
   const [values, setValues] = useState<Map<string, number>>(new Map());
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  // Whether the selected customer's prices are in: confirm waits for 'ready'.
+  const [priceStatus, setPriceStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  // Bumped on every pick and close, so a late answer for an older pick is dropped.
+  const priceRequest = useRef(0);
+
+  // Forget everything typed or loaded for the previous customer, at once.
+  const resetEntry = useCallback(() => {
+    priceRequest.current += 1;
+    setValues(new Map());
+    setPrices({});
+    setStock({});
+    setSaveError(null);
+    setPriceStatus('loading');
+  }, []);
+
+  const handleClose = useCallback(() => {
+    resetEntry();
+    closeDrawer();
+  }, [resetEntry, closeDrawer]);
 
   // Compute total from values and prices using useMemo
   const total = useMemo(() => {
@@ -40,19 +59,28 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
   // Handle customer selection
   const handleCustomerSelect = useCallback(
     async (selectedCustomer: Customer) => {
+      // Clear before the grid shows, so anything typed from here on is kept.
+      resetEntry();
+      const request = priceRequest.current;
       useOrderStore.getState().setCustomer(selectedCustomer, new Map());
       useOrderStore.getState().addToRecent(selectedCustomer.id);
       // Load this customer's prices and what is left to sell, together.
       // The stock figure is only a hint: failing to load it must not block the order.
-      const [priceList, sellable] = await Promise.all([
-        loadCustomerPrices(selectedCustomer.id),
-        loadSellableStock().catch(() => ({})),
-      ]);
-      setPrices(priceList);
-      setStock(sellable);
-      setValues(new Map());
+      try {
+        const [priceList, sellable] = await Promise.all([
+          loadCustomerPrices(selectedCustomer.id),
+          loadSellableStock().catch(() => ({})),
+        ]);
+        if (request !== priceRequest.current) return;
+        setPrices(priceList);
+        setStock(sellable);
+        setPriceStatus('ready');
+      } catch {
+        if (request !== priceRequest.current) return;
+        setPriceStatus('error');
+      }
     },
-    []
+    [resetEntry]
   );
 
   // Handle quantity change
@@ -72,6 +100,8 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
   const handleConfirm = useCallback(async () => {
     if (!customer) return;
     if (isSaving) return;
+    // The total and the order must use this customer's prices.
+    if (priceStatus !== 'ready') return;
 
     setIsSaving(true);
     setSaveError(null);
@@ -99,14 +129,12 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       router.refresh();
       // Reset and close
-      setValues(new Map());
-      setPrices({});
       useOrderStore.getState().clearOrder();
-      closeDrawer();
+      handleClose();
     } else {
       setSaveError(result.error);
     }
-  }, [customer, values, isSaving, closeDrawer, queryClient, router]);
+  }, [customer, values, isSaving, priceStatus, handleClose, queryClient, router]);
 
   return (
     <>
@@ -118,7 +146,7 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
         <span>LÊN ĐƠN NHANH</span>
       </button>
 
-      <Drawer isOpen={isOpen} onClose={closeDrawer} title="Tạo Đơn Hàng Tốc Độ Cao">
+      <Drawer isOpen={isOpen} onClose={handleClose} title="Tạo Đơn Hàng Tốc Độ Cao">
         <div className="flex flex-col gap-5">
           {/* Customer search */}
           <div>
@@ -168,6 +196,13 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
                 </span>
               </div>
 
+              {priceStatus === 'error' && (
+                <div className="flex items-center gap-2 rounded border border-[#ba1a1a]/30 bg-error-container p-3 text-xs font-bold text-on-error-container">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <span>Không tải được bảng giá của khách này. Chọn lại khách để thử lại.</span>
+                </div>
+              )}
+
               {/* Error display */}
               {saveError && (
                 <div className="flex items-center gap-2 rounded border border-[#ba1a1a]/30 bg-error-container p-3 text-xs font-bold text-on-error-container">
@@ -179,7 +214,7 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
               {/* Confirm button */}
               <button
                 onClick={handleConfirm}
-                disabled={isSaving || total === 0}
+                disabled={isSaving || total === 0 || priceStatus !== 'ready'}
                 className="w-full flex items-center justify-center gap-2 rounded bg-[#004a99] hover:bg-[#00346f] active:bg-[#002754] text-white font-bold text-sm min-h-[50px] px-4 shadow-sm transition-all disabled:opacity-40"
               >
                 {isSaving ? (
