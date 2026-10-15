@@ -2,13 +2,15 @@ name: CI
 
 # The web app. Changes that only touch the mobile app run mobile.yml instead.
 # The planning notes in .planning/ are written with every task and hold no
-# code, so they do not count as a change to the web app.
+# code, so they do not count as a change to the web app. Neither does the
+# Claude Code configuration in .claude/ (agents, commands, skills, hooks).
 on:
   pull_request:
     paths-ignore:
       - 'mobile/**'
       - '.github/workflows/mobile.yml'
       - '.planning/**'
+      - '.claude/**'
   push:
     branches:
       - master
@@ -17,6 +19,7 @@ on:
       - 'mobile/**'
       - '.github/workflows/mobile.yml'
       - '.planning/**'
+      - '.claude/**'
 
 permissions:
   contents: read
