@@ -14,7 +14,9 @@ status: complete
 ## Verification
 
 - `npx tsc --noEmit`: sạch. `npm run lint`: 0 lỗi (warning có sẵn). `npm test`: 298/298.
-- Chưa chạy route trên database thật: máy không có Docker/Postgres, và không chạy trên Supabase production.
+- Postgres tạm (Docker), không đụng Supabase: chèn các ca biên vào sổ nợ (trả hết, trả dư, chỉ có nợ, nhiều lần thu không theo thứ tự, số lẻ), gọi `GET /api/reports/debt` qua HTTP với tài khoản Quản lý — kết quả trùng từng dòng với cách tính cũ.
+- `scripts/mobile-e2e-local.sh` trên emulator: All tests passed (kịch bản có tab Công nợ: báo cáo, sổ nợ, thu tiền).
+- CI Quality Gate trên PR #92: pass.
 
 ## Ghi chú
 
