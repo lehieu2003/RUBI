@@ -142,6 +142,7 @@ void main() {
             customerId: any(named: 'customerId'),
             amount: any(named: 'amount'),
             notes: any(named: 'notes'),
+            idempotencyKey: any(named: 'idempotencyKey'),
           )).thenAnswer(
         (_) async => Ok(
           PaymentReceipt(
@@ -168,6 +169,7 @@ void main() {
             customerId: any(named: 'customerId'),
             amount: any(named: 'amount'),
             notes: any(named: 'notes'),
+            idempotencyKey: any(named: 'idempotencyKey'),
           ));
 
       await tester.enterText(find.byKey(const Key('payment_amount')), '500000');
@@ -175,7 +177,7 @@ void main() {
       await tester.tap(find.byKey(const Key('payment_submit')));
       await tester.pumpAndSettle();
 
-      verify(() => repo.recordPayment(customerId: 'c-1', amount: 500000, notes: 'Tiền mặt')).called(1);
+      verify(() => repo.recordPayment(customerId: 'c-1', amount: 500000, notes: 'Tiền mặt', idempotencyKey: any(named: 'idempotencyKey'))).called(1);
       expect(find.text(AppStrings.paymentSaved('500.000đ', '2.900.000đ')), findsOneWidget);
       expect(tester.widget<Text>(find.byKey(const Key('ledger_outstanding'))).data, '2.900.000đ');
       expect(find.text('−500.000đ'), findsOneWidget);
@@ -186,6 +188,7 @@ void main() {
             customerId: any(named: 'customerId'),
             amount: any(named: 'amount'),
             notes: any(named: 'notes'),
+            idempotencyKey: any(named: 'idempotencyKey'),
           )).thenAnswer(
         (_) async => const Err(ServerFailure('Bạn thao tác quá nhanh', statusCode: 429)),
       );
@@ -205,6 +208,7 @@ void main() {
             customerId: any(named: 'customerId'),
             amount: any(named: 'amount'),
             notes: any(named: 'notes'),
+            idempotencyKey: any(named: 'idempotencyKey'),
           )).thenAnswer((_) => answer());
     }
 
@@ -234,7 +238,7 @@ void main() {
       expect(find.text(AppStrings.paymentTitle), findsNothing);
       expect(find.byKey(const Key('payment_submit')), findsNothing);
       verify(() => repo.getLedger('c-1')).called(1);
-      verify(() => repo.recordPayment(customerId: 'c-1', amount: 100000, notes: '')).called(1);
+      verify(() => repo.recordPayment(customerId: 'c-1', amount: 100000, notes: '', idempotencyKey: any(named: 'idempotencyKey'))).called(1);
     });
 
     testWidgets('không kết nối được (request chưa đi) → sheet còn mở, gửi lại được',
@@ -268,6 +272,30 @@ void main() {
       expect(find.text(AppStrings.paymentSaved('100.000đ', '3.300.000đ')), findsOneWidget);
     });
 
+    testWidgets('gửi lại cùng số trong sheet → cùng Idempotency-Key; đổi số → mã '
+        'mới', (tester) async {
+      stubPayment(() async => const Err(ServerFailure('Lỗi máy chủ', statusCode: 500)));
+      await openLedger(tester);
+      clearInteractions(repo);
+      await tester.tap(find.byKey(const Key('ledger_pay')));
+      await tester.pumpAndSettle();
+
+      await submitPayment(tester, '100000');
+      await submitPayment(tester, '100000');
+      await submitPayment(tester, '200000');
+
+      final keys = verify(() => repo.recordPayment(
+            customerId: 'c-1',
+            amount: any(named: 'amount'),
+            notes: any(named: 'notes'),
+            idempotencyKey: captureAny(named: 'idempotencyKey'),
+          )).captured;
+      expect(keys, hasLength(3));
+      expect(keys[0], isA<String>());
+      expect(keys[1], keys[0]);
+      expect(keys[2], isNot(keys[0]));
+    });
+
     testWidgets('server từ chối (400) → câu của server trong sheet; sửa số rồi '
         'gửi lại được', (tester) async {
       var calls = 0;
@@ -291,7 +319,7 @@ void main() {
 
       await submitPayment(tester, '200000');
       expect(calls, 2);
-      verify(() => repo.recordPayment(customerId: 'c-1', amount: 200000, notes: '')).called(1);
+      verify(() => repo.recordPayment(customerId: 'c-1', amount: 200000, notes: '', idempotencyKey: any(named: 'idempotencyKey'))).called(1);
       expect(find.text(AppStrings.paymentSaved('200.000đ', '3.200.000đ')), findsOneWidget);
     });
 
@@ -331,6 +359,7 @@ void main() {
             customerId: any(named: 'customerId'),
             amount: any(named: 'amount'),
             notes: any(named: 'notes'),
+            idempotencyKey: any(named: 'idempotencyKey'),
           ));
     });
 

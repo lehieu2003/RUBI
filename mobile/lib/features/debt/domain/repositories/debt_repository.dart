@@ -21,9 +21,13 @@ abstract class DebtRepository {
   ///
   /// Thu nhiều hơn số đang nợ → `Err(ServerFailure)` 409 với câu tiếng Việt
   /// của server.
+  ///
+  /// [idempotencyKey]: mã của lần gửi này (xem `SubmissionKey`); gửi lại với
+  /// cùng mã thì server không ghi lần nữa.
   Future<Result<PaymentReceipt>> recordPayment({
     required String customerId,
     required int amount,
     String? notes,
+    String? idempotencyKey,
   });
 }

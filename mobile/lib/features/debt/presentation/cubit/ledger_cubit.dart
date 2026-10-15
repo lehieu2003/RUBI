@@ -149,12 +149,18 @@ class LedgerCubit extends Cubit<LedgerState> {
     }
   }
 
-  /// Ghi nhận [amount] VND khách vừa trả.
-  Future<PaymentResult> recordPayment(int amount, {String? notes}) async {
+  /// Ghi nhận [amount] VND khách vừa trả. [idempotencyKey]: mã của lần gửi,
+  /// do sheet giữ, để gửi lại không bị ghi hai lần.
+  Future<PaymentResult> recordPayment(
+    int amount, {
+    String? notes,
+    String? idempotencyKey,
+  }) async {
     final res = await _repo.recordPayment(
       customerId: _customerId,
       amount: amount,
       notes: notes,
+      idempotencyKey: idempotencyKey,
     );
     switch (res) {
       case Ok<PaymentReceipt>(:final value):

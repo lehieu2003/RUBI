@@ -120,7 +120,7 @@ void main() {
     testWidgets('Nhập mẻ: số không hợp lệ bị chặn; số hợp lệ được gửi và báo '
         'tồn mới', (tester) async {
       when(() => repo.getStock()).thenAnswer((_) async => const Ok(stock));
-      when(() => repo.recordProduction(productId: any(named: 'productId'), quantity: any(named: 'quantity')))
+      when(() => repo.recordProduction(productId: any(named: 'productId'), quantity: any(named: 'quantity'), idempotencyKey: any(named: 'idempotencyKey')))
           .thenAnswer((_) async => const Ok(70));
       await pumpTab(tester);
 
@@ -132,13 +132,13 @@ void main() {
       await tester.tap(find.byKey(const Key('stock_sheet_submit')));
       await tester.pump();
       expect(find.text(AppStrings.stockProductionInvalid), findsOneWidget);
-      verifyNever(() => repo.recordProduction(productId: any(named: 'productId'), quantity: any(named: 'quantity')));
+      verifyNever(() => repo.recordProduction(productId: any(named: 'productId'), quantity: any(named: 'quantity'), idempotencyKey: any(named: 'idempotencyKey')));
 
       await tester.enterText(find.byKey(const Key('stock_sheet_quantity')), '40');
       await tester.tap(find.byKey(const Key('stock_sheet_submit')));
       await tester.pumpAndSettle();
 
-      verify(() => repo.recordProduction(productId: 'prod-vien-5', quantity: 40)).called(1);
+      verify(() => repo.recordProduction(productId: 'prod-vien-5', quantity: 40, idempotencyKey: any(named: 'idempotencyKey'))).called(1);
       expect(find.text(AppStrings.stockProductionTitle), findsNothing);
       expect(find.text(AppStrings.stockProductionSaved(40, 'Bao', 70)), findsOneWidget);
     });
@@ -166,7 +166,7 @@ void main() {
     testWidgets('server từ chối → câu của server hiện trong sheet, sheet còn mở',
         (tester) async {
       when(() => repo.getStock()).thenAnswer((_) async => const Ok(stock));
-      when(() => repo.recordProduction(productId: any(named: 'productId'), quantity: any(named: 'quantity')))
+      when(() => repo.recordProduction(productId: any(named: 'productId'), quantity: any(named: 'quantity'), idempotencyKey: any(named: 'idempotencyKey')))
           .thenAnswer((_) async => const Err(ServerFailure('Không tìm thấy sản phẩm', statusCode: 404)));
       await pumpTab(tester);
 
@@ -184,7 +184,7 @@ void main() {
         'lưu, đóng sheet, tải lại kho; không gửi lần hai', (tester) async {
       when(() => repo.getStock()).thenAnswer((_) async => const Ok(stock));
       // Đúng thứ guardApi trả khi request đã đi mà response không về kịp.
-      when(() => repo.recordProduction(productId: any(named: 'productId'), quantity: any(named: 'quantity')))
+      when(() => repo.recordProduction(productId: any(named: 'productId'), quantity: any(named: 'quantity'), idempotencyKey: any(named: 'idempotencyKey')))
           .thenAnswer((_) async => Err(mapDioError(DioException(
                 requestOptions: RequestOptions(path: '/api/inventory'),
                 type: DioExceptionType.receiveTimeout,
@@ -204,14 +204,40 @@ void main() {
       expect(find.text(AppStrings.stockProductionTitle), findsNothing);
       expect(find.byKey(const Key('stock_sheet_submit')), findsNothing);
       verify(() => repo.getStock()).called(1);
-      verify(() => repo.recordProduction(productId: 'prod-vien-5', quantity: 40)).called(1);
+      verify(() => repo.recordProduction(productId: 'prod-vien-5', quantity: 40, idempotencyKey: any(named: 'idempotencyKey'))).called(1);
+    });
+
+    testWidgets('Nhập mẻ gửi lại cùng số trong sheet → cùng Idempotency-Key; đổi '
+        'số → mã mới', (tester) async {
+      when(() => repo.getStock()).thenAnswer((_) async => const Ok(stock));
+      when(() => repo.recordProduction(productId: any(named: 'productId'), quantity: any(named: 'quantity'), idempotencyKey: any(named: 'idempotencyKey')))
+          .thenAnswer((_) async => const Err<int>(ServerFailure('Lỗi máy chủ', statusCode: 500)));
+      await pumpTab(tester);
+
+      await tester.tap(inCard('prod-vien-5', AppStrings.stockProductionButton));
+      await tester.pumpAndSettle();
+      for (final quantity in ['40', '40', '30']) {
+        await tester.enterText(find.byKey(const Key('stock_sheet_quantity')), quantity);
+        await tester.tap(find.byKey(const Key('stock_sheet_submit')));
+        await tester.pumpAndSettle();
+      }
+
+      final keys = verify(() => repo.recordProduction(
+            productId: 'prod-vien-5',
+            quantity: any(named: 'quantity'),
+            idempotencyKey: captureAny(named: 'idempotencyKey'),
+          )).captured;
+      expect(keys, hasLength(3));
+      expect(keys[0], isA<String>());
+      expect(keys[1], keys[0]);
+      expect(keys[2], isNot(keys[0]));
     });
 
     testWidgets('Nhập mẻ bị server từ chối (400) → câu của server; sửa số rồi '
         'gửi lại được', (tester) async {
       when(() => repo.getStock()).thenAnswer((_) async => const Ok(stock));
       var calls = 0;
-      when(() => repo.recordProduction(productId: any(named: 'productId'), quantity: any(named: 'quantity')))
+      when(() => repo.recordProduction(productId: any(named: 'productId'), quantity: any(named: 'quantity'), idempotencyKey: any(named: 'idempotencyKey')))
           .thenAnswer((_) async {
         calls++;
         return calls == 1
@@ -232,7 +258,7 @@ void main() {
       await tester.tap(find.byKey(const Key('stock_sheet_submit')));
       await tester.pumpAndSettle();
       expect(calls, 2);
-      verify(() => repo.recordProduction(productId: 'prod-vien-5', quantity: 30)).called(1);
+      verify(() => repo.recordProduction(productId: 'prod-vien-5', quantity: 30, idempotencyKey: any(named: 'idempotencyKey'))).called(1);
       expect(find.text(AppStrings.stockProductionSaved(30, 'Bao', 60)), findsOneWidget);
     });
 

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_guard.dart';
+import 'package:iceflow_mobile/core/network/idempotency.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/inventory/data/dto/inventory_dtos.dart';
 import 'package:iceflow_mobile/features/inventory/data/mappers/stock_mapper.dart';
@@ -34,9 +35,13 @@ class InventoryRepositoryImpl implements InventoryRepository {
   Future<Result<int>> recordProduction({
     required String productId,
     required int quantity,
+    String? idempotencyKey,
   }) {
     return guardApi('recordProduction', tag: _tag, run: () {
-      return _record({'productId': productId, 'quantity': quantity, 'mode': 'ADD'});
+      return _record(
+        {'productId': productId, 'quantity': quantity, 'mode': 'ADD'},
+        idempotencyKey: idempotencyKey,
+      );
     });
   }
 
@@ -58,8 +63,15 @@ class InventoryRepositoryImpl implements InventoryRepository {
   }
 
   /// `POST /api/inventory` → tồn trên sổ sau thao tác.
-  Future<Result<int>> _record(Map<String, dynamic> body) async {
-    final res = await _dio.post<dynamic>(_path, data: body);
+  Future<Result<int>> _record(
+    Map<String, dynamic> body, {
+    String? idempotencyKey,
+  }) async {
+    final res = await _dio.post<dynamic>(
+      _path,
+      data: body,
+      options: idempotencyOptions(idempotencyKey),
+    );
     final data = apiDataObject(res.data);
     final quantityOnHand =
         data == null ? null : InventoryRowDto.fromJson(data).quantityOnHand;
