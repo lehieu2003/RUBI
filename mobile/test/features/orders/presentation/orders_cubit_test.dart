@@ -340,6 +340,7 @@ void main() {
           orderId: any(named: 'orderId'),
           status: any(named: 'status'),
           cancellationReason: any(named: 'cancellationReason'),
+          expectedStatus: any(named: 'expectedStatus'),
         ),
       ).thenAnswer((_) async => const Ok(OfficeOrderStatus.shipping));
       final order = buildOrder('order-abc123');
@@ -357,12 +358,38 @@ void main() {
       expect(cubit.state.status, ViewStatus.loaded);
     });
 
+    test('changeStatus gửi trạng thái đơn đang hiện làm expectedStatus', () async {
+      when(
+        () => repo.changeStatus(
+          orderId: any(named: 'orderId'),
+          status: any(named: 'status'),
+          cancellationReason: any(named: 'cancellationReason'),
+          expectedStatus: any(named: 'expectedStatus'),
+        ),
+      ).thenAnswer((_) async => const Ok(OfficeOrderStatus.delivered));
+
+      await cubit.changeStatus(
+        buildOrder('o-1', status: OfficeOrderStatus.shipping),
+        OfficeOrderStatus.delivered,
+      );
+
+      verify(
+        () => repo.changeStatus(
+          orderId: 'o-1',
+          status: OfficeOrderStatus.delivered,
+          cancellationReason: null,
+          expectedStatus: OfficeOrderStatus.shipping,
+        ),
+      ).called(1);
+    });
+
     test('huỷ đơn gửi kèm lý do', () async {
       when(
         () => repo.changeStatus(
           orderId: any(named: 'orderId'),
           status: any(named: 'status'),
           cancellationReason: any(named: 'cancellationReason'),
+          expectedStatus: any(named: 'expectedStatus'),
         ),
       ).thenAnswer((_) async => const Ok(OfficeOrderStatus.cancelled));
 
@@ -370,6 +397,7 @@ void main() {
         buildOrder('o-1'),
         OfficeOrderStatus.cancelled,
         cancellationReason: 'Khách đổi ý',
+        expectedStatus: OfficeOrderStatus.pending,
       );
 
       verify(
@@ -377,6 +405,7 @@ void main() {
           orderId: 'o-1',
           status: OfficeOrderStatus.cancelled,
           cancellationReason: 'Khách đổi ý',
+          expectedStatus: OfficeOrderStatus.pending,
         ),
       ).called(1);
     });
@@ -387,6 +416,7 @@ void main() {
           orderId: any(named: 'orderId'),
           status: any(named: 'status'),
           cancellationReason: any(named: 'cancellationReason'),
+          expectedStatus: any(named: 'expectedStatus'),
         ),
       ).thenAnswer(
         (_) async => const Err(ServerFailure('Đơn đã đối soát')),
