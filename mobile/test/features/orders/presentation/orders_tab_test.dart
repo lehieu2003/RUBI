@@ -47,6 +47,7 @@ void main() {
         orderId: any(named: 'orderId'),
         status: any(named: 'status'),
         cancellationReason: any(named: 'cancellationReason'),
+        expectedStatus: any(named: 'expectedStatus'),
       ),
     ).thenAnswer((_) async => result);
   }
@@ -306,6 +307,7 @@ void main() {
           orderId: 'order-aaa111',
           status: OfficeOrderStatus.shipping,
           cancellationReason: null,
+          expectedStatus: OfficeOrderStatus.pending,
         ),
       ).called(1);
       expect(
@@ -345,6 +347,7 @@ void main() {
           orderId: any(named: 'orderId'),
           status: any(named: 'status'),
           cancellationReason: any(named: 'cancellationReason'),
+          expectedStatus: any(named: 'expectedStatus'),
         ),
       );
 
@@ -360,6 +363,7 @@ void main() {
           orderId: 'order-aaa111',
           status: OfficeOrderStatus.cancelled,
           cancellationReason: 'Khách đổi ý',
+          expectedStatus: OfficeOrderStatus.pending,
         ),
       ).called(1);
     });

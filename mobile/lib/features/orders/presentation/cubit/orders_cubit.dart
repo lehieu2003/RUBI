@@ -269,6 +269,8 @@ class OrdersCubit extends Cubit<OrdersState> {
       orderId: order.id,
       status: status,
       cancellationReason: cancellationReason,
+      // Đơn đã đổi ở nơi khác → 409 ORDER_STATUS_CHANGED, không ghi đè.
+      expectedStatus: order.status,
     );
     // Thành công hay bị từ chối (đơn đã đổi ở nơi khác) đều lấy lại danh sách.
     if (!isClosed) await load();

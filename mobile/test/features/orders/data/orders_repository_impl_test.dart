@@ -255,6 +255,57 @@ void main() {
         expect(sentBody(), {'status': 'CANCELLED', 'cancellationReason': 'Khách dời ngày'});
       });
 
+      test('gửi expectedStatus = trạng thái màn hình đang thấy', () async {
+        adapter.onPatch('/api/orders/o-1/status', (server) {
+          server.reply(200, {'success': true, 'data': {'status': 'SHIPPING'}});
+        }, data: Matchers.any);
+
+        await repo.changeStatus(
+          orderId: 'o-1',
+          status: OfficeOrderStatus.shipping,
+          expectedStatus: OfficeOrderStatus.pending,
+        );
+
+        expect(sentBody(), {'status': 'SHIPPING', 'expectedStatus': 'PENDING'});
+      });
+
+      test('trạng thái đang thấy ngoài PENDING/SHIPPING/DELIVERED → không gửi expectedStatus',
+          () async {
+        adapter.onPatch('/api/orders/o-1/status', (server) {
+          server.reply(200, {'success': true, 'data': {'status': 'PENDING'}});
+        }, data: Matchers.any);
+
+        await repo.changeStatus(
+          orderId: 'o-1',
+          status: OfficeOrderStatus.pending,
+          expectedStatus: OfficeOrderStatus.completed,
+        );
+
+        expect(sentBody(), {'status': 'PENDING'});
+      });
+
+      test('đơn đã đổi ở nơi khác (409 ORDER_STATUS_CHANGED) → giữ câu của server',
+          () async {
+        adapter.onPatch('/api/orders/o-1/status', (server) {
+          server.reply(409, {
+            'success': false,
+            'error': 'Đơn vừa được đổi trạng thái ở nơi khác',
+            'code': 'ORDER_STATUS_CHANGED',
+          });
+        }, data: Matchers.any);
+
+        final res = await repo.changeStatus(
+          orderId: 'o-1',
+          status: OfficeOrderStatus.shipping,
+          expectedStatus: OfficeOrderStatus.pending,
+        );
+
+        expect(
+          (res as Err<OfficeOrderStatus>).failure,
+          const ServerFailure('Đơn vừa được đổi trạng thái ở nơi khác', statusCode: 409),
+        );
+      });
+
       test('đơn đã đối soát (409) → giữ câu của server', () async {
         adapter.onPatch('/api/orders/o-1/status', (server) {
           server.reply(409, {

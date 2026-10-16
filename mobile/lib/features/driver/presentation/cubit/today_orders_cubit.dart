@@ -56,13 +56,18 @@ class TodayOrdersCubit extends Cubit<TodayOrdersState> {
   final GetOrdersForDateUseCase _getOrders;
   final ConfirmDeliveryUseCase _confirmDelivery;
 
+  /// Tăng mỗi lần tải và mỗi lần xác nhận giao: kết quả tải mang số cũ hơn
+  /// (VD refresh lúc mở lại app về sau một xác nhận) là dữ liệu cũ, bỏ đi.
+  int _generation = 0;
+
   /// Tải đơn của HÔM NAY (ngày local của device, khớp cách office nhập đơn).
   /// Reset toàn bộ state (kể cả [TodayOrdersState.errorMessage] cũ).
   Future<void> load() async {
+    final generation = ++_generation;
     emit(const TodayOrdersState(status: ViewStatus.loading));
     final res = await _getOrders(DateTime.now());
-    // Màn hình đã đóng trong lúc chờ mạng: không còn ai nghe state này.
-    if (isClosed) return;
+    // Màn hình đã đóng trong lúc chờ mạng, hoặc kết quả đã cũ.
+    if (isClosed || generation != _generation) return;
     switch (res) {
       case Ok<List<DeliveryOrder>>(:final value):
         emit(TodayOrdersState(
@@ -79,21 +84,25 @@ class TodayOrdersCubit extends Cubit<TodayOrdersState> {
 
   /// Như [load] nhưng KHÔNG emit loading — pull-to-refresh giữ danh sách cũ
   /// hiển thị trong lúc tải lại. Lỗi → state error nhưng vẫn giữ đơn cũ.
+  /// Một xác nhận giao đang chạy vẫn giữ [TodayOrdersState.confirmingOrderId].
   Future<void> refresh() async {
+    final generation = ++_generation;
     final res = await _getOrders(DateTime.now());
-    // Màn hình đã đóng trong lúc chờ mạng: không còn ai nghe state này.
-    if (isClosed) return;
+    // Màn hình đã đóng trong lúc chờ mạng, hoặc kết quả đã cũ.
+    if (isClosed || generation != _generation) return;
     switch (res) {
       case Ok<List<DeliveryOrder>>(:final value):
         emit(TodayOrdersState(
           status: ViewStatus.loaded,
           orders: _sortOrders(value),
+          confirmingOrderId: state.confirmingOrderId,
         ));
       case Err<List<DeliveryOrder>>(:final failure):
         emit(TodayOrdersState(
           status: ViewStatus.error,
           orders: state.orders,
           errorMessage: failureMessage(failure),
+          confirmingOrderId: state.confirmingOrderId,
         ));
     }
   }
@@ -105,6 +114,8 @@ class TodayOrdersCubit extends Cubit<TodayOrdersState> {
   /// danh sách GIỮ NGUYÊN, chỉ hiện [TodayOrdersState.errorMessage].
   Future<void> confirm(String orderId) async {
     if (state.confirmingOrderId != null) return;
+    // Refresh đang bay có thể đọc trước xác nhận này → kết quả của nó cũ.
+    _generation++;
     emit(TodayOrdersState(
       status: state.status,
       orders: state.orders,
@@ -116,6 +127,8 @@ class TodayOrdersCubit extends Cubit<TodayOrdersState> {
     if (isClosed) return;
     switch (res) {
       case Ok<void>():
+        // Refresh bắt đầu trong lúc chờ xác nhận cũng có thể đọc SHIPPING.
+        _generation++;
         // deliveredAt server tự set; DateTime.now() ở đây chỉ là xấp xỉ để
         // hiển thị local ngay lập tức.
         final markedDeliveredAt = DateTime.now();

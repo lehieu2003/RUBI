@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -274,11 +275,16 @@ void main() {
         expect(storage.clearCalls, 0);
       });
 
-      test('có token + me 401 → xoá token + Ok(null) (im lặng, không Err)',
+      // Contract (api/openapi/auth.yaml): /me never answers 401 — a dead
+      // (expired or locked) session gets 200 `{ user: null }`.
+      test('có token + me 200 user null → xoá token + Ok(null) (im lặng, không Err)',
           () async {
         await storage.saveToken('expired-token');
         adapter.onGet('/api/auth/me', (server) {
-          server.reply(401, {'success': false, 'error': 'Token expired'});
+          server.reply(200, {
+            'success': true,
+            'data': {'user': null},
+          });
         });
 
         final res = await repo.restoreSession();
@@ -318,40 +324,73 @@ void main() {
         expect((res as Err<User?>).failure, isA<UnexpectedFailure>());
       });
 
-      test('me 401 + clear ném lỗi → vẫn Ok(null) im lặng (clear best-effort)',
+      test('me user null + clear ném lỗi → vẫn Ok(null) im lặng (clear best-effort)',
           () async {
         await storage.saveToken('expired-token');
         storage.failOnClear = true;
         adapter.onGet('/api/auth/me', (server) {
-          server.reply(401, {'success': false, 'error': 'Token expired'});
+          server.reply(200, {
+            'success': true,
+            'data': {'user': null},
+          });
         });
 
         final res = await repo.restoreSession();
 
-        // Contract 401: im lặng kể cả khi secure-storage lỗi — token còn
-        // sót lại sẽ bị xoá ở lần 401 kế tiếp.
+        // Phiên chết: im lặng kể cả khi secure-storage lỗi — token còn
+        // sót lại sẽ bị xoá ở lần restore kế tiếp.
         expect(res, const Ok<User?>(null));
         expect(await storage.readToken(), 'expired-token');
       });
     });
 
     group('logout', () {
-      test('gọi POST /api/auth/logout rồi xoá token → Ok(null)', () async {
+      test('gọi POST /api/auth/logout và xoá token → Ok(null)', () async {
         await storage.saveToken('jwt-123');
-        var logoutCalled = false;
+        final logoutCalled = Completer<void>();
         adapter.onPost('/api/auth/logout', (server) {
           server.replyCallback(200, (options) {
-            logoutCalled = true;
+            logoutCalled.complete();
             return {'success': true, 'data': null};
           });
         });
 
         final res = await repo.logout();
 
-        expect(logoutCalled, isTrue);
+        // Request gửi không chờ — chỉ cần nó tới server.
+        await logoutCalled.future.timeout(const Duration(seconds: 1));
         expect(storage.clearCalls, 1);
         expect(await storage.readToken(), isNull);
         expect(res, const Ok<void>(null));
+      });
+
+      test('server treo (mất mạng) → xoá token ngay, không chờ request',
+          () async {
+        await storage.saveToken('jwt-123');
+        final gate = Completer<void>();
+        final logoutSent = Completer<void>();
+        // Request bay mãi không về (như mất mạng chờ timeout 15 s).
+        dio.interceptors.add(
+          InterceptorsWrapper(
+            onRequest: (options, handler) async {
+              logoutSent.complete();
+              await gate.future;
+              handler.next(options);
+            },
+          ),
+        );
+        adapter.onPost('/api/auth/logout', (server) {
+          server.reply(200, {'success': true, 'data': null});
+        });
+
+        final res =
+            await repo.logout().timeout(const Duration(milliseconds: 500));
+
+        expect(res, const Ok<void>(null));
+        expect(await storage.readToken(), isNull);
+        // Vẫn gửi để server xoá cookie.
+        await logoutSent.future.timeout(const Duration(seconds: 1));
+        gate.complete();
       });
 
       test('logout 500 → vẫn xoá token + Ok(null)', () async {
