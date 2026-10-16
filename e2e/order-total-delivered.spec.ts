@@ -106,4 +106,32 @@ test.describe.serial('the total of a settled order is the delivered amount', () 
     expect(await totalOf(settledId)).toEqual({ total: 8 * price, line: 8 * price });
     expect(await totalOf(openId)).toEqual({ total: 10 * price, line: 10 * price });
   });
+
+  test('a settlement must give every line exactly once, or nothing is booked', async ({ request }) => {
+    // Two lines: a list that leaves one out would book a total that its lines do not add up to.
+    const order = await createOrder({ customerPart: 'Minh Tâm', productId: PRODUCT, quantity: 10, status: 'DELIVERED' });
+    const extraPrice = Number((await db.globalPrice.findUniqueOrThrow({ where: { productId: 'prod-vien-10' } })).pricePerUnit);
+    const extra = await db.orderItem.create({
+      data: { orderId: order.id, productId: 'prod-vien-10', quantity: 4, unitPrice: extraPrice, lineTotal: 4 * extraPrice },
+    });
+    const first = order.orderItems[0].id;
+    const settle = (items: { id: string; actualQty: number }[]) =>
+      request.patch(`/api/orders/${order.id}/reconcile`, { data: { items } });
+
+    expect((await settle([{ id: first, actualQty: 8 }])).status()).toBe(400);
+    expect((await settle([{ id: first, actualQty: 8 }, { id: first, actualQty: 8 }])).status()).toBe(400);
+    const untouched = await db.order.findUniqueOrThrow({ where: { id: order.id }, include: { orderItems: true } });
+    expect(untouched.status).toBe('DELIVERED');
+    expect(untouched.orderItems.every((item) => item.actualQty === null)).toBe(true);
+    expect(await db.customerDebtLedger.count({ where: { notes: `Order ${order.id} delivered` } })).toBe(0);
+
+    // Every line once: settled, and the lines add up to the total booked as debt.
+    expect((await settle([{ id: first, actualQty: 8 }, { id: extra.id, actualQty: 3 }])).status()).toBe(200);
+    const settled = await db.order.findUniqueOrThrow({ where: { id: order.id }, include: { orderItems: true } });
+    const lines = settled.orderItems.reduce((sum, item) => sum + Number(item.lineTotal), 0);
+    expect(Number(settled.total)).toBe(8 * price + 3 * extraPrice);
+    expect(lines).toBe(Number(settled.total));
+    const debt = await db.customerDebtLedger.findFirstOrThrow({ where: { notes: `Order ${order.id} delivered` } });
+    expect(Number(debt.amount)).toBe(Number(settled.total));
+  });
 });
