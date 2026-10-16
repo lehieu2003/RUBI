@@ -30,6 +30,14 @@ class AuthApi {
     return _bodyOf(res.data);
   }
 
+  /// `POST /api/auth/refresh` (token còn hạn trong header)
+  /// → 200 `{ success: true, data: { token } }` (token mới, hạn 7 ngày)
+  /// → 401 khi token đã hết hạn / tài khoản bị khoá.
+  Future<Map<String, dynamic>> refresh() async {
+    final res = await _dio.post<dynamic>('/api/auth/refresh');
+    return _bodyOf(res.data);
+  }
+
   /// `POST /api/auth/logout` — caller bỏ qua kết quả.
   Future<void> logout() {
     return _dio.post<dynamic>('/api/auth/logout');

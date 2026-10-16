@@ -86,8 +86,22 @@ class AuthCubit extends Cubit<AuthState> {
     switch (res) {
       case Ok<User?>(:final value):
         emit(value != null ? Authenticated(value) : const Unauthenticated());
+        if (value != null) await refreshSession();
       case Err<User?>(:final failure):
         emit(Unauthenticated(message: failureMessage(failure)));
+    }
+  }
+
+  /// Làm mới token khi đang đăng nhập (gọi sau `restore()` và mỗi lần app
+  /// trở lại foreground) để phiên không hết hạn cứng 7 ngày sau đăng nhập.
+  ///
+  /// Thất bại (mất mạng, 401...) chỉ ghi log, không đổi state: nếu token thật
+  /// sự hết hạn thì request kế tiếp nhận 401 và interceptor đăng xuất.
+  Future<void> refreshSession() async {
+    if (state is! Authenticated) return;
+    final res = await _repo.refreshSession();
+    if (res case Err<void>(:final failure)) {
+      AppLogger.warning('Session refresh failed: $failure', tag: 'auth');
     }
   }
 
