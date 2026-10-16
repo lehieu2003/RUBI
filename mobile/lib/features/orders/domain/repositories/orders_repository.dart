@@ -35,11 +35,16 @@ abstract class OrdersRepository {
   /// Đổi trạng thái một đơn (không đổi sang đã đối soát được). Huỷ đơn phải
   /// kèm [cancellationReason]. Trả trạng thái mới.
   ///
+  /// [expectedStatus] là trạng thái màn hình đang hiện (chỉ gửi khi là
+  /// PENDING/SHIPPING/DELIVERED): đơn đã đổi ở nơi khác thì server không ghi
+  /// gì → `Err(ServerFailure)` 409 `ORDER_STATUS_CHANGED`.
+  ///
   /// Đơn đã đối soát hoặc đã huỷ → `Err(ServerFailure)` 409.
   Future<Result<OfficeOrderStatus>> changeStatus({
     required String orderId,
     required OfficeOrderStatus status,
     String? cancellationReason,
+    OfficeOrderStatus? expectedStatus,
   });
 
   /// Đối soát một đơn đã giao (chỉ Quản lý): chốt số thực giao của từng dòng,

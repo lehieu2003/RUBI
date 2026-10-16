@@ -397,7 +397,6 @@ void main() {
         buildOrder('o-1'),
         OfficeOrderStatus.cancelled,
         cancellationReason: 'Khách đổi ý',
-        expectedStatus: OfficeOrderStatus.pending,
       );
 
       verify(
