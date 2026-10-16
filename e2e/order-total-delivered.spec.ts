@@ -3,7 +3,7 @@ import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { sessionFile } from './support/env';
 import { createOrder, db, orderCode, setStock } from './support/db';
-import { expectToast } from './support/app';
+import { expectToast, openPage } from './support/app';
 
 // After settlement the order is worth what was delivered (actualQty × unitPrice),
 // the same amount as the debt it booked. Orders not settled keep the ordered amount.
@@ -24,7 +24,7 @@ test.describe.serial('the total of a settled order is the delivered amount', () 
     openId = open.id;
     price = Number(settled.orderItems[0].unitPrice);
 
-    await page.goto('/settle');
+    await openPage(page, '/settle');
     const card = page.locator('div.rounded.border', { hasText: orderCode(settledId) });
     await card.getByRole('button', { name: 'CHỐT ĐƠN', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Chốt đơn đối soát' });
@@ -61,7 +61,7 @@ test.describe.serial('the total of a settled order is the delivered amount', () 
     const row = ((await exported.json()).data.orders as { id: string; total: number }[]).find((order) => order.id === settledId);
     expect(row?.total).toBe(8 * price);
 
-    await page.goto(`/orders/${settledId}`);
+    await openPage(page, `/orders/${settledId}`);
     await expect(page.getByText(`${(8 * price).toLocaleString('vi-VN')}đ`).first()).toBeVisible();
     await expect(page.getByText('thực giao 8')).toBeVisible();
     await expect(page.getByText(`${(10 * price).toLocaleString('vi-VN')}đ`)).toHaveCount(0);

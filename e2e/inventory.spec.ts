@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { sessionFile } from './support/env';
 import { db, setStock, stockOf } from './support/db';
-import { expectToast } from './support/app';
+import { expectToast, openPage } from './support/app';
 
 test.describe.serial('cold storage', () => {
   test.use({ storageState: sessionFile('manager') });
@@ -9,7 +9,7 @@ test.describe.serial('cold storage', () => {
 
   test("opens the day with yesterday's closing stock and adds production on top", async ({ page }) => {
     await setStock(PRODUCT, 150, 1); // nothing recorded today
-    await page.goto('/inventory');
+    await openPage(page, '/inventory');
     const row = page.locator('tbody tr', { hasText: 'Đá Viên' }).filter({ hasText: '20 kg' });
     await expect(row).toContainText('150');
 
@@ -27,7 +27,7 @@ test.describe.serial('cold storage', () => {
   });
 
   test('a stock count replaces the balance and is kept with its note', async ({ page }) => {
-    await page.goto('/inventory');
+    await openPage(page, '/inventory');
     const row = page.locator('tbody tr', { hasText: 'Đá Viên' }).filter({ hasText: '20 kg' });
     await row.getByRole('button', { name: 'Kiểm kho' }).click();
     const dialog = page.getByRole('dialog');
@@ -54,9 +54,7 @@ test.describe.serial('cold storage', () => {
     const counts = await db.stockCount.findMany({ where: { productId: PRODUCT } });
     const loss = counts.reduce((sum, count) => sum + Math.max(0, count.bookQuantity - count.countedQuantity), 0);
 
-    await page.goto('/inventory');
-    // While the page streams in, the control can briefly exist twice: wait for it to settle.
-    await expect(page.getByLabel('Lọc theo sản phẩm')).toHaveCount(1);
+    await openPage(page, '/inventory');
     await page.getByLabel('Lọc theo sản phẩm').selectOption(PRODUCT);
     await expect(page.getByText(`${counts.length} lần kiểm`)).toBeVisible();
     await expect(page.getByText(`Hao hụt: ${loss.toLocaleString('vi-VN')}`)).toBeVisible();
