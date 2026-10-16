@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { startOfVietnamToday } from '@/lib/vietnam-time';
 import { isLowStock, reservedByOpenOrders, stockOnHand } from '@/lib/inventory';
 import { revenueOf } from '@/lib/revenue';
+import { currentDueDates } from '@/lib/maintenance';
 
 async function getCustomers(factoryId: string) {
   return prisma.customer.findMany({
@@ -91,17 +92,26 @@ async function getYesterdayRevenue(factoryId: string) {
   return revenueOf(yesterdayOrders);
 }
 
-// Assets with a maintenance/inspection/insurance due date in the next 30 days
+// Assets with a maintenance/inspection/insurance due date in the next 30 days.
+// Only the latest record of each type counts: one done again since is not due.
 async function getDueMaintenance(factoryId: string) {
-  return prisma.maintenanceRecord.findMany({
-    where: {
-      factoryId,
-      dueAt: { not: null, lte: new Date(Date.now() + 30 * 86400000) },
+  const assets = await prisma.asset.findMany({
+    where: { factoryId },
+    select: {
+      name: true,
+      code: true,
+      maintenanceRecords: {
+        orderBy: { createdAt: 'asc' },
+        select: { type: true, performedAt: true, dueAt: true },
+      },
     },
-    orderBy: { dueAt: 'asc' },
-    take: 5,
-    include: { asset: { select: { name: true, code: true } } },
   });
+  const horizon = new Date(Date.now() + 30 * 86400000);
+  return assets
+    .flatMap((asset) => currentDueDates(asset.maintenanceRecords).map((record) => ({ ...record, asset })))
+    .filter((record) => record.dueAt <= horizon)
+    .sort((a, b) => a.dueAt.getTime() - b.dueAt.getTime())
+    .slice(0, 5);
 }
 
 export default async function DashboardPage() {
@@ -152,7 +162,7 @@ export default async function DashboardPage() {
         assetName: r.asset.name,
         assetCode: r.asset.code,
         type: r.type as string,
-        dueAt: (r.dueAt as Date).toISOString(),
+        dueAt: r.dueAt.toISOString(),
       }))}
     />
   );
