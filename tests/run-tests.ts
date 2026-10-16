@@ -27,6 +27,7 @@ import './auth/bearer-session.test';
 import './auth/login-body-token.test';
 import './api/auth-refresh.test';
 import './auth/account-security.test';
+import './auth/password-change-gate.test';
 import './api/factory-profile.test';
 import './lib/audit.test';
 import './api/schedule/self-service.test';
