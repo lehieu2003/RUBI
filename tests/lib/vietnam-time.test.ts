@@ -78,7 +78,7 @@ describe('dashboard figures cover the whole day', () => {
   });
 
   it('the KPI cards and the hourly chart use that full list', () => {
-    assert.match(client, /todayOrders\.reduce\(/);
+    assert.match(client, /revenueOf\(todayOrders\)/);
     assert.match(client, /<HourlyChart orders=\{todayOrders\} \/>/);
     assert.doesNotMatch(client, /orders\.filter\(\s*\(o\) => new Date\(o\.createdAt\)\.toDateString\(\) === today/);
   });
