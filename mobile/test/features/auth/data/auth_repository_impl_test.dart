@@ -274,11 +274,16 @@ void main() {
         expect(storage.clearCalls, 0);
       });
 
-      test('có token + me 401 → xoá token + Ok(null) (im lặng, không Err)',
+      // Contract (api/openapi/auth.yaml): /me never answers 401 — a dead
+      // (expired or locked) session gets 200 `{ user: null }`.
+      test('có token + me 200 user null → xoá token + Ok(null) (im lặng, không Err)',
           () async {
         await storage.saveToken('expired-token');
         adapter.onGet('/api/auth/me', (server) {
-          server.reply(401, {'success': false, 'error': 'Token expired'});
+          server.reply(200, {
+            'success': true,
+            'data': {'user': null},
+          });
         });
 
         final res = await repo.restoreSession();
@@ -318,18 +323,21 @@ void main() {
         expect((res as Err<User?>).failure, isA<UnexpectedFailure>());
       });
 
-      test('me 401 + clear ném lỗi → vẫn Ok(null) im lặng (clear best-effort)',
+      test('me user null + clear ném lỗi → vẫn Ok(null) im lặng (clear best-effort)',
           () async {
         await storage.saveToken('expired-token');
         storage.failOnClear = true;
         adapter.onGet('/api/auth/me', (server) {
-          server.reply(401, {'success': false, 'error': 'Token expired'});
+          server.reply(200, {
+            'success': true,
+            'data': {'user': null},
+          });
         });
 
         final res = await repo.restoreSession();
 
-        // Contract 401: im lặng kể cả khi secure-storage lỗi — token còn
-        // sót lại sẽ bị xoá ở lần 401 kế tiếp.
+        // Phiên chết: im lặng kể cả khi secure-storage lỗi — token còn
+        // sót lại sẽ bị xoá ở lần restore kế tiếp.
         expect(res, const Ok<User?>(null));
         expect(await storage.readToken(), 'expired-token');
       });
