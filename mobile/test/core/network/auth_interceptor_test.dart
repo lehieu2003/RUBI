@@ -230,6 +230,40 @@ void main() {
       expect(await storage.readToken(), 'new-token');
     });
 
+    test('đăng xuất trong lúc đang refresh → không lưu token mới trở lại, '
+        'không retry', () async {
+      await storage.saveToken('expired-token');
+      var retryCalls = 0;
+
+      mainAdapter.onGet('/api/deliveries', (server) {
+        server.reply(401, {'success': false, 'error': 'Token expired'});
+      });
+      refreshAdapter.onPost('/api/auth/refresh', (server) {
+        server.replyCallback(200, (options) {
+          // Người dùng bấm đăng xuất khi refresh còn đang bay.
+          storage.clear();
+          return {
+            'success': true,
+            'data': {'token': 'new-token'},
+          };
+        });
+      });
+      refreshAdapter.onGet('/api/deliveries', (server) {
+        server.replyCallback(200, (options) {
+          retryCalls++;
+          return {'success': true, 'data': {'deliveries': []}};
+        });
+      });
+
+      await expectLater(
+        dio.get<void>('/api/deliveries'),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(await storage.readToken(), isNull);
+      expect(retryCalls, 0);
+    });
+
     test('hai 401 đồng thời → refresh chỉ gọi 1 lần, cả hai được retry',
         () async {
       await storage.saveToken('expired-token');
