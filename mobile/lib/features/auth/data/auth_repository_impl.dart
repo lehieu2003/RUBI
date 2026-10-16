@@ -87,7 +87,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final meData = MeDataDto.fromJson(data);
       // /me không bao giờ trả 401: phiên chết (hết hạn, bị khoá) là 200
       // `{ user: null }` → xoá token, về màn đăng nhập im lặng.
-      if (meData.user == null) return _dropDeadSession();
+      if (meData.user == null) return await _dropDeadSession();
       switch (UserMapper.fromDto(meData.user!)) {
         case Ok<User>(:final value):
           return Ok<User?>(value);
