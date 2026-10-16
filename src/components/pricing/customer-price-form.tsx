@@ -56,7 +56,8 @@ export function CustomerPriceForm({
     setEditingProductId(null);
     setEditValue('');
 
-    // Optimistic update
+    // Optimistic update; a failure reverts this edit only, not earlier saves.
+    const previousOverrides = new Map(localOverrides);
     setLocalOverrides((prev) => {
       const next = new Map(prev);
       next.set(productId, newPrice);
@@ -73,7 +74,7 @@ export function CustomerPriceForm({
       toast({ type: 'success', title: 'Đã lưu giá riêng' });
     } catch {
       // Revert on error
-      setLocalOverrides(overridePrices);
+      setLocalOverrides(previousOverrides);
       toast({ type: 'error', title: 'Lưu thất bại', message: 'Không thể lưu giá riêng' });
     } finally {
       setSaving(null);

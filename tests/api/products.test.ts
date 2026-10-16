@@ -96,6 +96,10 @@ describe('customer own-price page', () => {
     assert.doesNotMatch(form, /'Đá Bi'|'Đá Viên'/);
     assert.match(form, /const groups = groupProductsByName\(products\)/);
   });
+
+  it('reverts a failed save to the prices shown just before it, not to the page load', () => {
+    assert.doesNotMatch(form, /setLocalOverrides\(overridePrices\)/);
+  });
 });
 
 describe('sellable stock in the order drawer', () => {
