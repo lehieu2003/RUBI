@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { sessionFile } from './support/env';
-import { db, orderCode, setStock, stockOf, vietnamDayStart } from './support/db';
+import { createOrder, db, orderCode, setStock, stockOf, vietnamDayStart } from './support/db';
 import { expectToast, openOrderDrawerFor } from './support/app';
 
 // One order, from the phone call to settlement, across the three roles.
@@ -142,5 +142,40 @@ test.describe.serial('an order from the phone call to settlement', () => {
       expect((await response.json()).code).toBe('ORDER_NOT_SHIPPING');
       expect((await db.order.findUniqueOrThrow({ where: { id: orderId } })).status).toBe('COMPLETED');
     });
+  });
+});
+
+// The cancel-reason dialog sits on top of the order drawer. Esc must close the
+// dialog only: closing the drawer under it left a "Xác nhận hủy" that did nothing.
+test.describe('cancelling from the order drawer', () => {
+  test.use({ storageState: sessionFile('staff') });
+
+  test('Esc in the reason dialog closes it, and the order can still be cancelled', async ({ page }) => {
+    const order = await createOrder({ customerPart: 'Minh Tâm', productId: 'prod-bi-5', quantity: 1 });
+
+    await page.goto('/orders');
+    await page.locator('tr', { hasText: orderCode(order.id) }).getByRole('button', { name: /Xem/ }).click();
+    const drawer = page.getByRole('dialog', { name: /Chi tiết đơn hàng/ });
+    const status = drawer.locator('select');
+    const reasonTitle = page.getByRole('heading', { name: 'Lý do hủy đơn hàng' });
+    const reason = page.getByPlaceholder(/Khách gọi báo dời ngày/);
+
+    await status.selectOption('CANCELLED');
+    await expect(reasonTitle).toBeVisible();
+    await reason.fill('Khách đổi ý');
+    await page.keyboard.press('Escape');
+    await expect(reasonTitle).toBeHidden();
+    await expect(drawer).toBeVisible();
+    expect((await db.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe('PENDING');
+
+    // Opened again, it starts empty and cancelling goes through.
+    await status.selectOption('CANCELLED');
+    await expect(reason).toHaveValue('');
+    await reason.fill('Khách gọi hủy');
+    await page.getByRole('button', { name: 'Xác nhận hủy' }).click();
+    await expectToast(page, 'Đã cập nhật trạng thái đơn hàng');
+    const after = await db.order.findUniqueOrThrow({ where: { id: order.id } });
+    expect(after.status).toBe('CANCELLED');
+    expect(after.notes).toBe('[HỦY: Khách gọi hủy]');
   });
 });
