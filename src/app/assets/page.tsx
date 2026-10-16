@@ -228,6 +228,16 @@ export default function AssetsPage() {
     }
   };
 
+  const handleCloseDrawer = () => {
+    // Esc closes the top layer only: with the record dialog open, it closes the
+    // dialog and keeps the asset, so the dialog never outlives its drawer.
+    if (showRecord) {
+      setShowRecord(false);
+      return;
+    }
+    setSelected(null);
+  };
+
   const handleDelete = async (asset: Asset) => {
     if (!confirm(`Xóa tài sản "${asset.name}" cùng toàn bộ lịch sử bảo trì?`)) return;
     try {
@@ -490,7 +500,7 @@ export default function AssetsPage() {
         )}
 
         {/* Detail Drawer */}
-        <Drawer isOpen={!!selected} onClose={() => setSelected(null)} title={selected ? `Tài sản: ${selected.name}` : ''}>
+        <Drawer isOpen={!!selected} onClose={handleCloseDrawer} title={selected ? `Tài sản: ${selected.name}` : ''}>
           {selected && (
             <div className="space-y-5">
               <div className="rounded border border-outline-soft bg-surface p-3.5">
