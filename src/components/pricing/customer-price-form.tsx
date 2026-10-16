@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Customer, Product } from '@prisma/client';
 import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { groupProductsByName } from '@/lib/product-groups';
 
 type PriceMap = Map<string, number>;
 
@@ -113,16 +114,12 @@ export function CustomerPriceForm({
     currentEffectivePrices.set(product.id, localOverrides.get(product.id) ?? globalPrice);
   }
 
-  // Group products by type
-  const daBi = products.filter((p) => p.name === 'Đá Bi');
-  const daVien = products.filter((p) => p.name === 'Đá Viên');
+  // One table per kind of ice, grouped like the order grid.
+  const groups = groupProductsByName(products);
 
   return (
     <div className="space-y-6">
-      {[
-        { label: 'Đá Bi (Ice Block)', products: daBi },
-        { label: 'Đá Viên (Ice Cube)', products: daVien },
-      ].map(({ label, products: rowProducts }) => (
+      {groups.map(({ name: label, products: rowProducts }) => (
         <div key={label}>
           <h3 className="text-sm font-medium text-faint mb-3">{label}</h3>
           <table className="w-full text-sm">

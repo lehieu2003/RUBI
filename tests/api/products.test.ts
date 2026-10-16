@@ -89,6 +89,15 @@ describe('order entry grid', () => {
   });
 });
 
+describe('customer own-price page', () => {
+  const form = readFileSync('src/components/pricing/customer-price-form.tsx', 'utf8');
+
+  it('lists every product on sale, grouped like the order grid', () => {
+    assert.doesNotMatch(form, /'Đá Bi'|'Đá Viên'/);
+    assert.match(form, /const groups = groupProductsByName\(products\)/);
+  });
+});
+
 describe('sellable stock in the order drawer', () => {
   const action = readFileSync('src/lib/actions/orders.ts', 'utf8');
   const drawer = readFileSync('src/components/order/order-entry-drawer.tsx', 'utf8');
