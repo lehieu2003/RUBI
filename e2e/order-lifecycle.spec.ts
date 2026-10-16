@@ -176,6 +176,18 @@ test.describe('cancelling from the order drawer', () => {
     await expectToast(page, 'Đã cập nhật trạng thái đơn hàng');
     const after = await db.order.findUniqueOrThrow({ where: { id: order.id } });
     expect(after.status).toBe('CANCELLED');
-    expect(after.notes).toBe('[HỦY: Khách gọi hủy]');
+    expect(after.notes).toContain('[HỦY: Khách gọi hủy]');
+  });
+
+  test('cancelling keeps the note of the order and adds the reason after it', async ({ page }) => {
+    const order = await createOrder({ customerPart: 'Minh Tâm', productId: 'prod-bi-5', quantity: 1 });
+    await db.order.update({ where: { id: order.id }, data: { notes: 'Giao cổng sau' } });
+
+    const response = await page.request.patch(`/api/orders/${order.id}/status`, {
+      data: { status: 'CANCELLED', cancellationReason: 'Khách gọi hủy' },
+    });
+    expect(response.status()).toBe(200);
+    const after = await db.order.findUniqueOrThrow({ where: { id: order.id } });
+    expect(after.notes).toBe('Giao cổng sau\n[HỦY: Khách gọi hủy]');
   });
 });
