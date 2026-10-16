@@ -1,5 +1,5 @@
 ---
-status: investigating
+status: resolved
 trigger: "Flutter low findings from the 2026-10-15 audit (FL-4, FL-7, FL-9) and the PR #96 follow-up (expectedStatus on the office status change)"
 created: 2026-10-16
 updated: 2026-10-16
@@ -41,16 +41,59 @@ Evidence sources:
 
 ## Current Focus
 
-hypothesis: four independent defects, worked one at a time (test commit + fix commit each)
-next_action: FL-4
+hypothesis: all four confirmed and fixed
+next_action: none (PR into dev by the orchestrator)
 
 ## Eliminated
 
+- Item 4 "reload on 409": already in place. `OrdersCubit.changeStatus` reloads
+  the list on every result and `failureMessage(ServerFailure)` shows the server
+  text, so only sending `expectedStatus` was missing.
+
 ## Evidence
+
+- timestamp: 2026-10-16 FL-4 — `api/openapi/auth.yaml` `/api/auth/me`: "Never
+  answers 401: an anonymous caller gets `{ user: null }`". `restoreSession`
+  returned `Err(UnexpectedFailure('Me response missing data.user'))` for that
+  case; the repo tests mocked a 401 instead. With the real contract mocked,
+  2 tests RED.
+- timestamp: 2026-10-16 FL-9 — `logout()` did `await _api.logout()` before
+  `_storage.clear()`. A test with a request that never returns timed out
+  (RED).
+- timestamp: 2026-10-16 FL-7 — `TodayOrdersCubit.refresh` had no staleness
+  guard and emitted a fresh state without `confirmingOrderId`. Three tests
+  (refresh started before confirm, refresh started during confirm, refresh
+  finishing during confirm) RED.
+- timestamp: 2026-10-16 Item 4 — `OrdersRepositoryImpl.changeStatus` body had
+  only `status` / `cancellationReason`. Tests for `expectedStatus` RED (no such
+  parameter).
 
 ## Resolution
 
-root_cause:
-fix:
-verification:
-files_changed: []
+root_cause: |
+  FL-4: restoreSession treated the contract's `{ user: null }` (dead session) as
+  a malformed payload. FL-9: logout awaited the server call before clearing the
+  token. FL-7: TodayOrdersCubit.refresh results were applied regardless of a
+  confirm that happened after the refresh started, and the emit dropped
+  confirmingOrderId. Item 4: the Flutter status change never sent
+  `expectedStatus`, so the server's 409 ORDER_STATUS_CHANGED guard never ran.
+fix: |
+  FL-4: `user == null` (and a 401, kept as a fallback) clear the token
+  best-effort and return Ok(null). FL-9: server logout is sent unawaited with
+  errors swallowed; the token is cleared at once. FL-7: generation counter
+  bumped by load/refresh and by confirm at start and on success; stale refresh
+  results are dropped; refresh keeps confirmingOrderId. Item 4: repository takes
+  `expectedStatus` and sends it when PENDING/SHIPPING/DELIVERED; the cubit
+  passes the order's shown status.
+verification: "flutter analyze: No issues found. flutter test: +683 All tests passed."
+files_changed:
+  - mobile/lib/features/auth/data/auth_repository_impl.dart
+  - mobile/lib/features/driver/presentation/cubit/today_orders_cubit.dart
+  - mobile/lib/features/orders/domain/repositories/orders_repository.dart
+  - mobile/lib/features/orders/data/orders_repository_impl.dart
+  - mobile/lib/features/orders/presentation/cubit/orders_cubit.dart
+  - mobile/test/features/auth/data/auth_repository_impl_test.dart
+  - mobile/test/features/driver/presentation/cubit/today_orders_cubit_test.dart
+  - mobile/test/features/orders/data/orders_repository_impl_test.dart
+  - mobile/test/features/orders/presentation/orders_cubit_test.dart
+  - mobile/test/features/orders/presentation/orders_tab_test.dart
