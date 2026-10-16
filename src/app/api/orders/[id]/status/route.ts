@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { requireRole } from '@/lib/auth/helpers';
 import { ORDER_STATUS_LABELS, recordAudit } from '@/lib/audit';
+import { withCancelReason } from '@/lib/order-notes';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 // PATCH /api/orders/[id]/status - Update order status (D-05)
@@ -87,7 +88,7 @@ export async function PATCH(
           deliveredAt:
             parsed.data.status !== 'DELIVERED' ? null : existing.status === 'DELIVERED' ? undefined : new Date(),
           notes: parsed.data.cancellationReason
-            ? `[HỦY: ${parsed.data.cancellationReason}]`
+            ? withCancelReason(existing.notes, parsed.data.cancellationReason)
             : undefined,
         },
       });
