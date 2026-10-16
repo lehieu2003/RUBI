@@ -75,15 +75,17 @@ describe('products and prices screen', () => {
 
 describe('order entry grid', () => {
   const matrix = readFileSync('src/components/order/order-matrix.tsx', 'utf8');
+  const groups = readFileSync('src/lib/product-groups.ts', 'utf8');
 
   it('is built from the catalogue, not from a fixed list of names and sizes', () => {
     assert.doesNotMatch(matrix, /'Đá Bi'|'Đá Viên'|\[5, 10, 20\]/);
-    assert.match(matrix, /const names = \[\.\.\.new Set\(active\.map\(\(p\) => p\.name\)\)\]/);
-    assert.match(matrix, /const cols = \[\.\.\.new Set\(active\.map\(\(p\) => p\.sizeKg\)\)\]\.sort/);
+    assert.match(matrix, /const groups = groupProductsByName\(products\)/);
+    assert.match(groups, /const names = \[\.\.\.new Set\(active\.map\(\(p\) => p\.name\)\)\]/);
+    assert.match(matrix, /const cols = \[\.\.\.new Set\(groups\.flatMap\(\(g\) => g\.products\.map\(\(p\) => p\.sizeKg\)\)\)\]\.sort/);
   });
 
   it('offers only products on sale', () => {
-    assert.match(matrix, /const active = products\.filter\(\(p\) => p\.isActive\)/);
+    assert.match(groups, /const active = products\.filter\(\(p\) => p\.isActive\)/);
   });
 });
 

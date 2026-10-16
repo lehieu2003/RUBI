@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useCallback } from 'react';
 import type { Product } from '@prisma/client';
+import { groupProductsByName } from '@/lib/product-groups';
 
 interface OrderMatrixProps {
   products: Product[];
@@ -17,13 +18,12 @@ interface OrderMatrixProps {
 // Build the grid from the catalogue itself, so a product the manager adds is
 // orderable at once: one row per product name, one column per bag size.
 function buildGrid(products: Product[]) {
-  const active = products.filter((p) => p.isActive);
-  const names = [...new Set(active.map((p) => p.name))];
-  const cols = [...new Set(active.map((p) => p.sizeKg))].sort((a, b) => a - b);
+  const groups = groupProductsByName(products);
+  const cols = [...new Set(groups.flatMap((g) => g.products.map((p) => p.sizeKg)))].sort((a, b) => a - b);
 
-  const rows = names.map((name) => {
+  const rows = groups.map(({ name, products: sizes }) => {
     const cells = cols.map((sizeKg) => {
-      const product = active.find((p) => p.name === name && p.sizeKg === sizeKg);
+      const product = sizes.find((p) => p.sizeKg === sizeKg);
       return product ? { product, sizeKg } : null;
     });
     return { label: name, cells };
