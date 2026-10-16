@@ -61,11 +61,12 @@ export async function PATCH(
         return apiError('Chỉ đối soát được đơn đã giao', 409, 'ORDER_NOT_DELIVERED');
       }
 
-      // 2. Update actualQty for each line item
+      // 2. Record what was delivered: actualQty, and the line worth actualQty * unitPrice
       for (const item of parsed.data.items) {
+        const orderItem = order.orderItems.find((oi) => oi.id === item.id)!;
         await tx.orderItem.update({
           where: { id: item.id },
-          data: { actualQty: item.actualQty },
+          data: { actualQty: item.actualQty, lineTotal: orderItem.unitPrice.mul(item.actualQty) },
         });
       }
 
@@ -75,6 +76,9 @@ export async function PATCH(
         if (!orderItem) return sum;
         return sum + (itemInput.actualQty * orderItem.unitPrice.toNumber());
       }, 0);
+
+      // A settled order is worth what was delivered, the amount booked as debt below.
+      await tx.order.update({ where: { id }, data: { total: deliveredTotal } });
 
       // 4. Create DEBT ledger entry
       if (deliveredTotal > 0) {
