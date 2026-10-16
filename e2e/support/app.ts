@@ -35,3 +35,8 @@ export async function openStaffSettings(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Nhân sự' }).click();
   await expect(page.getByText('Quản lý nhân sự')).toBeVisible();
 }
+
+/** Opens a page of the app for a test. */
+export async function openPage(page: Page, url: string): Promise<void> {
+  await page.goto(url);
+}
