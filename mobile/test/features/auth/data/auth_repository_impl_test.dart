@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -360,6 +361,34 @@ void main() {
         expect(storage.clearCalls, 1);
         expect(await storage.readToken(), isNull);
         expect(res, const Ok<void>(null));
+      });
+
+      test('server treo (mất mạng) → xoá token ngay, không chờ request',
+          () async {
+        await storage.saveToken('jwt-123');
+        final gate = Completer<void>();
+        var logoutSent = false;
+        // Request bay mãi không về (như mất mạng chờ timeout 15 s).
+        dio.interceptors.add(
+          InterceptorsWrapper(
+            onRequest: (options, handler) async {
+              logoutSent = true;
+              await gate.future;
+              handler.next(options);
+            },
+          ),
+        );
+        adapter.onPost('/api/auth/logout', (server) {
+          server.reply(200, {'success': true, 'data': null});
+        });
+
+        final res =
+            await repo.logout().timeout(const Duration(milliseconds: 500));
+
+        expect(res, const Ok<void>(null));
+        expect(await storage.readToken(), isNull);
+        expect(logoutSent, isTrue); // vẫn gửi để server xoá cookie
+        gate.complete();
       });
 
       test('logout 500 → vẫn xoá token + Ok(null)', () async {
