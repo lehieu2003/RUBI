@@ -4,6 +4,7 @@ import { DashboardClient } from '@/components/dashboard/dashboard-client';
 import { redirect } from 'next/navigation';
 import { startOfVietnamToday } from '@/lib/vietnam-time';
 import { isLowStock, reservedByOpenOrders, stockOnHand } from '@/lib/inventory';
+import { revenueOf } from '@/lib/revenue';
 
 async function getCustomers(factoryId: string) {
   return prisma.customer.findMany({
@@ -85,9 +86,9 @@ async function getYesterdayRevenue(factoryId: string) {
       factoryId,
       createdAt: { gte: startOfYesterday, lt: startOfToday },
     },
-    select: { total: true },
+    select: { total: true, status: true },
   });
-  return yesterdayOrders.reduce((sum, o) => sum + Number(o.total), 0);
+  return revenueOf(yesterdayOrders);
 }
 
 // Assets with a maintenance/inspection/insurance due date in the next 30 days
