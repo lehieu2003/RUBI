@@ -58,6 +58,8 @@ void main() {
     preferences = _MockAppPreferences();
     when(() => preferences.readLastEmail()).thenAnswer((_) async => null);
     when(() => preferences.saveLastEmail(any())).thenAnswer((_) async {});
+    when(() => repo.refreshSession())
+        .thenAnswer((_) async => const Ok<void>(null));
     authEvents = AuthEvents();
   });
 

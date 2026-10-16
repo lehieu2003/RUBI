@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:iceflow_mobile/core/network/api_error_decoder.dart';
 import 'package:iceflow_mobile/core/network/api_failure.dart';
@@ -117,6 +119,61 @@ class AuthRepositoryImpl implements AuthRepository {
         tag: 'auth',
       );
       return Err(UnexpectedFailure('Unexpected restoreSession failure: $e'));
+    }
+  }
+
+  /// Token cấp lâu hơn mức này thì làm mới (server cấp token hạn 7 ngày).
+  static const _refreshAfter = Duration(days: 1);
+
+  @override
+  Future<Result<void>> refreshSession() async {
+    try {
+      final token = await _storage.readToken();
+      if (token == null || token.isEmpty) return const Ok<void>(null);
+      final issuedAt = _issuedAt(token);
+      if (issuedAt != null &&
+          DateTime.now().difference(issuedAt) < _refreshAfter) {
+        return const Ok<void>(null);
+      }
+
+      final newToken = _dataOf(await _api.refresh())?['token'];
+      if (newToken is! String || newToken.isEmpty) {
+        return const Err(
+          UnexpectedFailure('Refresh response missing `data.token`'),
+        );
+      }
+      // Đã đăng xuất (hoặc đổi phiên) trong lúc chờ: không ghi token lại.
+      if (await _storage.readToken() != token) return const Ok<void>(null);
+      await _storage.saveToken(newToken);
+      return const Ok<void>(null);
+    } on DioException catch (err) {
+      return Err(mapDioError(err));
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'Unexpected refreshSession failure',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'auth',
+      );
+      return Err(UnexpectedFailure('Unexpected refreshSession failure: $e'));
+    }
+  }
+
+  /// Thời điểm cấp (`iat`) đọc từ payload JWT; `null` nếu không đọc được
+  /// (khi đó cứ làm mới). Chữ ký do server kiểm, app không cần.
+  DateTime? _issuedAt(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return null;
+      final payload = jsonDecode(
+        utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
+      );
+      final iat = payload is Map ? payload['iat'] : null;
+      return iat is int
+          ? DateTime.fromMillisecondsSinceEpoch(iat * 1000)
+          : null;
+    } on FormatException {
+      return null;
     }
   }
 

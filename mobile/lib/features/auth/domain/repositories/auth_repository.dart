@@ -16,6 +16,13 @@ abstract class AuthRepository {
   /// surface error); lỗi khác → `Err`.
   Future<Result<User?>> restoreSession();
 
+  /// Đổi token còn hạn lấy token mới khi token đã cấp hơn một ngày (phiên
+  /// trượt: người dùng đều đặn mở app không bị đăng xuất sau 7 ngày).
+  ///
+  /// Chưa có token / token còn mới → `Ok` không gọi network. Thất bại → `Err`
+  /// nhưng KHÔNG xoá token: chỉ đường 401 thật mới đăng xuất.
+  Future<Result<void>> refreshSession();
+
   /// Đăng xuất. Bỏ qua mọi kết quả server; token local bị xoá. Lỗi
   /// secure-storage cục bộ (hiếm) là trường hợp duy nhất trả `Err`.
   Future<Result<void>> logout();
