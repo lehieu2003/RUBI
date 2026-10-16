@@ -1,17 +1,13 @@
 import { NextRequest } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
-import { requireRole } from '@/lib/auth/helpers';
+import { requireRole, requireSession } from '@/lib/auth/helpers';
 import { CreateProductBody } from '@/lib/contracts/products';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 export async function GET() {
   try {
-    const session = await getSession();
-    if (!session) {
-      return apiError('Chưa đăng nhập hoặc phiên đã hết hạn', 401);
-    }
+    const session = await requireSession();
     if (!session.factoryId) {
       return apiError('Tài khoản chưa được gán nhà máy', 400);
     }
@@ -22,6 +18,7 @@ export async function GET() {
     });
     return apiSuccess(products);
   } catch (error) {
+    if (error instanceof Response) return error;
     console.error('[GET /api/products]', error);
     return apiError('Không thể tải danh sách sản phẩm', 500);
   }

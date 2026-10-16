@@ -19,6 +19,7 @@ describe('forced password change gate', () => {
 
   it('keeps the roles each of them allowed before', () => {
     assert.match(read('src/app/api/reports/debt/route.ts'), /requireRole\(\['ADMIN'\]\)/);
+    assert.match(read('src/app/api/reports/debt/route.ts'), /if \(error instanceof Response\) return error;/);
     assert.match(read('src/lib/actions/orders.ts'), /requireRole\(\['ADMIN', 'STAFF'\]\)/);
     const products = read('src/app/api/products/route.ts');
     const get = products.slice(products.indexOf('export async function GET'), products.indexOf('export async function POST'));
