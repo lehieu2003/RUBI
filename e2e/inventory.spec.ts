@@ -1,7 +1,11 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { sessionFile } from './support/env';
 import { db, setStock, stockOf } from './support/db';
 import { expectToast, openPage } from './support/app';
+
+/** The stock row of Đá Viên 20 kg, by its size cell: a total such as "1.220 kg" also contains "20 kg". */
+const stockRow = (page: Page) =>
+  page.locator('tbody tr', { hasText: 'Đá Viên' }).filter({ has: page.locator('td', { hasText: /^20 kg$/ }) });
 
 test.describe.serial('cold storage', () => {
   test.use({ storageState: sessionFile('manager') });
@@ -10,7 +14,7 @@ test.describe.serial('cold storage', () => {
   test("opens the day with yesterday's closing stock and adds production on top", async ({ page }) => {
     await setStock(PRODUCT, 150, 1); // nothing recorded today
     await openPage(page, '/inventory');
-    const row = page.locator('tbody tr', { hasText: 'Đá Viên' }).filter({ hasText: '20 kg' });
+    const row = stockRow(page);
     await expect(row).toContainText('150');
 
     await page.getByRole('button', { name: 'NHẬP SẢN LƯỢNG MỚI' }).click();
@@ -28,7 +32,7 @@ test.describe.serial('cold storage', () => {
 
   test('a stock count replaces the balance and is kept with its note', async ({ page }) => {
     await openPage(page, '/inventory');
-    const row = page.locator('tbody tr', { hasText: 'Đá Viên' }).filter({ hasText: '20 kg' });
+    const row = stockRow(page);
     await row.getByRole('button', { name: 'Kiểm kho' }).click();
     const dialog = page.getByRole('dialog');
     await expect(dialog).toContainText('190');
