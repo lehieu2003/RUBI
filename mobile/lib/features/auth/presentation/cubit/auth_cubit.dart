@@ -81,8 +81,9 @@ class AuthCubit extends Cubit<AuthState> {
   /// lỗi khác (mạng...) → Unauthenticated kèm message.
   Future<void> restore() async {
     final res = await _repo.restoreSession();
-    // Cubit đã đóng trong lúc chờ: không emit nữa.
-    if (isClosed) return;
+    // Cubit đã đóng trong lúc chờ, hoặc người dùng đã đăng nhập / bị đăng
+    // xuất trước khi có kết quả: không đè state mới hơn.
+    if (isClosed || state is! AuthUnknown) return;
     switch (res) {
       case Ok<User?>(:final value):
         emit(value != null ? Authenticated(value) : const Unauthenticated());
