@@ -13,6 +13,7 @@ import './api/products.test';
 import './components/schedule/calendar-grid.test';
 import './components/sidebar.test';
 import './components/drawer-focus.test';
+import './components/delivery-card.test';
 import './lib/unwrap-envelope.test';
 import './lib/export-csv.test';
 import './api/debt-report.test';
