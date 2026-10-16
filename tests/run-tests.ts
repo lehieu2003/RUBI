@@ -37,3 +37,4 @@ import './lib/inventory.test';
 import './lib/idempotency.test';
 import './api/customer-payments.test';
 import './api/create-order.test';
+import './lib/revenue.test';
