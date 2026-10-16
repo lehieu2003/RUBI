@@ -285,6 +285,13 @@ export default function OrdersPage() {
     : null;
 
   const handleCloseDrawer = () => {
+    // Esc closes the top layer only: with the cancel-reason dialog open, it
+    // closes the dialog and keeps the order, so the dialog never outlives it.
+    if (showCancelDialog) {
+      setShowCancelDialog(false);
+      setCancelReason('');
+      return;
+    }
     setSelectedOrderId(null);
   };
 
