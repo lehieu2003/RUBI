@@ -49,6 +49,12 @@ export async function PATCH(
       if (parsed.data.items.some((item) => !ownItemIds.has(item.id))) {
         return apiError('Dữ liệu không hợp lệ: có dòng hàng không thuộc đơn này', 400);
       }
+      // ...and every line of the order is given exactly once, so the lines add
+      // up to the total booked as debt.
+      const sentItemIds = new Set(parsed.data.items.map((item) => item.id));
+      if (sentItemIds.size !== parsed.data.items.length || sentItemIds.size !== ownItemIds.size) {
+        return apiError('Dữ liệu không hợp lệ: cần số thực giao của mỗi dòng hàng, mỗi dòng một lần', 400);
+      }
 
       // 1. Mark the order COMPLETED first. The status is checked again in the
       // write itself, so a second settlement, or an order cancelled in the
