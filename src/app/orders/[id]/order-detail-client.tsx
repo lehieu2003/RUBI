@@ -22,6 +22,7 @@ export interface SerializedOrderDetail {
   orderItems: {
     id: string;
     quantity: number;
+    actualQty: number | null;
     unitPrice: number;
     lineTotal: number;
     product: {
@@ -53,7 +54,8 @@ export function OrderDetailClient({ order, factory }: OrderDetailClientProps) {
     customer: order.customer,
     orderItems: order.orderItems.map((item) => ({
       product: { name: item.product.name, sizeKg: item.product.sizeKg },
-      quantity: item.quantity,
+      // Once settled the line total is the delivered amount: print the delivered quantity with it.
+      quantity: item.actualQty ?? item.quantity,
       unitPrice: item.unitPrice,
       lineTotal: item.lineTotal,
     })),
@@ -159,7 +161,12 @@ export function OrderDetailClient({ order, factory }: OrderDetailClientProps) {
                     <td className="py-2.5 px-3 font-bold text-on-surface">
                       {item.product.name} ({item.product.sizeKg}kg)
                     </td>
-                    <td className="py-2.5 px-3 text-center font-bold text-primary-accent">{item.quantity}</td>
+                    <td className="py-2.5 px-3 text-center font-bold text-primary-accent">
+                      {item.quantity}
+                      {item.actualQty !== null && (
+                        <span className="block text-[11px] font-normal text-faint">thực giao {item.actualQty}</span>
+                      )}
+                    </td>
                     <td className="py-2.5 px-3 text-right data-sm text-faint">
                       {item.unitPrice.toLocaleString('vi-VN')}đ
                     </td>
