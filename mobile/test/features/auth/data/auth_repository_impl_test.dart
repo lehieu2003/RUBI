@@ -345,19 +345,20 @@ void main() {
     });
 
     group('logout', () {
-      test('gọi POST /api/auth/logout rồi xoá token → Ok(null)', () async {
+      test('gọi POST /api/auth/logout và xoá token → Ok(null)', () async {
         await storage.saveToken('jwt-123');
-        var logoutCalled = false;
+        final logoutCalled = Completer<void>();
         adapter.onPost('/api/auth/logout', (server) {
           server.replyCallback(200, (options) {
-            logoutCalled = true;
+            logoutCalled.complete();
             return {'success': true, 'data': null};
           });
         });
 
         final res = await repo.logout();
 
-        expect(logoutCalled, isTrue);
+        // Request gửi không chờ — chỉ cần nó tới server.
+        await logoutCalled.future.timeout(const Duration(seconds: 1));
         expect(storage.clearCalls, 1);
         expect(await storage.readToken(), isNull);
         expect(res, const Ok<void>(null));
@@ -367,12 +368,12 @@ void main() {
           () async {
         await storage.saveToken('jwt-123');
         final gate = Completer<void>();
-        var logoutSent = false;
+        final logoutSent = Completer<void>();
         // Request bay mãi không về (như mất mạng chờ timeout 15 s).
         dio.interceptors.add(
           InterceptorsWrapper(
             onRequest: (options, handler) async {
-              logoutSent = true;
+              logoutSent.complete();
               await gate.future;
               handler.next(options);
             },
@@ -387,7 +388,8 @@ void main() {
 
         expect(res, const Ok<void>(null));
         expect(await storage.readToken(), isNull);
-        expect(logoutSent, isTrue); // vẫn gửi để server xoá cookie
+        // Vẫn gửi để server xoá cookie.
+        await logoutSent.future.timeout(const Duration(seconds: 1));
         gate.complete();
       });
 

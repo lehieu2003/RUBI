@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -176,11 +177,9 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Result<void>> logout() async {
-    try {
-      await _api.logout();
-    } on Object catch (_) {
-      // Bỏ qua mọi kết quả server (success/error/exception).
-    }
+    // Không chờ server: lệnh này chỉ xoá cookie (no-op với Bearer), mất mạng
+    // thì người dùng phải đợi tới timeout 15 s. Bỏ qua mọi kết quả server.
+    unawaited(_api.logout().then<void>((_) {}, onError: (Object _) {}));
     try {
       await _storage.clear();
     } on Object catch (e, stackTrace) {
