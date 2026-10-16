@@ -84,9 +84,9 @@ class AuthRepositoryImpl implements AuthRepository {
       }
 
       final meData = MeDataDto.fromJson(data);
-      if (meData.user == null) {
-        return const Err(UnexpectedFailure('Me response missing `data.user`'));
-      }
+      // /me không bao giờ trả 401: phiên chết (hết hạn, bị khoá) là 200
+      // `{ user: null }` → xoá token, về màn đăng nhập im lặng.
+      if (meData.user == null) return _dropDeadSession();
       switch (UserMapper.fromDto(meData.user!)) {
         case Ok<User>(:final value):
           return Ok<User?>(value);
@@ -94,22 +94,7 @@ class AuthRepositoryImpl implements AuthRepository {
           return Err<User?>(failure);
       }
     } on DioException catch (err) {
-      if (err.response?.statusCode == 401) {
-        // Token hết hạn: xoá token và IM LẶNG (không surface error) —
-        // caller chỉ thấy "chưa đăng nhập". Clear là best-effort: phiên đã
-        // chết, nếu storage lỗi hiếm gặp thì token còn lại sẽ bị xoá ở lần
-        // restore/401 kế tiếp chứ không phá vỡ contract im lặng.
-        try {
-          await _storage.clear();
-        } on Object catch (e) {
-          // Không surface — phiên 401 luôn im lặng.
-          AppLogger.warning(
-            'Could not clear the expired token: $e',
-            tag: 'auth',
-          );
-        }
-        return const Ok<User?>(null);
-      }
+      if (err.response?.statusCode == 401) return _dropDeadSession();
       return Err(mapDioError(err));
     } catch (e, stackTrace) {
       AppLogger.error(
@@ -120,6 +105,18 @@ class AuthRepositoryImpl implements AuthRepository {
       );
       return Err(UnexpectedFailure('Unexpected restoreSession failure: $e'));
     }
+  }
+
+  /// Phiên đã chết: xoá token và IM LẶNG (không surface error) — caller chỉ
+  /// thấy "chưa đăng nhập". Clear là best-effort: nếu storage lỗi hiếm gặp
+  /// thì token còn lại sẽ bị xoá ở lần restore kế tiếp.
+  Future<Result<User?>> _dropDeadSession() async {
+    try {
+      await _storage.clear();
+    } on Object catch (e) {
+      AppLogger.warning('Could not clear the expired token: $e', tag: 'auth');
+    }
+    return const Ok<User?>(null);
   }
 
   /// Token cấp lâu hơn mức này thì làm mới (server cấp token hạn 7 ngày).
