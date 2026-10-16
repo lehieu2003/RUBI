@@ -17,7 +17,7 @@ export const CreateProductBody = z.object({
   name: ProductName,
   sizeKg: SizeKg,
   unit: Unit.optional(),
-  price: z.number().positive('Giá bán phải lớn hơn 0').max(99_999_999),
+  price: z.number().int('Giá bán phải là số nguyên (VND)').positive('Giá bán phải lớn hơn 0').max(99_999_999),
   minStock: MinStock.optional(),
 });
 

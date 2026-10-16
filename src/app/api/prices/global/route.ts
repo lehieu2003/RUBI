@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { Prisma } from '@prisma/client';
-import { z } from 'zod';
 import { requireRole } from '@/lib/auth/helpers';
+import { GlobalPriceBody } from '@/lib/contracts/prices';
 import { apiSuccess, apiError } from "@/lib/api-response";
-
-const SetGlobalPriceSchema = z.object({
-  productId: z.string().min(1),
-  price: z.number().positive(),
-});
 
 // GET /api/prices/global — every product with its default price, for the
 // manager's "products and prices" screen. Discontinued products are listed
@@ -56,7 +51,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const parsed = SetGlobalPriceSchema.safeParse(body);
+    const parsed = GlobalPriceBody.safeParse(body);
 
     if (!parsed.success) {
       return apiError('Yêu cầu không hợp lệ', 400);
