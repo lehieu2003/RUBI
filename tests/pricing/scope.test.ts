@@ -9,15 +9,15 @@ function read(path: string): string {
 describe('pricing factory scope source checks', () => {
   it('requires factory context before loading order-entry customer prices', () => {
     const source = read('src/lib/actions/orders.ts');
-    assert.match(source, /const session = await getSession\(\)/);
-    assert.match(source, /if \(!session\?\.factoryId\)/);
+    assert.match(source, /session = await requireRole\(\['ADMIN', 'STAFF'\]\)/);
+    assert.match(source, /if \(!session\.factoryId\)/);
     assert.match(source, /const factoryId = session\.factoryId/);
     assert.match(source, /where: \{ id: customerId, factoryId \}/);
   });
 
   it('prices an order on the server and limits order entry to the office', () => {
     const source = read('src/lib/actions/orders.ts');
-    assert.match(source, /session\.role !== 'ADMIN' && session\.role !== 'STAFF'/);
+    assert.match(source, /requireRole\(\['ADMIN', 'STAFF'\]\)/);
     assert.equal(source.match(/await requireOfficeFactoryId\(\)/g)?.length, 3, 'prices, the slip header and sellable stock');
     // saving an order runs the same check and keeps who did it, for the audit log
     assert.match(source, /const actor = await requireOfficeActor\(\);/);
