@@ -61,6 +61,22 @@ test.describe.serial('customer own prices', () => {
       await expect(priceRow(page, 'Đá Bi', 20)).toContainText('39.000');
       await expect(priceRow(page, 'Đá Bi', 20)).toContainText('(riêng)');
     });
+
+    test('a price with a fractional part is refused: payments are whole VND', async ({ page }) => {
+      const customer = await customerNamed(CUSTOMER);
+      const own = await page.request.post('/api/prices/customer/override', {
+        data: { customerId: customer.id, productId: 'prod-mi-20', price: 12500.5 },
+      });
+      expect(own.status()).toBe(400);
+      const global = await page.request.post('/api/prices/global', {
+        data: { productId: 'prod-mi-20', price: 12500.5 },
+      });
+      expect(global.status()).toBe(400);
+      const saved = await db.customerPriceOverride.findFirstOrThrow({
+        where: { customerId: customer.id, productId: 'prod-mi-20' },
+      });
+      expect(Number(saved.pricePerUnit)).toBe(27000);
+    });
   });
 
   test.describe('staff', () => {

@@ -44,3 +44,48 @@ describe('assets API source checks', () => {
     }
   });
 });
+
+describe('next maintenance due date', () => {
+  const day = (iso: string) => new Date(`${iso}T00:00:00.000Z`);
+
+  it('a newer record of the same type replaces the older due date', async () => {
+    const { currentDueDates } = await import('../../src/lib/maintenance');
+    const due = currentDueDates([
+      { type: 'ROUTINE', performedAt: day('2025-10-01'), dueAt: day('2026-10-01') },
+      { type: 'ROUTINE', performedAt: day('2026-09-25'), dueAt: day('2027-10-01') },
+    ]);
+    assert.deepEqual(due.map((record) => record.dueAt), [day('2027-10-01')]);
+  });
+
+  it('takes the soonest across types, each from its latest record', async () => {
+    const { currentDueDates } = await import('../../src/lib/maintenance');
+    const due = currentDueDates([
+      { type: 'INSURANCE', performedAt: day('2026-01-10'), dueAt: day('2027-01-10') },
+      { type: 'ROUTINE', performedAt: day('2026-09-25'), dueAt: day('2027-10-01') },
+      { type: 'ROUTINE', performedAt: day('2025-10-01'), dueAt: day('2026-10-01') },
+      { type: 'INSPECTION', performedAt: day('2026-06-01'), dueAt: day('2026-12-01') },
+    ]);
+    assert.deepEqual(
+      due.map((record) => [record.type, record.dueAt]),
+      [['INSPECTION', day('2026-12-01')], ['INSURANCE', day('2027-01-10')], ['ROUTINE', day('2027-10-01')]]
+    );
+  });
+
+  it('a latest record without a due date leaves nothing due for that type', async () => {
+    const { currentDueDates } = await import('../../src/lib/maintenance');
+    const due = currentDueDates([
+      { type: 'REPAIR', performedAt: day('2026-01-01'), dueAt: day('2026-10-20') },
+      { type: 'REPAIR', performedAt: day('2026-09-01'), dueAt: null },
+    ]);
+    assert.deepEqual(due, []);
+  });
+
+  it('the asset list and the dashboard alert both use it', () => {
+    const list = read('src/app/api/assets/route.ts');
+    const dashboard = read('src/app/dashboard/page.tsx');
+    assert.match(list, /currentDueDates\(maintenanceRecords\)/);
+    assert.doesNotMatch(list, /orderBy: \{ dueAt: 'asc' \}/);
+    assert.match(dashboard, /currentDueDates\(/);
+    assert.doesNotMatch(dashboard, /orderBy: \{ dueAt: 'asc' \},\s*take: 5/);
+  });
+});

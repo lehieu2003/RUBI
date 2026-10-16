@@ -3,7 +3,7 @@
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
-import { getSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth/helpers';
 import { stockOnHand } from '@/lib/inventory';
 import { type AuditActor, describeLines, dong, recordAudit } from '@/lib/audit';
 import { OrderEntryError } from '@/lib/order-entry-error';
@@ -17,12 +17,19 @@ async function requireOfficeFactoryId(): Promise<string> {
 
 // The same check, for an action that also records who did it.
 async function requireOfficeActor(): Promise<AuditActor> {
-  const session = await getSession();
-  if (!session?.factoryId) {
-    throw new Error('Tài khoản chưa được gán nhà máy');
+  let session;
+  try {
+    session = await requireRole(['ADMIN', 'STAFF']);
+  } catch (error) {
+    // The helper throws the API's error response; an action reports a plain error.
+    if (error instanceof Response) {
+      const body = await error.json().catch(() => null);
+      throw new Error(body?.error ?? 'Bạn không có quyền thực hiện thao tác này');
+    }
+    throw error;
   }
-  if (session.role !== 'ADMIN' && session.role !== 'STAFF') {
-    throw new Error('Bạn không có quyền thực hiện thao tác này');
+  if (!session.factoryId) {
+    throw new Error('Tài khoản chưa được gán nhà máy');
   }
   const factoryId = session.factoryId;
   return { factoryId, userId: session.userId, userName: session.name };

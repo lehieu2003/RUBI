@@ -1,20 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { requireRole } from '@/lib/auth/helpers';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 export async function GET(request: NextRequest) {
   try {
-    // --- Session auth ---
-    const session = await getSession();
-    if (!session) {
-      return apiError('Chưa đăng nhập hoặc phiên đã hết hạn', 401);
-    }
+    const session = await requireRole(['ADMIN']);
     if (!session.factoryId) {
       return apiError('Tài khoản chưa được gán nhà máy', 400);
-    }
-    if (session.role !== 'ADMIN') {
-      return apiError('Bạn không có quyền thực hiện thao tác này', 403);
     }
 
     // Totals per customer and entry type are summed by the database, so the
@@ -56,6 +49,7 @@ export async function GET(request: NextRequest) {
 
     return apiSuccess(sorted);
   } catch (error) {
+    if (error instanceof Response) return error;
     console.error('[GET /api/reports/debt]', error);
     return apiError('Không thể tải báo cáo công nợ', 500);
   }

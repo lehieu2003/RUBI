@@ -46,3 +46,20 @@ describe('order status: settled and cancelled orders are final', () => {
   });
 });
 
+
+describe('order status: cancelling keeps the order note', () => {
+  it('appends the reason on its own line after the note', async () => {
+    const { withCancelReason } = await import('../../src/lib/order-notes');
+    assert.equal(withCancelReason('Giao cổng sau', 'Khách gọi hủy'), 'Giao cổng sau\n[HỦY: Khách gọi hủy]');
+  });
+
+  it('is just the tag when the order had no note', async () => {
+    const { withCancelReason } = await import('../../src/lib/order-notes');
+    assert.equal(withCancelReason(null, 'Khách gọi hủy'), '[HỦY: Khách gọi hủy]');
+    assert.equal(withCancelReason('  ', 'Khách gọi hủy'), '[HỦY: Khách gọi hủy]');
+  });
+
+  it('the status route writes the note through it', () => {
+    assert.match(route, /withCancelReason\(existing\.notes, parsed\.data\.cancellationReason\)/);
+  });
+});

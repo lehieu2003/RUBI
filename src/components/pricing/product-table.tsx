@@ -61,7 +61,7 @@ function readForm(
   if (!name) return 'Nhập tên sản phẩm';
   if (!Number.isInteger(sizeKg) || sizeKg <= 0) return 'Cỡ bao phải là số nguyên lớn hơn 0';
   if (!unit) return 'Nhập đơn vị';
-  if (!Number.isFinite(price) || price <= 0) return 'Giá bán phải lớn hơn 0';
+  if (!Number.isInteger(price) || price <= 0) return 'Giá bán phải là số nguyên lớn hơn 0 (VND)';
   const minStock = form.minStock.trim() === '' ? null : Number(form.minStock);
   if (minStock !== null && (!Number.isInteger(minStock) || minStock < 0)) return 'Mức cảnh báo tồn phải là số nguyên từ 0';
   return { name, sizeKg, unit, price, minStock };
