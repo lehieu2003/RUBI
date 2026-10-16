@@ -122,6 +122,21 @@ void main() {
       expect(sentBody(), {'customerId': 'c-1', 'shellsOut': 5});
     });
 
+    test('record: có mã → header Idempotency-Key; không mã → không có header',
+        () async {
+      adapter.onPatch(
+        '/api/deposits/shells',
+        (server) => server.reply(200, recordedFile('success', 'updateShellDeposit')['body']),
+        data: Matchers.any,
+      );
+
+      await repo.record(customerId: 'c-1', shellsOut: 5, idempotencyKey: 'key-1');
+      expect(requests.last.headers['Idempotency-Key'], 'key-1');
+
+      await repo.record(customerId: 'c-1', shellsOut: 5);
+      expect(requests.last.headers.containsKey('Idempotency-Key'), isFalse);
+    });
+
     test('correct: gửi mode SET kèm cả hai tổng, kể cả số 0', () async {
       adapter.onPatch(
         '/api/deposits/shells',
@@ -161,6 +176,7 @@ void main() {
           customerId: any(named: 'customerId'),
           shellsOut: any(named: 'shellsOut'),
           shellsIn: any(named: 'shellsIn'),
+          idempotencyKey: any(named: 'idempotencyKey'),
         ),
       ).thenAnswer((_) async => const Ok<void>(null));
       when(
@@ -227,7 +243,7 @@ void main() {
       await tester.tap(find.byKey(const Key('shells_save')));
       await tester.pumpAndSettle();
 
-      verify(() => repo.record(customerId: 'c-1', shellsOut: 5, shellsIn: 2)).called(1);
+      verify(() => repo.record(customerId: 'c-1', shellsOut: 5, shellsIn: 2, idempotencyKey: any(named: 'idempotencyKey'))).called(1);
       verify(() => repo.getBalances()).called(1);
       expect(
         find.text('Vựa Hải Sản Năm Căn: giao thêm 5 vỏ, thu về 2 vỏ'),
@@ -253,6 +269,7 @@ void main() {
           customerId: any(named: 'customerId'),
           shellsOut: any(named: 'shellsOut'),
           shellsIn: any(named: 'shellsIn'),
+          idempotencyKey: any(named: 'idempotencyKey'),
         ),
       );
     });
@@ -285,6 +302,7 @@ void main() {
           customerId: any(named: 'customerId'),
           shellsOut: any(named: 'shellsOut'),
           shellsIn: any(named: 'shellsIn'),
+          idempotencyKey: any(named: 'idempotencyKey'),
         ),
       ).thenAnswer((_) async => const Err<void>(ServerFailure('Không tìm thấy khách hàng')));
       await pumpScreen(tester);
@@ -303,6 +321,7 @@ void main() {
           customerId: any(named: 'customerId'),
           shellsOut: any(named: 'shellsOut'),
           shellsIn: any(named: 'shellsIn'),
+          idempotencyKey: any(named: 'idempotencyKey'),
         ),
       ).thenAnswer((_) => answer());
     }
@@ -327,7 +346,33 @@ void main() {
       // Hộp đã đóng: không còn nút để bấm gửi lại.
       expect(find.byKey(const Key('shells_save')), findsNothing);
       verify(() => repo.getBalances()).called(1);
-      verify(() => repo.record(customerId: 'c-1', shellsOut: 5, shellsIn: 0)).called(1);
+      verify(() => repo.record(customerId: 'c-1', shellsOut: 5, shellsIn: 0, idempotencyKey: any(named: 'idempotencyKey'))).called(1);
+    });
+
+    testWidgets('ghi thêm gửi lại cùng số trong hộp → cùng Idempotency-Key; đổi '
+        'số → mã mới', (tester) async {
+      stubRecord(() async => const Err<void>(ServerFailure('Lỗi máy chủ', statusCode: 500)));
+      await pumpScreen(tester);
+      await open(tester, 'c-1');
+
+      for (final shellsOut in ['5', '5', '4']) {
+        await tester.enterText(find.byKey(const Key('shells_out')), shellsOut);
+        await tester.tap(find.byKey(const Key('shells_save')));
+        await tester.pumpAndSettle();
+      }
+
+      final keys = verify(
+        () => repo.record(
+          customerId: 'c-1',
+          shellsOut: any(named: 'shellsOut'),
+          shellsIn: any(named: 'shellsIn'),
+          idempotencyKey: captureAny(named: 'idempotencyKey'),
+        ),
+      ).captured;
+      expect(keys, hasLength(3));
+      expect(keys[0], isA<String>());
+      expect(keys[1], keys[0]);
+      expect(keys[2], isNot(keys[0]));
     });
 
     testWidgets('ghi thêm bị server từ chối (400) → câu của server; sửa số rồi '
@@ -352,7 +397,7 @@ void main() {
       await tester.tap(find.byKey(const Key('shells_save')));
       await tester.pumpAndSettle();
       expect(calls, 2);
-      verify(() => repo.record(customerId: 'c-1', shellsOut: 4, shellsIn: 0)).called(1);
+      verify(() => repo.record(customerId: 'c-1', shellsOut: 4, shellsIn: 0, idempotencyKey: any(named: 'idempotencyKey'))).called(1);
       expect(find.byKey(const Key('shells_save')), findsNothing);
     });
 

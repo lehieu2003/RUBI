@@ -8,4 +8,5 @@ export 'api_failure_messages.dart';
 export 'api_guard.dart';
 export 'auth_events.dart';
 export 'auth_interceptor.dart';
+export 'idempotency.dart';
 export 'mapping_validator.dart';

@@ -55,10 +55,19 @@ class InventoryCubit extends Cubit<InventoryState> {
     }
   }
 
-  /// Nhập một mẻ: cộng [quantity] vào tồn của [item].
-  Future<StockActionResult> recordProduction(StockItem item, int quantity) {
+  /// Nhập một mẻ: cộng [quantity] vào tồn của [item]. [idempotencyKey]: mã
+  /// của lần gửi, do sheet giữ, để gửi lại không bị cộng hai lần.
+  Future<StockActionResult> recordProduction(
+    StockItem item,
+    int quantity, {
+    String? idempotencyKey,
+  }) {
     return _record(
-      _repo.recordProduction(productId: item.productId, quantity: quantity),
+      _repo.recordProduction(
+        productId: item.productId,
+        quantity: quantity,
+        idempotencyKey: idempotencyKey,
+      ),
       (onHand) => AppStrings.stockProductionSaved(quantity, item.unit, onHand),
     );
   }

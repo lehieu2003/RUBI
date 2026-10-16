@@ -21,7 +21,7 @@ import { shellDepositContracts } from './shell-deposits';
 import { systemContracts } from './system';
 
 export type { ApiContract, ContractAuth, HttpMethod, Role } from './common';
-export { ErrorResponse, envelope } from './common';
+export { ErrorResponse, envelope, IDEMPOTENCY_HEADER } from './common';
 
 export interface ContractDomain {
   /** File name (without extension) of the generated OpenAPI document */

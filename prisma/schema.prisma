@@ -29,6 +29,7 @@ model Factory {
   maintenanceRecords MaintenanceRecord[]
   payrollLocks       PayrollLock[]
   auditLogs          AuditLog[]
+  idempotencyKeys    IdempotencyKey[]
 
   @@map("factories")
 }
@@ -383,6 +384,30 @@ model AuditLog {
   @@index([orderId])
   @@index([customerId])
   @@map("audit_logs")
+}
+
+// One submission of a write that adds to a balance (a payment, shells
+// handed out, a production batch), named by the Idempotency-Key the client
+// sends. Inserted first, in the same transaction as the write, so a resend of
+// the same submission waits on the unique index and then gets the stored
+// answer instead of writing again. Only successful writes are kept.
+model IdempotencyKey {
+  id          String   @id @default(cuid())
+  factoryId   String   @map("factory_id")
+  key         String
+  // "METHOD path" of the write, e.g. "PATCH /api/deposits/shells"
+  scope       String
+  // sha256 of the validated request body
+  requestHash String   @map("request_hash")
+  // HTTP status and JSON body of the first answer; set before commit
+  status      Int?
+  response    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+  factory     Factory  @relation(fields: [factoryId], references: [id])
+
+  @@unique([factoryId, key])
+  @@index([createdAt])
+  @@map("idempotency_keys")
 }
 
 enum AuditAction {

@@ -69,7 +69,7 @@ void main() {
       var loads = 0;
       when(() => repo.getStock())
           .thenAnswer((_) async => Ok(stockOf(loads++ == 0 ? 200 : 240)));
-      when(() => repo.recordProduction(productId: any(named: 'productId'), quantity: any(named: 'quantity')))
+      when(() => repo.recordProduction(productId: any(named: 'productId'), quantity: any(named: 'quantity'), idempotencyKey: any(named: 'idempotencyKey')))
           .thenAnswer((_) async => const Ok(240));
       final cubit = buildCubit();
       addTearDown(cubit.close);
@@ -78,7 +78,7 @@ void main() {
       final result = await cubit.recordProduction(item(), 40);
 
       expect(result, (ok: true, unsure: false, message: AppStrings.stockProductionSaved(40, 'Bao', 240)));
-      verify(() => repo.recordProduction(productId: 'prod-bi-5', quantity: 40)).called(1);
+      verify(() => repo.recordProduction(productId: 'prod-bi-5', quantity: 40, idempotencyKey: any(named: 'idempotencyKey'))).called(1);
       expect(cubit.state.stock, stockOf(240));
     });
 
@@ -100,7 +100,7 @@ void main() {
 
     test('server từ chối → giữ câu của server, không tải lại', () async {
       when(() => repo.getStock()).thenAnswer((_) async => Ok(stockOf(200)));
-      when(() => repo.recordProduction(productId: any(named: 'productId'), quantity: any(named: 'quantity')))
+      when(() => repo.recordProduction(productId: any(named: 'productId'), quantity: any(named: 'quantity'), idempotencyKey: any(named: 'idempotencyKey')))
           .thenAnswer((_) async => const Err(ServerFailure('Số lượng không hợp lệ', statusCode: 400)));
       final cubit = buildCubit();
       addTearDown(cubit.close);
@@ -122,7 +122,7 @@ void main() {
       await expectLater(loading, completes);
 
       final slowSave = Completer<Result<int>>();
-      when(() => repo.recordProduction(productId: any(named: 'productId'), quantity: any(named: 'quantity')))
+      when(() => repo.recordProduction(productId: any(named: 'productId'), quantity: any(named: 'quantity'), idempotencyKey: any(named: 'idempotencyKey')))
           .thenAnswer((_) => slowSave.future);
       final cubit = buildCubit();
       final saving = cubit.recordProduction(item(), 5);

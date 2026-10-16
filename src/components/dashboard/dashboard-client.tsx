@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { HourlyChart } from '@/components/dashboard/hourly-chart';
@@ -14,6 +13,7 @@ import {
   Package,
 } from 'lucide-react';
 import type { Customer, Product, Order } from '@prisma/client';
+import { revenueOf } from '@/lib/revenue';
 
 type DashboardOrder = Omit<Order, 'total'> & {
   total: string | number;
@@ -43,21 +43,17 @@ interface DashboardClientProps {
 export function DashboardClient({
   customers,
   products,
-  orders: initialOrders,
+  orders,
   todayOrders,
   inventoryStats = { totalBags: 0, details: 'Chưa có mẻ nhập kho' },
   totalBagsOut = 0,
   yesterdayRevenue = 0,
   dueAssets = [],
 }: DashboardClientProps) {
-  const [orders] = useState(initialOrders);
-
   // KPI figures come from every order of today (loaded separately by the
-  // server), not from the capped recent-orders list.
-  const todayRevenue = todayOrders.reduce(
-    (sum, o) => sum + Number(o.total),
-    0
-  );
+  // server), not from the capped recent-orders list. Revenue leaves cancelled
+  // orders out; the order count still includes them (they were taken).
+  const todayRevenue = revenueOf(todayOrders);
   // Delivered includes completed (settled) orders; pending = still waiting
   // for a driver or on the way.
   const deliveredCount = todayOrders.filter(

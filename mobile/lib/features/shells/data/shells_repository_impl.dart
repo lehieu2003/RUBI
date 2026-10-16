@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_guard.dart';
+import 'package:iceflow_mobile/core/network/idempotency.dart';
 import 'package:iceflow_mobile/core/network/mapping_validator.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/shells/domain/shell_balance.dart';
@@ -65,6 +66,7 @@ class ShellsRepositoryImpl implements ShellsRepository {
     required String customerId,
     int shellsOut = 0,
     int shellsIn = 0,
+    String? idempotencyKey,
   }) {
     return guardApi('record', tag: _tag, run: () async {
       await _dio.patch<dynamic>(
@@ -74,6 +76,7 @@ class ShellsRepositoryImpl implements ShellsRepository {
           if (shellsOut > 0) 'shellsOut': shellsOut,
           if (shellsIn > 0) 'shellsIn': shellsIn,
         },
+        options: idempotencyOptions(idempotencyKey),
       );
       return const Ok(null);
     });

@@ -87,6 +87,9 @@ class AuthInterceptor extends Interceptor {
       await _forceLogout();
       return handler.next(err);
     }
+    // Logged out while the refresh was in flight: do not write the token
+    // back (that would silently sign the user in again); no retry.
+    if (await _authStorage.readToken() == null) return handler.next(err);
     await _authStorage.saveToken(newToken);
 
     final options = err.requestOptions

@@ -43,6 +43,11 @@ class IceFlowApp extends HookWidget {
       authCubit.restore();
       return null;
     }, const []);
+    // Mở lại app (từ nền) → làm mới token nếu đã cũ, để người dùng hằng
+    // ngày không bị đăng xuất cứng 7 ngày sau lần đăng nhập.
+    useOnAppLifecycleStateChange((_, current) {
+      if (current == AppLifecycleState.resumed) authCubit.refreshSession();
+    });
 
     return BlocProvider<ThemeCubit>.value(
       value: themeCubit,

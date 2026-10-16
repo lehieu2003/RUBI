@@ -1,9 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
-import { Phone, MapPin, Check, Navigation, Camera, Image as ImageIcon } from 'lucide-react';
-import { toast } from '@/components/dashboard/toast';
+import { Phone, MapPin, Check, Navigation } from 'lucide-react';
 
 interface DeliveryCardProps {
   order: {
@@ -48,19 +45,6 @@ function callCustomer(phone: string) {
 
 export default function DeliveryCard({ order, index, onConfirm }: DeliveryCardProps) {
   const isDelivered = order.status === 'DELIVERED';
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-
-  const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-        toast({ type: 'success', title: 'Đã lưu ảnh bằng chứng giao hàng' });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   return (
     <div
@@ -111,22 +95,6 @@ export default function DeliveryCard({ order, index, onConfirm }: DeliveryCardPr
           <Navigation className="h-4 w-4 shrink-0 text-primary-accent" />
         </button>
 
-        {/* Photo Proof thumbnail if captured */}
-        {photoPreview && (
-          <div className="mb-3 p-2 rounded bg-container-high/50 border border-[#004a99]/30 flex items-center gap-2">
-            <div className="relative h-12 w-12 rounded overflow-hidden bg-black shrink-0 border border-outline-variant">
-              <Image src={photoPreview} alt="Ảnh giao hàng" width={48} height={48} unoptimized className="h-full w-full object-cover" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-primary-deep flex items-center gap-1">
-                <ImageIcon className="h-3.5 w-3.5" />
-                Ảnh xác nhận giao hàng
-              </p>
-              <p className="text-[11px] text-secondary font-medium">Đã đính kèm bằng chứng</p>
-            </div>
-          </div>
-        )}
-
         {/* Money to collect */}
         <div className="flex items-center justify-between bg-surface border border-outline-variant rounded-xl p-3 mb-4">
           <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
@@ -139,32 +107,13 @@ export default function DeliveryCard({ order, index, onConfirm }: DeliveryCardPr
 
         {/* Action Buttons */}
         <div className="space-y-2">
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => callCustomer(order.customer.phone)}
-              className="flex items-center justify-center gap-1.5 h-12 rounded-xl border border-[#004a99] bg-card text-primary-accent font-bold text-sm hover:bg-container-high active:scale-[0.98] transition-all shadow-2xs"
-            >
-              <Phone className="h-4 w-4" />
-              Gọi khách
-            </button>
-
-            {/* Camera Capture Input Button */}
-            <label
-              htmlFor={`camera-input-${order.id}`}
-              className="flex items-center justify-center gap-1.5 h-12 rounded-xl border border-outline-variant bg-surface hover:bg-container-high text-on-surface-variant font-bold text-sm cursor-pointer active:scale-[0.98] transition-all shadow-2xs"
-            >
-              <Camera className="h-4 w-4 text-primary-accent" />
-              <span>Chụp ảnh</span>
-              <input
-                id={`camera-input-${order.id}`}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={handlePhotoCapture}
-                className="hidden"
-              />
-            </label>
-          </div>
+          <button
+            onClick={() => callCustomer(order.customer.phone)}
+            className="w-full flex items-center justify-center gap-1.5 h-12 rounded-xl border border-[#004a99] bg-card text-primary-accent font-bold text-sm hover:bg-container-high active:scale-[0.98] transition-all shadow-2xs"
+          >
+            <Phone className="h-4 w-4" />
+            Gọi khách
+          </button>
 
           {!isDelivered ? (
             <button

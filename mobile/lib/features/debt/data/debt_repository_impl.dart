@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_guard.dart';
+import 'package:iceflow_mobile/core/network/idempotency.dart';
 import 'package:iceflow_mobile/core/pagination/page_params.dart';
 import 'package:iceflow_mobile/core/pagination/pagination_dto.dart';
 import 'package:iceflow_mobile/core/pagination/pagination_entity.dart';
@@ -76,6 +77,7 @@ class DebtRepositoryImpl implements DebtRepository {
     required String customerId,
     required int amount,
     String? notes,
+    String? idempotencyKey,
   }) {
     return guardApi('recordPayment', tag: _tag, run: () async {
       final trimmed = notes?.trim();
@@ -85,6 +87,7 @@ class DebtRepositoryImpl implements DebtRepository {
           'amount': amount,
           if (trimmed != null && trimmed.isNotEmpty) 'notes': trimmed,
         },
+        options: idempotencyOptions(idempotencyKey),
       );
       final data = apiDataObject(res.data);
       if (data == null) {

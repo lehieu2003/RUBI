@@ -45,6 +45,8 @@ void main() {
     preferences = _MockAppPreferences();
     when(() => preferences.readLastEmail()).thenAnswer((_) async => null);
     when(() => preferences.saveLastEmail(any())).thenAnswer((_) async {});
+    when(() => repo.refreshSession())
+        .thenAnswer((_) async => const Ok<void>(null));
     authEvents = AuthEvents();
   });
 
@@ -94,6 +96,85 @@ void main() {
         expect: () => [
           Unauthenticated(message: FailureMessages.network),
         ],
+      );
+
+      blocTest<AuthCubit, AuthState>(
+        'có phiên → làm mới token ngay sau khi khôi phục (phiên trượt)',
+        build: buildCubit,
+        setUp: () {
+          when(() => repo.restoreSession())
+              .thenAnswer((_) async => const Ok<User?>(driver));
+        },
+        act: (cubit) => cubit.restore(),
+        expect: () => [const Authenticated(driver)],
+        verify: (_) => verify(() => repo.refreshSession()).called(1),
+      );
+
+      blocTest<AuthCubit, AuthState>(
+        'không có phiên → không làm mới token',
+        build: buildCubit,
+        setUp: () {
+          when(() => repo.restoreSession())
+              .thenAnswer((_) async => const Ok<User?>(null));
+        },
+        act: (cubit) => cubit.restore(),
+        expect: () => [const Unauthenticated()],
+        verify: (_) => verifyNever(() => repo.refreshSession()),
+      );
+
+      blocTest<AuthCubit, AuthState>(
+        'làm mới token thất bại → vẫn Authenticated (không đăng xuất)',
+        build: buildCubit,
+        setUp: () {
+          when(() => repo.restoreSession())
+              .thenAnswer((_) async => const Ok<User?>(driver));
+          when(() => repo.refreshSession()).thenAnswer(
+            (_) async => const Err<void>(
+              AuthFailure('Chưa đăng nhập', statusCode: 401),
+            ),
+          );
+        },
+        act: (cubit) => cubit.restore(),
+        expect: () => [const Authenticated(driver)],
+      );
+
+      test('restore xong muộn sau một lần đăng nhập → không đè phiên mới',
+          () async {
+        final restoring = Completer<Result<User?>>();
+        when(() => repo.restoreSession()).thenAnswer((_) => restoring.future);
+        when(() => repo.login(
+              email: any(named: 'email'),
+              password: any(named: 'password'),
+            )).thenAnswer((_) async => const Ok<User>(staff));
+        final cubit = buildCubit();
+        addTearDown(cubit.close);
+
+        final restore = cubit.restore();
+        await cubit.login('van@iceflow.vn', 'secret');
+        restoring.complete(const Ok<User?>(null));
+        await restore;
+
+        expect(cubit.state, const Authenticated(staff));
+      });
+    });
+
+    group('refreshSession (mở lại app)', () {
+      blocTest<AuthCubit, AuthState>(
+        'đang đăng nhập → gọi repo.refreshSession, state giữ nguyên',
+        build: buildCubit,
+        seed: () => const Authenticated(driver),
+        act: (cubit) => cubit.refreshSession(),
+        expect: () => const <AuthState>[],
+        verify: (_) => verify(() => repo.refreshSession()).called(1),
+      );
+
+      blocTest<AuthCubit, AuthState>(
+        'chưa đăng nhập → không gọi network',
+        build: buildCubit,
+        seed: () => const Unauthenticated(),
+        act: (cubit) => cubit.refreshSession(),
+        expect: () => const <AuthState>[],
+        verify: (_) => verifyNever(() => repo.refreshSession()),
       );
     });
 

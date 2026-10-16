@@ -16,7 +16,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { stringify } from 'yaml';
 import { z } from 'zod';
-import { domains, ErrorResponse, type ApiContract, type ContractAuth } from '../src/lib/contracts';
+import { domains, ErrorResponse, IDEMPOTENCY_HEADER, type ApiContract, type ContractAuth } from '../src/lib/contracts';
 
 type Json = Record<string, unknown>;
 
@@ -37,6 +37,10 @@ const ERROR_RESPONSES: Record<number, { name: string; description: string }> = {
   409: {
     name: 'Conflict',
     description: 'Conflict with the current state (codes PAYROLL_LOCKED, SHIFT_FULL, PENDING_SHIFTS)',
+  },
+  422: {
+    name: 'UnprocessableEntity',
+    description: 'The Idempotency-Key was already used for a different request (code IDEMPOTENCY_KEY_REUSED)',
   },
   429: { name: 'TooManyRequests', description: 'Too many requests' },
   500: { name: 'ServerError', description: 'Server error' },
@@ -109,6 +113,17 @@ function parameters(contract: ApiContract): Json[] {
         schema: toSchema(field as z.ZodType),
       });
     }
+  }
+  if (contract.idempotent) {
+    list.push({
+      name: IDEMPOTENCY_HEADER,
+      in: 'header',
+      required: false,
+      description:
+        'One random value (a UUID) per submission, reused when that submission is resent. ' +
+        'A resend is not written again and gets the first answer.',
+      schema: { type: 'string', minLength: 1, maxLength: 100 },
+    });
   }
   return list;
 }
@@ -260,6 +275,7 @@ function readme(): string {
     '- **Pagination**: paginated lists take `?page=1&limit=20` (limit at most 200) and answer `{ "success": true, "data": [...], "meta": { "page", "limit", "total_item", "total_page" } }`.',
     '- **Dates**: timestamps are ISO 8601 strings; calendar dates are `YYYY-MM-DD`; months are `YYYY-MM`.',
     '- **Money**: always numbers (VND).',
+    `- **Resent writes**: writes that add to a balance (payment, shells, production batch) accept an optional \`${IDEMPOTENCY_HEADER}\` header, one value per submission reused on resend. A resend is not written again and gets the first answer; the same key with a different request gets \`422\` with \`code: "IDEMPOTENCY_KEY_REUSED"\`.`,
     '',
     '## Endpoints',
     '',

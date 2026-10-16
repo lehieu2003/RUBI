@@ -6,6 +6,7 @@ import { toast } from '@/components/dashboard/toast';
 import { Pagination } from '@/components/ui/pagination';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
 import type { PaginationMeta } from '@/lib/pagination';
+import { useSubmissionKey } from '@/lib/submission-key';
 
 export type DebtCustomer = { customerId: string; customerName: string; outstandingDebt: number };
 
@@ -49,6 +50,7 @@ export function RecordPaymentDialog({
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const submission = useSubmissionKey();
 
   // Digits only, shown with thousands separators: "1.250.000"
   const value = Number(amount.replace(/\D/g, '')) || 0;
@@ -61,16 +63,19 @@ export function RecordPaymentDialog({
 
     setSaving(true);
     try {
+      const body = JSON.stringify({ amount: value, notes: notes.trim() || undefined });
       const response = await fetch(API_ENDPOINTS.CUSTOMERS.PAYMENTS(customer.customerId), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: value, notes: notes.trim() || undefined }),
+        // A retry of the same payment after a lost answer is recorded once.
+        headers: { 'Content-Type': 'application/json', ...submission.headers(body) },
+        body,
       });
       const json = await response.json().catch(() => null);
       if (!response.ok) {
         setError(json?.error ?? 'Không thể ghi nhận thanh toán');
         return;
       }
+      submission.done();
       toast({
         type: 'success',
         title: `Đã ghi nhận ${money(value)}`,

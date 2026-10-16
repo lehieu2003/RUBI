@@ -571,5 +571,102 @@ void main() {
         expect((res as Err<void>).failure, isA<UnexpectedFailure>());
       });
     });
+
+    group('refreshSession', () {
+      /// A JWT whose payload only carries `iat`, issued [age] ago. The
+      /// signature is never checked on the device.
+      String jwtIssued(Duration age) {
+        String part(Map<String, Object> json) =>
+            base64Url.encode(utf8.encode(jsonEncode(json))).replaceAll('=', '');
+        final iat = DateTime.now().subtract(age).millisecondsSinceEpoch ~/ 1000;
+        return '${part({'alg': 'HS256'})}.${part({'iat': iat})}.sig';
+      }
+
+      /// Counts calls to `POST /api/auth/refresh`, which answers [token].
+      int Function() countRefreshes({String token = 'jwt-fresh'}) {
+        var calls = 0;
+        adapter.onPost('/api/auth/refresh', (server) {
+          server.replyCallback(200, (options) {
+            calls++;
+            return {
+              'success': true,
+              'data': {'token': token},
+            };
+          });
+        });
+        return () => calls;
+      }
+
+      test('token cũ hơn 1 ngày → POST /api/auth/refresh, lưu token mới',
+          () async {
+        await storage.saveToken(jwtIssued(const Duration(days: 2)));
+        final refreshCalls = countRefreshes();
+
+        final res = await repo.refreshSession();
+
+        expect(res, const Ok<void>(null));
+        expect(refreshCalls(), 1);
+        expect(await storage.readToken(), 'jwt-fresh');
+      });
+
+      test('token mới cấp (dưới 1 ngày) → không gọi network', () async {
+        final token = jwtIssued(const Duration(hours: 1));
+        await storage.saveToken(token);
+        final refreshCalls = countRefreshes();
+
+        final res = await repo.refreshSession();
+
+        expect(res, const Ok<void>(null));
+        expect(refreshCalls(), 0);
+        expect(await storage.readToken(), token);
+      });
+
+      test('chưa có token → Ok, không gọi network', () async {
+        final refreshCalls = countRefreshes();
+
+        final res = await repo.refreshSession();
+
+        expect(res, const Ok<void>(null));
+        expect(refreshCalls(), 0);
+        expect(await storage.readToken(), isNull);
+      });
+
+      test('refresh 401 → Err, KHÔNG xoá token (không tự đăng xuất)',
+          () async {
+        final token = jwtIssued(const Duration(days: 2));
+        await storage.saveToken(token);
+        adapter.onPost('/api/auth/refresh', (server) {
+          server.reply(401, {
+            'success': false,
+            'error': 'Chưa đăng nhập hoặc phiên đã hết hạn',
+          });
+        });
+
+        final res = await repo.refreshSession();
+
+        expect(res, isA<Err<void>>());
+        expect(storage.clearCalls, 0);
+        expect(await storage.readToken(), token);
+      });
+
+      test('đăng xuất trong lúc đang refresh → không lưu token mới trở lại',
+          () async {
+        await storage.saveToken(jwtIssued(const Duration(days: 2)));
+        adapter.onPost('/api/auth/refresh', (server) {
+          server.replyCallback(200, (options) {
+            // Người dùng bấm đăng xuất khi request còn đang bay.
+            storage.clear();
+            return {
+              'success': true,
+              'data': {'token': 'jwt-fresh'},
+            };
+          });
+        });
+
+        await repo.refreshSession();
+
+        expect(await storage.readToken(), isNull);
+      });
+    });
   });
 }

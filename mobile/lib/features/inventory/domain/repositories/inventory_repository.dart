@@ -10,9 +10,13 @@ abstract class InventoryRepository {
 
   /// Nhập một mẻ sản xuất: cộng [quantity] vào tồn của [productId].
   /// Trả tồn trên sổ sau khi nhập.
+  ///
+  /// [idempotencyKey]: mã của lần gửi này (xem `SubmissionKey`); gửi lại với
+  /// cùng mã thì server không ghi lần nữa.
   Future<Result<int>> recordProduction({
     required String productId,
     required int quantity,
+    String? idempotencyKey,
   });
 
   /// Kiểm kho: số đếm thực tế [counted] thay cho tồn trên sổ, và được giữ

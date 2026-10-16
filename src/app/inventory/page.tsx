@@ -7,6 +7,7 @@ import { toast } from '@/components/dashboard/toast';
 import { API_ENDPOINTS } from '@/lib/api-endpoints';
 import { exportToCSV } from '@/lib/export-excel';
 import { DatePicker } from '@/components/ui/date-picker';
+import { useSubmissionKey } from '@/lib/submission-key';
 
 interface InventoryItem {
   productId: string;
@@ -50,6 +51,7 @@ export default function InventoryPage() {
   const [selectedProductId, setSelectedProductId] = useState<string>('');
   const [quantity, setQuantity] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const submission = useSubmissionKey();
   // Stock count: the manager counts the cold store and corrects the balance
   const [countItem, setCountItem] = useState<InventoryItem | null>(null);
   const [counted, setCounted] = useState('');
@@ -128,17 +130,20 @@ export default function InventoryPage() {
 
     try {
       setSubmitting(true);
+      const body = JSON.stringify({
+        mode: 'ADD',
+        productId: selectedProductId,
+        quantity: Number(quantity),
+      });
       const res = await fetch(API_ENDPOINTS.INVENTORY.BASE, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mode: 'ADD',
-          productId: selectedProductId,
-          quantity: Number(quantity),
-        }),
+        // A retry of the same batch after a lost answer is added once.
+        headers: { 'Content-Type': 'application/json', ...submission.headers(body) },
+        body,
       });
 
       if (!res.ok) throw new Error('Không thể thêm tồn kho');
+      submission.done();
 
       toast({ type: 'success', title: 'Thành công', message: 'Đã nhập kho mẻ đá mới' });
       setShowAddModal(false);

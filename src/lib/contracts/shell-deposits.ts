@@ -40,10 +40,13 @@ export const shellDepositContracts: ApiContract[] = [
     response: envelope(
       Success.extend({ customerId: Id, shellsOut: z.number().int(), shellsIn: z.number().int() })
     ),
-    errors: [400, 401, 403, 404, 500],
+    errors: [400, 401, 403, 404, 422, 500],
+    idempotent: true,
     notes:
       'By default (`mode: "ADD"` or omitted) the numbers are increments. With `mode: "SET"` they replace both totals, ' +
       'to correct a mistyped entry; both `shellsOut` and `shellsIn` are then required (400 otherwise). ' +
-      'The response echoes the numbers sent, not the new balance.',
+      'The response echoes the numbers sent, not the new balance. ' +
+      'Send `Idempotency-Key` (one per submission, reused on resend) so a resent request is written once; ' +
+      '422 `IDEMPOTENCY_KEY_REUSED` when the key was used for a different request.',
   },
 ];

@@ -49,6 +49,12 @@ export async function PATCH(
       if (parsed.data.items.some((item) => !ownItemIds.has(item.id))) {
         return apiError('Dữ liệu không hợp lệ: có dòng hàng không thuộc đơn này', 400);
       }
+      // ...and every line of the order is given exactly once, so the lines add
+      // up to the total booked as debt.
+      const sentItemIds = new Set(parsed.data.items.map((item) => item.id));
+      if (sentItemIds.size !== parsed.data.items.length || sentItemIds.size !== ownItemIds.size) {
+        return apiError('Dữ liệu không hợp lệ: cần số thực giao của mỗi dòng hàng, mỗi dòng một lần', 400);
+      }
 
       // 1. Mark the order COMPLETED first. The status is checked again in the
       // write itself, so a second settlement, or an order cancelled in the
@@ -61,11 +67,12 @@ export async function PATCH(
         return apiError('Chỉ đối soát được đơn đã giao', 409, 'ORDER_NOT_DELIVERED');
       }
 
-      // 2. Update actualQty for each line item
+      // 2. Record what was delivered: actualQty, and the line worth actualQty * unitPrice
       for (const item of parsed.data.items) {
+        const orderItem = order.orderItems.find((oi) => oi.id === item.id)!;
         await tx.orderItem.update({
           where: { id: item.id },
-          data: { actualQty: item.actualQty },
+          data: { actualQty: item.actualQty, lineTotal: orderItem.unitPrice.mul(item.actualQty) },
         });
       }
 
@@ -75,6 +82,9 @@ export async function PATCH(
         if (!orderItem) return sum;
         return sum + (itemInput.actualQty * orderItem.unitPrice.toNumber());
       }, 0);
+
+      // A settled order is worth what was delivered, the amount booked as debt below.
+      await tx.order.update({ where: { id }, data: { total: deliveredTotal } });
 
       // 4. Create DEBT ledger entry
       if (deliveredTotal > 0) {

@@ -6,6 +6,7 @@ import 'package:iceflow_mobile/core/di/injection_container.dart';
 import 'package:iceflow_mobile/core/extensions/build_context_extensions.dart';
 import 'package:iceflow_mobile/core/extensions/number_format.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
+import 'package:iceflow_mobile/core/network/idempotency.dart';
 import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/debt/domain/entities/customer_debt.dart';
 import 'package:iceflow_mobile/features/debt/presentation/cubit/ledger_cubit.dart';
@@ -203,6 +204,9 @@ class _PaymentSheet extends HookWidget {
     final notesController = useTextEditingController();
     final submitting = useState(false);
     final error = useState<String?>(null);
+    // Một mã cho lần thu này, giữ đến khi đóng sheet: bấm lưu lại sau lỗi
+    // không ghi hai lần.
+    final submission = useMemoized(SubmissionKey.new);
     final outstanding = cubit.state.outstandingDebt;
 
     Future<void> submit() async {
@@ -218,8 +222,12 @@ class _PaymentSheet extends HookWidget {
       }
       submitting.value = true;
       error.value = null;
-      final result =
-          await cubit.recordPayment(amount, notes: notesController.text);
+      final notes = notesController.text;
+      final result = await cubit.recordPayment(
+        amount,
+        notes: notes,
+        idempotencyKey: submission.keyFor((amount, notes.trim())),
+      );
       if (!context.mounted) return;
       if (result.ok || result.unsure) {
         Navigator.of(context).pop(result.message);

@@ -5,6 +5,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:iceflow_mobile/core/di/injection_container.dart';
 import 'package:iceflow_mobile/core/extensions/build_context_extensions.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
+import 'package:iceflow_mobile/core/network/idempotency.dart';
 import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/inventory/domain/entities/stock.dart';
 import 'package:iceflow_mobile/features/inventory/presentation/cubit/inventory_cubit.dart';
@@ -316,6 +317,9 @@ class _StockSheet extends HookWidget {
     final noteController = useTextEditingController();
     final submitting = useState(false);
     final error = useState<String?>(null);
+    // Một mã cho mẻ này, giữ đến khi đóng sheet: bấm lưu lại sau lỗi không
+    // cộng hai lần.
+    final submission = useMemoized(SubmissionKey.new);
     final textTheme = context.textTheme;
 
     Future<void> submit() async {
@@ -332,7 +336,11 @@ class _StockSheet extends HookWidget {
       error.value = null;
       final result = counting
           ? await cubit.recordCount(item, quantity, note: noteController.text)
-          : await cubit.recordProduction(item, quantity);
+          : await cubit.recordProduction(
+              item,
+              quantity,
+              idempotencyKey: submission.keyFor(quantity),
+            );
       if (!context.mounted) return;
       if (result.ok || result.unsure) {
         Navigator.of(context).pop(result.message);

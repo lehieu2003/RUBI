@@ -31,6 +31,7 @@ import { API_ENDPOINTS } from '@/lib/api-endpoints';
 interface OrderItemWithProduct {
   id: string;
   quantity: number;
+  actualQty: number | null;
   unitPrice: unknown;
   lineTotal: unknown;
   product: { id: string; name: string; sizeKg: number };
@@ -271,7 +272,8 @@ export default function OrdersPage() {
         customer: selectedOrder.customer,
         orderItems: selectedOrder.orderItems.map((item) => ({
           product: { name: item.product.name, sizeKg: item.product.sizeKg },
-          quantity: item.quantity,
+          // Once settled the line total is the delivered amount: print the delivered quantity with it.
+          quantity: item.actualQty ?? item.quantity,
           unitPrice: Number(item.unitPrice),
           lineTotal: Number(item.lineTotal),
         })),
@@ -285,6 +287,13 @@ export default function OrdersPage() {
     : null;
 
   const handleCloseDrawer = () => {
+    // Esc closes the top layer only: with the cancel-reason dialog open, it
+    // closes the dialog and keeps the order, so the dialog never outlives it.
+    if (showCancelDialog) {
+      setShowCancelDialog(false);
+      setCancelReason('');
+      return;
+    }
     setSelectedOrderId(null);
   };
 
@@ -804,6 +813,11 @@ export default function OrdersPage() {
                       </td>
                       <td className='py-2 text-center font-bold'>
                         {item.quantity}
+                        {item.actualQty !== null && (
+                          <span className='block text-[11px] font-normal text-faint'>
+                            thực giao {item.actualQty}
+                          </span>
+                        )}
                       </td>
                       <td className='py-2 text-right data-sm'>
                         {Number(item.unitPrice).toLocaleString('vi-VN')}đ
