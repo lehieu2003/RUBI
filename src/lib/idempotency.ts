@@ -18,6 +18,12 @@ import { IDEMPOTENCY_HEADER } from '@/lib/contracts/common';
 
 const MAX_KEY_LENGTH = 100;
 
+// A key only matters while its submission may still be resent. Each claim
+// deletes a bounded batch of keys older than this, so the table stays small
+// without a scheduler; a batch outpaces the few hundred keys claimed a day.
+const KEEP_KEYS_MS = 30 * 24 * 60 * 60 * 1000;
+const PRUNE_BATCH = 100;
+
 export const INVALID_IDEMPOTENCY_KEY = `${IDEMPOTENCY_HEADER} không hợp lệ (1-${MAX_KEY_LENGTH} ký tự)`;
 export const IDEMPOTENCY_KEY_REUSED_MESSAGE = `${IDEMPOTENCY_HEADER} này đã được dùng cho một yêu cầu khác`;
 
@@ -73,8 +79,9 @@ export class Idempotency {
   async runWith<T>(write: () => Promise<T>, answer: (earlier: Earlier) => T): Promise<T> {
     const earlier = await this.earlier();
     if (earlier) return answer(earlier);
+    let result: T;
     try {
-      return await write();
+      result = await write();
     } catch (error) {
       // A resend running at the same moment fails on the key once the
       // first one commits: answer it like the first.
@@ -82,6 +89,8 @@ export class Idempotency {
       if (first) return answer(first);
       throw error;
     }
+    await this.prune();
+    return result;
   }
 
   /** First statement of the write's transaction: claims the key. */
@@ -113,6 +122,27 @@ export class Idempotency {
   private where() {
     const { factoryId, key } = this.claim!;
     return { factoryId_key: { factoryId, key } };
+  }
+
+  /**
+   * Deletes up to PRUNE_BATCH expired keys, after the write and outside its
+   * transaction. Two claims pruning at once at worst delete the same rows
+   * (the second finds them gone); a failure here never fails the write.
+   */
+  private async prune(): Promise<void> {
+    if (!this.claim) return;
+    try {
+      const expired = await prisma.idempotencyKey.findMany({
+        where: { createdAt: { lt: new Date(Date.now() - KEEP_KEYS_MS) } },
+        orderBy: { createdAt: 'asc' },
+        take: PRUNE_BATCH,
+        select: { id: true },
+      });
+      if (expired.length === 0) return;
+      await prisma.idempotencyKey.deleteMany({ where: { id: { in: expired.map((row) => row.id) } } });
+    } catch (error) {
+      console.error('Pruning old idempotency keys failed:', error);
+    }
   }
 
   private async earlier(): Promise<Earlier | null> {
