@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { sessionFile } from './support/env';
 import { customerNamed, db } from './support/db';
-import { expectToast, gridCell, openOrderDrawerFor } from './support/app';
+import { expectToast, gridCell, openOrderDrawerFor, openPage } from './support/app';
 
 // A customer without a seeded own price, so every override here is ours.
 const CUSTOMER = 'Ding Tea';
@@ -29,7 +29,7 @@ test.describe.serial('customer own prices', () => {
 
     test('lists every product on sale and saves an own price for any of them', async ({ page }) => {
       const customer = await customerNamed(CUSTOMER);
-      await page.goto(`/customers/${customer.id}`);
+      await openPage(page, `/customers/${customer.id}`);
 
       const onSale = await db.product.findMany({ where: { isActive: true } });
       for (const product of onSale) {
@@ -47,7 +47,7 @@ test.describe.serial('customer own prices', () => {
 
     test('a failed save reverts only that edit, not the ones saved before it', async ({ page }) => {
       const customer = await customerNamed(CUSTOMER);
-      await page.goto(`/customers/${customer.id}`);
+      await openPage(page, `/customers/${customer.id}`);
 
       await setOwnPrice(page, 'Đá Bi', 20, 39000);
       await expectToast(page, 'Đã lưu giá riêng');
@@ -83,7 +83,7 @@ test.describe.serial('customer own prices', () => {
     test.use({ storageState: sessionFile('staff') });
 
     test('the order drawer prices the product at the customer own price', async ({ page }) => {
-      await page.goto('/orders');
+      await openPage(page, '/orders');
       const drawer = await openOrderDrawerFor(page, CUSTOMER);
       await expect(await gridCell(drawer, 'Đá Mi', 20)).toContainText('27.000đ');
     });
