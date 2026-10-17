@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
 import { DATE_ONLY_PATTERN, SHIFTS, addDays, monthOf, parseDateOnly } from '@/lib/schedule';
-import { rejectIfMonthLocked } from '@/lib/payroll-lock';
+import { holdMonths, rejectIfMonthLocked } from '@/lib/payroll-lock';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 const ShiftAssignmentSchema = z.object({
@@ -96,64 +96,70 @@ async function handleSaveAssignment(request: NextRequest) {
       return apiError('Ngày làm không hợp lệ', 400);
     }
 
-    const locked = await rejectIfMonthLocked(session.factoryId, [monthOf(parsed.data.shiftDate)]);
-    if (locked) return locked;
+    const factoryId = session.factoryId;
+    const month = monthOf(parsed.data.shiftDate);
+    return await prisma.$transaction(async (tx) => {
+      // Holds the month until commit, so it cannot be closed half-way through.
+      await holdMonths(tx, factoryId, [month]);
+      const locked = await rejectIfMonthLocked(factoryId, [month], tx);
+      if (locked) return locked;
 
-    const person = await prisma.user.findFirst({
-      where: {
-        id: userId,
-        factoryId: session.factoryId,
-        isActive: true,
-        role: { in: ['STAFF', 'DRIVER'] },
-      },
-      select: { id: true, role: true },
-    });
-    if (!person) {
-      return apiError('Không tìm thấy nhân viên hoặc tài xế', 404);
-    }
+      const person = await tx.user.findFirst({
+        where: {
+          id: userId,
+          factoryId,
+          isActive: true,
+          role: { in: ['STAFF', 'DRIVER'] },
+        },
+        select: { id: true, role: true },
+      });
+      if (!person) {
+        return apiError('Không tìm thấy nhân viên hoặc tài xế', 404);
+      }
 
-    if (shift === null) {
-      const shiftToRemove = removeShift;
-      if (shiftToRemove) {
-        await prisma.scheduleAssignment.deleteMany({
-          where: { factoryId: session.factoryId, userId, shiftDate, shift: shiftToRemove },
-        });
-      } else {
-        await prisma.scheduleAssignment.deleteMany({
-          where: { factoryId: session.factoryId, userId, shiftDate },
+      if (shift === null) {
+        const shiftToRemove = removeShift;
+        if (shiftToRemove) {
+          await tx.scheduleAssignment.deleteMany({
+            where: { factoryId, userId, shiftDate, shift: shiftToRemove },
+          });
+        } else {
+          await tx.scheduleAssignment.deleteMany({
+            where: { factoryId, userId, shiftDate },
+          });
+        }
+        return apiSuccess({
+          success: true,
+          assignment: { userId, shift: null, removeShift: shiftToRemove, shiftDate: parsed.data.shiftDate },
         });
       }
+
+      // A shift assigned by the manager is approved by definition; assigning
+      // someone who had a pending or rejected request approves it.
+      const reviewedAt = new Date();
+      const assignment = await tx.scheduleAssignment.upsert({
+        where: { userId_shiftDate_shift: { userId, shiftDate, shift } },
+        create: {
+          factoryId,
+          userId,
+          shiftDate,
+          shift,
+          status: 'APPROVED',
+          reviewedAt,
+        },
+        update: { shift, factoryId, status: 'APPROVED', reviewedAt },
+      });
+
       return apiSuccess({
         success: true,
-        assignment: { userId, shift: null, removeShift: shiftToRemove, shiftDate: parsed.data.shiftDate },
+        assignment: {
+          id: assignment.id,
+          userId: assignment.userId,
+          shift: assignment.shift,
+          shiftDate: assignment.shiftDate.toISOString().slice(0, 10),
+          status: assignment.status,
+        },
       });
-    }
-
-    // A shift assigned by the manager is approved by definition; assigning
-    // someone who had a pending or rejected request approves it.
-    const reviewedAt = new Date();
-    const assignment = await prisma.scheduleAssignment.upsert({
-      where: { userId_shiftDate_shift: { userId, shiftDate, shift } },
-      create: {
-        factoryId: session.factoryId,
-        userId,
-        shiftDate,
-        shift,
-        status: 'APPROVED',
-        reviewedAt,
-      },
-      update: { shift, factoryId: session.factoryId, status: 'APPROVED', reviewedAt },
-    });
-
-    return apiSuccess({
-      success: true,
-      assignment: {
-        id: assignment.id,
-        userId: assignment.userId,
-        shift: assignment.shift,
-        shiftDate: assignment.shiftDate.toISOString().slice(0, 10),
-        status: assignment.status,
-      },
     });
   } catch (error) {
     if (error instanceof Response) return error;

@@ -74,3 +74,11 @@ export async function createOrder(options: {
     include: { orderItems: true },
   });
 }
+
+/** Requests of the app waiting on a lock (a row, a unique key, an advisory lock) in the test database. */
+export async function lockWaiters(): Promise<number> {
+  const rows = await db.$queryRaw<Array<{ n: number }>>`
+    SELECT count(*)::int AS n FROM pg_stat_activity
+    WHERE datname = current_database() AND wait_event_type = 'Lock'`;
+  return rows[0].n;
+}

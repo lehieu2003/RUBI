@@ -18,7 +18,8 @@ describe('idempotent additive writes', () => {
     it(`${path} claims the key first in its transaction and keeps the answer`, () => {
       const route = read(path);
       assert.ok(route.includes(`Idempotency.from(`) && route.includes(scope), 'reads the key with its scope');
-      assert.match(route, /idempotency\.run\(\(\) =>\s*prisma\.\$transaction\(\s*async \(tx\) => \{\s*await idempotency\.begin\(tx\);/);
+      // The payment runs its transaction again when Postgres cancels it (retryIfCancelled).
+      assert.match(route, /idempotency\.run\(\(\) =>\s*(retryIfCancelled\(\(\) => )?prisma\.\$transaction\(\s*async \(tx\) => \{\s*await idempotency\.begin\(tx\);/);
       assert.match(route, /return idempotency\.finish\(\s*tx,/);
     });
   }

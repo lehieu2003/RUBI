@@ -31,6 +31,15 @@ function fakeDb(rows: Row[]): Db {
       rows.push(row);
       return row;
     },
+    async upsert({ where, create, update }: {
+      where: { productId_date: { productId: string; date: Date } };
+      create: Omit<Row, 'id'>;
+      update: { quantityOnHand: number | { increment: number } };
+    }) {
+      const { productId, date } = where.productId_date;
+      const existing = rows.find((item) => item.productId === productId && item.date.getTime() === date.getTime());
+      return existing ? inventory.update({ where: { id: existing.id }, data: update }) : inventory.create({ data: create });
+    },
   };
   return { inventory } as unknown as Db;
 }

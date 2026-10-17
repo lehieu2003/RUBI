@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
 import { monthOf, toDateOnly } from '@/lib/schedule';
-import { rejectIfMonthLocked } from '@/lib/payroll-lock';
+import { holdMonths, rejectIfMonthLocked } from '@/lib/payroll-lock';
 import { apiSuccess, apiError } from '@/lib/api-response';
 
 const ReviewSchema = z.object({
@@ -29,19 +29,23 @@ export async function POST(request: NextRequest) {
       where: { id: { in: parsed.data.ids }, factoryId: session.factoryId },
       select: { shiftDate: true },
     });
-    const locked = await rejectIfMonthLocked(
-      session.factoryId,
-      targets.map((item) => monthOf(toDateOnly(item.shiftDate)))
-    );
-    if (locked) return locked;
+    const factoryId = session.factoryId;
+    const months = targets.map((item) => monthOf(toDateOnly(item.shiftDate)));
+    const result = await prisma.$transaction(async (tx) => {
+      // Holds the months until commit, so none of them is closed half-way through.
+      await holdMonths(tx, factoryId, months);
+      const locked = await rejectIfMonthLocked(factoryId, months, tx);
+      if (locked) return locked;
 
-    const result = await prisma.scheduleAssignment.updateMany({
-      where: { id: { in: parsed.data.ids }, factoryId: session.factoryId },
-      data: {
-        status: parsed.data.action === 'APPROVE' ? 'APPROVED' : 'REJECTED',
-        reviewedAt: new Date(),
-      },
+      return tx.scheduleAssignment.updateMany({
+        where: { id: { in: parsed.data.ids }, factoryId },
+        data: {
+          status: parsed.data.action === 'APPROVE' ? 'APPROVED' : 'REJECTED',
+          reviewedAt: new Date(),
+        },
+      });
     });
+    if (result instanceof Response) return result;
 
     return apiSuccess({ updated: result.count });
   } catch (error) {

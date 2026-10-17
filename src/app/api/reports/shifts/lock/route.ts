@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
 import { apiSuccess, apiError } from '@/lib/api-response';
+import { holdMonthToClose } from '@/lib/payroll-lock';
 
 const LockSchema = z.object({
   month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),
@@ -33,22 +34,26 @@ export async function POST(request: NextRequest) {
 
     // Closing with requests still waiting would silently leave them out of payroll.
     const [year, value] = month.split('-').map(Number);
-    const pending = await prisma.scheduleAssignment.count({
-      where: {
-        factoryId,
-        status: 'PENDING',
-        shiftDate: { gte: new Date(Date.UTC(year, value - 1, 1)), lt: new Date(Date.UTC(year, value, 1)) },
-      },
+    const lock = await prisma.$transaction(async (tx) => {
+      // A shift write of the month still running finishes first and is counted.
+      await holdMonthToClose(tx, factoryId, month);
+      const pending = await tx.scheduleAssignment.count({
+        where: {
+          factoryId,
+          status: 'PENDING',
+          shiftDate: { gte: new Date(Date.UTC(year, value - 1, 1)), lt: new Date(Date.UTC(year, value, 1)) },
+        },
+      });
+      if (pending > 0) {
+        return apiError(`Còn ${pending} ca chờ duyệt trong tháng. Duyệt hoặc từ chối hết rồi mới chốt.`, 409, 'PENDING_SHIFTS');
+      }
+      return tx.payrollLock.upsert({
+        where: { factoryId_month: { factoryId, month } },
+        create: { factoryId, month },
+        update: {},
+      });
     });
-    if (pending > 0) {
-      return apiError(`Còn ${pending} ca chờ duyệt trong tháng. Duyệt hoặc từ chối hết rồi mới chốt.`, 409, 'PENDING_SHIFTS');
-    }
-
-    const lock = await prisma.payrollLock.upsert({
-      where: { factoryId_month: { factoryId, month } },
-      create: { factoryId, month },
-      update: {},
-    });
+    if (lock instanceof Response) return lock;
     return apiSuccess({ month, lockedAt: lock.lockedAt });
   } catch (error) {
     if (error instanceof Response) return error;

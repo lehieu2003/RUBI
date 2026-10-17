@@ -42,13 +42,18 @@ export async function changeStock(db: InventoryDb, productId: string, change: St
     });
   }
 
+  // Another movement can open today's row at the same moment. The upsert
+  // (INSERT ... ON CONFLICT) then waits for it and applies this change on
+  // top, instead of failing on the unique (product, date) key.
   const carriedOver = latest?.quantityOnHand ?? 0;
-  return db.inventory.create({
-    data: {
+  return db.inventory.upsert({
+    where: { productId_date: { productId, date: today } },
+    create: {
       productId,
       date: today,
       quantityOnHand: 'set' in change ? change.set : carriedOver + change.add,
     },
+    update: { quantityOnHand: 'set' in change ? change.set : { increment: change.add } },
   });
 }
 
