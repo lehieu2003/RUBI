@@ -13,7 +13,7 @@ import {
   toDateOnly,
   todayInVietnam,
 } from '@/lib/schedule';
-import { lockedMonths, rejectIfMonthLocked } from '@/lib/payroll-lock';
+import { holdMonths, lockedMonths, rejectIfMonthLocked } from '@/lib/payroll-lock';
 import { apiSuccess, apiError } from '@/lib/api-response';
 
 // Self-service shift registration for STAFF and DRIVER.
@@ -100,10 +100,6 @@ async function parseOwnShift(request: NextRequest) {
   if (parsed.data.shiftDate === today && shiftEndHour(parsed.data.shift) <= hourInVietnam()) {
     return { error: apiError('Khung giờ này của hôm nay đã qua', 400) } as const;
   }
-  const locked = await rejectIfMonthLocked(session.factoryId, [monthOf(parsed.data.shiftDate)]);
-  if (locked) {
-    return { error: locked } as const;
-  }
   return { session, factoryId: session.factoryId, shiftDate, shift: parsed.data.shift, date: parsed.data.shiftDate } as const;
 }
 
@@ -116,6 +112,10 @@ export async function POST(request: NextRequest) {
 
     const key = { userId_shiftDate_shift: { userId: session.userId, shiftDate, shift } };
     const assignment = await prisma.$transaction(async (tx) => {
+      await holdMonths(tx, factoryId, [monthOf(date)]);
+      const locked = await rejectIfMonthLocked(factoryId, [monthOf(date)], tx);
+      if (locked) return locked;
+
       // Sign-ups for one shift take turns (a lock held until commit), so two
       // people cannot both count a free place and both take it.
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`shift-signup:${factoryId}:${date}:${shift}`}))`;
@@ -169,17 +169,25 @@ export async function DELETE(request: NextRequest) {
   try {
     const input = await parseOwnShift(request);
     if ('error' in input) return input.error;
-    const { session, factoryId, shiftDate, shift } = input;
+    const { session, factoryId, shiftDate, shift, date } = input;
 
-    const existing = await prisma.scheduleAssignment.findFirst({
-      where: { factoryId, userId: session.userId, shiftDate, shift },
+    const refused = await prisma.$transaction(async (tx) => {
+      await holdMonths(tx, factoryId, [monthOf(date)]);
+      const locked = await rejectIfMonthLocked(factoryId, [monthOf(date)], tx);
+      if (locked) return locked;
+
+      const existing = await tx.scheduleAssignment.findFirst({
+        where: { factoryId, userId: session.userId, shiftDate, shift },
+      });
+      if (existing?.status === 'APPROVED') {
+        return apiError('Ca đã được duyệt. Liên hệ Quản lý để thay đổi.', 409);
+      }
+      await tx.scheduleAssignment.deleteMany({
+        where: { factoryId, userId: session.userId, shiftDate, shift, status: { in: ['PENDING', 'REJECTED'] } },
+      });
+      return null;
     });
-    if (existing?.status === 'APPROVED') {
-      return apiError('Ca đã được duyệt. Liên hệ Quản lý để thay đổi.', 409);
-    }
-    await prisma.scheduleAssignment.deleteMany({
-      where: { factoryId, userId: session.userId, shiftDate, shift, status: { in: ['PENDING', 'REJECTED'] } },
-    });
+    if (refused) return refused;
     return apiSuccess({ success: true });
   } catch (error) {
     if (error instanceof Response) return error;
