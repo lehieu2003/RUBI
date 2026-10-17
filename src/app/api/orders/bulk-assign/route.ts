@@ -31,26 +31,27 @@ export async function PATCH(request: NextRequest) {
 
     const { orderIds, driverId } = parsed.data;
 
-    // Verify driver exists and can still sign in to deliver
-    const driver = await prisma.driver.findFirst({
-      where: {
-        id: driverId,
-        factoryId: session.factoryId,
-        isActive: true,
-        user: { role: 'DRIVER', isActive: true },
-      },
-    });
-
-    if (!driver) {
-      return apiError('Không tìm thấy tài xế', 404);
-    }
-
     // Bulk update orders to assign to driver.
     // The office workflow selects PENDING (Chờ giao) orders right after
     // taking them, or SHIPPING orders to reassign. Terminal states
     // (DELIVERED/COMPLETED/CANCELLED) must never be reassigned.
     const factoryId = session.factoryId;
     const result = await prisma.$transaction(async (tx) => {
+      // The driver must exist and still be able to sign in to deliver. Locking
+      // the account changes the driver row and then hands their open orders
+      // back, in one transaction: holding the row (FOR SHARE) until this one
+      // commits means a lock is either seen here or unassigns these orders.
+      await tx.$queryRaw`SELECT id FROM drivers WHERE id = ${driverId} AND factory_id = ${factoryId} FOR SHARE`;
+      const driver = await tx.driver.findFirst({
+        where: {
+          id: driverId,
+          factoryId,
+          isActive: true,
+          user: { role: 'DRIVER', isActive: true },
+        },
+      });
+      if (!driver) return null;
+
       const where: Prisma.OrderWhereInput = { factoryId, id: { in: orderIds }, status: { in: ['PENDING', 'SHIPPING'] } };
       // Which orders are about to change hands, for the log.
       const assignable = await tx.order.findMany({ where, select: { id: true, customerId: true } });
@@ -70,12 +71,16 @@ export async function PATCH(request: NextRequest) {
           summary: `Giao cho tài xế ${driver.name}`,
         }))
       );
-      return updated;
+      return { updated, driver };
     });
 
+    if (!result) {
+      return apiError('Không tìm thấy tài xế', 404);
+    }
+    const { updated, driver } = result;
     return apiSuccess({
           success: true,
-          assignedCount: result.count,
+          assignedCount: updated.count,
           driver: { id: driver.id, name: driver.name },
         });
   } catch (error) {
