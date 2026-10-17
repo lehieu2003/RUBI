@@ -115,20 +115,25 @@ export async function POST(request: NextRequest) {
     const { session, factoryId, shiftDate, shift, date } = input;
 
     const key = { userId_shiftDate_shift: { userId: session.userId, shiftDate, shift } };
-    const existing = await prisma.scheduleAssignment.findFirst({
-      where: { factoryId, userId: session.userId, shiftDate, shift },
-    });
+    const assignment = await prisma.$transaction(async (tx) => {
+      // Sign-ups for one shift take turns (a lock held until commit), so two
+      // people cannot both count a free place and both take it.
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`shift-signup:${factoryId}:${date}:${shift}`}))`;
+      const existing = await tx.scheduleAssignment.findFirst({
+        where: { factoryId, userId: session.userId, shiftDate, shift },
+      });
 
-    // Already requested or approved: nothing to do. A rejected request can be sent again.
-    if (!existing || existing.status === 'REJECTED') {
+      // Already requested or approved: nothing to do. A rejected request can be sent again.
+      if (existing && existing.status !== 'REJECTED') return existing;
+
       // The manager can cap how many people of each role register for one shift.
-      const factory = await prisma.factory.findUnique({
+      const factory = await tx.factory.findUnique({
         where: { id: factoryId },
         select: { maxStaffPerShift: true, maxDriversPerShift: true },
       });
       const limit = session.role === 'DRIVER' ? factory?.maxDriversPerShift : factory?.maxStaffPerShift;
       if (limit != null) {
-        const taken = await prisma.scheduleAssignment.count({
+        const taken = await tx.scheduleAssignment.count({
           where: {
             factoryId,
             shiftDate,
@@ -141,16 +146,14 @@ export async function POST(request: NextRequest) {
           return apiError(`Ca này đã đủ ${limit} người. Chọn ca khác hoặc báo Quản lý.`, 409, 'SHIFT_FULL');
         }
       }
-    }
 
-    const assignment =
-      existing && existing.status !== 'REJECTED'
-        ? existing
-        : await prisma.scheduleAssignment.upsert({
-            where: key,
-            create: { factoryId, userId: session.userId, shiftDate, shift, status: 'PENDING' },
-            update: { status: 'PENDING', reviewedAt: null },
-          });
+      return tx.scheduleAssignment.upsert({
+        where: key,
+        create: { factoryId, userId: session.userId, shiftDate, shift, status: 'PENDING' },
+        update: { status: 'PENDING', reviewedAt: null },
+      });
+    });
+    if (assignment instanceof Response) return assignment;
 
     return apiSuccess({ shift: { shiftDate: date, shift, status: assignment.status } });
   } catch (error) {
