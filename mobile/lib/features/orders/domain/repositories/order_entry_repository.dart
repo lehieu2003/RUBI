@@ -21,9 +21,13 @@ abstract class OrderEntryRepository {
   ///
   /// Không có dòng nào lớn hơn 0 → `Err(ValidationFailure)` mà không gọi
   /// server. Sản phẩm ngừng bán hoặc chưa có giá → `Err(ServerFailure)` 400.
+  ///
+  /// [idempotencyKey]: mã của lần gửi này (xem `SubmissionKey`); gửi lại với
+  /// cùng mã thì server trả lại đơn đã lên, không lên thêm đơn.
   Future<Result<CreatedOrder>> createOrder({
     required String customerId,
     required Map<String, int> quantities,
     String? notes,
+    String? idempotencyKey,
   });
 }

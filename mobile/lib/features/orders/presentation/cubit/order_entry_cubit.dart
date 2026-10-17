@@ -4,6 +4,7 @@ import 'package:iceflow_mobile/core/extensions/search_text.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_failure_messages.dart';
+import 'package:iceflow_mobile/core/network/idempotency.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/core/view_state/view_status.dart';
 import 'package:iceflow_mobile/features/orders/domain/entities/order_entry.dart';
@@ -105,6 +106,11 @@ class OrderEntryCubit extends Cubit<OrderEntryState> {
   /// Tăng mỗi lần đổi khách, để bảng giá về muộn của khách cũ không đè lên.
   int _generation = 0;
 
+  /// Mã chống lên trùng của đơn đang nhập: lưu lại cùng đơn (sau khi rớt
+  /// mạng) dùng lại mã, server không lên thêm đơn. Bỏ khi đổi khách hoặc khi
+  /// đơn đã lưu xong.
+  SubmissionKey _submission = SubmissionKey();
+
   Future<void> loadCustomers() async {
     emit(_copy(customersStatus: ViewStatus.loading, clearCustomersError: true));
     final res = await _repo.getCustomers();
@@ -126,6 +132,7 @@ class OrderEntryCubit extends Cubit<OrderEntryState> {
 
   /// Chọn khách và tải bảng giá của khách đó.
   Future<void> selectCustomer(CustomerOption customer) {
+    _submission = SubmissionKey();
     emit(
       OrderEntryState(
         customersStatus: state.customersStatus,
@@ -139,6 +146,7 @@ class OrderEntryCubit extends Cubit<OrderEntryState> {
   /// Quay lại bước chọn khách. Số lượng đã nhập bị bỏ: giá mỗi khách một khác.
   void changeCustomer() {
     _generation++;
+    _submission = SubmissionKey();
     emit(
       OrderEntryState(
         customersStatus: state.customersStatus,
@@ -190,14 +198,22 @@ class OrderEntryCubit extends Cubit<OrderEntryState> {
     final customer = state.customer;
     if (customer == null || !state.canSubmit) return null;
     emit(_copy(submitting: true, clearSubmitError: true));
+    final lines = state.quantities.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+    final key = _submission.keyFor(
+      '${customer.id}|${lines.map((e) => '${e.key}=${e.value}').join(',')}|'
+      '${notes?.trim() ?? ''}',
+    );
     final res = await _repo.createOrder(
       customerId: customer.id,
       quantities: state.quantities,
       notes: notes,
+      idempotencyKey: key,
     );
     if (isClosed) return null;
     switch (res) {
       case Ok<CreatedOrder>(:final value):
+        _submission = SubmissionKey();
         emit(_copy(submitting: false));
         return value;
       case Err<CreatedOrder>(:final failure):
