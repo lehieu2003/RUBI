@@ -54,16 +54,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const product = await prisma.product.create({
-      data: {
-        name,
-        sizeKg,
-        unit: unit ?? 'Bao',
-        minStock: minStock ?? null,
-        factoryId: session.factoryId,
-        globalPrices: { create: { pricePerUnit: new Prisma.Decimal(price.toFixed(2)) } },
-      },
-    });
+    // The unique (factory, name, size) constraint catches a create racing this one past the check above.
+    const product = await prisma.product
+      .create({
+        data: {
+          name,
+          sizeKg,
+          unit: unit ?? 'Bao',
+          minStock: minStock ?? null,
+          factoryId: session.factoryId,
+          globalPrices: { create: { pricePerUnit: new Prisma.Decimal(price.toFixed(2)) } },
+        },
+      })
+      .catch((error: unknown) => {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') return null;
+        throw error;
+      });
+    if (!product) {
+      return apiError(`Đã có sản phẩm ${name} ${sizeKg}kg`, 409, 'PRODUCT_EXISTS');
+    }
 
     return apiSuccess(product, 201);
   } catch (error) {
