@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:iceflow_mobile/core/localization/strings.dart';
 import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_guard.dart';
+import 'package:iceflow_mobile/core/network/idempotency.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/orders/data/dto/order_entry_dtos.dart';
 import 'package:iceflow_mobile/features/orders/data/mappers/order_entry_mapper.dart';
@@ -65,6 +66,7 @@ class OrderEntryRepositoryImpl implements OrderEntryRepository {
     required String customerId,
     required Map<String, int> quantities,
     String? notes,
+    String? idempotencyKey,
   }) {
     final items = [
       for (final entry in quantities.entries)
@@ -84,6 +86,7 @@ class OrderEntryRepositoryImpl implements OrderEntryRepository {
           'items': items,
           if (trimmed != null && trimmed.isNotEmpty) 'notes': trimmed,
         },
+        options: idempotencyOptions(idempotencyKey),
       );
       final data = apiDataObject(res.data);
       if (data == null) {

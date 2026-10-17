@@ -2,9 +2,11 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { requireRole } from '@/lib/auth/helpers';
+import { currentDueDates } from '@/lib/maintenance';
 import { apiSuccess, apiError } from "@/lib/api-response";
 
 // GET /api/assets?type=MACHINE|VEHICLE — list assets with nearest due date
+// (each maintenance type counts with its latest record only)
 export async function GET(request: NextRequest) {
   try {
     const session = await requireRole(['ADMIN']);
@@ -24,22 +26,23 @@ export async function GET(request: NextRequest) {
       where,
       include: {
         maintenanceRecords: {
-          orderBy: { dueAt: 'asc' },
-          where: { dueAt: { not: null } },
-          take: 1,
-          select: { dueAt: true, type: true },
+          orderBy: { createdAt: 'asc' },
+          select: { dueAt: true, type: true, performedAt: true },
         },
         _count: { select: { maintenanceRecords: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    const serialized = assets.map(({ maintenanceRecords, _count, ...asset }) => ({
-      ...asset,
-      maintenanceCount: _count.maintenanceRecords,
-      nextDue: maintenanceRecords[0]?.dueAt?.toISOString() ?? null,
-      nextDueType: maintenanceRecords[0]?.type ?? null,
-    }));
+    const serialized = assets.map(({ maintenanceRecords, _count, ...asset }) => {
+      const [next] = currentDueDates(maintenanceRecords);
+      return {
+        ...asset,
+        maintenanceCount: _count.maintenanceRecords,
+        nextDue: next?.dueAt.toISOString() ?? null,
+        nextDueType: next?.type ?? null,
+      };
+    });
 
     return apiSuccess(serialized);
   } catch (error) {

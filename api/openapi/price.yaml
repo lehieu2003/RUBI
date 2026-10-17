@@ -88,8 +88,9 @@ paths:
                   type: string
                   minLength: 1
                 price:
-                  type: number
+                  type: integer
                   exclusiveMinimum: 0
+                  maximum: 99999999
               required:
                 - productId
                 - price
@@ -149,8 +150,9 @@ paths:
                   type: string
                   minLength: 1
                 price:
-                  type: number
+                  type: integer
                   exclusiveMinimum: 0
+                  maximum: 99999999
               required:
                 - customerId
                 - productId

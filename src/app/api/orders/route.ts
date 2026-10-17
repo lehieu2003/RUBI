@@ -6,6 +6,7 @@ import { MAX_PAGE_SIZE, paginationMeta, parsePagination } from '@/lib/pagination
 import { apiSuccess, apiError } from "@/lib/api-response";
 import { saveOrder } from '@/lib/actions/orders';
 import { CreateOrderBody } from '@/lib/contracts/orders';
+import { IDEMPOTENCY_HEADER } from '@/lib/contracts/common';
 
 // GET /api/orders - List orders with filters (D-06)
 // Supports: customerId, status, date
@@ -77,9 +78,10 @@ export async function POST(request: NextRequest) {
     }
     const { customerId, items, notes } = parsed.data;
 
-    const result = await saveOrder({ customerId, lineItems: items, notes });
+    // Idempotency-Key: a resend of the same order gets the first one back.
+    const result = await saveOrder({ customerId, lineItems: items, notes }, request.headers.get(IDEMPOTENCY_HEADER));
     if (!result.success) {
-      return apiError(result.status === 500 ? 'Không thể lưu đơn hàng' : result.error, result.status);
+      return apiError(result.status === 500 ? 'Không thể lưu đơn hàng' : result.error, result.status, result.code);
     }
     return apiSuccess(result.order, 201);
   } catch (error) {

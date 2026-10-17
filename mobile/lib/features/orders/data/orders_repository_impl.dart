@@ -119,6 +119,7 @@ class OrdersRepositoryImpl implements OrdersRepository {
     required String orderId,
     required OfficeOrderStatus status,
     String? cancellationReason,
+    OfficeOrderStatus? expectedStatus,
   }) {
     return guardApi('changeStatus', tag: _tag, run: () async {
       final reason = cancellationReason?.trim();
@@ -127,6 +128,11 @@ class OrdersRepositoryImpl implements OrdersRepository {
         data: {
           'status': status.wireName,
           if (reason != null && reason.isNotEmpty) 'cancellationReason': reason,
+          // Server chỉ nhận ba trạng thái này cho expectedStatus.
+          if (expectedStatus == OfficeOrderStatus.pending ||
+              expectedStatus == OfficeOrderStatus.shipping ||
+              expectedStatus == OfficeOrderStatus.delivered)
+            'expectedStatus': expectedStatus!.wireName,
         },
       );
       final updated =

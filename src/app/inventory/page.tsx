@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Snowflake, Plus, Loader2, RefreshCw, Download, ClipboardCheck, AlertTriangle } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
@@ -65,8 +65,13 @@ export default function InventoryPage() {
   const [historyFrom, setHistoryFrom] = useState('');
   const [historyTo, setHistoryTo] = useState('');
   const [historySummary, setHistorySummary] = useState({ counts: 0, totalLoss: 0, totalSurplus: 0 });
+  // Only the latest history request may write: an answer for a filter already
+  // left (or a "load more" of it) is dropped.
+  const historyRequest = useRef(0);
 
   const fetchHistory = useCallback(async (page: number) => {
+    const request = ++historyRequest.current;
+    const isLatest = () => request === historyRequest.current;
     const filters = new URLSearchParams();
     if (historyProductId) filters.set('productId', historyProductId);
     if (historyFrom) filters.set('from', historyFrom);
@@ -79,23 +84,28 @@ export default function InventoryPage() {
       ]);
       const json = await res.json().catch(() => null);
       const summaryJson = await summaryRes.json().catch(() => null);
+      if (!isLatest()) return;
       if (!res.ok || !summaryRes.ok) throw new Error(json?.error ?? summaryJson?.error);
       const entries = json.data as StockCountEntry[];
       setHistory((previous) => (page === 1 ? entries : [...previous, ...entries]));
       setHistoryTotal(json.meta?.total_item ?? entries.length);
       setHistorySummary(summaryJson.data);
     } catch (err) {
+      if (!isLatest()) return;
       toast({
         type: 'error',
         title: 'Lỗi nạp dữ liệu',
         message: err instanceof Error && err.message ? err.message : 'Không thể tải lịch sử kiểm kho',
       });
     } finally {
-      setHistoryLoading(false);
+      if (isLatest()) setHistoryLoading(false);
     }
   }, [historyProductId, historyFrom, historyTo]);
 
   useEffect(() => {
+    // New filters start from page 1: the list of the old ones is not paged on.
+    setHistory([]);
+    setHistoryTotal(0);
     fetchHistory(1);
   }, [fetchHistory]);
 

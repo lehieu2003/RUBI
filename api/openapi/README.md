@@ -34,7 +34,7 @@ The contract of all 58 API endpoints, describing the API as it behaves today. Th
 - **Pagination**: paginated lists take `?page=1&limit=20` (limit at most 200) and answer `{ "success": true, "data": [...], "meta": { "page", "limit", "total_item", "total_page" } }`.
 - **Dates**: timestamps are ISO 8601 strings; calendar dates are `YYYY-MM-DD`; months are `YYYY-MM`.
 - **Money**: always numbers (VND).
-- **Resent writes**: writes that add to a balance (payment, shells, production batch) accept an optional `Idempotency-Key` header, one value per submission reused on resend. A resend is not written again and gets the first answer; the same key with a different request gets `422` with `code: "IDEMPOTENCY_KEY_REUSED"`.
+- **Resent writes**: writes that add to a balance (payment, shells, production batch) and order creation accept an optional `Idempotency-Key` header, one value per submission reused on resend. A resend is not written again and gets the first answer; the same key with a different request gets `422` with `code: "IDEMPOTENCY_KEY_REUSED"`.
 
 ## Endpoints
 

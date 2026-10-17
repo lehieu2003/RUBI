@@ -18,7 +18,8 @@ describe('idempotent additive writes', () => {
     it(`${path} claims the key first in its transaction and keeps the answer`, () => {
       const route = read(path);
       assert.ok(route.includes(`Idempotency.from(`) && route.includes(scope), 'reads the key with its scope');
-      assert.match(route, /idempotency\.run\(\(\) =>\s*prisma\.\$transaction\(\s*async \(tx\) => \{\s*await idempotency\.begin\(tx\);/);
+      // The payment runs its transaction again when Postgres cancels it (retryIfCancelled).
+      assert.match(route, /idempotency\.run\(\(\) =>\s*(retryIfCancelled\(\(\) => )?prisma\.\$transaction\(\s*async \(tx\) => \{\s*await idempotency\.begin\(tx\);/);
       assert.match(route, /return idempotency\.finish\(\s*tx,/);
     });
   }
@@ -41,5 +42,27 @@ describe('idempotent additive writes', () => {
   it('the form key is reused for the same body and replaced for a new one', () => {
     const hook = read('src/lib/submission-key.ts');
     assert.match(hook, /if \(current\.current\?\.body !== body\) current\.current = \{ body, key: randomKey\(\) \};/);
+  });
+});
+
+// Order creation: e2e/idempotent-order-create.spec.ts covers the behaviour.
+describe('idempotent order creation', () => {
+  it('saveOrder claims the key first in its transaction and keeps the order', () => {
+    const action = read('src/lib/actions/orders.ts');
+    assert.ok(action.includes("'POST /api/orders'"), 'one scope for the route and the drawer');
+    assert.match(action, /prisma\.\$transaction\(async \(tx\) => \{\s*await idempotency\.begin\(tx\);/);
+    assert.match(action, /await idempotency\.keep\(tx, 201, /);
+  });
+
+  it('POST /api/orders hands the header to saveOrder', () => {
+    const route = read('src/app/api/orders/route.ts');
+    assert.match(route, /saveOrder\(\{ customerId, lineItems: items, notes \}, request\.headers\.get\(IDEMPOTENCY_HEADER\)\)/);
+  });
+
+  it('the web drawer sends one key per submission, kept until the entry is reset', () => {
+    const drawer = read('src/components/order/order-entry-drawer.tsx');
+    assert.match(drawer, /const submission = useSubmissionKey\(\);/);
+    assert.match(drawer, /saveOrder\(input, submission\.key\(JSON\.stringify\(input\)\)\)/);
+    assert.match(drawer, /submission\.done\(\);/);
   });
 });

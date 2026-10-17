@@ -46,8 +46,12 @@ export function CustomerPriceForm({
   };
 
   const handleSaveOverride = async (productId: string) => {
-    const newPrice = parseFloat(editValue);
-    if (isNaN(newPrice) || newPrice <= 0) {
+    const newPrice = Number(editValue);
+    if (!Number.isInteger(newPrice) || newPrice <= 0) {
+      // An emptied box just cancels; a fractional or negative price is refused.
+      if (editValue.trim() !== '') {
+        toast({ type: 'error', title: 'Lưu thất bại', message: 'Giá phải là số nguyên lớn hơn 0 (VND)' });
+      }
       handleCancelEdit();
       return;
     }

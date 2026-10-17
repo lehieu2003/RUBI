@@ -80,27 +80,34 @@ export default function DriverPage() {
       (previous || []).map((order) => (order.id === orderId ? { ...order, status: 'DELIVERED' as const } : order))
     );
 
+    let response: Response;
     try {
-      const response = await fetch(API_ENDPOINTS.ORDERS.CONFIRM(orderId), {
+      response = await fetch(API_ENDPOINTS.ORDERS.CONFIRM(orderId), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
       });
-
-      if (!response.ok) {
-        throw new Error('Không thể xác nhận đơn hàng');
-      }
-    } catch (err) {
+    } catch {
+      // No answer: the order is put back so the driver can try again.
       setOrders((previous) =>
         (previous || []).map((order) => (order.id === orderId ? { ...order, status: 'SHIPPING' as const } : order))
       );
+      toast({ type: 'error', title: 'Không thể xác nhận đơn hàng', message: 'Không thể kết nối đến máy chủ' });
+      return;
+    }
+
+    if (!response.ok) {
+      // Refused, e.g. 409 because the office cancelled the order meanwhile: show
+      // the server's reason and its list, not the order put back as deliverable.
+      const json = await response.json().catch(() => null);
       toast({
         type: 'error',
         title: 'Không thể xác nhận đơn hàng',
-        message: err instanceof Error ? err.message : 'Đã xảy ra lỗi',
+        message: json?.error || 'Không thể xác nhận đơn hàng',
       });
+      void fetchOrders();
     }
-  }, []);
+  }, [fetchOrders]);
 
   const safeOrders = orders || [];
   const pendingCount = safeOrders.filter((order) => order.status === 'SHIPPING').length;

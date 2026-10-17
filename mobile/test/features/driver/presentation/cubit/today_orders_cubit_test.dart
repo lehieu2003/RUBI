@@ -299,6 +299,75 @@ void main() {
       });
     });
 
+    group('refresh chạy chồng với xác nhận giao', () {
+      test('refresh (mở lại app) về SAU khi xác nhận → không trả đơn về Đang giao',
+          () async {
+        stubGetOrders(Ok(mixedFromServer));
+        stubConfirm(const Ok<void>(null));
+        final cubit = buildCubit();
+        addTearDown(cubit.close);
+        await cubit.load();
+
+        // Refresh bắt đầu trước khi xác nhận, server trả dữ liệu cũ (SHIPPING).
+        final stale = Completer<Result<List<DeliveryOrder>>>();
+        when(() => getOrders(any())).thenAnswer((_) => stale.future);
+        final refreshing = cubit.refresh();
+        await cubit.confirm('o-shipping-1');
+        stale.complete(Ok(mixedFromServer));
+        await refreshing;
+
+        final confirmed =
+            cubit.state.orders.firstWhere((o) => o.id == 'o-shipping-1');
+        expect(confirmed.status, OrderStatus.delivered);
+      });
+
+      test('refresh bắt đầu khi đang xác nhận, về sau xác nhận → bỏ kết quả cũ',
+          () async {
+        stubGetOrders(Ok(mixedFromServer));
+        final confirming = Completer<Result<void>>();
+        when(() => confirmDelivery(orderId: any(named: 'orderId')))
+            .thenAnswer((_) => confirming.future);
+        final cubit = buildCubit();
+        addTearDown(cubit.close);
+        await cubit.load();
+
+        final confirm = cubit.confirm('o-shipping-1');
+        final stale = Completer<Result<List<DeliveryOrder>>>();
+        when(() => getOrders(any())).thenAnswer((_) => stale.future);
+        final refreshing = cubit.refresh();
+        confirming.complete(const Ok<void>(null));
+        await confirm;
+        stale.complete(Ok(mixedFromServer));
+        await refreshing;
+
+        final confirmed =
+            cubit.state.orders.firstWhere((o) => o.id == 'o-shipping-1');
+        expect(confirmed.status, OrderStatus.delivered);
+      });
+
+      test('refresh xong khi đang xác nhận → vẫn giữ confirmingOrderId',
+          () async {
+        stubGetOrders(Ok(mixedFromServer));
+        final confirming = Completer<Result<void>>();
+        when(() => confirmDelivery(orderId: any(named: 'orderId')))
+            .thenAnswer((_) => confirming.future);
+        final cubit = buildCubit();
+        addTearDown(cubit.close);
+        await cubit.load();
+
+        final confirm = cubit.confirm('o-shipping-1');
+        await cubit.refresh();
+
+        // Nút vẫn khoá: bấm lại không gửi xác nhận lần hai.
+        expect(cubit.state.confirmingOrderId, 'o-shipping-1');
+        await cubit.confirm('o-shipping-1');
+        verify(() => confirmDelivery(orderId: 'o-shipping-1')).called(1);
+
+        confirming.complete(const Ok<void>(null));
+        await confirm;
+      });
+    });
+
     test('xác nhận giao xong → đơn vẫn giữ ghi chú', () async {
       final withNotes = DeliveryOrder(
         id: 'o-n',

@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { Prisma } from '@prisma/client';
-import { z } from 'zod';
 import { requireRole } from '@/lib/auth/helpers';
+import { CustomerPriceBody } from '@/lib/contracts/prices';
 import { apiSuccess, apiError } from "@/lib/api-response";
-
-const CustomerPriceOverrideSchema = z.object({
-  customerId: z.string().min(1),
-  productId: z.string().min(1),
-  price: z.number().positive(),
-});
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const parsed = CustomerPriceOverrideSchema.safeParse(body);
+    const parsed = CustomerPriceBody.safeParse(body);
 
     if (!parsed.success) {
       return apiError('Yêu cầu không hợp lệ', 400);

@@ -66,8 +66,10 @@ export default function CustomersPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCustomerData),
       });
-      if (!res.ok) throw new Error('Không thể tạo khách hàng');
-      return res.json();
+      const json = await res.json().catch(() => null);
+      // The server says why, e.g. a customer code already taken.
+      if (!res.ok) throw new Error(json?.error || 'Không thể tạo khách hàng');
+      return json;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
@@ -75,8 +77,9 @@ export default function CustomersPage() {
       setFormData({ code: '', name: '', phone: '', address: '', isActive: true });
       toast({ type: 'success', title: 'Đã thêm khách hàng' });
     },
-    onError: () => {
-      toast({ type: 'error', title: 'Lỗi', message: 'Không thể tạo khách hàng' });
+    onError: (err) => {
+      // A TypeError is the network failing: its text ("Failed to fetch") means nothing to staff.
+      toast({ type: 'error', title: 'Lỗi', message: err instanceof TypeError ? 'Không thể tạo khách hàng' : err.message });
     },
   });
 
@@ -111,13 +114,16 @@ export default function CustomersPage() {
               <h1 className="text-2xl font-bold tracking-tight text-on-surface">Danh Sách Khách Hàng</h1>
               <p className="text-xs text-on-surface-variant mt-1">{customers.length} đại lý / khách hàng trong hệ thống</p>
             </div>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-all shadow-sm"
-            >
-              <Plus className="h-4 w-4" />
-              THÊM KHÁCH HÀNG
-            </button>
+            {/* Only the manager creates customers (POST /api/customers is ADMIN only). */}
+            {user?.role === 'ADMIN' && (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-[#004a99] hover:bg-[#00346f] text-white font-bold text-xs rounded transition-all shadow-sm"
+              >
+                <Plus className="h-4 w-4" />
+                THÊM KHÁCH HÀNG
+              </button>
+            )}
           </div>
 
           {/* Search */}

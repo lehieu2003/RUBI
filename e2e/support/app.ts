@@ -35,3 +35,14 @@ export async function openStaffSettings(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Nhân sự' }).click();
   await expect(page.getByText('Quản lý nhân sự')).toBeVisible();
 }
+
+/**
+ * Opens a page of the app and waits until React has revealed the streamed page.
+ * The server HTML of a page arrives in a hidden <div id="S:…"> that React moves into
+ * place on the next animation frame; on a cold load React can render its own copy
+ * first, so until that frame a locator would match the page twice.
+ */
+export async function openPage(page: Page, url: string): Promise<void> {
+  await page.goto(url);
+  await page.waitForFunction(() => !document.querySelector('[hidden][id^="S:"]'));
+}
