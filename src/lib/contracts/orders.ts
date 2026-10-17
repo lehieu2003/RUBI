@@ -70,12 +70,15 @@ export const orderContracts: ApiContract[] = [
       })
     ),
     successStatus: 201,
-    errors: [400, 401, 403, 404, 500],
+    errors: [400, 401, 403, 404, 422, 500],
+    idempotent: true,
     notes:
       'The body carries no price: every line is priced from the customer\'s price list (their own price, else the ' +
       'default one). Lines with quantity 0 are dropped; at least one line must be above 0. 404 when the customer does ' +
       'not exist; 400 when a product does not exist, is no longer on sale or has no price. Stock is not checked: an ' +
-      'order may exceed what is left to sell. `notes` is what the driver must know at the door.',
+      'order may exceed what is left to sell. `notes` is what the driver must know at the door. ' +
+      'Send `Idempotency-Key` (one per submission, reused on resend) so a resent order is taken once and answered ' +
+      'with the first one; 422 `IDEMPOTENCY_KEY_REUSED` when the key was used for a different request.',
   },
   {
     id: 'getOrderCounts',

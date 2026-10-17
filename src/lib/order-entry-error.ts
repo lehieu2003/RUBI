@@ -5,7 +5,8 @@
 export class OrderEntryError extends Error {
   constructor(
     message: string,
-    readonly status: 400 | 404
+    readonly status: 400 | 404 | 422,
+    readonly code?: string
   ) {
     super(message);
     this.name = 'OrderEntryError';

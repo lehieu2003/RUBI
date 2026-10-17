@@ -12,7 +12,7 @@ describe('POST /api/orders', () => {
   it('is for the office and saves through the same code as the web drawer', () => {
     const post = route.slice(route.indexOf('export async function POST'));
     assert.match(post, /await requireRole\(\['ADMIN', 'STAFF'\]\)/);
-    assert.match(post, /await saveOrder\(\{ customerId, lineItems: items, notes \}\)/);
+    assert.match(post, /await saveOrder\(\{ customerId, lineItems: items, notes \}, request\.headers\.get\(IDEMPOTENCY_HEADER\)\)/);
     // The route never writes an order itself: one place prices and logs it.
     assert.doesNotMatch(post, /prisma\.order\.create/);
   });

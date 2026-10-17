@@ -44,3 +44,25 @@ describe('idempotent additive writes', () => {
     assert.match(hook, /if \(current\.current\?\.body !== body\) current\.current = \{ body, key: randomKey\(\) \};/);
   });
 });
+
+// Order creation: e2e/idempotent-order-create.spec.ts covers the behaviour.
+describe('idempotent order creation', () => {
+  it('saveOrder claims the key first in its transaction and keeps the order', () => {
+    const action = read('src/lib/actions/orders.ts');
+    assert.ok(action.includes("'POST /api/orders'"), 'one scope for the route and the drawer');
+    assert.match(action, /prisma\.\$transaction\(async \(tx\) => \{\s*await idempotency\.begin\(tx\);/);
+    assert.match(action, /await idempotency\.keep\(tx, 201, /);
+  });
+
+  it('POST /api/orders hands the header to saveOrder', () => {
+    const route = read('src/app/api/orders/route.ts');
+    assert.match(route, /saveOrder\(\{ customerId, lineItems: items, notes \}, request\.headers\.get\(IDEMPOTENCY_HEADER\)\)/);
+  });
+
+  it('the web drawer sends one key per submission, kept until the entry is reset', () => {
+    const drawer = read('src/components/order/order-entry-drawer.tsx');
+    assert.match(drawer, /const submission = useSubmissionKey\(\);/);
+    assert.match(drawer, /saveOrder\(input, submission\.key\(JSON\.stringify\(input\)\)\)/);
+    assert.match(drawer, /submission\.done\(\);/);
+  });
+});

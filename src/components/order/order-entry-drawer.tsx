@@ -8,6 +8,7 @@ import { Drawer } from '@/components/ui/drawer';
 import { SearchBar } from '@/components/order/search-bar';
 import { OrderMatrix } from '@/components/order/order-matrix';
 import { saveOrder, loadCustomerPrices, loadSellableStock } from '@/lib/actions/orders';
+import { useSubmissionKey } from '@/lib/submission-key';
 import { toast } from '@/components/dashboard/toast';
 import { Check, Loader2, AlertCircle } from 'lucide-react';
 import type { Customer, Product } from '@prisma/client';
@@ -30,16 +31,20 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
   const [priceStatus, setPriceStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   // Bumped on every pick and close, so a late answer for an older pick is dropped.
   const priceRequest = useRef(0);
+  // One Idempotency-Key per order: confirming again after a lost answer
+  // resends it, so the server does not take the order twice.
+  const submission = useSubmissionKey();
 
   // Forget everything typed or loaded for the previous customer, at once.
   const resetEntry = useCallback(() => {
     priceRequest.current += 1;
+    submission.done();
     setValues(new Map());
     setPrices({});
     setStock({});
     setSaveError(null);
     setPriceStatus('loading');
-  }, []);
+  }, [submission]);
 
   const handleClose = useCallback(() => {
     resetEntry();
@@ -118,7 +123,17 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
       return;
     }
 
-    const result = await saveOrder({ customerId: customer.id, lineItems });
+    const input = { customerId: customer.id, lineItems };
+    let result;
+    try {
+      result = await saveOrder(input, submission.key(JSON.stringify(input)));
+    } catch {
+      // No answer: the order may have been saved. Confirming again sends the
+      // same key, so it is not taken twice.
+      setIsSaving(false);
+      setSaveError('Mất kết nối, chưa rõ đơn đã lưu chưa. Bấm xác nhận lại: đơn sẽ không bị tạo hai lần.');
+      return;
+    }
 
     setIsSaving(false);
 
@@ -134,7 +149,7 @@ export function OrderEntryDrawer({ customers, products }: OrderEntryDrawerProps)
     } else {
       setSaveError(result.error);
     }
-  }, [customer, values, isSaving, priceStatus, handleClose, queryClient, router]);
+  }, [customer, values, isSaving, priceStatus, submission, handleClose, queryClient, router]);
 
   return (
     <>

@@ -12,23 +12,27 @@ function randomKey(): string {
 }
 
 /**
- * The Idempotency-Key of a form that adds to a balance. Sending the same body
- * again (a retry after the answer was lost) reuses the key, so the server
- * writes it once; a changed body is a new submission and gets a new key.
- * Call done() once the server confirmed the write.
+ * The Idempotency-Key of a form that adds to a balance or takes an order.
+ * Sending the same body again (a retry after the answer was lost) reuses the
+ * key, so the server writes it once; a changed body is a new submission and
+ * gets a new key. Call done() once the server confirmed the write.
  */
 export function useSubmissionKey() {
   const current = useRef<{ body: string; key: string } | null>(null);
-  return useMemo(
-    () => ({
+  return useMemo(() => {
+    const key = (body: string): string => {
+      if (current.current?.body !== body) current.current = { body, key: randomKey() };
+      return current.current.key;
+    };
+    return {
+      /** The key alone, for a server action. */
+      key,
       headers(body: string): Record<string, string> {
-        if (current.current?.body !== body) current.current = { body, key: randomKey() };
-        return { [IDEMPOTENCY_HEADER]: current.current.key };
+        return { [IDEMPOTENCY_HEADER]: key(body) };
       },
       done() {
         current.current = null;
       },
-    }),
-    []
-  );
+    };
+  }, []);
 }
