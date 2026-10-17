@@ -25,6 +25,7 @@ void main() {
         customerId: any(named: 'customerId'),
         quantities: any(named: 'quantities'),
         notes: any(named: 'notes'),
+        idempotencyKey: any(named: 'idempotencyKey'),
       ),
     ).thenAnswer((_) async => result);
   }
@@ -174,6 +175,7 @@ void main() {
           customerId: 'c-1',
           quantities: {'p-1': 3},
           notes: 'Giao cổng sau',
+          idempotencyKey: any(named: 'idempotencyKey'),
         ),
       ).called(1);
     });
@@ -197,6 +199,39 @@ void main() {
       expect(cubit.state.submitError, AppStrings.orderEntryUnsure);
     });
 
+    test(
+        'gửi lại cùng đơn → cùng Idempotency-Key; đổi số lượng hoặc ghi chú → '
+        'mã mới; lưu xong rồi lên đơn tiếp → mã mới', () async {
+      stubCreate(const Err(NetworkFailure()));
+      await cubit.submit(notes: 'Giao cổng sau');
+      await cubit.submit(notes: 'Giao cổng sau'); // gửi lại sau khi rớt mạng
+      cubit.setQuantity('p-1', 4);
+      await cubit.submit(notes: 'Giao cổng sau');
+      await cubit.submit(notes: 'Giao trước 7h');
+      stubCreate(const Ok(created));
+      await cubit.submit(notes: 'Giao trước 7h');
+      // Đơn tiếp theo, cùng khách, cùng số: một lần lên đơn khác.
+      await cubit.selectCustomer(gioBien);
+      cubit.setQuantity('p-1', 4);
+      await cubit.submit(notes: 'Giao trước 7h');
+
+      final keys = verify(
+        () => repo.createOrder(
+          customerId: any(named: 'customerId'),
+          quantities: any(named: 'quantities'),
+          notes: any(named: 'notes'),
+          idempotencyKey: captureAny(named: 'idempotencyKey'),
+        ),
+      ).captured;
+      expect(keys, hasLength(6));
+      expect(keys, everyElement(isA<String>()));
+      expect(keys[1], keys[0], reason: 'gửi lại đúng lần đó');
+      expect(keys[2], isNot(keys[1]), reason: 'đổi số lượng');
+      expect(keys[3], isNot(keys[2]), reason: 'đổi ghi chú');
+      expect(keys[4], keys[3], reason: 'gửi lại đúng lần đó');
+      expect(keys[5], isNot(keys[4]), reason: 'đơn trước đã lưu xong');
+    });
+
     test('đang gửi → lần bấm thứ hai bị bỏ qua, số lượng bị khoá', () async {
       final pending = Completer<Result<CreatedOrder>>();
       when(
@@ -204,6 +239,7 @@ void main() {
           customerId: any(named: 'customerId'),
           quantities: any(named: 'quantities'),
           notes: any(named: 'notes'),
+          idempotencyKey: any(named: 'idempotencyKey'),
         ),
       ).thenAnswer((_) => pending.future);
 
@@ -220,6 +256,7 @@ void main() {
           customerId: any(named: 'customerId'),
           quantities: any(named: 'quantities'),
           notes: any(named: 'notes'),
+          idempotencyKey: any(named: 'idempotencyKey'),
         ),
       ).called(1);
     });
@@ -233,6 +270,7 @@ void main() {
           customerId: any(named: 'customerId'),
           quantities: any(named: 'quantities'),
           notes: any(named: 'notes'),
+          idempotencyKey: any(named: 'idempotencyKey'),
         ),
       );
     });
@@ -244,6 +282,7 @@ void main() {
           customerId: any(named: 'customerId'),
           quantities: any(named: 'quantities'),
           notes: any(named: 'notes'),
+          idempotencyKey: any(named: 'idempotencyKey'),
         ),
       ).thenAnswer((_) => pending.future);
 

@@ -207,6 +207,22 @@ void main() {
         expect((sentBody() as Map).containsKey('notes'), isFalse);
       });
 
+      test('có mã → header Idempotency-Key; không mã → không có header',
+          () async {
+        adapter.onPost('/api/orders', (server) => server.reply(201, recorded('createOrder')),
+            data: Matchers.any);
+
+        await repo.createOrder(
+          customerId: 'c-1',
+          quantities: {'p-1': 1},
+          idempotencyKey: 'key-1',
+        );
+        expect(requests.last.headers['Idempotency-Key'], 'key-1');
+
+        await repo.createOrder(customerId: 'c-1', quantities: {'p-1': 1});
+        expect(requests.last.headers.containsKey('Idempotency-Key'), isFalse);
+      });
+
       test('không dòng nào lớn hơn 0 → lỗi ngay, không gọi server', () async {
         final res = await repo.createOrder(
           customerId: 'c-1',

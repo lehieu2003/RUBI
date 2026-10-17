@@ -25,6 +25,7 @@ void main() {
         customerId: any(named: 'customerId'),
         quantities: any(named: 'quantities'),
         notes: any(named: 'notes'),
+        idempotencyKey: any(named: 'idempotencyKey'),
       ),
     ).thenAnswer((_) async => result);
   }
@@ -259,6 +260,7 @@ void main() {
           customerId: 'c-1',
           quantities: {'p-1': 3},
           notes: 'Giao cổng sau',
+          idempotencyKey: any(named: 'idempotencyKey'),
         ),
       ).called(1);
       expect(popped, created);
@@ -343,6 +345,7 @@ void main() {
           customerId: any(named: 'customerId'),
           quantities: any(named: 'quantities'),
           notes: any(named: 'notes'),
+          idempotencyKey: any(named: 'idempotencyKey'),
         ),
       );
     });

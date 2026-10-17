@@ -468,6 +468,7 @@ void main() {
         customerId: any(named: 'customerId'),
         quantities: any(named: 'quantities'),
         notes: any(named: 'notes'),
+        idempotencyKey: any(named: 'idempotencyKey'),
       ),
     ).thenAnswer((_) async => const Ok(created));
     sl.registerFactory<OrderEntryCubit>(() => OrderEntryCubit(repo: entryRepo));
