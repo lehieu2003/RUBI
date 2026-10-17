@@ -90,6 +90,7 @@ paths:
                 price:
                   type: integer
                   exclusiveMinimum: 0
+                  maximum: 99999999
               required:
                 - productId
                 - price
@@ -151,6 +152,7 @@ paths:
                 price:
                   type: integer
                   exclusiveMinimum: 0
+                  maximum: 99999999
               required:
                 - customerId
                 - productId

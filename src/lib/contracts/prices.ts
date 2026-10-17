@@ -1,8 +1,15 @@
 import { z } from 'zod';
 import { type ApiContract, Id, Success, envelope, roles } from './common';
 
-/** A price in whole VND: payments are whole VND, so a fractional price could never be paid off. */
-export const Price = z.number().int('Giá phải là số nguyên (VND)').positive('Giá phải lớn hơn 0');
+/**
+ * A price in whole VND: payments are whole VND, so a fractional price could never be paid off.
+ * Capped like a new product's price, so a price and the order lines built from it fit the money columns.
+ */
+export const Price = z
+  .number()
+  .int('Giá phải là số nguyên (VND)')
+  .positive('Giá phải lớn hơn 0')
+  .max(99_999_999, 'Giá tối đa 99.999.999đ');
 
 /** Body of POST /api/prices/global; the route validates with this schema. */
 export const GlobalPriceBody = z.object({ productId: Id, price: Price });

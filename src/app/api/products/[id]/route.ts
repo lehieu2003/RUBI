@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
 import { UpdateProductBody } from '@/lib/contracts/products';
@@ -53,10 +54,19 @@ export async function PATCH(
       }
     }
 
-    const product = await prisma.product.update({
-      where: { id },
-      data: changes,
-    });
+    // The unique (factory, name, size) constraint catches a rename racing past the check above.
+    const product = await prisma.product
+      .update({
+        where: { id },
+        data: changes,
+      })
+      .catch((error: unknown) => {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') return null;
+        throw error;
+      });
+    if (!product) {
+      return apiError(`Đã có sản phẩm ${name} ${sizeKg}kg`, 409, 'PRODUCT_EXISTS');
+    }
 
     return apiSuccess(product);
   } catch (error) {
