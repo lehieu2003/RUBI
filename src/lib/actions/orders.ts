@@ -7,6 +7,7 @@ import { requireRole } from '@/lib/auth/helpers';
 import { stockOnHand } from '@/lib/inventory';
 import { type AuditActor, describeLines, dong, recordAudit } from '@/lib/audit';
 import { OrderEntryError } from '@/lib/order-entry-error';
+import { IDEMPOTENCY_KEY_REUSED_MESSAGE, INVALID_IDEMPOTENCY_KEY, Idempotency } from '@/lib/idempotency';
 
 // Order entry belongs to the office (manager and staff). Server actions are
 // reachable by anyone holding a session, drivers included, so the role is
@@ -144,27 +145,47 @@ const SaveOrderSchema = z.object({
 
 export type SaveOrderInput = z.infer<typeof SaveOrderSchema>;
 
-export type SaveOrderResult =
-  | {
-      success: true;
-      order: {
-        id: string;
-        status: string;
-        total: number;
-        createdAt: string;
-        customerName: string;
-      };
-    }
-  // `status` is what POST /api/orders answers with: 400 or 404 for an order
-  // that cannot be taken as entered, 500 for anything else.
-  | { success: false; error: string; status: 400 | 404 | 500 };
+interface SavedOrder {
+  id: string;
+  status: string;
+  total: number;
+  createdAt: string;
+  customerName: string;
+}
 
-async function saveOrderInternal(
-  customerId: string,
-  lineItems: { productId: string; quantity: number }[],
-  notes?: string
-) {
+export type SaveOrderResult =
+  | { success: true; order: SavedOrder }
+  // `status` is what POST /api/orders answers with: 400 or 404 for an order
+  // that cannot be taken as entered, 422 (`code` IDEMPOTENCY_KEY_REUSED) for a
+  // key already used for another order, 500 for anything else.
+  | { success: false; error: string; status: 400 | 404 | 422 | 500; code?: string };
+
+async function saveOrderInternal(input: SaveOrderInput, idempotencyKey: unknown): Promise<SavedOrder> {
   const actor = await requireOfficeActor();
+  const factoryId = actor.factoryId;
+
+  // The same order reaching the server twice (a resend after a lost answer)
+  // is taken once: the resend gets the first order back.
+  const idempotency = Idempotency.forKey(idempotencyKey, factoryId, 'POST /api/orders', input);
+  if (!idempotency) {
+    throw new OrderEntryError(INVALID_IDEMPOTENCY_KEY, 400);
+  }
+  return idempotency.runWith(
+    () => takeOrder(actor, input, idempotency),
+    (earlier) => {
+      if (earlier === 'reused') {
+        throw new OrderEntryError(IDEMPOTENCY_KEY_REUSED_MESSAGE, 422, 'IDEMPOTENCY_KEY_REUSED');
+      }
+      return earlier.body as unknown as SavedOrder;
+    }
+  );
+}
+
+async function takeOrder(
+  actor: AuditActor,
+  { customerId, lineItems, notes }: SaveOrderInput,
+  idempotency: Idempotency
+): Promise<SavedOrder> {
   const factoryId = actor.factoryId;
 
   const orderedItems = lineItems.filter((item) => item.quantity > 0);
@@ -215,6 +236,7 @@ async function saveOrderInternal(
   );
 
   return prisma.$transaction(async (tx) => {
+    await idempotency.begin(tx);
     const order = await tx.order.create({
       data: {
         customerId,
@@ -246,18 +268,26 @@ async function saveOrderInternal(
 
     // Return a plain serializable object: Prisma Decimals cannot cross the
     // Server -> Client Component boundary.
-    return {
+    const saved: SavedOrder = {
       id: order.id,
       status: order.status,
       total: Number(order.total),
       createdAt: order.createdAt.toISOString(),
       customerName: order.customer.name,
     };
+    await idempotency.keep(tx, 201, { ...saved });
+    return saved;
   });
 }
 
+/**
+ * Takes an order. `idempotencyKey` is one random value per submission, reused
+ * when that submission is sent again (POST /api/orders passes the
+ * Idempotency-Key header): a resend gets the first order back.
+ */
 export async function saveOrder(
-  input: SaveOrderInput
+  input: SaveOrderInput,
+  idempotencyKey?: string | null
 ): Promise<SaveOrderResult> {
   try {
     const parsed = SaveOrderSchema.safeParse(input);
@@ -269,8 +299,7 @@ export async function saveOrder(
       };
     }
 
-    const { customerId, lineItems, notes } = parsed.data;
-    const order = await saveOrderInternal(customerId, lineItems, notes);
+    const order = await saveOrderInternal(parsed.data, idempotencyKey);
 
     revalidatePath('/orders');
 
@@ -282,6 +311,7 @@ export async function saveOrder(
       error:
         error instanceof Error ? error.message : 'Failed to save order',
       status: error instanceof OrderEntryError ? error.status : 500,
+      ...(error instanceof OrderEntryError && error.code ? { code: error.code } : {}),
     };
   }
 }
