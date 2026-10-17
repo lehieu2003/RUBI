@@ -56,12 +56,12 @@ test.describe('a shift sign-up racing the close of its month', () => {
       { timeout: 30_000 }
     );
     const [signUpResponse, closeResponse] = await Promise.all([signUp!, close!]);
-    await manager.dispose();
 
     expect(signUpResponse.status()).toBe(200);
     expect(closeResponse.status()).toBe(409);
     expect((await closeResponse.json()).code).toBe('PENDING_SHIFTS');
     expect(await db.payrollLock.count({ where: { factoryId, month: MONTH } })).toBe(0);
     expect((await db.scheduleAssignment.findUniqueOrThrow({ where: { id: row.id } })).status).toBe('PENDING');
+    await manager.dispose();
   });
 });

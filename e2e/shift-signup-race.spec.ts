@@ -56,11 +56,11 @@ test.describe('two drivers signing up for the last place of a shift', () => {
       { timeout: 30_000 }
     );
     const responses = await Promise.all(pending);
-    await second.dispose();
 
     expect(responses.map((response) => response.status()).sort()).toEqual([200, 409]);
     const refused = responses.find((response) => response.status() === 409)!;
     expect((await refused.json()).code).toBe('SHIFT_FULL');
     expect(await db.scheduleAssignment.count({ where: { ...where(), status: 'PENDING' } })).toBe(1);
+    await second.dispose();
   });
 });
