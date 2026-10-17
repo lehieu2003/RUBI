@@ -88,6 +88,9 @@ model Product {
   orderItems             OrderItem[]
   stockCounts            StockCount[]
 
+  // Exact-match backstop for the routes' case-insensitive duplicate check
+  // (two concurrent creates both pass that check).
+  @@unique([factoryId, name, sizeKg])
   @@index([factoryId])
   @@map("products")
 }
@@ -116,7 +119,7 @@ model Customer {
 model GlobalPrice {
   id           String   @id @default(cuid())
   productId    String   @unique @map("product_id")
-  pricePerUnit Decimal  @map("price_per_unit") @db.Decimal(10, 2)
+  pricePerUnit Decimal  @map("price_per_unit") @db.Decimal(14, 2)
   updatedAt    DateTime @updatedAt @map("updated_at")
   product      Product  @relation(fields: [productId], references: [id])
 
@@ -127,7 +130,7 @@ model CustomerPriceOverride {
   id           String   @id @default(cuid())
   customerId   String   @map("customer_id")
   productId    String   @map("product_id")
-  pricePerUnit Decimal  @map("price_per_unit") @db.Decimal(10, 2)
+  pricePerUnit Decimal  @map("price_per_unit") @db.Decimal(14, 2)
   updatedAt    DateTime @updatedAt @map("updated_at")
   customer     Customer @relation(fields: [customerId], references: [id])
   product      Product  @relation(fields: [productId], references: [id])
@@ -177,7 +180,7 @@ model Order {
   id          String      @id @default(cuid())
   customerId  String      @map("customer_id")
   status      OrderStatus @default(PENDING)
-  total       Decimal     @default(0) @db.Decimal(10, 2)
+  total       Decimal     @default(0) @db.Decimal(14, 2)
   notes       String?
   createdAt   DateTime    @default(now()) @map("created_at")
   updatedAt   DateTime    @updatedAt @map("updated_at")
@@ -205,8 +208,8 @@ model OrderItem {
   orderId   String  @map("order_id")
   productId String  @map("product_id")
   quantity  Int
-  unitPrice Decimal @map("unit_price") @db.Decimal(10, 2)
-  lineTotal Decimal @map("line_total") @db.Decimal(10, 2)
+  unitPrice Decimal @map("unit_price") @db.Decimal(14, 2)
+  lineTotal Decimal @map("line_total") @db.Decimal(14, 2)
   actualQty Int?    @map("actual_qty")
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id])
@@ -218,7 +221,7 @@ model CustomerDebtLedger {
   id         String     @id @default(cuid())
   customerId String     @map("customer_id")
   type       LedgerType
-  amount     Decimal    @db.Decimal(10, 2)
+  amount     Decimal    @db.Decimal(14, 2)
   notes      String?
   createdAt  DateTime   @default(now()) @map("created_at")
   customer   Customer   @relation(fields: [customerId], references: [id])
@@ -231,7 +234,7 @@ model CustomerShellDeposit {
   customerId      String   @unique @map("customer_id")
   shellsOut       Int      @default(0)
   shellsIn        Int      @default(0)
-  depositPerShell Decimal  @default(50000) @map("deposit_per_shell") @db.Decimal(10, 2)
+  depositPerShell Decimal  @default(50000) @map("deposit_per_shell") @db.Decimal(14, 2)
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
   customer        Customer @relation(fields: [customerId], references: [id])
