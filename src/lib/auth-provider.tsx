@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { toast } from '@/components/dashboard/toast';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { AUTH_ENDPOINTS } from '@/lib/api-endpoints/auth';
 import { canAccessPath, isTenantAppPath } from '@/lib/rbac/permissions';
 
 interface User {
@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch(API_ENDPOINTS.AUTH.ME);
+      const res = await fetch(AUTH_ENDPOINTS.ME);
       const json = await res.json();
       const payload = json?.data !== undefined ? json.data : json;
       setUser(payload?.user ?? null);
@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const res = await fetch(API_ENDPOINTS.AUTH.LOGIN, {
+      const res = await fetch(AUTH_ENDPOINTS.LOGIN, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
-      const res = await fetch(API_ENDPOINTS.AUTH.LOGOUT, { method: 'POST' });
+      const res = await fetch(AUTH_ENDPOINTS.LOGOUT, { method: 'POST' });
       if (!res.ok) {
         toast({
           type: 'error',

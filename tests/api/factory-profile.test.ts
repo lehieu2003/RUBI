@@ -15,7 +15,7 @@ describe('factory profile', () => {
   });
 
   it('Settings loads and saves the real profile instead of hard-coded values', () => {
-    assert.match(settingsPage, /API_ENDPOINTS\.FACTORY\.PROFILE/);
+    assert.match(settingsPage, /(?:API_ENDPOINTS\.FACTORY|FACTORY_ENDPOINTS)\.PROFILE/);
     assert.match(settingsPage, /onSubmit=\{handleSaveFactory\}/);
     assert.doesNotMatch(settingsPage, /defaultValue="/);
   });

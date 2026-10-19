@@ -5,12 +5,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/features/inventory/data/inventory_endpoints.dart';
 import 'package:iceflow_mobile/features/inventory/data/inventory_repository_impl.dart';
 import 'package:iceflow_mobile/features/inventory/domain/entities/stock.dart';
 
 void main() {
   group('InventoryRepositoryImpl', () {
-    const path = '/api/inventory';
+    const path = InventoryEndpoints.inventory;
 
     late Dio dio;
     late DioAdapter adapter;

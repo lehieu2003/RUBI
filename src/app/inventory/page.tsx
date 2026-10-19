@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Snowflake, Plus, Loader2, RefreshCw, Download, ClipboardCheck, AlertTriangle } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { INVENTORY_ENDPOINTS } from '@/lib/api-endpoints/inventory';
 import { exportToCSV } from '@/lib/export-excel';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useSubmissionKey } from '@/lib/submission-key';
@@ -79,8 +79,8 @@ export default function InventoryPage() {
     try {
       setHistoryLoading(true);
       const [res, summaryRes] = await Promise.all([
-        fetch(`${API_ENDPOINTS.INVENTORY.COUNTS}?${filters}&page=${page}&limit=${HISTORY_PAGE_SIZE}`),
-        fetch(`${API_ENDPOINTS.INVENTORY.COUNTS_SUMMARY}?${filters}`),
+        fetch(`${INVENTORY_ENDPOINTS.COUNTS}?${filters}&page=${page}&limit=${HISTORY_PAGE_SIZE}`),
+        fetch(`${INVENTORY_ENDPOINTS.COUNTS_SUMMARY}?${filters}`),
       ]);
       const json = await res.json().catch(() => null);
       const summaryJson = await summaryRes.json().catch(() => null);
@@ -112,7 +112,7 @@ export default function InventoryPage() {
   const fetchInventory = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(API_ENDPOINTS.INVENTORY.BASE);
+      const res = await fetch(INVENTORY_ENDPOINTS.BASE);
       const json = await res.json();
       const payload: InventoryResponse = json?.data !== undefined ? json.data : json;
       if (res.ok && payload?.items) {
@@ -145,7 +145,7 @@ export default function InventoryPage() {
         productId: selectedProductId,
         quantity: Number(quantity),
       });
-      const res = await fetch(API_ENDPOINTS.INVENTORY.BASE, {
+      const res = await fetch(INVENTORY_ENDPOINTS.BASE, {
         method: 'POST',
         // A retry of the same batch after a lost answer is added once.
         headers: { 'Content-Type': 'application/json', ...submission.headers(body) },
@@ -180,7 +180,7 @@ export default function InventoryPage() {
 
     try {
       setSubmitting(true);
-      const res = await fetch(API_ENDPOINTS.INVENTORY.BASE, {
+      const res = await fetch(INVENTORY_ENDPOINTS.BASE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

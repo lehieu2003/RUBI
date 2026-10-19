@@ -5,6 +5,7 @@ import 'package:iceflow_mobile/core/network/mapping_validator.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/schedule/data/dto/shift_report_dtos.dart';
 import 'package:iceflow_mobile/features/schedule/data/mappers/shift_report_mapper.dart';
+import 'package:iceflow_mobile/features/schedule/data/schedule_endpoints.dart';
 import 'package:iceflow_mobile/features/schedule/domain/entities/shift_report.dart';
 import 'package:iceflow_mobile/features/schedule/domain/repositories/shift_report_repository.dart';
 import 'package:injectable/injectable.dart';
@@ -26,7 +27,7 @@ class ShiftReportRepositoryImpl implements ShiftReportRepository {
   Future<Result<ShiftReport>> getReport(DateTime month) {
     return guardApi('getReport', tag: _tag, run: () async {
       final res = await _dio.get<dynamic>(
-        '/api/reports/shifts',
+        ScheduleEndpoints.shiftsReport,
         queryParameters: {'month': _wireMonth(month)},
       );
       final data = apiDataObject(res.data);
@@ -41,7 +42,7 @@ class ShiftReportRepositoryImpl implements ShiftReportRepository {
   Future<Result<DateTime?>> setLock(DateTime month, {required bool locked}) {
     return guardApi('setLock', tag: _tag, run: () async {
       final res = await _dio.post<dynamic>(
-        '/api/reports/shifts/lock',
+        ScheduleEndpoints.shiftsLock,
         data: {'month': _wireMonth(month), 'locked': locked},
       );
       final data = apiDataObject(res.data);

@@ -6,8 +6,10 @@ import { User, Shield, Palette, Save, Users, Key, Plus, X, LogOut, Pencil } from
 import { toast } from '@/components/dashboard/toast';
 import { useAuth } from '@/lib/auth-provider';
 import { useTheme } from '@/lib/theme';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
 import { ChangePasswordForm } from '@/components/auth/change-password-form';
+import { AUTH_ENDPOINTS } from '@/lib/api-endpoints/auth';
+import { STAFF_ENDPOINTS } from '@/lib/api-endpoints/staff';
+import { FACTORY_ENDPOINTS } from '@/lib/api-endpoints/factory';
 import { PASSWORD_HINT } from '@/lib/password';
 
 type UserRole = 'ADMIN' | 'STAFF' | 'DRIVER';
@@ -80,7 +82,7 @@ export default function SettingsPage() {
     }
     setSavingStaff(true);
     try {
-      const res = await fetch(API_ENDPOINTS.STAFF.DETAIL(editStaff.id), {
+      const res = await fetch(STAFF_ENDPOINTS.DETAIL(editStaff.id), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -125,7 +127,7 @@ export default function SettingsPage() {
   useEffect(() => {
     async function loadUser() {
       try {
-        const res = await fetch(API_ENDPOINTS.AUTH.ME);
+        const res = await fetch(AUTH_ENDPOINTS.ME);
         const json = await res.json();
         const data = json?.data !== undefined ? json.data : json;
         if (data?.user) setCurrentUser(data.user);
@@ -141,7 +143,7 @@ export default function SettingsPage() {
     if (!isAdmin) return;
     async function loadStaff() {
       try {
-        const res = await fetch(API_ENDPOINTS.STAFF.BASE);
+        const res = await fetch(STAFF_ENDPOINTS.BASE);
         const json = await res.json();
         const data = json?.data !== undefined ? json.data : json;
         if (data?.users) setStaffUsers(data.users);
@@ -157,7 +159,7 @@ export default function SettingsPage() {
     if (!isAdmin) return;
     async function loadFactory() {
       try {
-        const res = await fetch(API_ENDPOINTS.FACTORY.PROFILE);
+        const res = await fetch(FACTORY_ENDPOINTS.PROFILE);
         const json = await res.json();
         const factory = (json?.data !== undefined ? json.data : json)?.factory;
         if (factory) {
@@ -175,7 +177,7 @@ export default function SettingsPage() {
     e.preventDefault();
     setSavingFactory(true);
     try {
-      const res = await fetch(API_ENDPOINTS.FACTORY.PROFILE, {
+      const res = await fetch(FACTORY_ENDPOINTS.PROFILE, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -459,7 +461,7 @@ export default function SettingsPage() {
                               <button
                                 onClick={async () => {
                                   try {
-                                    const res = await fetch(API_ENDPOINTS.STAFF.DETAIL(staff.id), {
+                                    const res = await fetch(STAFF_ENDPOINTS.DETAIL(staff.id), {
                                       method: 'PATCH',
                                       headers: { 'Content-Type': 'application/json' },
                                       body: JSON.stringify({ isActive: !staff.isActive }),
@@ -591,7 +593,7 @@ export default function SettingsPage() {
                           return;
                         }
                         try {
-                          const res = await fetch(API_ENDPOINTS.STAFF.BASE, {
+                          const res = await fetch(STAFF_ENDPOINTS.BASE, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ name: newName, email: newEmail, password: newPassword, role: newRole, phone: newPhone.trim() }),
@@ -731,7 +733,7 @@ export default function SettingsPage() {
                           return;
                         }
                         try {
-                          const res = await fetch(API_ENDPOINTS.STAFF.DETAIL(showPasswordModal), {
+                          const res = await fetch(STAFF_ENDPOINTS.DETAIL(showPasswordModal), {
                             method: 'PATCH',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ password: passwordInput }),

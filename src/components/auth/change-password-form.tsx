@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from '@/components/dashboard/toast';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { AUTH_ENDPOINTS } from '@/lib/api-endpoints/auth';
 import { PASSWORD_HINT, validatePassword } from '@/lib/password';
 
 const inputClass =
@@ -26,7 +26,7 @@ export function ChangePasswordForm({ onSuccess }: { onSuccess?: () => void }) {
 
     setSaving(true);
     try {
-      const res = await fetch(API_ENDPOINTS.AUTH.PASSWORD, {
+      const res = await fetch(AUTH_ENDPOINTS.PASSWORD, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ currentPassword, newPassword }),

@@ -3,7 +3,7 @@
 import { useCallback, useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { AlertCircle, CheckCircle2, Download } from 'lucide-react';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { REPORT_ENDPOINTS } from '@/lib/api-endpoints/reports';
 import { exportToCSV } from '@/lib/export-excel';
 import { LedgerDialog, RecordPaymentDialog } from '@/components/debt/payment-dialogs';
 
@@ -24,7 +24,7 @@ export default function DebtReportPage() {
 
   const fetchDebts = useCallback(async () => {
     try {
-      const res = await fetch(API_ENDPOINTS.REPORTS.DEBT);
+      const res = await fetch(REPORT_ENDPOINTS.DEBT);
       if (!res.ok) throw new Error('Không thể tải báo cáo công nợ');
       const json = await res.json();
       const data = json?.data !== undefined ? json.data : json;

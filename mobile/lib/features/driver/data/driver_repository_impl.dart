@@ -4,6 +4,7 @@ import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/auth_interceptor.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/core/services/app_logger.dart';
+import 'package:iceflow_mobile/features/driver/data/driver_endpoints.dart';
 import 'package:iceflow_mobile/features/driver/data/dto/driver_dtos.dart';
 import 'package:iceflow_mobile/features/driver/data/mappers/order_mapper.dart';
 import 'package:iceflow_mobile/features/driver/domain/entities/delivery_order.dart';
@@ -28,7 +29,7 @@ class DriverRepositoryImpl implements DriverRepository {
       // của web, không convert UTC.
       final formatted = DateFormat('yyyy-MM-dd').format(date);
       final res = await _dio.get<dynamic>(
-        '/api/driver/orders',
+        DriverEndpoints.driverOrders,
         queryParameters: {'date': formatted},
       );
 
@@ -70,7 +71,7 @@ class DriverRepositoryImpl implements DriverRepository {
   Future<Result<void>> confirmDelivery({required String orderId}) async {
     try {
       await _dio.patch<dynamic>(
-        '/api/orders/$orderId/confirm',
+        DriverEndpoints.confirmOrder(orderId),
         data: const <String, dynamic>{},
       );
       // Payload 200 (orderId/status) không cần gì thêm — còn lại

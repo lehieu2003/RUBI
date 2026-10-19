@@ -7,6 +7,7 @@ import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/pagination/page_params.dart';
 import 'package:iceflow_mobile/core/pagination/pagination_entity.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/features/debt/data/debt_endpoints.dart';
 import 'package:iceflow_mobile/features/debt/data/debt_repository_impl.dart';
 import 'package:iceflow_mobile/features/debt/domain/entities/customer_debt.dart';
 
@@ -27,7 +28,7 @@ void main() {
     dynamic decodedBody(Object? raw) => raw is String ? jsonDecode(raw) : raw;
 
     group('getDebts', () {
-      const path = '/api/reports/debt';
+      const path = DebtEndpoints.debtReport;
 
       test('200 → danh sách theo thứ tự server; lastPaymentDate null hoặc ISO',
           () async {
@@ -124,7 +125,7 @@ void main() {
     });
 
     group('getLedger', () {
-      const path = '/api/customers/c-1/ledger';
+      final path = DebtEndpoints.customerLedger('c-1');
 
       // Khớp api/openapi/fixtures/responses/success/listCustomerLedger.json.
       const ledgerBody = {
@@ -232,7 +233,7 @@ void main() {
     });
 
     group('recordPayment', () {
-      const path = '/api/customers/c-1/payments';
+      final path = DebtEndpoints.customerPayments('c-1');
 
       test('201 → dòng PAYMENT và số còn nợ; gửi amount nguyên + notes đã trim',
           () async {

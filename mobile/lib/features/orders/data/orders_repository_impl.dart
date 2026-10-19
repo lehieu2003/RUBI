@@ -6,6 +6,7 @@ import 'package:iceflow_mobile/core/pagination/pagination_dto.dart';
 import 'package:iceflow_mobile/core/pagination/pagination_entity.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/orders/data/dto/order_dtos.dart';
+import 'package:iceflow_mobile/features/orders/data/orders_endpoints.dart';
 import 'package:iceflow_mobile/features/orders/data/mappers/office_order_mapper.dart';
 import 'package:iceflow_mobile/features/orders/domain/entities/office_order.dart';
 import 'package:iceflow_mobile/features/orders/domain/repositories/orders_repository.dart';
@@ -29,7 +30,7 @@ class OrdersRepositoryImpl implements OrdersRepository {
   }) {
     return guardApi('getOrders', tag: _tag, run: () async {
       final res = await _dio.get<dynamic>(
-        '/api/orders',
+        OrdersEndpoints.orders,
         queryParameters: {
           ..._filterQuery(filter),
           if (status != null) 'status': status.wireName,
@@ -62,7 +63,7 @@ class OrdersRepositoryImpl implements OrdersRepository {
   }) {
     return guardApi('getOrderCounts', tag: _tag, run: () async {
       final res = await _dio.get<dynamic>(
-        '/api/orders/counts',
+        OrdersEndpoints.counts,
         queryParameters: _filterQuery(filter),
       );
       final data = apiDataObject(res.data);
@@ -76,7 +77,7 @@ class OrdersRepositoryImpl implements OrdersRepository {
   @override
   Future<Result<List<DriverOption>>> getDrivers() {
     return guardApi('getDrivers', tag: _tag, run: () async {
-      final res = await _dio.get<dynamic>('/api/drivers');
+      final res = await _dio.get<dynamic>(OrdersEndpoints.drivers);
       final rows = apiDataList(res.data);
       if (rows == null) {
         return const Err(UnexpectedFailure('Drivers response missing `data`'));
@@ -101,7 +102,7 @@ class OrdersRepositoryImpl implements OrdersRepository {
   }) {
     return guardApi('assignDriver', tag: _tag, run: () async {
       final res = await _dio.patch<dynamic>(
-        '/api/orders/bulk-assign',
+        OrdersEndpoints.bulkAssign,
         data: {'orderIds': orderIds, 'driverId': driverId},
       );
       final assigned = apiDataObject(res.data)?['assignedCount'];
@@ -124,7 +125,7 @@ class OrdersRepositoryImpl implements OrdersRepository {
     return guardApi('changeStatus', tag: _tag, run: () async {
       final reason = cancellationReason?.trim();
       final res = await _dio.patch<dynamic>(
-        '/api/orders/$orderId/status',
+        OrdersEndpoints.orderStatus(orderId),
         data: {
           'status': status.wireName,
           if (reason != null && reason.isNotEmpty) 'cancellationReason': reason,
@@ -153,7 +154,7 @@ class OrdersRepositoryImpl implements OrdersRepository {
   }) {
     return guardApi('settle', tag: _tag, run: () async {
       await _dio.patch<dynamic>(
-        '/api/orders/${order.id}/reconcile',
+        OrdersEndpoints.orderReconcile(order.id),
         data: {
           // Server chỉ ghi nợ và trừ kho các dòng được gửi → gửi đủ mọi dòng.
           'items': [

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Users, Loader2, AlertCircle, CheckCheck } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { toast } from '@/components/dashboard/toast';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { SCHEDULE_ENDPOINTS } from '@/lib/api-endpoints/schedule';
 import {
   CalendarGrid,
   type SchedulePerson,
@@ -55,7 +55,7 @@ export default function SchedulePage() {
     setLoading(true);
     setLoadError(null);
     try {
-      const response = await fetch(`${API_ENDPOINTS.SCHEDULE.ASSIGNMENTS}?week=${weekStartParam}`);
+      const response = await fetch(`${SCHEDULE_ENDPOINTS.ASSIGNMENTS}?week=${weekStartParam}`);
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
         throw new Error(payload?.error ?? 'Không thể tải lịch trình');
@@ -81,7 +81,7 @@ export default function SchedulePage() {
     setPendingCell(shift ? cellKey : `REMOVE:${shiftDate}`);
 
     try {
-      const response = await fetch(API_ENDPOINTS.SCHEDULE.ASSIGNMENTS, {
+      const response = await fetch(SCHEDULE_ENDPOINTS.ASSIGNMENTS, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -131,7 +131,7 @@ export default function SchedulePage() {
     if (ids.length === 0) return;
     setReviewing(true);
     try {
-      const response = await fetch(API_ENDPOINTS.SCHEDULE.REVIEW, {
+      const response = await fetch(SCHEDULE_ENDPOINTS.REVIEW, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids, action }),

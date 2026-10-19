@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Loader2, X } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { Pagination } from '@/components/ui/pagination';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { CUSTOMER_ENDPOINTS } from '@/lib/api-endpoints/customers';
 import type { PaginationMeta } from '@/lib/pagination';
 import { useSubmissionKey } from '@/lib/submission-key';
 
@@ -64,7 +64,7 @@ export function RecordPaymentDialog({
     setSaving(true);
     try {
       const body = JSON.stringify({ amount: value, notes: notes.trim() || undefined });
-      const response = await fetch(API_ENDPOINTS.CUSTOMERS.PAYMENTS(customer.customerId), {
+      const response = await fetch(CUSTOMER_ENDPOINTS.PAYMENTS(customer.customerId), {
         method: 'POST',
         // A retry of the same payment after a lost answer is recorded once.
         headers: { 'Content-Type': 'application/json', ...submission.headers(body) },
@@ -168,7 +168,7 @@ export function LedgerDialog({ customer, onClose }: { customer: DebtCustomer; on
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(`${API_ENDPOINTS.CUSTOMERS.LEDGER(customer.customerId)}?page=${page}&limit=10`);
+      const response = await fetch(`${CUSTOMER_ENDPOINTS.LEDGER(customer.customerId)}?page=${page}&limit=10`);
       const json = await response.json().catch(() => null);
       if (!response.ok) throw new Error(json?.error ?? 'Không thể tải lịch sử công nợ');
       setEntries(json.data);

@@ -4,6 +4,7 @@ import 'package:iceflow_mobile/core/network/api_guard.dart';
 import 'package:iceflow_mobile/core/network/idempotency.dart';
 import 'package:iceflow_mobile/core/network/mapping_validator.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/features/shells/data/shells_endpoints.dart';
 import 'package:iceflow_mobile/features/shells/domain/shell_balance.dart';
 import 'package:injectable/injectable.dart';
 
@@ -14,14 +15,13 @@ class ShellsRepositoryImpl implements ShellsRepository {
   ShellsRepositoryImpl({required this._dio});
 
   static const _tag = 'shells';
-  static const _path = '/api/deposits/shells';
 
   final Dio _dio;
 
   @override
   Future<Result<List<ShellBalance>>> getBalances() {
     return guardApi('getBalances', tag: _tag, run: () async {
-      final res = await _dio.get<dynamic>(_path);
+      final res = await _dio.get<dynamic>(ShellsEndpoints.shells);
       final rows = apiDataList(res.data);
       if (rows == null) {
         return const Err(UnexpectedFailure('Shell deposits response missing `data`'));
@@ -70,7 +70,7 @@ class ShellsRepositoryImpl implements ShellsRepository {
   }) {
     return guardApi('record', tag: _tag, run: () async {
       await _dio.patch<dynamic>(
-        _path,
+        ShellsEndpoints.shells,
         data: {
           'customerId': customerId,
           if (shellsOut > 0) 'shellsOut': shellsOut,
@@ -90,7 +90,7 @@ class ShellsRepositoryImpl implements ShellsRepository {
   }) {
     return guardApi('correct', tag: _tag, run: () async {
       await _dio.patch<dynamic>(
-        _path,
+        ShellsEndpoints.shells,
         data: {
           'customerId': customerId,
           'mode': 'SET',

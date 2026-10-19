@@ -5,6 +5,7 @@ import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/auth/domain/entities/user.dart';
 import 'package:iceflow_mobile/features/staff/data/dto/staff_dtos.dart';
 import 'package:iceflow_mobile/features/staff/data/mappers/staff_mapper.dart';
+import 'package:iceflow_mobile/features/staff/data/staff_endpoints.dart';
 import 'package:iceflow_mobile/features/staff/domain/entities/staff_account.dart';
 import 'package:iceflow_mobile/features/staff/domain/repositories/staff_repository.dart';
 import 'package:injectable/injectable.dart';
@@ -28,7 +29,7 @@ class StaffRepositoryImpl implements StaffRepository {
   @override
   Future<Result<List<StaffAccount>>> getAccounts() {
     return guardApi('getAccounts', tag: _tag, run: () async {
-      final res = await _dio.get<dynamic>('/api/staff');
+      final res = await _dio.get<dynamic>(StaffEndpoints.staff);
       final rows = apiDataObject(res.data)?['users'];
       if (rows is! List) {
         return const Err(UnexpectedFailure('Staff response missing `data.users`'));
@@ -60,7 +61,7 @@ class StaffRepositoryImpl implements StaffRepository {
     return guardApi('createAccount', tag: _tag, run: () async {
       final trimmedPhone = phone?.trim() ?? '';
       final res = await _dio.post<dynamic>(
-        '/api/staff',
+        StaffEndpoints.staff,
         data: {
           'name': name.trim(),
           'email': email.trim(),
@@ -91,7 +92,7 @@ class StaffRepositoryImpl implements StaffRepository {
   }) {
     return guardApi('updateAccount', tag: _tag, run: () async {
       final res = await _dio.patch<dynamic>(
-        '/api/staff/$id',
+        StaffEndpoints.staffById(id),
         data: {
           if (name != null) 'name': name.trim(),
           // Chuỗi rỗng là xoá số điện thoại.
