@@ -79,12 +79,12 @@ describe('debt report page', () => {
 
   it('the payment dialog blocks an amount above the debt before calling the server', () => {
     assert.match(dialogs, /value > customer\.outstandingDebt/);
-    assert.match(dialogs, /API_ENDPOINTS\.CUSTOMERS\.PAYMENTS\(customer\.customerId\)/);
+    assert.match(dialogs, /(?:API_ENDPOINTS\.CUSTOMERS|CUSTOMER_ENDPOINTS)\.PAYMENTS\(customer\.customerId\)/);
     assert.match(dialogs, /Thu đủ/);
   });
 
   it('the history dialog is paginated', () => {
-    assert.match(dialogs, /API_ENDPOINTS\.CUSTOMERS\.LEDGER\(customer\.customerId\)\}\?page=\$\{page\}&limit=10/);
+    assert.match(dialogs, /(?:API_ENDPOINTS\.CUSTOMERS|CUSTOMER_ENDPOINTS)\.LEDGER\(customer\.customerId\)\}\?page=\$\{page\}&limit=10/);
     assert.match(dialogs, /<Pagination meta=\{meta\}/);
   });
 });

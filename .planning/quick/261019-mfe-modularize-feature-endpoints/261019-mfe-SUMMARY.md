@@ -60,9 +60,14 @@ Modularized API endpoints across both Web (Next.js) and Mobile (Flutter) applica
 
 ## Verification
 - **Web Quality Gate**:
-  - `npx tsc --noEmit`: 0 errors
   - `npm run lint`: 0 errors
-  - `npm run build`: 52 static/dynamic routes compiled successfully
+  - `npm run typecheck`: 0 errors (`tsc --noEmit -p tsconfig.json`)
+  - `npm test`: 97 suites, 331 tests passed, 0 failures (`tsx tests/run-tests.ts`)
+  - `npm run build`: 52 static & dynamic routes compiled successfully
 - **Mobile Quality Gate**:
   - `flutter analyze`: No issues found (ran in 3.0s)
   - `flutter test`: 685 tests passed, 0 failures (ran in 17s)
+- **CI Pre-checks**:
+  - `bash scripts/validate.sh branch "refactor/feature-endpoints"`: passed
+  - `bash scripts/validate.sh range origin/dev HEAD`: passed
+
