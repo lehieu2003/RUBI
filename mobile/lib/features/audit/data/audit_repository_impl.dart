@@ -5,6 +5,7 @@ import 'package:iceflow_mobile/core/pagination/page_params.dart';
 import 'package:iceflow_mobile/core/pagination/pagination_dto.dart';
 import 'package:iceflow_mobile/core/pagination/pagination_entity.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/features/audit/data/audit_endpoints.dart';
 import 'package:iceflow_mobile/features/audit/data/dto/audit_dtos.dart';
 import 'package:iceflow_mobile/features/audit/data/mappers/audit_mapper.dart';
 import 'package:iceflow_mobile/features/audit/domain/entities/audit_entry.dart';
@@ -25,7 +26,7 @@ class AuditRepositoryImpl implements AuditRepository {
   }) {
     return guardApi('getAuditEntries', tag: 'audit', run: () async {
       final res = await _dio.get<dynamic>(
-        '/api/audit-logs',
+        AuditEndpoints.auditLogs,
         queryParameters: {
           ...page.toQuery(),
           if (filter.wireName != null) 'type': filter.wireName,

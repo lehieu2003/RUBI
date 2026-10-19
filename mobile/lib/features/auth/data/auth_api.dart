@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:iceflow_mobile/features/auth/data/auth_endpoints.dart';
 
 /// Remote data source cho các endpoint xác thực (JSON envelope API).
 ///
@@ -18,7 +19,7 @@ class AuthApi {
     required String password,
   }) async {
     final res = await _dio.post<dynamic>(
-      '/api/auth/login',
+      AuthEndpoints.login,
       data: {'email': email, 'password': password},
     );
     return _bodyOf(res.data);
@@ -26,7 +27,7 @@ class AuthApi {
 
   /// `GET /api/auth/me` → 200 `{ success: true, data: { user, ... } }`.
   Future<Map<String, dynamic>> me() async {
-    final res = await _dio.get<dynamic>('/api/auth/me');
+    final res = await _dio.get<dynamic>(AuthEndpoints.me);
     return _bodyOf(res.data);
   }
 
@@ -34,13 +35,13 @@ class AuthApi {
   /// → 200 `{ success: true, data: { token } }` (token mới, hạn 7 ngày)
   /// → 401 khi token đã hết hạn / tài khoản bị khoá.
   Future<Map<String, dynamic>> refresh() async {
-    final res = await _dio.post<dynamic>('/api/auth/refresh');
+    final res = await _dio.post<dynamic>(AuthEndpoints.refresh);
     return _bodyOf(res.data);
   }
 
   /// `POST /api/auth/logout` — caller bỏ qua kết quả.
   Future<void> logout() {
-    return _dio.post<dynamic>('/api/auth/logout');
+    return _dio.post<dynamic>(AuthEndpoints.logout);
   }
 
   /// `POST /api/auth/password`
@@ -51,7 +52,7 @@ class AuthApi {
     required String newPassword,
   }) async {
     final res = await _dio.post<dynamic>(
-      '/api/auth/password',
+      AuthEndpoints.password,
       data: {'currentPassword': currentPassword, 'newPassword': newPassword},
     );
     return _bodyOf(res.data);

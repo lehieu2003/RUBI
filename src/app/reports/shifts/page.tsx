@@ -4,7 +4,7 @@ import { Fragment, useCallback, useEffect, useState } from 'react';
 import { AlertCircle, ChevronDown, ChevronRight, Download, Loader2, Lock, LockOpen } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { REPORT_ENDPOINTS } from '@/lib/api-endpoints/reports';
 import { exportToCSV } from '@/lib/export-excel';
 import { shiftSlots } from '@/components/schedule/calendar-grid';
 import { MonthPicker } from '@/components/ui/date-picker';
@@ -45,7 +45,7 @@ export default function ShiftReportPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_ENDPOINTS.REPORTS.SHIFTS}?month=${month}`);
+      const response = await fetch(`${REPORT_ENDPOINTS.SHIFTS}?month=${month}`);
       const payload = await response.json().catch(() => null);
       if (!response.ok) throw new Error(payload?.error ?? 'Không thể tải bảng công');
       const data = payload?.data !== undefined ? payload.data : payload;
@@ -68,7 +68,7 @@ export default function ShiftReportPage() {
   const setLocked = async (locked: boolean) => {
     setLocking(true);
     try {
-      const response = await fetch(API_ENDPOINTS.REPORTS.SHIFTS_LOCK, {
+      const response = await fetch(REPORT_ENDPOINTS.SHIFTS_LOCK, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ month, locked }),

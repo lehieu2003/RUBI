@@ -6,6 +6,7 @@ import 'package:iceflow_mobile/core/pagination/page_params.dart';
 import 'package:iceflow_mobile/core/pagination/pagination_dto.dart';
 import 'package:iceflow_mobile/core/pagination/pagination_entity.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/features/debt/data/debt_endpoints.dart';
 import 'package:iceflow_mobile/features/debt/data/dto/debt_dtos.dart';
 import 'package:iceflow_mobile/features/debt/data/mappers/debt_mapper.dart';
 import 'package:iceflow_mobile/features/debt/domain/entities/customer_debt.dart';
@@ -24,7 +25,7 @@ class DebtRepositoryImpl implements DebtRepository {
   @override
   Future<Result<List<CustomerDebt>>> getDebts() {
     return guardApi('getDebts', tag: _tag, run: () async {
-      final res = await _dio.get<dynamic>('/api/reports/debt');
+      final res = await _dio.get<dynamic>(DebtEndpoints.debtReport);
       final rows = apiDataList(res.data);
       if (rows == null) {
         return const Err(UnexpectedFailure('Debt report response missing `data`'));
@@ -49,7 +50,7 @@ class DebtRepositoryImpl implements DebtRepository {
   }) {
     return guardApi('getLedger', tag: _tag, run: () async {
       final res = await _dio.get<dynamic>(
-        '/api/customers/$customerId/ledger',
+        DebtEndpoints.customerLedger(customerId),
         queryParameters: page.toQuery(),
       );
       final rows = apiDataList(res.data);
@@ -82,7 +83,7 @@ class DebtRepositoryImpl implements DebtRepository {
     return guardApi('recordPayment', tag: _tag, run: () async {
       final trimmed = notes?.trim();
       final res = await _dio.post<dynamic>(
-        '/api/customers/$customerId/payments',
+        DebtEndpoints.customerPayments(customerId),
         data: {
           'amount': amount,
           if (trimmed != null && trimmed.isNotEmpty) 'notes': trimmed,

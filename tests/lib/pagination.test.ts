@@ -206,7 +206,7 @@ describe('order list is paginated end to end', () => {
   it('the orders page asks the server for one page and for the counters', () => {
     const page = readFileSync('src/app/orders/page.tsx', 'utf8');
     assert.match(page, /params\.set\('page', String\(page\)\)/);
-    assert.match(page, /API_ENDPOINTS\.ORDERS\.COUNTS/);
+    assert.match(page, /(?:API_ENDPOINTS\.ORDERS|ORDER_ENDPOINTS)\.COUNTS/);
     assert.match(page, /<Pagination meta=\{meta\}/);
     assert.doesNotMatch(page, /mappedOrders\.filter\(/);
   });

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_guard.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/features/customers/data/customers_endpoints.dart';
 import 'package:iceflow_mobile/features/customers/data/dto/customer_dtos.dart';
 import 'package:iceflow_mobile/features/customers/data/mappers/customer_mapper.dart';
 import 'package:iceflow_mobile/features/customers/domain/entities/customer.dart';
@@ -20,7 +21,7 @@ class CustomersRepositoryImpl implements CustomersRepository {
   @override
   Future<Result<List<Customer>>> getCustomers() {
     return guardApi('getCustomers', tag: _tag, run: () async {
-      final res = await _dio.get<dynamic>('/api/customers');
+      final res = await _dio.get<dynamic>(CustomersEndpoints.customers);
       final rows = apiDataList(res.data);
       if (rows == null) {
         return const Err(UnexpectedFailure('Customers response missing `data`'));
@@ -41,7 +42,9 @@ class CustomersRepositoryImpl implements CustomersRepository {
   @override
   Future<Result<List<CustomerPrice>>> getPrices(String customerId) {
     return guardApi('getPrices', tag: _tag, run: () async {
-      final res = await _dio.get<dynamic>('/api/customers/$customerId/prices');
+      final res = await _dio.get<dynamic>(
+        CustomersEndpoints.customerPrices(customerId),
+      );
       final rows = apiDataList(res.data);
       if (rows == null) {
         return const Err(
@@ -69,7 +72,7 @@ class CustomersRepositoryImpl implements CustomersRepository {
   }) {
     return guardApi('setCustomPrice', tag: _tag, run: () async {
       await _dio.post<dynamic>(
-        '/api/prices/customer/override',
+        CustomersEndpoints.customerOverridePrice,
         data: {'customerId': customerId, 'productId': productId, 'price': price},
       );
       return const Ok(null);
@@ -83,7 +86,7 @@ class CustomersRepositoryImpl implements CustomersRepository {
   }) {
     return guardApi('removeCustomPrice', tag: _tag, run: () async {
       await _dio.delete<dynamic>(
-        '/api/prices/customer/override',
+        CustomersEndpoints.customerOverridePrice,
         queryParameters: {'customerId': customerId, 'productId': productId},
       );
       return const Ok(null);
@@ -101,7 +104,7 @@ class CustomersRepositoryImpl implements CustomersRepository {
       final trimmedAddress = address?.trim() ?? '';
       final trimmedPhone = phone?.trim() ?? '';
       final res = await _dio.post<dynamic>(
-        '/api/customers',
+        CustomersEndpoints.customers,
         data: {
           'code': code.trim(),
           'name': name.trim(),

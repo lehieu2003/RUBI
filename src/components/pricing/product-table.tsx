@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { PRODUCT_ENDPOINTS } from '@/lib/api-endpoints/products';
+import { PRICE_ENDPOINTS } from '@/lib/api-endpoints/prices';
 
 export interface ProductRow {
   id: string;
@@ -83,7 +84,7 @@ export function ProductTable({ products }: { products: ProductRow[] }) {
     const values = readForm(addForm);
     if (typeof values === 'string') return fail(values);
     setBusy('new');
-    const error = await send(API_ENDPOINTS.PRODUCTS.BASE, 'POST', values);
+    const error = await send(PRODUCT_ENDPOINTS.BASE, 'POST', values);
     setBusy(null);
     if (error) return fail(error);
     toast({ type: 'success', title: `Đã thêm ${values.name} ${values.sizeKg}kg` });
@@ -117,10 +118,10 @@ export function ProductTable({ products }: { products: ProductRow[] }) {
 
     let error: string | null = null;
     if (Object.keys(changes).length > 0) {
-      error = await send(API_ENDPOINTS.PRODUCTS.BY_ID(product.id), 'PATCH', changes);
+      error = await send(PRODUCT_ENDPOINTS.BY_ID(product.id), 'PATCH', changes);
     }
     if (!error && values.price !== product.price) {
-      error = await send(API_ENDPOINTS.PRICES.GLOBAL, 'POST', { productId: product.id, price: values.price });
+      error = await send(PRICE_ENDPOINTS.GLOBAL, 'POST', { productId: product.id, price: values.price });
     }
     setBusy(null);
     router.refresh();
@@ -140,7 +141,7 @@ export function ProductTable({ products }: { products: ProductRow[] }) {
   const handleToggleActive = async (product: ProductRow) => {
     setConfirmStop(null);
     setBusy(product.id);
-    const error = await send(API_ENDPOINTS.PRODUCTS.BY_ID(product.id), 'PATCH', { isActive: !product.isActive });
+    const error = await send(PRODUCT_ENDPOINTS.BY_ID(product.id), 'PATCH', { isActive: !product.isActive });
     setBusy(null);
     if (error) return fail(error);
     toast({

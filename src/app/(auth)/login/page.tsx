@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-provider';
 import { Snowflake } from 'lucide-react';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { AUTH_ENDPOINTS } from '@/lib/api-endpoints/auth';
 
 export default function LoginPage() {
   const { signIn, user } = useAuth();
@@ -37,7 +37,7 @@ export default function LoginPage() {
 
     // After successful login, fetch role and redirect
     try {
-      const meRes = await fetch(API_ENDPOINTS.AUTH.ME);
+      const meRes = await fetch(AUTH_ENDPOINTS.ME);
       const meData = await meRes.json();
       const me = meData?.data?.user ?? meData.user;
       if (me?.mustChangePassword) {

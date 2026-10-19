@@ -4,7 +4,9 @@ import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_guard.dart';
 import 'package:iceflow_mobile/core/network/idempotency.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/features/customers/data/customers_endpoints.dart';
 import 'package:iceflow_mobile/features/orders/data/dto/order_entry_dtos.dart';
+import 'package:iceflow_mobile/features/orders/data/orders_endpoints.dart';
 import 'package:iceflow_mobile/features/orders/data/mappers/order_entry_mapper.dart';
 import 'package:iceflow_mobile/features/orders/domain/entities/order_entry.dart';
 import 'package:iceflow_mobile/features/orders/domain/repositories/order_entry_repository.dart';
@@ -22,7 +24,7 @@ class OrderEntryRepositoryImpl implements OrderEntryRepository {
   @override
   Future<Result<List<CustomerOption>>> getCustomers() {
     return guardApi('getCustomers', tag: _tag, run: () async {
-      final res = await _dio.get<dynamic>('/api/customers');
+      final res = await _dio.get<dynamic>(CustomersEndpoints.customers);
       final rows = apiDataList(res.data);
       if (rows == null) {
         return const Err(UnexpectedFailure('Customers response missing `data`'));
@@ -43,7 +45,9 @@ class OrderEntryRepositoryImpl implements OrderEntryRepository {
   @override
   Future<Result<List<PricedProduct>>> getPriceList(String customerId) {
     return guardApi('getPriceList', tag: _tag, run: () async {
-      final res = await _dio.get<dynamic>('/api/customers/$customerId/prices');
+      final res = await _dio.get<dynamic>(
+        CustomersEndpoints.customerPrices(customerId),
+      );
       final rows = apiDataList(res.data);
       if (rows == null) {
         return const Err(UnexpectedFailure('Price list response missing `data`'));
@@ -80,7 +84,7 @@ class OrderEntryRepositoryImpl implements OrderEntryRepository {
     return guardApi('createOrder', tag: _tag, run: () async {
       final trimmed = notes?.trim();
       final res = await _dio.post<dynamic>(
-        '/api/orders',
+        OrdersEndpoints.orders,
         data: {
           'customerId': customerId,
           'items': items,
