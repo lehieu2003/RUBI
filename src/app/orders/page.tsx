@@ -26,7 +26,10 @@ import { PrintSlip } from '@/components/order/print-slip';
 import { loadSlipFactory } from '@/lib/actions/orders';
 import type { Customer, Product } from '@prisma/client';
 import { toast } from '@/components/dashboard/toast';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { ORDER_ENDPOINTS } from '@/lib/api-endpoints/orders';
+import { CUSTOMER_ENDPOINTS } from '@/lib/api-endpoints/customers';
+import { PRODUCT_ENDPOINTS } from '@/lib/api-endpoints/products';
+import { DRIVER_ENDPOINTS } from '@/lib/api-endpoints/drivers';
 
 interface OrderItemWithProduct {
   id: string;
@@ -149,7 +152,7 @@ export default function OrdersPage() {
       if (selectedStatus !== 'Tất cả') params.set('status', selectedStatus);
       params.set('page', String(page));
       params.set('limit', String(PAGE_SIZE));
-      const res = await fetch(`${API_ENDPOINTS.ORDERS.BASE}?${params}`);
+      const res = await fetch(`${ORDER_ENDPOINTS.BASE}?${params}`);
       const json = await res.json().catch(() => null);
       if (!res.ok) throw new Error(json?.error ?? 'Không thể tải danh sách đơn hàng');
       return { orders: json.data, meta: json.meta };
@@ -163,7 +166,7 @@ export default function OrdersPage() {
   const { data: statusCounts } = useQuery<{ total: number; byStatus: Record<string, number> }>({
     queryKey: ['orders', 'counts', filterParams],
     queryFn: async () => {
-      const res = await fetch(`${API_ENDPOINTS.ORDERS.COUNTS}?${filterParams}`);
+      const res = await fetch(`${ORDER_ENDPOINTS.COUNTS}?${filterParams}`);
       const json = await res.json().catch(() => null);
       if (!res.ok) throw new Error(json?.error ?? 'Không thể tải danh sách đơn hàng');
       return json.data;
@@ -173,7 +176,7 @@ export default function OrdersPage() {
   const { data: customers = [] } = useQuery<Customer[]>({
     queryKey: ['customers'],
     queryFn: async () => {
-      const res = await fetch(API_ENDPOINTS.CUSTOMERS.BASE);
+      const res = await fetch(CUSTOMER_ENDPOINTS.BASE);
       if (!res.ok) throw new Error('Không thể tải danh sách khách hàng');
       const json = await res.json();
       return json?.data !== undefined ? json.data : json;
@@ -183,7 +186,7 @@ export default function OrdersPage() {
   const { data: products = [] } = useQuery<Product[]>({
     queryKey: ['products'],
     queryFn: async () => {
-      const res = await fetch(API_ENDPOINTS.PRODUCTS.BASE);
+      const res = await fetch(PRODUCT_ENDPOINTS.BASE);
       if (!res.ok) throw new Error('Không thể tải danh sách sản phẩm');
       const json = await res.json();
       return json?.data !== undefined ? json.data : json;
@@ -199,7 +202,7 @@ export default function OrdersPage() {
   const { data: drivers = [] } = useQuery<DriverFromAPI[]>({
     queryKey: ['drivers'],
     queryFn: async () => {
-      const res = await fetch(API_ENDPOINTS.DRIVERS.BASE);
+      const res = await fetch(DRIVER_ENDPOINTS.BASE);
       if (!res.ok) throw new Error('Không thể tải danh sách tài xế');
       const json = await res.json();
       return json?.data !== undefined ? json.data : json;
@@ -316,7 +319,7 @@ export default function OrdersPage() {
     if (!selectedOrderId) return;
     setUpdatingStatus(true);
     try {
-      const res = await fetch(API_ENDPOINTS.ORDERS.STATUS(selectedOrderId), {
+      const res = await fetch(ORDER_ENDPOINTS.STATUS(selectedOrderId), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -354,7 +357,7 @@ export default function OrdersPage() {
     if (!bulkAssignDriverId || selectedOrderIds.size === 0) return;
     setBulkAssigning(true);
     try {
-      const res = await fetch(API_ENDPOINTS.ORDERS.BULK_ASSIGN, {
+      const res = await fetch(ORDER_ENDPOINTS.BULK_ASSIGN, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

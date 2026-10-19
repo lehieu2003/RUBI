@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Phone, Package, TrendingUp, Truck, Users } from 'lucide-react';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { DRIVER_ENDPOINTS } from '@/lib/api-endpoints/drivers';
 
 interface Driver {
   id: string;
@@ -18,7 +18,7 @@ export default function VehiclesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(API_ENDPOINTS.DRIVERS.BASE)
+    fetch(DRIVER_ENDPOINTS.BASE)
       .then((response) => (response.ok ? response.json() : null))
       .then((json) => {
         const data = json?.data !== undefined ? json.data : json;

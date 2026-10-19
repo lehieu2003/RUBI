@@ -5,7 +5,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Plus, Wrench, Truck, Download, Pencil, Trash2, RefreshCw, CalendarClock } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { ASSET_ENDPOINTS } from '@/lib/api-endpoints/assets';
 import { unwrapEnvelope } from '@/lib/api-response';
 import { Drawer } from '@/components/ui/drawer';
 import { exportToCSV } from '@/lib/export-excel';
@@ -103,7 +103,7 @@ export default function AssetsPage() {
 
   const fetchAssets = useCallback(async () => {
     try {
-      const res = await fetch(API_ENDPOINTS.ASSETS.BASE);
+      const res = await fetch(ASSET_ENDPOINTS.BASE);
       if (!res.ok) throw new Error('Không thể tải danh sách tài sản');
       const data = unwrapEnvelope<Asset[]>(await res.json());
       setAssets(Array.isArray(data) ? data : []);
@@ -123,7 +123,7 @@ export default function AssetsPage() {
     setSelected(asset);
     setHistoryLoading(true);
     try {
-      const res = await fetch(API_ENDPOINTS.ASSETS.MAINTENANCE(asset.id));
+      const res = await fetch(ASSET_ENDPOINTS.MAINTENANCE(asset.id));
       if (!res.ok) throw new Error();
       const data = unwrapEnvelope<MaintenanceRecord[]>(await res.json());
       setHistory(Array.isArray(data) ? data : []);
@@ -150,7 +150,7 @@ export default function AssetsPage() {
       if (addType === 'VEHICLE') body.licensePlate = form.licensePlate.trim();
       if (addType === 'MACHINE' && form.capacityTons) body.capacityTons = Number(form.capacityTons);
 
-      const res = await fetch(API_ENDPOINTS.ASSETS.BASE, {
+      const res = await fetch(ASSET_ENDPOINTS.BASE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -174,7 +174,7 @@ export default function AssetsPage() {
 
   const handleStatusChange = async (asset: Asset, status: AssetStatus) => {
     try {
-      const res = await fetch(API_ENDPOINTS.ASSETS.DETAIL(asset.id), {
+      const res = await fetch(ASSET_ENDPOINTS.DETAIL(asset.id), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
@@ -195,7 +195,7 @@ export default function AssetsPage() {
   const handleRecord = async () => {
     if (!selected) return;
     try {
-      const res = await fetch(API_ENDPOINTS.ASSETS.MAINTENANCE(selected.id), {
+      const res = await fetch(ASSET_ENDPOINTS.MAINTENANCE(selected.id), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -241,7 +241,7 @@ export default function AssetsPage() {
   const handleDelete = async (asset: Asset) => {
     if (!confirm(`Xóa tài sản "${asset.name}" cùng toàn bộ lịch sử bảo trì?`)) return;
     try {
-      const res = await fetch(API_ENDPOINTS.ASSETS.DETAIL(asset.id), { method: 'DELETE' });
+      const res = await fetch(ASSET_ENDPOINTS.DETAIL(asset.id), { method: 'DELETE' });
       if (!res.ok) throw new Error('Không thể xóa tài sản');
       setSelected(null);
       toast({ type: 'success', title: 'Đã xóa tài sản' });

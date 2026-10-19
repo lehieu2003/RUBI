@@ -5,12 +5,13 @@ import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/pagination/page_params.dart';
 import 'package:iceflow_mobile/core/pagination/pagination_entity.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/features/audit/data/audit_endpoints.dart';
 import 'package:iceflow_mobile/features/audit/data/audit_repository_impl.dart';
 import 'package:iceflow_mobile/features/audit/domain/entities/audit_entry.dart';
 
 void main() {
   group('AuditRepositoryImpl', () {
-    const path = '/api/audit-logs';
+    const path = AuditEndpoints.auditLogs;
 
     late Dio dio;
     late DioAdapter adapter;

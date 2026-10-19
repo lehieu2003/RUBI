@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Customer, Product } from '@prisma/client';
 import { toast } from '@/components/dashboard/toast';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { PRICE_ENDPOINTS } from '@/lib/api-endpoints/prices';
 import { groupProductsByName } from '@/lib/product-groups';
 
 type PriceMap = Map<string, number>;
@@ -69,7 +69,7 @@ export function CustomerPriceForm({
     });
 
     try {
-      const response = await fetch(API_ENDPOINTS.PRICES.CUSTOMER_OVERRIDE, {
+      const response = await fetch(PRICE_ENDPOINTS.CUSTOMER_OVERRIDE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customerId: customer.id, productId, price: newPrice }),

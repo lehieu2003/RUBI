@@ -4,6 +4,7 @@ import 'package:iceflow_mobile/core/network/api_guard.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/schedule/data/dto/schedule_dtos.dart';
 import 'package:iceflow_mobile/features/schedule/data/mappers/schedule_mapper.dart';
+import 'package:iceflow_mobile/features/schedule/data/schedule_endpoints.dart';
 import 'package:iceflow_mobile/features/schedule/domain/entities/week_schedule.dart';
 import 'package:iceflow_mobile/features/schedule/domain/repositories/team_schedule_repository.dart';
 import 'package:injectable/injectable.dart';
@@ -22,7 +23,7 @@ class TeamScheduleRepositoryImpl implements TeamScheduleRepository {
   Future<Result<List<SchedulePerson>>> getTeamWeek(DateTime weekStart) {
     return guardApi('getTeamWeek', tag: _tag, run: () async {
       final res = await _dio.get<dynamic>(
-        '/api/schedule/assignments',
+        ScheduleEndpoints.assignments,
         // Ngày theo lịch (năm/tháng/ngày), không convert múi giờ.
         queryParameters: {'week': DateFormat('yyyy-MM-dd').format(weekStart)},
       );
@@ -58,7 +59,7 @@ class TeamScheduleRepositoryImpl implements TeamScheduleRepository {
   }) {
     return guardApi('reviewShifts', tag: _tag, run: () async {
       final res = await _dio.post<dynamic>(
-        '/api/schedule/review',
+        ScheduleEndpoints.review,
         data: {'ids': shiftIds, 'action': approve ? 'APPROVE' : 'REJECT'},
       );
       final updated = apiDataObject(res.data)?['updated'];

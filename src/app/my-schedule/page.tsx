@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, CalendarCheck, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
 import { useAuth } from '@/lib/auth-provider';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { SCHEDULE_ENDPOINTS } from '@/lib/api-endpoints/schedule';
 import { dayLabels, shiftSlots, type Shift, type ShiftStatus } from '@/components/schedule/calendar-grid';
 
 type TeamShift = { shiftDate: string; shift: Shift; status: ShiftStatus };
@@ -67,7 +67,7 @@ export default function MySchedulePage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_ENDPOINTS.SCHEDULE.MY}?week=${weekParam}`);
+      const response = await fetch(`${SCHEDULE_ENDPOINTS.MY}?week=${weekParam}`);
       const payload = await response.json().catch(() => null);
       if (!response.ok) throw new Error(payload?.error ?? 'Không thể tải lịch');
       const data = payload?.data !== undefined ? payload.data : payload;
@@ -101,7 +101,7 @@ export default function MySchedulePage() {
     const key = `${shiftDate}:${shift}`;
     setSavingKey(key);
     try {
-      const response = await fetch(API_ENDPOINTS.SCHEDULE.MY, {
+      const response = await fetch(SCHEDULE_ENDPOINTS.MY, {
         // No request yet: ask for the shift. Pending or rejected: withdraw it.
         method: current ? 'DELETE' : 'POST',
         headers: { 'Content-Type': 'application/json' },

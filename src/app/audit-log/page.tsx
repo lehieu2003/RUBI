@@ -1,11 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import Link from 'next/link';
 import { History, Loader2 } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Pagination } from '@/components/ui/pagination';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import Link from 'next/link';
+import { AUDIT_ENDPOINTS } from '@/lib/api-endpoints/audit';
 import type { PaginationMeta } from '@/lib/pagination';
 
 interface AuditLogEntry {
@@ -53,7 +53,7 @@ export default function AuditLogPage() {
     try {
       const query = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) });
       if (filter) query.set('type', filter);
-      const res = await fetch(`${API_ENDPOINTS.AUDIT_LOGS}?${query}`);
+      const res = await fetch(`${AUDIT_ENDPOINTS.LOGS}?${query}`);
       const json = await res.json().catch(() => null);
       if (!res.ok) throw new Error(json?.error ?? 'Không thể tải nhật ký');
       setEntries(json.data);

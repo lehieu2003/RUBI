@@ -6,8 +6,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Search, Plus, Phone, MapPin, DollarSign, Package, ChevronRight, X } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
 import { useAuth } from '@/lib/auth-provider';
+import { CUSTOMER_ENDPOINTS } from '@/lib/api-endpoints/customers';
+import { PRODUCT_ENDPOINTS } from '@/lib/api-endpoints/products';
 
 interface Customer {
   id: string;
@@ -42,7 +43,7 @@ export default function CustomersPage() {
   const { data: customers = [], isLoading: customersLoading } = useQuery<Customer[]>({
     queryKey: ['customers'],
     queryFn: async () => {
-      const res = await fetch(API_ENDPOINTS.CUSTOMERS.BASE);
+      const res = await fetch(CUSTOMER_ENDPOINTS.BASE);
       if (!res.ok) throw new Error('Không thể tải danh sách khách hàng');
       const json = await res.json();
       return json?.data !== undefined ? json.data : json;
@@ -52,7 +53,7 @@ export default function CustomersPage() {
   const { data: products = [] } = useQuery<Product[]>({
     queryKey: ['products'],
     queryFn: async () => {
-      const res = await fetch(API_ENDPOINTS.PRODUCTS.BASE);
+      const res = await fetch(PRODUCT_ENDPOINTS.BASE);
       if (!res.ok) throw new Error('Không thể tải danh sách sản phẩm');
       const json = await res.json();
       return json?.data !== undefined ? json.data : json;
@@ -61,7 +62,7 @@ export default function CustomersPage() {
 
   const addCustomerMutation = useMutation({
     mutationFn: async (newCustomerData: typeof formData) => {
-      const res = await fetch(API_ENDPOINTS.CUSTOMERS.BASE, {
+      const res = await fetch(CUSTOMER_ENDPOINTS.BASE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCustomerData),

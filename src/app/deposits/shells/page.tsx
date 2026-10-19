@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { Plus, ArrowDownToLine, ArrowUpFromLine, AlertCircle, CheckCircle2, Loader2, Download, Pencil } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { DEPOSIT_ENDPOINTS } from '@/lib/api-endpoints/deposits';
+import { CUSTOMER_ENDPOINTS } from '@/lib/api-endpoints/customers';
 import { exportToCSV } from '@/lib/export-excel';
 import { useSubmissionKey } from '@/lib/submission-key';
 
@@ -43,8 +44,8 @@ export default function ShellDepositsPage() {
     async function fetchData() {
       try {
         const [depositsRes, customersRes] = await Promise.all([
-          fetch(API_ENDPOINTS.DEPOSITS.SHELLS),
-          fetch(API_ENDPOINTS.CUSTOMERS.BASE),
+          fetch(DEPOSIT_ENDPOINTS.SHELLS),
+          fetch(CUSTOMER_ENDPOINTS.BASE),
         ]);
         if (!depositsRes.ok) throw new Error('Không thể tải dữ liệu vỏ bao');
         const depJson = await depositsRes.json();
@@ -76,7 +77,7 @@ export default function ShellDepositsPage() {
         shellsOut: shellsOut ? parseInt(shellsOut) : undefined,
         shellsIn: shellsIn ? parseInt(shellsIn) : undefined,
       });
-      const res = await fetch(API_ENDPOINTS.DEPOSITS.SHELLS, {
+      const res = await fetch(DEPOSIT_ENDPOINTS.SHELLS, {
         method: 'PATCH',
         // A retry of the same entry after a lost answer is added once.
         headers: { 'Content-Type': 'application/json', ...submission.headers(body) },
@@ -88,7 +89,7 @@ export default function ShellDepositsPage() {
       }
       submission.done();
       // Refresh deposits
-      const refreshRes = await fetch(API_ENDPOINTS.DEPOSITS.SHELLS);
+      const refreshRes = await fetch(DEPOSIT_ENDPOINTS.SHELLS);
       if (refreshRes.ok) {
         const refreshJson = await refreshRes.json();
         setDeposits(refreshJson?.data !== undefined ? refreshJson.data : refreshJson);
@@ -116,7 +117,7 @@ export default function ShellDepositsPage() {
     }
     setSubmitting(true);
     try {
-      const res = await fetch(API_ENDPOINTS.DEPOSITS.SHELLS, {
+      const res = await fetch(DEPOSIT_ENDPOINTS.SHELLS, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ customerId: editing.customerId, mode: 'SET', shellsOut: editOutQty, shellsIn: editInQty }),
@@ -125,7 +126,7 @@ export default function ShellDepositsPage() {
         const err = await res.json().catch(() => null);
         throw new Error(err?.error || 'Không thể sửa số vỏ');
       }
-      const refreshRes = await fetch(API_ENDPOINTS.DEPOSITS.SHELLS);
+      const refreshRes = await fetch(DEPOSIT_ENDPOINTS.SHELLS);
       if (refreshRes.ok) {
         const refreshJson = await refreshRes.json();
         setDeposits(refreshJson?.data !== undefined ? refreshJson.data : refreshJson);

@@ -3,6 +3,7 @@ import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_guard.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
 import 'package:iceflow_mobile/features/products/data/dto/product_dtos.dart';
+import 'package:iceflow_mobile/features/products/data/products_endpoints.dart';
 import 'package:iceflow_mobile/features/products/data/mappers/product_mapper.dart';
 import 'package:iceflow_mobile/features/products/domain/entities/product.dart';
 import 'package:iceflow_mobile/features/products/domain/repositories/products_repository.dart';
@@ -20,7 +21,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
   @override
   Future<Result<List<Product>>> getProducts() {
     return guardApi('getProducts', tag: _tag, run: () async {
-      final res = await _dio.get<dynamic>('/api/prices/global');
+      final res = await _dio.get<dynamic>(ProductsEndpoints.globalPrices);
       final rows = apiDataList(res.data);
       if (rows == null) {
         return const Err(UnexpectedFailure('Prices response missing `data`'));
@@ -49,7 +50,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
     return guardApi('createProduct', tag: _tag, run: () async {
       final trimmedUnit = unit?.trim() ?? '';
       final res = await _dio.post<dynamic>(
-        '/api/products',
+        ProductsEndpoints.products,
         data: {
           'name': name.trim(),
           'sizeKg': sizeKg,
@@ -81,7 +82,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
   }) {
     return guardApi('updateProduct', tag: _tag, run: () async {
       final res = await _dio.patch<dynamic>(
-        '/api/products/$id',
+        ProductsEndpoints.productById(id),
         data: {
           if (name != null) 'name': name.trim(),
           if (unit != null) 'unit': unit.trim(),
@@ -104,7 +105,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
   Future<Result<void>> setPrice(String productId, double price) {
     return guardApi('setPrice', tag: _tag, run: () async {
       await _dio.post<dynamic>(
-        '/api/prices/global',
+        ProductsEndpoints.globalPrices,
         data: {'productId': productId, 'price': price},
       );
       return const Ok(null);

@@ -3,6 +3,7 @@ import 'package:iceflow_mobile/core/network/api_failure.dart';
 import 'package:iceflow_mobile/core/network/api_guard.dart';
 import 'package:iceflow_mobile/core/network/idempotency.dart';
 import 'package:iceflow_mobile/core/result/result.dart';
+import 'package:iceflow_mobile/features/inventory/data/inventory_endpoints.dart';
 import 'package:iceflow_mobile/features/inventory/data/dto/inventory_dtos.dart';
 import 'package:iceflow_mobile/features/inventory/data/mappers/stock_mapper.dart';
 import 'package:iceflow_mobile/features/inventory/domain/entities/stock.dart';
@@ -14,7 +15,6 @@ import 'package:injectable/injectable.dart';
 class InventoryRepositoryImpl implements InventoryRepository {
   InventoryRepositoryImpl({required this._dio});
 
-  static const _path = '/api/inventory';
   static const _tag = 'inventory';
 
   final Dio _dio;
@@ -22,7 +22,7 @@ class InventoryRepositoryImpl implements InventoryRepository {
   @override
   Future<Result<Stock>> getStock() {
     return guardApi('getStock', tag: _tag, run: () async {
-      final res = await _dio.get<dynamic>(_path);
+      final res = await _dio.get<dynamic>(InventoryEndpoints.inventory);
       final data = apiDataObject(res.data);
       if (data == null) {
         return const Err(UnexpectedFailure('Inventory response missing `data`'));
@@ -68,7 +68,7 @@ class InventoryRepositoryImpl implements InventoryRepository {
     String? idempotencyKey,
   }) async {
     final res = await _dio.post<dynamic>(
-      _path,
+      InventoryEndpoints.inventory,
       data: body,
       options: idempotencyOptions(idempotencyKey),
     );

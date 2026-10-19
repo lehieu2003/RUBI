@@ -7,7 +7,8 @@ import DeliveryCard from '@/components/driver/DeliveryCard';
 import EmptyState from '@/components/driver/EmptyState';
 import { useAuth } from '@/lib/auth-provider';
 import { toast } from '@/components/dashboard/toast';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { DRIVER_ENDPOINTS } from '@/lib/api-endpoints/drivers';
+import { ORDER_ENDPOINTS } from '@/lib/api-endpoints/orders';
 
 interface DriverInfo {
   id: string;
@@ -49,7 +50,7 @@ export default function DriverPage() {
 
   const fetchOrders = useCallback(async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.DRIVER_APP.ORDERS);
+      const response = await fetch(DRIVER_ENDPOINTS.ORDERS);
       if (!response.ok) {
         throw new Error(response.status === 401 ? 'Tài khoản tài xế chưa được liên kết' : 'Không thể tải đơn hàng');
       }
@@ -82,7 +83,7 @@ export default function DriverPage() {
 
     let response: Response;
     try {
-      response = await fetch(API_ENDPOINTS.ORDERS.CONFIRM(orderId), {
+      response = await fetch(ORDER_ENDPOINTS.CONFIRM(orderId), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),

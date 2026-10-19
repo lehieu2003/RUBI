@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { CheckCircle2, Clock, Search, Download, Package } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
-import { API_ENDPOINTS } from '@/lib/api-endpoints';
+import { ORDER_ENDPOINTS } from '@/lib/api-endpoints/orders';
 import { MAX_PAGE_SIZE } from '@/lib/pagination';
 import { exportToCSV } from '@/lib/export-excel';
 
@@ -60,7 +60,7 @@ const statusConfig = {
 async function fetchAllOrders(filter: string): Promise<OrderFromAPI[]> {
   const all: OrderFromAPI[] = [];
   for (let page = 1; ; page += 1) {
-    const res = await fetch(`${API_ENDPOINTS.ORDERS.BASE}?${filter}&page=${page}&limit=${MAX_PAGE_SIZE}`);
+    const res = await fetch(`${ORDER_ENDPOINTS.BASE}?${filter}&page=${page}&limit=${MAX_PAGE_SIZE}`);
     const json = await res.json().catch(() => null);
     if (!res.ok) throw new Error(json?.error ?? 'Không thể tải danh sách đơn hàng');
     all.push(...(json.data as OrderFromAPI[]));
@@ -84,7 +84,7 @@ function fetchOrdersAwaitingSettlement(): Promise<OrderFromAPI[]> {
 
 /** How many orders were settled on one day, whatever day they were taken. */
 async function fetchSettledCount(date: string): Promise<number> {
-  const res = await fetch(`${API_ENDPOINTS.ORDERS.BASE}?status=COMPLETED&completedDate=${date}&page=1&limit=1`);
+  const res = await fetch(`${ORDER_ENDPOINTS.BASE}?status=COMPLETED&completedDate=${date}&page=1&limit=1`);
   const json = await res.json().catch(() => null);
   if (!res.ok) throw new Error(json?.error ?? 'Không thể tải danh sách đơn hàng');
   return json.meta?.total_item ?? 0;
@@ -193,7 +193,7 @@ export default function SettlePage() {
         actualQty,
       }));
       const res = await fetch(
-        API_ENDPOINTS.ORDERS.RECONCILE(reconcileOrder.id),
+        ORDER_ENDPOINTS.RECONCILE(reconcileOrder.id),
         {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
