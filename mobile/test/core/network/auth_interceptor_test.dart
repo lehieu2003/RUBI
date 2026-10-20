@@ -373,6 +373,91 @@ void main() {
       expect(logoutCount, 0); // non-401 errors must not force a logout
     });
 
+    test('FL-1: đăng xuất và user khác đăng nhập trong lúc refresh → không ghi đè token của user mới',
+        () async {
+      await storage.saveToken('user-1-expired');
+      mainAdapter.onGet('/api/orders', (s) => s.reply(401, {'error': 'expired'}));
+      refreshAdapter.onPost('/api/auth/refresh', (s) {
+        s.replyCallback(200, (options) {
+          // User 1 logs out and User 2 logs in while refresh is in flight:
+          storage.clear();
+          storage.saveToken('user-2-token');
+          return {
+            'success': true,
+            'data': {'token': 'user-1-new-token'},
+          };
+        });
+      });
+
+      await expectLater(
+        dio.get<void>('/api/orders'),
+        throwsA(isA<DioException>()),
+      );
+
+      // Must NOT overwrite User 2's token with User 1's refreshed token!
+      expect(await storage.readToken(), 'user-2-token');
+    });
+
+    test('FL-2: lỗi mạng khi refresh → không clear storage, không emitLogout',
+        () async {
+      await storage.saveToken('token');
+      mainAdapter.onGet('/api/orders', (s) => s.reply(401, {'error': 'expired'}));
+      refreshAdapter.onPost('/api/auth/refresh', (s) {
+        s.throws(
+          0,
+          DioException(
+            requestOptions: RequestOptions(path: '/api/auth/refresh'),
+            type: DioExceptionType.connectionTimeout,
+          ),
+        );
+      });
+
+      await expectLater(
+        dio.get<void>('/api/orders'),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(storage.clearCalls, 0);
+      expect(logoutCount, 0);
+      expect(await storage.readToken(), 'token');
+    });
+
+    test('FL-4: 401 khi storage đã có token mới hơn request → retry ngay, không refresh lần 2',
+        () async {
+      await storage.saveToken('token-older');
+      var refreshCalls = 0;
+      String? retryAuth;
+
+      mainAdapter.onGet('/api/orders', (s) {
+        return s.replyCallback(401, (options) {
+          // Trong lúc request này đang bay, một request khác đã refresh xong và lưu 'token-newer':
+          storage._token = 'token-newer';
+          return {'error': 'expired'};
+        });
+      });
+
+      refreshAdapter.onPost('/api/auth/refresh', (s) {
+        s.replyCallback(200, (options) {
+          refreshCalls++;
+          return {'success': true, 'data': {'token': 'token-newest'}};
+        });
+      });
+
+      refreshAdapter.onGet('/api/orders', (s) {
+        s.replyCallback(200, (options) {
+          retryAuth = options.headers['Authorization'] as String?;
+          return {'success': true, 'data': []};
+        });
+      });
+
+      final res = await dio.get<dynamic>('/api/orders');
+
+      expect(res.statusCode, 200);
+      expect(refreshCalls, 0); // No refresh call made!
+      expect(retryAuth, 'Bearer token-newer');
+      expect(logoutCount, 0);
+    });
+
     test('createApiClient dựng baseUrl, JSON headers và AuthInterceptor', () {
       final client = createApiClient(
         authStorage: _FakeAuthStorage(),
