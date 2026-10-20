@@ -140,6 +140,11 @@ export default function OrdersPage() {
     setSelectedOrderIds(new Set());
   }, [filterParams, selectedStatus]);
 
+  // When changing pages, clear selected orders so invisible orders from other pages are not bulk-assigned.
+  useEffect(() => {
+    setSelectedOrderIds(new Set());
+  }, [page]);
+
   const {
     data: orderPage,
     isLoading: ordersLoading,

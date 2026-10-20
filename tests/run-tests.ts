@@ -42,3 +42,4 @@ import './api/customer-payments.test';
 import './api/create-order.test';
 import './lib/revenue.test';
 import './lib/transactions.test';
+import './app/ui-logic-fixes.test';
