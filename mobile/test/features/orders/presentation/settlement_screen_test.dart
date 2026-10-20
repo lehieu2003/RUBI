@@ -218,15 +218,24 @@ void main() {
     expect(find.byKey(const Key('settle_confirm')), findsNothing);
   });
 
-  testWidgets('server từ chối → báo câu của server', (tester) async {
+  testWidgets('FL-5: server từ chối hoặc lỗi mạng → ở lại sheet, báo lỗi, giữ nguyên số đã nhập', (tester) async {
     stubSettle(const Err<void>(ServerFailure('Chỉ đối soát được đơn đã giao')));
     await pumpScreen(tester);
     await openOrder(tester);
 
+    // Người dùng chỉnh sửa số lượng
+    await tester.enterText(find.byKey(const Key('settle_qty_line-1')), '7');
+    await tester.pump();
+    expect(qty(tester, 'line-1'), '7');
+
     await tester.tap(find.byKey(const Key('settle_confirm')));
     await tester.pumpAndSettle();
 
+    // Báo lỗi của server
     expect(find.text('Chỉ đối soát được đơn đã giao'), findsOneWidget);
+    // Sheet KHÔNG bị đóng, nút confirm và số lượng đã nhập vẫn còn nguyên
+    expect(find.byKey(const Key('settle_confirm')), findsOneWidget);
+    expect(qty(tester, 'line-1'), '7');
   });
 
   testWidgets('màn hình 360dp, tên dài → không overflow', (tester) async {

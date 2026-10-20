@@ -110,7 +110,6 @@ class _SettlementBody extends StatelessWidget {
   Future<void> _openOrder(BuildContext context, OfficeOrder order) async {
     // Capture trước await — context không dùng được qua async gap an toàn.
     final messenger = ScaffoldMessenger.of(context);
-    final errorColor = context.colorScheme.error;
     final cubit = context.read<OrdersCubit>();
     final result = await showModalBottomSheet<OrderActionResult>(
       context: context,
@@ -118,16 +117,13 @@ class _SettlementBody extends StatelessWidget {
       showDragHandle: true,
       builder: (_) => _SettleSheet(order: order, cubit: cubit),
     );
-    if (result == null) return;
-    messenger.showMessage(
-      result.message,
-      errorColor: result.ok ? null : errorColor,
-    );
+    if (result == null || !result.ok) return;
+    messenger.showMessage(result.message);
   }
 }
 
 /// Nhập số thực giao từng dòng của một đơn rồi chốt. Mở ra với số đặt; đóng
-/// lại với kết quả chốt.
+/// lại với kết quả chốt khi thành công, hoặc giữ nguyên số đã nhập khi lỗi.
 class _SettleSheet extends HookWidget {
   const _SettleSheet({required this.order, required this.cubit});
 
@@ -157,7 +153,16 @@ class _SettleSheet extends HookWidget {
       if (busy.value) return;
       busy.value = true;
       final result = await cubit.settle(order, actual.value);
-      if (context.mounted) Navigator.of(context).pop(result);
+      if (!context.mounted) return;
+      if (result.ok) {
+        Navigator.of(context).pop(result);
+      } else {
+        busy.value = false;
+        ScaffoldMessenger.of(context).showMessage(
+          result.message,
+          errorColor: context.colorScheme.error,
+        );
+      }
     }
 
     return SafeArea(
