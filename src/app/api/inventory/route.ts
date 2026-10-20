@@ -5,6 +5,7 @@ import { requireRole } from '@/lib/auth/helpers';
 import { changeStock, isLowStock, outForDelivery, reservedByOpenOrders, stockOnHand } from '@/lib/inventory';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import { Idempotency } from '@/lib/idempotency';
+import { retryIfCancelled } from '@/lib/transactions';
 
 const RecordSchema = z.object({
   productId: z.string().min(1),
@@ -97,8 +98,8 @@ export async function POST(req: NextRequest) {
     const factoryId = session.factoryId;
     const idempotency = Idempotency.from(req, factoryId, 'POST /api/inventory', parsed.data);
     if (idempotency instanceof Response) return idempotency;
-    return await idempotency.run(() =>
-      prisma.$transaction(async (tx) => {
+    return await idempotency.run(() => retryIfCancelled(() => prisma.$transaction(
+      async (tx) => {
         await idempotency.begin(tx);
         if (mode === 'ADD') {
           return idempotency.finish(tx, apiSuccess(await changeStock(tx, productId, { add: quantity })));
@@ -123,8 +124,9 @@ export async function POST(req: NextRequest) {
           },
         });
         return idempotency.finish(tx, apiSuccess(counted));
-      })
-    );
+      },
+      { isolationLevel: 'Serializable' }
+    )));
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('[POST /api/inventory]', error);
