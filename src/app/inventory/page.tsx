@@ -117,8 +117,8 @@ export default function InventoryPage() {
       const payload: InventoryResponse = json?.data !== undefined ? json.data : json;
       if (res.ok && payload?.items) {
         setData(payload);
-        if (payload.items.length > 0 && !selectedProductId) {
-          setSelectedProductId(payload.items[0].productId);
+        if (payload.items.length > 0) {
+          setSelectedProductId((prev) => prev || payload.items[0].productId);
         }
       }
     } catch {
@@ -126,7 +126,7 @@ export default function InventoryPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedProductId]);
+  }, []);
 
   useEffect(() => {
     fetchInventory();

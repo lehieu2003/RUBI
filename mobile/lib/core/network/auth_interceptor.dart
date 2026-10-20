@@ -45,7 +45,7 @@ class AuthInterceptor extends Interceptor {
 
   /// In-flight refresh shared by concurrent 401s (single-flight) so N
   /// simultaneous expirations fire one `POST /api/auth/refresh`, not N.
-  Future<String>? _inFlightRefresh;
+  Future<String?>? _inFlightRefresh;
 
   @override
   void onRequest(
@@ -73,24 +73,50 @@ class AuthInterceptor extends Interceptor {
       return handler.next(err);
     }
 
+    final currentStoredToken = await _authStorage.readToken();
+    final requestToken =
+        _extractBearerToken(err.requestOptions.headers['Authorization']);
+
+    // If storage already has a fresher/different token than what this request used,
+    // retry immediately with the fresh token without firing another refresh (FL-4).
+    if (currentStoredToken != null &&
+        requestToken != null &&
+        currentStoredToken != requestToken) {
+      final options = err.requestOptions
+        ..extra[_retriedExtraKey] = true
+        ..headers['Authorization'] = 'Bearer $currentStoredToken';
+      try {
+        final retryResponse = await _refreshDio.fetch<dynamic>(options);
+        return handler.resolve(retryResponse);
+      } on DioException catch (retryErr) {
+        if (retryErr.response?.statusCode == 401) await _forceLogout();
+        return handler.next(retryErr);
+      } on Object {
+        return handler.next(err);
+      }
+    }
+
     // First 401 — refresh once (single-flight), then retry the original
     // request once.
-    final String newToken;
+    final String? newToken;
     try {
       newToken = await _refreshToken();
     } on Object catch (e) {
-      // Refresh failed — the session is unrecoverable: log out.
+      // Refresh failed — log out only when server explicitly rejected it (401/403).
+      // Transient network timeouts / connection errors do not wipe credentials (FL-2).
       AppLogger.warning(
-        'Token refresh failed, signing out: $e',
+        'Token refresh failed: $e',
         tag: 'network',
       );
-      await _forceLogout();
+      if (e is DioException &&
+          (e.response?.statusCode == 401 || e.response?.statusCode == 403)) {
+        await _forceLogout();
+      }
       return handler.next(err);
     }
-    // Logged out while the refresh was in flight: do not write the token
-    // back (that would silently sign the user in again); no retry.
-    if (await _authStorage.readToken() == null) return handler.next(err);
-    await _authStorage.saveToken(newToken);
+    // Logged out or account switched while refresh was in flight:
+    // do not write the token back, do not retry (FL-1).
+    if (newToken == null) return handler.next(err);
 
     final options = err.requestOptions
       ..extra[_retriedExtraKey] = true
@@ -122,22 +148,32 @@ class AuthInterceptor extends Interceptor {
     return !_excludedPaths.any((excluded) => path.contains(excluded));
   }
 
+  String? _extractBearerToken(dynamic authHeader) {
+    if (authHeader is! String) return null;
+    const prefix = 'Bearer ';
+    if (authHeader.startsWith(prefix)) {
+      return authHeader.substring(prefix.length).trim();
+    }
+    return null;
+  }
+
   /// Concurrent 401s await the same shared refresh future; it is cleared on
   /// completion (success or failure) so the next expiry starts a fresh call.
-  Future<String> _refreshToken() {
+  Future<String?> _refreshToken() {
     return _inFlightRefresh ??= _doRefreshToken().whenComplete(() {
       _inFlightRefresh = null;
     });
   }
 
-  Future<String> _doRefreshToken() async {
+  Future<String?> _doRefreshToken() async {
     final currentToken = await _authStorage.readToken();
+    if (currentToken == null || currentToken.isEmpty) return null;
+
     final response = await _refreshDio.post<Map<String, dynamic>>(
       _refreshPath,
       options: Options(
         headers: {
-          if (currentToken != null && currentToken.isNotEmpty)
-            'Authorization': 'Bearer $currentToken',
+          'Authorization': 'Bearer $currentToken',
         },
       ),
     );
@@ -146,6 +182,13 @@ class AuthInterceptor extends Interceptor {
     if (token == null || token.isEmpty) {
       throw StateError('Refresh response did not contain a token');
     }
+
+    // Đã đăng xuất hoặc đổi phiên (user khác đăng nhập) trong lúc chờ refresh:
+    // không ghi đè token mới vào storage (FL-1).
+    if (await _authStorage.readToken() != currentToken) {
+      return null;
+    }
+    await _authStorage.saveToken(token);
     return token;
   }
 

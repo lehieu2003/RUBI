@@ -1,26 +1,11 @@
 import { NextRequest } from 'next/server';
-import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth/helpers';
 import { RecordPaymentBody } from '@/lib/contracts/customers';
 import { dong, recordAudit } from '@/lib/audit';
 import { apiSuccess, apiError } from '@/lib/api-response';
 import { Idempotency } from '@/lib/idempotency';
-
-// Postgres cancels one of two Serializable transactions that overlap (P2034).
-// The cancelled one wrote nothing, so it is simply run again.
-const MAX_ATTEMPTS = 3;
-
-async function retryIfCancelled<T>(run: () => Promise<T>): Promise<T> {
-  for (let attempt = 1; ; attempt++) {
-    try {
-      return await run();
-    } catch (error) {
-      const cancelled = error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2034';
-      if (!cancelled || attempt >= MAX_ATTEMPTS) throw error;
-    }
-  }
-}
+import { retryIfCancelled } from '@/lib/transactions';
 
 // POST /api/customers/[id]/payments — the manager records money received
 // from a customer. It is stored as a PAYMENT entry in the debt ledger, which

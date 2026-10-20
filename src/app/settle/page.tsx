@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { CheckCircle2, Clock, Search, Download, Package } from 'lucide-react';
 import { toast } from '@/components/dashboard/toast';
@@ -91,6 +92,7 @@ async function fetchSettledCount(date: string): Promise<number> {
 }
 
 export default function SettlePage() {
+  const queryClient = useQueryClient();
   const [orders, setOrders] = useState<OrderFromAPI[]>([]);
   const [awaiting, setAwaiting] = useState<OrderFromAPI[]>([]);
   const [completedCount, setCompletedCount] = useState(0);
@@ -211,6 +213,7 @@ export default function SettlePage() {
       setCompletedCount((previous) => previous + 1);
       setReconcileOrder(null);
       toast({ type: 'success', title: 'Đã chốt đơn thành công' });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
       try {
         const [ofToday, toSettle, settled] = await Promise.all([
           fetchOrdersOfDay(todayStr),
