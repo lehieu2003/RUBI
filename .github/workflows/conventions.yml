@@ -1,0 +1,40 @@
+# Repo-wide PR rules that must hold no matter which files a PR touches
+# (ci.yml and mobile.yml only run for their own paths). The branch name and
+# per-commit rules stay in the quality gates; this adds what they cannot see.
+name: Conventions
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  conventions:
+    name: Conventions
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: PR vào master chỉ từ release/*, hotfix/* (hoặc dev)
+        env:
+          BASE: ${{ github.base_ref }}
+          HEAD: ${{ github.head_ref }}
+        run: |
+          if [ "$BASE" = "master" ]; then
+            case "$HEAD" in
+              release/*|hotfix/*|dev) ;;
+              *) echo "::error::PR vào master chỉ từ release/*, hotfix/* (hoặc dev). Nhận: $HEAD"; exit 1 ;;
+            esac
+          fi
+
+      # The PR title becomes the squash-merge commit subject, so it must obey
+      # the same convention as commit messages.
+      - name: PR title (squash commit message)
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: bash scripts/validate.sh title "$TITLE"
