@@ -132,6 +132,11 @@ export default function LoginPage() {
           </button>
         </form>
       </div>
+      <p className="mt-4 text-center text-xs text-on-surface-variant">
+        <a href="/privacy" className="underline underline-offset-2 hover:text-on-surface">
+          Chính sách bảo mật
+        </a>
+      </p>
     </>
   );
 }
