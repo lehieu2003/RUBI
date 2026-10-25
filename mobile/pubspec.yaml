@@ -113,3 +113,11 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# Launcher icons: regenerate with `fvm dart run flutter_launcher_icons`
+# from the source PNGs in icon/ (play-store.png is uploaded to Play Console).
+flutter_launcher_icons:
+  android: true
+  image_path: "icon/icon.png"
+  adaptive_icon_background: "#075985"
+  adaptive_icon_foreground: "icon/icon-foreground.png"
