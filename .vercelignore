@@ -1,0 +1,7 @@
+.codegraph
+graph.dot
+mobile
+test-results
+playwright-report
+e2e-server.log
+mobile-e2e-server.log
