@@ -17,15 +17,27 @@ FROM base AS deps
 COPY package.json package-lock.json ./
 RUN npm ci
 
+# One-shot schema migration container: docker compose brings the app up only
+# after this exits successfully, so the app never boots against an old schema.
+FROM base AS migrate
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json package-lock.json ./
+COPY prisma ./prisma
+CMD ["npx", "prisma", "migrate", "deploy"]
+
 FROM base AS builder
+# NEXT_PUBLIC_* values are compiled into the JS bundle, so the real values
+# must be build args (docker compose reads them from .env).
+ARG NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=docker-build-anon-key
 ENV NODE_ENV=production
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN mkdir -p public \
   && npm run db:generate \
-  && NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 \
-    NEXT_PUBLIC_SUPABASE_ANON_KEY=docker-build-anon-key \
-    DATABASE_URL=postgresql://postgres:postgres@localhost:5432/iceflow?schema=public \
+  && DATABASE_URL=postgresql://postgres:postgres@localhost:5432/iceflow?schema=public \
     DIRECT_URL=postgresql://postgres:postgres@localhost:5432/iceflow?schema=public \
     JWT_SECRET=docker-build-secret-for-image-builds-only \
     npm run build

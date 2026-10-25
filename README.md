@@ -45,6 +45,10 @@ docker compose exec app npm run db:deploy
 docker compose exec app npm run db:seed
 ```
 
+## Build & Deploy
+
+Quy trình build web (Docker prod + migrate, hoặc Vercel) và mobile APK theo flavor (`config/dev.json` / `config/prod.json`), kèm mô hình nhánh release/hotfix và các workflow CI bảo vệ nhánh — xem [docs/BUILD-DEPLOY.md](docs/BUILD-DEPLOY.md).
+
 ## Tech Stack
 
 - **Frontend**: Next.js 15 (App Router), React 19, Tailwind CSS, shadcn/ui

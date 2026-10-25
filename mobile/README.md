@@ -18,6 +18,20 @@ Two things are generated and committed: the `fromJson` of the DTOs in `lib/featu
 fvm dart run build_runner build
 ```
 
+## Build & flavors
+
+Môi trường được chọn lúc compile bằng flavor file (`config/dev.json` hoặc `config/prod.json`), đọc qua `AppConfig` (`lib/core/config/app_config.dart`):
+
+```bash
+# Dev — trỏ về API trên emulator (10.0.2.2:3001); app có ruy băng DEV
+fvm flutter run --dart-define-from-file=config/dev.json
+
+# APK release — sửa URL thật trong config/prod.json trước khi build
+fvm flutter build apk --release --dart-define-from-file=config/prod.json
+```
+
+Bản `prod` thiếu `API_BASE_URL` (hoặc vẫn còn URL dev) sẽ ném lỗi ngay khi mở — build không bao giờ chạy "im lặng" sai máy. Chi tiết đầy đủ ở `docs/BUILD-DEPLOY.md`.
+
 ## Layout of `lib/core`
 
 What the features share.
@@ -26,6 +40,7 @@ What the features share.
 |---|---|
 | `bootstrap/` | `app_startup.dart`: everything that must be done before the first frame |
 | `auth/` | empty for now: reserved for auth wiring shared across features |
+| `config/` | `app_config.dart`: build flavor (`dev`/`prod`) and the API base URL chosen at compile time |
 | `constants/` | `api_constants.dart`: base URL and timeout of the API; `app_constants.dart`: the app's name |
 | `di/` | `injection_container.dart` (+ generated `.config.dart`) and `injection_modules.dart` for classes that cannot carry an annotation |
 | `extensions/` | `build_context_extensions.dart`: `context.colorScheme`, `context.textTheme` |
