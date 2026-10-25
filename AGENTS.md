@@ -95,12 +95,13 @@ Do not make direct repo edits outside a GSD workflow unless the user explicitly 
 
 Applies to every code change, including those made through a GSD command:
 
-1. **One branch per task.** Branch off `dev` before the first edit: `feat/<slug>`, `fix/<slug>`, `refactor/<slug>`, `docs/<slug>`, `chore/<slug>`. Do not add unrelated work to an existing branch.
-2. **Never commit or push directly to `dev` or `master`.** `dev` is the integration branch; `master` is the released line.
-3. **Every change lands through a Pull Request into `dev`**, with a description that says why, what changed, how it was verified and how to roll back. Rollback = revert the PR's merge commit.
+1. **One branch per task.** Branch off `dev` before the first edit: `feat/<slug>`, `fix/<slug>`, `refactor/<slug>`, `docs/<slug>`, `chore/<slug>`. Releases use `release/<version>` (or the plain `dev → master` PR), urgent fixes use `hotfix/<slug>` into `master`. Do not add unrelated work to an existing branch.
+2. **Never commit or push directly to `dev` or `master`.** `dev` is the integration branch; `master` is the released line. A direct/force push there is detected by `protected-branch-guard.yml` and turns into an issue.
+3. **Every change lands through a Pull Request into `dev`**, with a description that says why, what changed, how it was verified and how to roll back. Rollback = revert the PR's merge commit. PRs into `master` only from `release/*`, `hotfix/*` or `dev`; the PR title must be a Conventional Commit (it becomes the squash subject) — `conventions.yml` enforces both.
 4. **Commits follow Conventional Commits:** `type(scope): summary` — types `feat`, `fix`, `refactor`, `docs`, `test`, `chore`; scope optional (`mobile`, `api`, `ci`, ...); imperative summary; one logical change per commit.
 5. **Merge only when the CI "Quality Gate" is green** (lint, typecheck, test, build). Fix a red CI on the branch; do not merge around it. The mobile app has its own gate, "Mobile Quality Gate" (`flutter analyze`, `flutter test`): a change under `mobile/` runs that one, a change anywhere else runs the web gate, and a change to both runs both. The planning notes in `.planning/` count for neither.
 6. Schema changes go through Prisma Migrate only (`npm run db:migrate` creates the migration file, `npm run db:deploy` applies it); never `prisma db push`. Call them out in the PR, because reverting the code does not restore dropped data.
+7. **Build & deploy follow [docs/BUILD-DEPLOY.md](docs/BUILD-DEPLOY.md):** web via `docker-compose.prod.yml` (migration container runs before the app) or Vercel; mobile APK built per flavor with `--dart-define-from-file=config/<flavor>.json` — always update `mobile/config/prod.json` first.
 
 
 

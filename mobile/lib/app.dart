@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:iceflow_mobile/core/config/app_config.dart';
 import 'package:iceflow_mobile/core/constants/app_constants.dart';
 import 'package:iceflow_mobile/core/router/app_router.dart';
 import 'package:iceflow_mobile/core/theme/app_theme.dart';
@@ -63,6 +64,19 @@ class IceFlowApp extends HookWidget {
           localizationsDelegates: GlobalMaterialLocalizations.delegates,
           routerConfig: router,
           scaffoldMessengerKey: messengerKey,
+          // Bản dev mang ruy băng "DEV" góc phải để không bao giờ bị nhầm
+          // với bản prod cài cho tài xế / nhân viên.
+          builder: (context, child) {
+            Widget app = child ?? const SizedBox.shrink();
+            if (!AppConfig().isProd) {
+              app = Banner(
+                message: 'DEV',
+                location: BannerLocation.topEnd,
+                child: app,
+              );
+            }
+            return app;
+          },
         ),
       ),
     );

@@ -3,6 +3,7 @@
 #
 #   validate.sh commit-msg <file>      check one commit message file
 #   validate.sh branch [name]          check a branch name (default: current)
+#   validate.sh title <title>          check a PR title (it becomes the squash subject)
 #   validate.sh range <base> <head>    check every commit subject in base..head
 #   validate.sh pre-push               block pushes to protected branches (reads git's pre-push stdin)
 set -euo pipefail
@@ -10,7 +11,7 @@ set -euo pipefail
 TYPES='feat|fix|refactor|docs|test|chore'
 PROTECTED='dev|master'
 SUBJECT_RE="^(${TYPES})(\([a-z0-9._/-]+\))?!?: .+"
-BRANCH_RE="^(${TYPES})/[a-z0-9][a-z0-9._-]*$"
+BRANCH_RE="^(${TYPES}|release|hotfix)/[a-z0-9][a-z0-9._-]*$"
 
 fail() {
   echo "✖ $1" >&2
@@ -39,9 +40,9 @@ check_branch() {
   fi
   if [[ ! "$branch" =~ $BRANCH_RE ]]; then
     fail "Tên nhánh không đúng quy ước: '$branch'" \
-      "Định dạng: <type>/<ten-viec>, chữ thường, số, dấu - . _" \
+      "Định dạng: <type>/<ten-viec> hoặc release|hotfix/<ten>, chữ thường, số, dấu - . _" \
       "type: ${TYPES//|/, }" \
-      "Ví dụ: feat/customer-import, fix/login-redirect"
+      "Ví dụ: feat/customer-import, fix/login-redirect, release/1.2.0, hotfix/out-of-stock"
   fi
 }
 
@@ -55,6 +56,10 @@ case "${1:-}" in
     # Detached HEAD (rebase, bisect): nothing to check.
     [[ -n "$branch" ]] || exit 0
     check_branch "$branch"
+    ;;
+  title)
+    [[ -n "${2:-}" ]] || fail "Thiếu tiêu đề PR."
+    check_subject "$2"
     ;;
   range)
     [[ -n "${2:-}" && -n "${3:-}" ]] || fail "Cách dùng: validate.sh range <base> <head>"
@@ -72,6 +77,6 @@ case "${1:-}" in
     done
     ;;
   *)
-    fail "Cách dùng: validate.sh commit-msg <file> | branch [name] | range <base> <head> | pre-push"
+    fail "Cách dùng: validate.sh commit-msg <file> | branch [name] | title <tên-PR> | range <base> <head> | pre-push"
     ;;
 esac
